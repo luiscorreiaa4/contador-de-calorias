@@ -25,29 +25,13 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
 
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'O nome completo é obrigatório.';
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = 'O e-mail é obrigatório.';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Digite um e-mail válido.';
-    }
-
-    if (!formData.password) {
-      newErrors.password = 'A senha é obrigatória.';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'A senha deve ter no mínimo 6 caracteres.';
-    }
-
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Confirme sua senha.';
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'As senhas não coincidem.';
-    }
-
+    if (!formData.name.trim()) newErrors.name = 'O nome é obrigatório.';
+    if (!formData.email.trim()) newErrors.email = 'O e-mail é obrigatório.';
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Digite um e-mail válido.';
+    if (!formData.password) newErrors.password = 'A senha é obrigatória.';
+    else if (formData.password.length < 6) newErrors.password = 'Mínimo 6 caracteres.';
+    if (!formData.confirmPassword) newErrors.confirmPassword = 'Confirme sua senha.';
+    else if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'As senhas não coincidem.';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -55,20 +39,15 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setServerError(null);
-
     if (!validate()) return;
-
     setIsLoading(true);
-
     try {
       const response = await registerUser(formData);
       setAuthSession(response.user, response.token);
-      if (onSuccess) {
-        onSuccess();
-      }
+      if (onSuccess) onSuccess();
     } catch (err: any) {
       if (err.message.includes('Failed to fetch') || err.message.includes('fetch')) {
-        setServerError('Não foi possível conectar ao servidor. Certifique-se de que o backend está rodando (npm run server).');
+        setServerError('Não foi possível conectar ao servidor.');
       } else {
         setServerError(err.message || 'Erro ao realizar cadastro. Tente novamente.');
       }
@@ -77,27 +56,36 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
     }
   };
 
+  const inputBase =
+    'w-full pl-9 pr-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/60 border rounded-lg text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 transition-colors duration-150 min-h-[42px]';
+  const inputNormal =
+    'border-zinc-200 dark:border-zinc-700 focus:border-indigo-500 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none';
+  const inputError =
+    'border-red-400 dark:border-red-500 bg-red-50/50 dark:bg-red-950/20 focus:ring-2 focus:ring-red-400/20 outline-none';
+
+  const goals = [
+    { key: 'perder_peso', label: 'Emagrecer', icon: <Flame className="w-4 h-4 text-orange-400" aria-hidden="true" /> },
+    { key: 'manter_peso', label: 'Manter', icon: <Target className="w-4 h-4 text-sky-400" aria-hidden="true" /> },
+    { key: 'ganhar_massa', label: 'Ganhar massa', icon: <TrendingUp className="w-4 h-4 text-violet-400" aria-hidden="true" /> },
+  ] as const;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+    <form onSubmit={handleSubmit} className="space-y-3.5" noValidate>
       {serverError && (
-        <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-sm flex items-center gap-2">
-          <AlertCircle className="w-5 h-5 shrink-0" aria-hidden="true" />
+        <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-xs flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
           <span>{serverError}</span>
         </div>
       )}
 
-      {/* Name Field */}
+      {/* Name */}
       <div>
-        <label
-          htmlFor="register-name"
-          className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1"
-        >
-          Nome Completo
+        <label htmlFor="register-name" className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
+          Nome
         </label>
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
-            <User className="w-5 h-5" aria-hidden="true" />
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
+            <User className="w-4 h-4" aria-hidden="true" />
           </div>
           <input
             id="register-name"
@@ -107,34 +95,25 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
               setFormData({ ...formData, name: e.target.value });
               if (errors.name) setErrors({ ...errors, name: undefined });
             }}
-            placeholder="Seu Nome"
+            placeholder="Seu nome"
             aria-invalid={!!errors.name}
             aria-describedby={errors.name ? 'register-name-error' : undefined}
-            className={`w-full pl-11 pr-4 py-2.5 rounded-xl border ${
-              errors.name
-                ? 'border-red-500 bg-red-50/50 dark:bg-red-950/20 text-red-900 dark:text-red-200'
-                : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-900 dark:text-slate-100'
-            } placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm transition-colors min-h-[44px]`}
+            className={`${inputBase} ${errors.name ? inputError : inputNormal}`}
           />
         </div>
         {errors.name && (
-          <p id="register-name-error" className="mt-1 text-xs text-red-600 dark:text-red-400 font-medium">
-            {errors.name}
-          </p>
+          <p id="register-name-error" className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.name}</p>
         )}
       </div>
 
-      {/* Email Field */}
+      {/* Email */}
       <div>
-        <label
-          htmlFor="register-email"
-          className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1"
-        >
+        <label htmlFor="register-email" className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
           E-mail
         </label>
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
-            <Mail className="w-5 h-5" aria-hidden="true" />
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
+            <Mail className="w-4 h-4" aria-hidden="true" />
           </div>
           <input
             id="register-email"
@@ -144,81 +123,49 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
               setFormData({ ...formData, email: e.target.value });
               if (errors.email) setErrors({ ...errors, email: undefined });
             }}
-            placeholder="seu.email@exemplo.com"
+            placeholder="seu@email.com"
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? 'register-email-error' : undefined}
-            className={`w-full pl-11 pr-4 py-2.5 rounded-xl border ${
-              errors.email
-                ? 'border-red-500 bg-red-50/50 dark:bg-red-950/20 text-red-900 dark:text-red-200'
-                : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-900 dark:text-slate-100'
-            } placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm transition-colors min-h-[44px]`}
+            className={`${inputBase} ${errors.email ? inputError : inputNormal}`}
           />
         </div>
         {errors.email && (
-          <p id="register-email-error" className="mt-1 text-xs text-red-600 dark:text-red-400 font-medium">
-            {errors.email}
-          </p>
+          <p id="register-email-error" className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.email}</p>
         )}
       </div>
 
-      {/* Goal Selection */}
+      {/* Goal */}
       <div>
-        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
-          Seu Objetivo Principal
+        <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
+          Objetivo
         </label>
-        <div className="grid grid-cols-3 gap-2">
-          <button
-            type="button"
-            onClick={() => setFormData({ ...formData, goal: 'perder_peso' })}
-            className={`p-2.5 rounded-xl border text-left flex flex-col items-center justify-center gap-1 transition-all ${
-              formData.goal === 'perder_peso'
-                ? 'border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 ring-2 ring-emerald-500/20'
-                : 'border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 text-slate-600 dark:text-slate-400'
-            }`}
-          >
-            <Flame className="w-4 h-4 text-orange-500" aria-hidden="true" />
-            <span className="text-xs font-semibold text-center">Emagrecer</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setFormData({ ...formData, goal: 'manter_peso' })}
-            className={`p-2.5 rounded-xl border text-left flex flex-col items-center justify-center gap-1 transition-all ${
-              formData.goal === 'manter_peso'
-                ? 'border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 ring-2 ring-emerald-500/20'
-                : 'border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 text-slate-600 dark:text-slate-400'
-            }`}
-          >
-            <Target className="w-4 h-4 text-blue-500" aria-hidden="true" />
-            <span className="text-xs font-semibold text-center">Manter</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setFormData({ ...formData, goal: 'ganhar_massa' })}
-            className={`p-2.5 rounded-xl border text-left flex flex-col items-center justify-center gap-1 transition-all ${
-              formData.goal === 'ganhar_massa'
-                ? 'border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 ring-2 ring-emerald-500/20'
-                : 'border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 text-slate-600 dark:text-slate-400'
-            }`}
-          >
-            <TrendingUp className="w-4 h-4 text-purple-500" aria-hidden="true" />
-            <span className="text-xs font-semibold text-center">Ganhar Massa</span>
-          </button>
+        <div className="grid grid-cols-3 gap-1.5">
+          {goals.map(({ key, label, icon }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setFormData({ ...formData, goal: key })}
+              className={`p-2 rounded-lg border text-center flex flex-col items-center gap-1 transition-all text-xs font-medium min-h-[56px] ${
+                formData.goal === key
+                  ? 'border-indigo-300 dark:border-indigo-500/60 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300'
+                  : 'border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:border-zinc-300 dark:hover:border-zinc-600'
+              }`}
+            >
+              {icon}
+              <span>{label}</span>
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Password Field */}
+      {/* Password */}
       <div>
-        <label
-          htmlFor="register-password"
-          className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1"
-        >
+        <label htmlFor="register-password" className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
           Senha
         </label>
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
-            <Lock className="w-5 h-5" aria-hidden="true" />
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
+            <Lock className="w-4 h-4" aria-hidden="true" />
           </div>
           <input
             id="register-password"
@@ -231,43 +178,30 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
             placeholder="Mínimo 6 caracteres"
             aria-invalid={!!errors.password}
             aria-describedby={errors.password ? 'register-password-error' : undefined}
-            className={`w-full pl-11 pr-11 py-2.5 rounded-xl border ${
-              errors.password
-                ? 'border-red-500 bg-red-50/50 dark:bg-red-950/20 text-red-900 dark:text-red-200'
-                : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-900 dark:text-slate-100'
-            } placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm transition-colors min-h-[44px]`}
+            className={`${inputBase} pr-9 ${errors.password ? inputError : inputNormal}`}
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             aria-label={showPassword ? 'Ocultar senha' : 'Exibir senha'}
-            className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 min-w-[44px] justify-center transition-colors"
+            className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
           >
-            {showPassword ? (
-              <EyeOff className="w-5 h-5" aria-hidden="true" />
-            ) : (
-              <Eye className="w-5 h-5" aria-hidden="true" />
-            )}
+            {showPassword ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
           </button>
         </div>
         {errors.password && (
-          <p id="register-password-error" className="mt-1 text-xs text-red-600 dark:text-red-400 font-medium">
-            {errors.password}
-          </p>
+          <p id="register-password-error" className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.password}</p>
         )}
       </div>
 
-      {/* Confirm Password Field */}
+      {/* Confirm Password */}
       <div>
-        <label
-          htmlFor="register-confirm-password"
-          className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1"
-        >
-          Confirmar Senha
+        <label htmlFor="register-confirm-password" className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
+          Confirmar senha
         </label>
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
-            <Lock className="w-5 h-5" aria-hidden="true" />
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
+            <Lock className="w-4 h-4" aria-hidden="true" />
           </div>
           <input
             id="register-confirm-password"
@@ -280,44 +214,34 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
             placeholder="Repita sua senha"
             aria-invalid={!!errors.confirmPassword}
             aria-describedby={errors.confirmPassword ? 'register-confirm-password-error' : undefined}
-            className={`w-full pl-11 pr-11 py-2.5 rounded-xl border ${
-              errors.confirmPassword
-                ? 'border-red-500 bg-red-50/50 dark:bg-red-950/20 text-red-900 dark:text-red-200'
-                : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-slate-900 dark:text-slate-100'
-            } placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm transition-colors min-h-[44px]`}
+            className={`${inputBase} pr-9 ${errors.confirmPassword ? inputError : inputNormal}`}
           />
           <button
             type="button"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             aria-label={showConfirmPassword ? 'Ocultar senha' : 'Exibir senha'}
-            className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 min-w-[44px] justify-center transition-colors"
+            className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
           >
-            {showConfirmPassword ? (
-              <EyeOff className="w-5 h-5" aria-hidden="true" />
-            ) : (
-              <Eye className="w-5 h-5" aria-hidden="true" />
-            )}
+            {showConfirmPassword ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
           </button>
         </div>
         {errors.confirmPassword && (
-          <p id="register-confirm-password-error" className="mt-1 text-xs text-red-600 dark:text-red-400 font-medium">
-            {errors.confirmPassword}
-          </p>
+          <p id="register-confirm-password-error" className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.confirmPassword}</p>
         )}
       </div>
 
-      {/* Submit Button */}
+      {/* Submit */}
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full mt-2 py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-semibold rounded-xl shadow-lg shadow-emerald-600/25 transition-all duration-200 flex items-center justify-center gap-2 min-h-[48px] focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 disabled:opacity-70 disabled:cursor-not-allowed"
+        className="w-full mt-1 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-medium rounded-lg transition-colors duration-150 flex items-center justify-center gap-2 min-h-[42px] disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {isLoading ? (
-          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
         ) : (
           <>
-            <span>Criar Minha Conta</span>
-            <UserPlus className="w-5 h-5" aria-hidden="true" />
+            <span>Criar conta</span>
+            <UserPlus className="w-4 h-4" aria-hidden="true" />
           </>
         )}
       </button>

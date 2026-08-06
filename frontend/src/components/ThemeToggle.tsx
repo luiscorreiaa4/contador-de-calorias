@@ -13,12 +13,12 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ darkMode, onToggle }) 
       onClick={onToggle}
       aria-label={darkMode ? 'Alternar para modo claro' : 'Alternar para modo escuro'}
       title={darkMode ? 'Modo Claro' : 'Modo Escuro'}
-      className="p-3 rounded-full bg-slate-200/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm flex items-center justify-center min-w-[44px] min-h-[44px]"
+      className="p-2 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200 flex items-center justify-center min-w-[40px] min-h-[40px]"
     >
       {darkMode ? (
-        <Sun className="w-5 h-5 text-amber-400 animate-spin-slow" aria-hidden="true" />
+        <Sun className="w-4 h-4" aria-hidden="true" />
       ) : (
-        <Moon className="w-5 h-5 text-slate-700" aria-hidden="true" />
+        <Moon className="w-4 h-4" aria-hidden="true" />
       )}
     </button>
   );

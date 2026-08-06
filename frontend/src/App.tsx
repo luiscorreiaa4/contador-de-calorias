@@ -35,10 +35,17 @@ function AppContent() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300 flex flex-col justify-between relative overflow-hidden font-sans">
-      {/* Dynamic Ambient Glows */}
-      <div className="absolute top-0 -left-40 w-96 h-96 bg-emerald-500/10 dark:bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 -right-40 w-96 h-96 bg-teal-500/10 dark:bg-teal-500/15 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors duration-300 flex flex-col justify-between relative overflow-hidden">
+      {/* Subtle dot grid background */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-40 dark:opacity-20"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='1' cy='1' r='1' fill='%236366f1' fill-opacity='0.25'/%3E%3C/svg%3E")`,
+          backgroundSize: '20px 20px',
+        }}
+      />
+      {/* Single ambient glow — top right */}
+      <div className="absolute -top-32 -right-32 w-80 h-80 bg-indigo-400/15 dark:bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Separate Layout Header */}
       <Header darkMode={darkMode} onToggleTheme={toggleTheme} />
