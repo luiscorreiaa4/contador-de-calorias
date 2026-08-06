@@ -79,7 +79,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
               setFormData({ ...formData, email: e.target.value });
               if (errors.email) setErrors({ ...errors, email: undefined });
             }}
-            placeholder="seu@email.com"
+            placeholder="example@email.com"
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? 'login-email-error' : undefined}
             className={`${inputBase} ${errors.email ? inputError : inputNormal}`}
@@ -94,18 +94,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
 
       {/* Password */}
       <div>
-        <div className="flex items-center justify-between mb-1.5">
-          <label htmlFor="login-password" className="block text-xs font-medium text-zinc-500 dark:text-zinc-400">
-            Senha
-          </label>
-          <a
-            href="#forgot-password"
-            onClick={(e) => e.preventDefault()}
-            className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 transition-colors focus:outline-none focus:underline"
-          >
-            Esqueceu?
-          </a>
-        </div>
+        <label htmlFor="login-password" className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
+          Senha
+        </label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
             <Lock className="w-4 h-4" aria-hidden="true" />
@@ -139,18 +130,27 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
         )}
       </div>
 
-      {/* Remember Me */}
-      <div className="flex items-center gap-2">
-        <input
-          id="remember-me"
-          type="checkbox"
-          checked={formData.rememberMe}
-          onChange={(e) => setFormData({ ...formData, rememberMe: e.target.checked })}
-          className="w-3.5 h-3.5 rounded border-zinc-300 dark:border-zinc-600 text-indigo-600 focus:ring-indigo-500 dark:bg-zinc-800 cursor-pointer"
-        />
-        <label htmlFor="remember-me" className="text-xs text-zinc-500 dark:text-zinc-400 cursor-pointer select-none">
-          Lembrar-me
-        </label>
+      {/* Remember Me & Forgot Password */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <input
+            id="remember-me"
+            type="checkbox"
+            checked={formData.rememberMe}
+            onChange={(e) => setFormData({ ...formData, rememberMe: e.target.checked })}
+            className="w-3.5 h-3.5 rounded border-zinc-300 dark:border-zinc-600 text-indigo-600 focus:ring-indigo-500 dark:bg-zinc-800 cursor-pointer"
+          />
+          <label htmlFor="remember-me" className="text-xs text-zinc-500 dark:text-zinc-400 cursor-pointer select-none">
+            Lembrar-me
+          </label>
+        </div>
+        <a
+          href="#forgot-password"
+          onClick={(e) => e.preventDefault()}
+          className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 transition-colors focus:outline-none focus:underline"
+        >
+          Esqueceu sua senha?
+        </a>
       </div>
 
       {/* Submit */}
