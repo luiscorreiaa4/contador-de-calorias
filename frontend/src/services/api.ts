@@ -23,6 +23,10 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
   const json: ApiResponse<T> = await response.json();
 
   if (!response.ok || !json.success) {
+    if (response.status === 401 || (response.status === 404 && json.message === 'Usuário não encontrado.')) {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('user_session');
+    }
     throw new Error(json.message ?? 'Erro ao comunicar com a API.');
   }
 

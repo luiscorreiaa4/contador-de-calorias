@@ -12,6 +12,8 @@ export interface RegisterFormData {
   password: string;
   confirmPassword: string;
   goal: 'perder_peso' | 'manter_peso' | 'ganhar_massa';
+  sex: 'masculino' | 'feminino' | 'prefiro_nao_responder' | '';
+  birthDate: string;
 }
 
 export interface FormErrors {

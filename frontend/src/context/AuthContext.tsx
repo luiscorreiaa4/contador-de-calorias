@@ -6,6 +6,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   token: string | null;
   setAuthSession: (user: UserProfile, token: string) => void;
+  updateUserSession: (user: UserProfile) => void;
   logout: () => void;
 }
 
@@ -25,6 +26,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('auth_token', authToken);
   };
 
+  const updateUserSession = (userData: UserProfile) => {
+    setUser(userData);
+    localStorage.setItem('user_session', JSON.stringify(userData));
+  };
+
   const logout = () => {
     setUser(null);
     setToken(null);
@@ -39,6 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         token,
         isAuthenticated: !!user && !!token,
         setAuthSession,
+        updateUserSession,
         logout,
       }}
     >

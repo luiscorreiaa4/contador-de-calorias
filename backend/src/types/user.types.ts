@@ -4,6 +4,8 @@ export interface User {
   email: string;
   password_hash: string;
   goal: 'perder_peso' | 'manter_peso' | 'ganhar_massa';
+  sex: 'masculino' | 'feminino' | 'prefiro_nao_responder';
+  birth_date: string;
   created_at: Date;
   updated_at: Date;
 }

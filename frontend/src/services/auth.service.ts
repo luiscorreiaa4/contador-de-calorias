@@ -6,6 +6,8 @@ export interface UserProfile {
   name: string;
   email: string;
   goal: string;
+  sex?: string;
+  birth_date?: string;
   created_at: string;
   updated_at: string;
 }
@@ -13,6 +15,16 @@ export interface UserProfile {
 export interface AuthResponseData {
   user: UserProfile;
   token: string;
+}
+
+export interface UpdateProfileData {
+  name?: string;
+  email?: string;
+  goal?: string;
+  sex?: string;
+  birthDate?: string;
+  currentPassword?: string;
+  newPassword?: string;
 }
 
 export async function loginUser(data: LoginFormData): Promise<AuthResponseData> {
@@ -33,10 +45,25 @@ export async function registerUser(data: RegisterFormData): Promise<AuthResponse
       email: data.email,
       password: data.password,
       goal: data.goal,
+      sex: data.sex,
+      birthDate: data.birthDate,
     }),
   });
 }
 
 export async function getCurrentUserProfile(): Promise<UserProfile> {
   return apiFetch<UserProfile>('/users/me');
+}
+
+export async function updateUserProfile(data: UpdateProfileData): Promise<UserProfile> {
+  return apiFetch<UserProfile>('/users/me', {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteUserAccount(): Promise<void> {
+  return apiFetch<void>('/users/me', {
+    method: 'DELETE',
+  });
 }

@@ -1,8 +1,12 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Flame, LogOut, Plus, Utensils, Droplets, Target } from 'lucide-react';
+import { Flame, LogOut, Plus, Utensils, Droplets, Target, UserCog } from 'lucide-react';
 
-export const DashboardPage: React.FC = () => {
+interface DashboardPageProps {
+  onNavigateToEditProfile?: () => void;
+}
+
+export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigateToEditProfile }) => {
   const { user, logout } = useAuth();
 
   return (
@@ -21,14 +25,27 @@ export const DashboardPage: React.FC = () => {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={logout}
-          className="py-2.5 px-4 bg-white/10 hover:bg-white/20 active:bg-white/30 text-white border border-white/20 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all min-h-[44px]"
-        >
-          <LogOut className="w-4 h-4" aria-hidden="true" />
-          <span>Sair da Conta</span>
-        </button>
+        <div className="flex items-center gap-2.5 w-full sm:w-auto">
+          {onNavigateToEditProfile && (
+            <button
+              type="button"
+              onClick={onNavigateToEditProfile}
+              className="py-2.5 px-4 bg-white text-emerald-800 hover:bg-emerald-50 active:bg-emerald-100 font-semibold rounded-xl text-sm shadow-md flex items-center justify-center gap-2 transition-all min-h-[44px] flex-1 sm:flex-initial"
+            >
+              <UserCog className="w-4 h-4" aria-hidden="true" />
+              <span>Editar Perfil</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={logout}
+            className="py-2.5 px-4 bg-white/10 hover:bg-white/20 active:bg-white/30 text-white border border-white/20 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all min-h-[44px] flex-1 sm:flex-initial"
+          >
+            <LogOut className="w-4 h-4" aria-hidden="true" />
+            <span>Sair</span>
+          </button>
+        </div>
       </div>
 
       {/* Daily Metrics Grid */}

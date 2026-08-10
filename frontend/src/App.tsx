@@ -3,11 +3,14 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoginPage } from './pages/public/LoginPage';
 import { DashboardPage } from './pages/private/DashboardPage';
+import { EditProfilePage } from './pages/private/EditProfilePage';
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 
 function AppContent() {
   const { isAuthenticated } = useAuth();
+  const [currentView, setCurrentView] = useState<'dashboard' | 'edit-profile'>('dashboard');
+
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       return (
@@ -54,7 +57,11 @@ function AppContent() {
       <main className="flex-1 flex items-center justify-center z-10 my-4">
         {isAuthenticated ? (
           <ProtectedRoute>
-            <DashboardPage />
+            {currentView === 'dashboard' ? (
+              <DashboardPage onNavigateToEditProfile={() => setCurrentView('edit-profile')} />
+            ) : (
+              <EditProfilePage onBack={() => setCurrentView('dashboard')} />
+            )}
           </ProtectedRoute>
         ) : (
           <LoginPage />
