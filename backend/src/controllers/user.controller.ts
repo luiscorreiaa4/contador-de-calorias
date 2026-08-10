@@ -80,7 +80,8 @@ export async function deleteAccount(req: AuthenticatedRequest, res: Response) {
     if (!req.userId) {
       return res.status(401).json({ success: false, message: 'Usuário não autenticado.' });
     }
-    await UserService.deleteAccount(req.userId);
+    const { password } = req.body;
+    await UserService.deleteAccount(req.userId, password);
     return res.status(200).json({
       success: true,
       message: 'Sua conta foi excluída com sucesso.',

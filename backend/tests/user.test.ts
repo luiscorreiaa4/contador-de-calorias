@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { registerUserSchema, loginUserSchema, updateUserSchema } from '../src/schemas/user.schema.js';
+import { registerUserSchema, loginUserSchema, updateUserSchema, deleteUserSchema } from '../src/schemas/user.schema.js';
 
 describe('User Schema Validation (registerUserSchema)', () => {
   it('deve validar com sucesso um cadastro com dados válidos', () => {
@@ -159,5 +159,19 @@ describe('User Schema Validation (updateUserSchema)', () => {
     if (result.success) {
       assert.strictEqual(result.data.name, 'Luis Correia');
     }
+  });
+});
+
+describe('User Schema Validation (deleteUserSchema)', () => {
+  it('deve validar requisição de exclusão de conta com senha', () => {
+    const result = deleteUserSchema.safeParse({
+      password: 'minhaSenha123',
+    });
+    assert.strictEqual(result.success, true);
+  });
+
+  it('deve rejeitar exclusão de conta sem informar a senha', () => {
+    const result = deleteUserSchema.safeParse({});
+    assert.strictEqual(result.success, false);
   });
 });

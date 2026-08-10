@@ -134,13 +134,27 @@ export async function updateProfile(userId: string, data: UpdateUserDTO): Promis
   return updatedUser;
 }
 
-export async function deleteAccount(userId: string): Promise<boolean> {
-  const user = await UserModel.findUserById(userId);
+export async function deleteAccount(userId: string, password?: string): Promise<boolean> {
+  const user = await UserModel.findFullUserById(userId);
   if (!user) {
     const error: CustomError = new Error('Usuário não encontrado.');
     error.statusCode = 404;
     throw error;
   }
+
+  if (!password || !password.trim()) {
+    const error: CustomError = new Error('Informe sua senha para confirmar a exclusão da conta.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+  if (!isPasswordValid) {
+    const error: CustomError = new Error('Senha incorreta.');
+    error.statusCode = 400;
+    throw error;
+  }
+
   return await UserModel.deleteUser(userId);
 }
 

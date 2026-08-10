@@ -32,6 +32,11 @@ export const updateUserSchema = z.object({
   }
 });
 
+export const deleteUserSchema = z.object({
+  password: z.string().min(1, 'Informe sua senha para confirmar a exclusão da conta.'),
+});
+
 export type RegisterUserDTO = z.infer<typeof registerUserSchema>;
 export type LoginUserDTO = z.infer<typeof loginUserSchema>;
 export type UpdateUserDTO = z.infer<typeof updateUserSchema>;
+export type DeleteUserDTO = z.infer<typeof deleteUserSchema>;

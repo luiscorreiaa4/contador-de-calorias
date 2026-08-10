@@ -62,8 +62,9 @@ export async function updateUserProfile(data: UpdateProfileData): Promise<UserPr
   });
 }
 
-export async function deleteUserAccount(): Promise<void> {
+export async function deleteUserAccount(password: string): Promise<void> {
   return apiFetch<void>('/users/me', {
     method: 'DELETE',
+    body: JSON.stringify({ password }),
   });
 }
