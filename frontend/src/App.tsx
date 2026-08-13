@@ -38,7 +38,7 @@ function AppContent() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors duration-300 flex flex-col justify-between relative overflow-hidden">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors duration-300 flex flex-col justify-between relative overflow-x-hidden">
       {/* Subtle dot grid background */}
       <div
         className="absolute inset-0 pointer-events-none opacity-40 dark:opacity-20"
@@ -69,7 +69,7 @@ function AppContent() {
       </main>
 
       {/* Separate Layout Footer */}
-      <Footer />
+      <Footer darkMode={darkMode} onToggleTheme={toggleTheme} />
     </div>
   );
 }

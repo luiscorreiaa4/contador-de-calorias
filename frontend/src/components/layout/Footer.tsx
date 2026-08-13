@@ -1,11 +1,12 @@
 import React from 'react';
+import { FooterSection } from '../ui/footer-section';
 
-export const Footer: React.FC = () => {
-  const currentYear = new Date().getFullYear();
+export interface FooterProps {
+  darkMode: boolean;
+  onToggleTheme: () => void;
+}
 
-  return (
-    <footer className="w-full px-5 py-5 text-center z-10">
-      <p className="text-xs text-zinc-400 dark:text-zinc-600">© {currentYear} Contador de Calorias</p>
-    </footer>
-  );
+export const Footer: React.FC<FooterProps> = ({ darkMode, onToggleTheme }) => {
+  return <FooterSection darkMode={darkMode} onToggleTheme={onToggleTheme} />;
 };
+

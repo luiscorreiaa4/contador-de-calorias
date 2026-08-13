@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Flame, LogOut, Plus, Utensils, Droplets, Target, UserCog } from 'lucide-react';
+import { NewMealModal } from '../../components/meals/NewMealModal';
 
 interface DashboardPageProps {
   onNavigateToEditProfile?: () => void;
@@ -8,6 +9,7 @@ interface DashboardPageProps {
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigateToEditProfile }) => {
   const { user, logout } = useAuth();
+  const [isNewMealModalOpen, setIsNewMealModalOpen] = React.useState(false);
 
   return (
     <div className="w-full max-w-5xl mx-auto px-4 py-8 space-y-6">
@@ -114,12 +116,18 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigateToEditPr
         </div>
         <button
           type="button"
+          onClick={() => setIsNewMealModalOpen(true)}
           className="py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl shadow-md text-sm flex items-center gap-2 min-h-[44px] transition-all"
         >
           <Plus className="w-4 h-4" aria-hidden="true" />
           <span>Nova Refeição</span>
         </button>
       </div>
+
+      <NewMealModal 
+        isOpen={isNewMealModalOpen}
+        onClose={() => setIsNewMealModalOpen(false)}
+      />
     </div>
   );
 };
