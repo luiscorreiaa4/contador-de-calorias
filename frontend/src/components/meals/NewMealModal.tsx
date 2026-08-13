@@ -1,37 +1,20 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { X, Utensils, Plus, Loader2, Trash2, ChevronDown, Flame } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getFoods, type Food } from '../../services/food.service';
+import { createMeal, updateMeal, type Meal, type CreateMealDTO } from '../../services/meal.service';
 
 interface NewMealModalProps {
   isOpen: boolean;
   onClose: () => void;
-}
-
-interface FoodItem {
-  id: string;
-  name: string;
-  calories: number;
-  unit: string;
-  defaultAmount: number;
+  mealToEdit?: Meal | null;
 }
 
 interface MealItem {
   uid: string;
-  food: FoodItem;
+  food: Food;
   amount: number;
 }
-
-const MOCK_FOODS: FoodItem[] = [
-  { id: '1', name: 'Arroz branco cozido', calories: 130, unit: 'g', defaultAmount: 100 },
-  { id: '2', name: 'Feijão carioca cozido', calories: 76, unit: 'g', defaultAmount: 100 },
-  { id: '3', name: 'Peito de frango grelhado', calories: 165, unit: 'g', defaultAmount: 100 },
-  { id: '4', name: 'Filé de tilápia grelhado', calories: 96, unit: 'g', defaultAmount: 100 },
-  { id: '5', name: 'Batata-doce cozida', calories: 86, unit: 'g', defaultAmount: 100 },
-  { id: '6', name: 'Ovo cozido', calories: 77, unit: 'unid.', defaultAmount: 1 },
-  { id: '7', name: 'Banana prata', calories: 89, unit: 'unid.', defaultAmount: 1 },
-  { id: '8', name: 'Maçã', calories: 52, unit: 'g', defaultAmount: 100 },
-  { id: '9', name: 'Pão francês', calories: 269, unit: 'g', defaultAmount: 50 },
-  { id: '10', name: 'Iogurte natural desnatado', calories: 56, unit: 'g', defaultAmount: 170 },
-];
 
 const MEAL_TYPES = [
   { value: 'café da manhã', label: 'Café da Manhã', emoji: '🌅' },
@@ -40,36 +23,89 @@ const MEAL_TYPES = [
   { value: 'jantar', label: 'Jantar', emoji: '🌙' },
 ];
 
-function calcCalories(food: FoodItem, amount: number): number {
-  return Math.round((food.calories / food.defaultAmount) * amount);
+function calcCalories(food: Food, amount: number): number {
+  return Math.round(Number(food.calories) * amount);
 }
 
-export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose }) => {
+export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mealToEdit }) => {
+  const queryClient = useQueryClient();
+  const { data: foodsData, isLoading: isLoadingFoods } = useQuery<Food[]>({
+    queryKey: ['foods'],
+    queryFn: getFoods,
+    enabled: isOpen,
+  });
+
+  const foods = useMemo(() => foodsData || [], [foodsData]);
+
   const [mealType, setMealType] = useState('almoço');
   const [selectedFoodId, setSelectedFoodId] = useState('');
   const [amount, setAmount] = useState<number | ''>('');
   const [mealItems, setMealItems] = useState<MealItem[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const modalRef = useRef<HTMLDivElement>(null);
   const amountInputRef = useRef<HTMLInputElement>(null);
 
-  const selectedFood = MOCK_FOODS.find((f) => f.id === selectedFoodId) ?? null;
+  const selectedFood = foods.find((f) => f.id === selectedFoodId) ?? null;
+
+  const createMealMutation = useMutation({
+    mutationFn: (data: CreateMealDTO) => createMeal(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['todayMeals'] });
+      onClose();
+    },
+    onError: (error: Error) => {
+      alert(`Erro ao criar refeição: ${error.message}`);
+    }
+  });
+
+  const updateMealMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: CreateMealDTO }) => updateMeal(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['todayMeals'] });
+      onClose();
+    },
+    onError: (error: Error) => {
+      alert(`Erro ao atualizar refeição: ${error.message}`);
+    }
+  });
+
+  const isSubmitting = createMealMutation.isPending || updateMealMutation.isPending;
 
   const totalCalories = mealItems.reduce(
     (acc, item) => acc + calcCalories(item.food, item.amount),
     0
   );
 
-  // Reset on open
+  // Reset form state effect
   useEffect(() => {
     if (isOpen) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setMealType('almoço');
+      if (mealToEdit && foods.length > 0) {
+        const matchingType = MEAL_TYPES.find(mt => mt.label.toLowerCase() === mealToEdit.name.toLowerCase());
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setMealType(matchingType ? matchingType.value : 'almoço');
+        
+        const initialItems = mealToEdit.items.map(item => {
+          const food = foods.find(f => f.id === item.food_id);
+          return {
+            uid: `${item.food_id}-${Date.now()}-${Math.random()}`,
+            food: food!,
+            amount: Number(item.quantity)
+          };
+        }).filter(item => item.food);
+        
+        setMealItems(initialItems as MealItem[]);
+      } else if (!mealToEdit) {
+        setMealType('almoço');
+        setMealItems([]);
+      }
       setSelectedFoodId('');
       setAmount('');
-      setMealItems([]);
+    }
+  }, [isOpen, mealToEdit, foods]);
 
+  // Keydown effect
+  useEffect(() => {
+    if (isOpen) {
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape' && !isSubmitting) onClose();
 
@@ -98,9 +134,9 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose }) =
 
   const handleFoodSelect = (foodId: string) => {
     setSelectedFoodId(foodId);
-    const food = MOCK_FOODS.find((f) => f.id === foodId);
+    const food = foods.find((f) => f.id === foodId);
     if (food) {
-      setAmount(food.defaultAmount);
+      setAmount(1); // Múltiplo de 1 baseado na porção registrada no banco
       setTimeout(() => amountInputRef.current?.focus(), 50);
     } else {
       setAmount('');
@@ -126,12 +162,24 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose }) =
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (mealItems.length === 0) return;
-    setIsSubmitting(true);
-    // Simulating API call — no backend changes yet
-    setTimeout(() => {
-      setIsSubmitting(false);
-      onClose();
-    }, 1000);
+    
+    const mealLabel = MEAL_TYPES.find(m => m.value === mealType)?.label || mealType;
+    const timeToUse = mealToEdit ? new Date(mealToEdit.meal_time) : new Date();
+
+    const payload = {
+      name: mealLabel,
+      mealTime: timeToUse.toISOString(),
+      items: mealItems.map(item => ({
+        foodId: item.food.id,
+        quantity: Number(item.amount),
+      }))
+    };
+
+    if (mealToEdit) {
+      updateMealMutation.mutate({ id: mealToEdit.id, data: payload });
+    } else {
+      createMealMutation.mutate(payload);
+    }
   };
 
   const canAddItem = !!selectedFood && !!amount && Number(amount) > 0;
@@ -153,7 +201,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose }) =
             </div>
             <div>
               <h2 id="new-meal-modal-title" className="text-base font-bold text-zinc-900 dark:text-zinc-100 leading-tight">
-                Nova Refeição
+                {mealToEdit ? 'Editar Refeição' : 'Nova Refeição'}
               </h2>
               <span className="text-xs text-zinc-500 dark:text-zinc-400">
                 Adicione quantos alimentos quiser
@@ -217,11 +265,15 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose }) =
                   aria-label="Selecionar alimento"
                 >
                   <option value="" disabled>Selecione um alimento…</option>
-                  {MOCK_FOODS.map((food) => (
-                    <option key={food.id} value={food.id}>
-                      {food.name} — {food.calories} kcal / {food.defaultAmount}{food.unit}
-                    </option>
-                  ))}
+                  {isLoadingFoods ? (
+                    <option value="" disabled>Carregando...</option>
+                  ) : (
+                    foods.map((food) => (
+                      <option key={food.id} value={food.id}>
+                        {food.name} — {food.calories} kcal / porção
+                      </option>
+                    ))
+                  )}
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" aria-hidden="true" />
               </div>
@@ -230,7 +282,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose }) =
               <div className="flex gap-2 items-end">
                 <div className="flex-1">
                   <label htmlFor="food-amount" className="block text-xs text-zinc-500 dark:text-zinc-400 mb-1">
-                    Quantidade {selectedFood ? `(${selectedFood.unit})` : ''}
+                    Quantidade (porções)
                   </label>
                   <input
                     id="food-amount"
@@ -304,7 +356,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose }) =
                           {item.food.name}
                         </p>
                         <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                          {item.amount} {item.food.unit}
+                          {item.amount} porção(ões)
                         </p>
                       </div>
                       <span className="shrink-0 text-xs font-semibold text-orange-600 dark:text-orange-400 flex items-center gap-0.5">
@@ -358,7 +410,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose }) =
               ) : (
                 <>
                   <Utensils className="w-4 h-4" aria-hidden="true" />
-                  <span>Salvar Refeição</span>
+                  <span>{mealToEdit ? 'Salvar Alterações' : 'Salvar Refeição'}</span>
                   {mealItems.length > 0 && (
                     <span className="ml-0.5 bg-white/20 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
                       {mealItems.length}

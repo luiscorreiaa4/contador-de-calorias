@@ -10,6 +10,8 @@ export interface User {
   height: number | null;
   body_fat: number | null;
   activity_level: string | null;
+  daily_calories_goal: number;
+  daily_proteins_goal: number;
   onboarding_completed: boolean;
   created_at: Date;
   updated_at: Date;

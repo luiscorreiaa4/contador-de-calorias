@@ -9,7 +9,7 @@ export async function createUser(
   const result = await pool.query<UserWithoutPassword>(
     `INSERT INTO users (name, email, password_hash)
      VALUES ($1, $2, $3)
-     RETURNING id, name, email, goal, sex, birth_date, weight, height, body_fat, activity_level, onboarding_completed, created_at, updated_at`,
+     RETURNING id, name, email, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, created_at, updated_at`,
     [name, email, passwordHash]
   );
   return result.rows[0];
@@ -25,7 +25,7 @@ export async function findUserByEmail(email: string): Promise<User | null> {
 
 export async function findUserById(id: string): Promise<UserWithoutPassword | null> {
   const result = await pool.query<UserWithoutPassword>(
-    'SELECT id, name, email, goal, sex, birth_date, weight, height, body_fat, activity_level, onboarding_completed, created_at, updated_at FROM users WHERE id = $1',
+    'SELECT id, name, email, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, created_at, updated_at FROM users WHERE id = $1',
     [id]
   );
   return result.rows[0] ?? null;
@@ -52,6 +52,8 @@ export async function updateUser(
     height?: number | null;
     body_fat?: number | null;
     activity_level?: string | null;
+    daily_calories_goal?: number;
+    daily_proteins_goal?: number;
     onboarding_completed?: boolean;
   }
 ): Promise<UserWithoutPassword> {
@@ -104,6 +106,14 @@ export async function updateUser(
     updates.push(`activity_level = $${paramIndex++}`);
     values.push(fields.activity_level);
   }
+  if (fields.daily_calories_goal !== undefined) {
+    updates.push(`daily_calories_goal = $${paramIndex++}`);
+    values.push(fields.daily_calories_goal);
+  }
+  if (fields.daily_proteins_goal !== undefined) {
+    updates.push(`daily_proteins_goal = $${paramIndex++}`);
+    values.push(fields.daily_proteins_goal);
+  }
   if (fields.onboarding_completed !== undefined) {
     updates.push(`onboarding_completed = $${paramIndex++}`);
     values.push(fields.onboarding_completed);
@@ -116,7 +126,7 @@ export async function updateUser(
     UPDATE users
     SET ${updates.join(', ')}
     WHERE id = $${paramIndex}
-    RETURNING id, name, email, goal, sex, birth_date, weight, height, body_fat, activity_level, onboarding_completed, created_at, updated_at
+    RETURNING id, name, email, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, created_at, updated_at
   `;
 
   const result = await pool.query<UserWithoutPassword>(query, values);

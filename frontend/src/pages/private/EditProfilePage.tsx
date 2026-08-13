@@ -553,7 +553,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
           <select
             id="edit-sex"
             value={sex}
-            onChange={(e) => setSex(e.target.value)}
+            onChange={(e) => setSex(e.target.value as 'masculino' | 'feminino' | 'prefiro_nao_responder')}
             className={`w-full pl-3 pr-8 py-2.5 bg-zinc-50 dark:bg-zinc-800/60 border rounded-lg text-sm text-zinc-900 dark:text-zinc-100 transition-colors duration-150 min-h-[44px] cursor-pointer ${
               errors.sex ? inputError : inputNormal
             }`}

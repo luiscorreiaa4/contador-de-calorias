@@ -5,7 +5,7 @@ import { LoginPage } from './pages/public/LoginPage';
 import { DashboardPage } from './pages/private/DashboardPage';
 import { EditProfilePage } from './pages/private/EditProfilePage';
 import { OnboardingFlow } from './components/onboarding/OnboardingFlow';
-import { Header } from './components/layout/Header';
+import { AppHeader } from './components/layout/AppHeader';
 import { Footer } from './components/layout/Footer';
 
 function AppContent() {
@@ -51,8 +51,16 @@ function AppContent() {
       {/* Single ambient glow — top right */}
       <div className="absolute -top-32 -right-32 w-80 h-80 bg-emerald-400/15 dark:bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Separate Layout Header */}
-      <Header darkMode={darkMode} onToggleTheme={toggleTheme} />
+      {/* Modern App Header */}
+      <AppHeader
+        darkMode={darkMode}
+        onToggleTheme={toggleTheme}
+        onNavigateToEditProfile={
+          isAuthenticated && user?.onboarding_completed
+            ? () => setCurrentView('edit-profile')
+            : undefined
+        }
+      />
 
       {/* Main Content (Routes Area) */}
       <main className="flex-1 flex items-center justify-center z-10 my-8 sm:my-12 pb-8 sm:pb-16">
@@ -61,7 +69,7 @@ function AppContent() {
             {!user?.onboarding_completed ? (
               <OnboardingFlow />
             ) : currentView === 'dashboard' ? (
-              <DashboardPage onNavigateToEditProfile={() => setCurrentView('edit-profile')} />
+              <DashboardPage />
             ) : (
               <EditProfilePage onBack={() => setCurrentView('dashboard')} />
             )}
@@ -72,7 +80,7 @@ function AppContent() {
       </main>
 
       {/* Separate Layout Footer */}
-      <Footer darkMode={darkMode} onToggleTheme={toggleTheme} />
+      <Footer />
     </div>
   );
 }
