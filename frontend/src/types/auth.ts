@@ -11,9 +11,16 @@ export interface RegisterFormData {
   email: string;
   password: string;
   confirmPassword: string;
-  goal: 'perder_peso' | 'manter_peso' | 'ganhar_massa';
+}
+
+export interface OnboardingFormData {
   sex: 'masculino' | 'feminino' | 'prefiro_nao_responder' | '';
   birthDate: string;
+  goal: 'perder_peso' | 'manter_peso' | 'ganhar_massa' | '';
+  weight: string;
+  height: string;
+  bodyFat: string;
+  activityLevel: 'sedentario' | 'pouco_ativo' | 'moderadamente_ativo' | 'muito_ativo' | 'extremamente_ativo' | '';
 }
 
 export interface FormErrors {

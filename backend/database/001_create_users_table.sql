@@ -9,8 +9,13 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     goal VARCHAR(50) NOT NULL DEFAULT 'perder_peso',
-    sex VARCHAR(50) NOT NULL DEFAULT 'masculino',
-    birth_date DATE NOT NULL DEFAULT '1995-01-01',
+    sex VARCHAR(50),
+    birth_date DATE,
+    weight NUMERIC(5,2),
+    height NUMERIC(5,2),
+    body_fat NUMERIC(5,2),
+    activity_level VARCHAR(50),
+    onboarding_completed BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

@@ -76,8 +76,13 @@ const setupDatabase = async () => {
         email VARCHAR(255) NOT NULL UNIQUE,
         password_hash VARCHAR(255) NOT NULL,
         goal VARCHAR(50) NOT NULL DEFAULT 'perder_peso',
-        sex VARCHAR(20) NOT NULL DEFAULT 'masculino',
-        birth_date DATE NOT NULL DEFAULT '1995-01-01',
+        sex VARCHAR(20),
+        birth_date DATE,
+        weight NUMERIC(5,2),
+        height NUMERIC(5,2),
+        body_fat NUMERIC(5,2),
+        activity_level VARCHAR(50),
+        onboarding_completed BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
@@ -90,9 +95,9 @@ const setupDatabase = async () => {
     // Usuário 1: Perder Peso
     const hashUser1 = await bcrypt.hash('1234', saltRounds);
     await clientApp.query(
-      `INSERT INTO users (name, email, password_hash, goal, sex, birth_date)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      ['teste', 'teste@teste.com', hashUser1, 'perder_peso', 'masculino', '1995-01-01']
+      `INSERT INTO users (name, email, password_hash, sex, birth_date)
+       VALUES ($1, $2, $3, $4, $5)`,
+      ['teste', 'teste@teste.com', hashUser1, 'masculino', '1995-01-01']
     );
 
     console.log('\n🎉 Setup do Banco de Dados Concluído com Sucesso!');

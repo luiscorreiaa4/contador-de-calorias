@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import * as UserModel from '../models/user.model.js';
-import { RegisterUserDTO, LoginUserDTO, UpdateUserDTO } from '../schemas/user.schema.js';
+import { RegisterUserDTO, LoginUserDTO, UpdateUserDTO, CompleteOnboardingDTO } from '../schemas/user.schema.js';
 import { AuthResponse, UserWithoutPassword } from '../types/user.types.js';
 
 interface CustomError extends Error {
@@ -22,10 +22,7 @@ export async function register(data: RegisterUserDTO): Promise<AuthResponse> {
   const newUser = await UserModel.createUser(
     data.name,
     data.email,
-    passwordHash,
-    data.goal,
-    data.sex,
-    data.birthDate
+    passwordHash
   );
 
   const token = generateToken(newUser.id);
@@ -68,6 +65,28 @@ export async function getUserProfile(userId: string): Promise<UserWithoutPasswor
     throw error;
   }
   return user;
+}
+
+export async function completeOnboarding(userId: string, data: CompleteOnboardingDTO): Promise<UserWithoutPassword> {
+  const user = await UserModel.findFullUserById(userId);
+  if (!user) {
+    const error: CustomError = new Error('Usuário não encontrado.');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const updatedUser = await UserModel.updateUser(userId, {
+    sex: data.sex,
+    birthDate: data.birthDate,
+    goal: data.goal,
+    weight: data.weight,
+    height: data.height,
+    body_fat: data.body_fat,
+    activity_level: data.activity_level,
+    onboarding_completed: true,
+  });
+
+  return updatedUser;
 }
 
 export async function updateProfile(userId: string, data: UpdateUserDTO): Promise<UserWithoutPassword> {
@@ -129,6 +148,10 @@ export async function updateProfile(userId: string, data: UpdateUserDTO): Promis
     goal: data.goal,
     sex: data.sex,
     birthDate: data.birthDate,
+    weight: data.weight,
+    height: data.height,
+    body_fat: data.body_fat,
+    activity_level: data.activity_level,
   });
 
   return updatedUser;

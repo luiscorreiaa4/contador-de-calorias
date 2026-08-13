@@ -4,11 +4,12 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoginPage } from './pages/public/LoginPage';
 import { DashboardPage } from './pages/private/DashboardPage';
 import { EditProfilePage } from './pages/private/EditProfilePage';
+import { OnboardingFlow } from './components/onboarding/OnboardingFlow';
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 
 function AppContent() {
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [currentView, setCurrentView] = useState<'dashboard' | 'edit-profile'>('dashboard');
 
   const [darkMode, setDarkMode] = useState<boolean>(() => {
@@ -57,7 +58,9 @@ function AppContent() {
       <main className="flex-1 flex items-center justify-center z-10 my-8 sm:my-12 pb-8 sm:pb-16">
         {isAuthenticated ? (
           <ProtectedRoute>
-            {currentView === 'dashboard' ? (
+            {!user?.onboarding_completed ? (
+              <OnboardingFlow />
+            ) : currentView === 'dashboard' ? (
               <DashboardPage onNavigateToEditProfile={() => setCurrentView('edit-profile')} />
             ) : (
               <EditProfilePage onBack={() => setCurrentView('dashboard')} />

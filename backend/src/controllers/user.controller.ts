@@ -75,6 +75,26 @@ export async function updateProfile(req: AuthenticatedRequest, res: Response) {
   }
 }
 
+export async function completeOnboarding(req: AuthenticatedRequest, res: Response) {
+  try {
+    if (!req.userId) {
+      return res.status(401).json({ success: false, message: 'Usuário não autenticado.' });
+    }
+    const updatedUser = await UserService.completeOnboarding(req.userId, req.body);
+    return res.status(200).json({
+      success: true,
+      message: 'Onboarding concluído com sucesso!',
+      data: updatedUser,
+    });
+  } catch (error: any) {
+    const statusCode = error.statusCode ?? 500;
+    return res.status(statusCode).json({
+      success: false,
+      message: error.message ?? 'Erro ao concluir onboarding.',
+    });
+  }
+}
+
 export async function deleteAccount(req: AuthenticatedRequest, res: Response) {
   try {
     if (!req.userId) {

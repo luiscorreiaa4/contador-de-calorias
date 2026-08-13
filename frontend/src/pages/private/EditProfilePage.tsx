@@ -18,6 +18,9 @@ import {
   Target,
   TrendingUp,
   Loader2,
+  Weight,
+  Ruler,
+  ActivitySquare,
 } from 'lucide-react';
 
 interface EditProfilePageProps {
@@ -46,6 +49,10 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
       goal: user?.goal || 'perder_peso',
       sex: user?.sex || 'masculino',
       birthDate: formatInitialBirthDate(rawBirthDate),
+      weight: user?.weight?.toString() || '',
+      height: user?.height?.toString() || '',
+      bodyFat: user?.body_fat?.toString() || '',
+      activityLevel: user?.activity_level || 'sedentario',
     };
   });
 
@@ -55,6 +62,10 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
   const [goal, setGoal] = useState(initialData.goal);
   const [sex, setSex] = useState(initialData.sex);
   const [birthDate, setBirthDate] = useState(initialData.birthDate);
+  const [weight, setWeight] = useState(initialData.weight);
+  const [height, setHeight] = useState(initialData.height);
+  const [bodyFat, setBodyFat] = useState(initialData.bodyFat);
+  const [activityLevel, setActivityLevel] = useState(initialData.activityLevel);
 
   // Password State
   const [currentPassword, setCurrentPassword] = useState('');
@@ -91,6 +102,10 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
           goal: freshUser.goal || 'perder_peso',
           sex: freshUser.sex || 'masculino',
           birthDate: formattedBirth,
+          weight: freshUser.weight?.toString() || '',
+          height: freshUser.height?.toString() || '',
+          bodyFat: freshUser.body_fat?.toString() || '',
+          activityLevel: freshUser.activity_level || 'sedentario',
         };
         setInitialData(newBaseline);
         setName(newBaseline.name);
@@ -98,6 +113,10 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
         setGoal(newBaseline.goal);
         setSex(newBaseline.sex);
         setBirthDate(newBaseline.birthDate);
+        setWeight(newBaseline.weight);
+        setHeight(newBaseline.height);
+        setBodyFat(newBaseline.bodyFat);
+        setActivityLevel(newBaseline.activityLevel);
       })
       .catch((err: any) => {
         if (
@@ -122,10 +141,14 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
     const goalChanged = goal !== initialData.goal;
     const sexChanged = sex !== initialData.sex;
     const birthDateChanged = birthDate.trim() !== initialData.birthDate.trim();
+    const weightChanged = weight !== initialData.weight;
+    const heightChanged = height !== initialData.height;
+    const bodyFatChanged = bodyFat !== initialData.bodyFat;
+    const activityLevelChanged = activityLevel !== initialData.activityLevel;
     const passwordChanged = newPassword.trim().length > 0;
 
-    return nameChanged || emailChanged || goalChanged || sexChanged || birthDateChanged || passwordChanged;
-  }, [name, email, goal, sex, birthDate, newPassword, initialData, isEmailChanged]);
+    return nameChanged || emailChanged || goalChanged || sexChanged || birthDateChanged || weightChanged || heightChanged || bodyFatChanged || activityLevelChanged || passwordChanged;
+  }, [name, email, goal, sex, birthDate, weight, height, bodyFat, activityLevel, newPassword, initialData, isEmailChanged]);
 
   const validateBirthDate = (val: string): string | null => {
     if (!val || !val.trim()) return null; // Opcional ao editar
@@ -286,6 +309,9 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
     if (birthErr) newErrors.birthDate = birthErr;
 
     if (!sex) newErrors.sex = 'Selecione o sexo.';
+    if (!weight) newErrors.weight = 'Informe seu peso.';
+    if (!height) newErrors.height = 'Informe sua altura.';
+    if (!activityLevel) newErrors.activityLevel = 'Selecione seu nível de atividade.';
 
     if (isEmailChanged && !currentPassword.trim()) {
       newErrors.currentPassword = 'Digite sua senha atual para confirmar a alteração do e-mail.';
@@ -324,6 +350,12 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
       if (goal !== initialData.goal) payload.goal = goal;
       if (sex !== initialData.sex) payload.sex = sex;
       if (birthDate !== initialData.birthDate) payload.birthDate = birthDate;
+      if (weight !== initialData.weight) payload.weight = parseFloat(weight.replace(',', '.'));
+      if (height !== initialData.height) payload.height = parseFloat(height.replace(',', '.'));
+      if (bodyFat !== initialData.bodyFat) {
+        payload.body_fat = bodyFat ? parseFloat(bodyFat.replace(',', '.')) : null;
+      }
+      if (activityLevel !== initialData.activityLevel) payload.activity_level = activityLevel;
 
       if (currentPassword) payload.currentPassword = currentPassword;
       if (newPassword) payload.newPassword = newPassword;
@@ -338,6 +370,10 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
         goal: updatedUser.goal || goal,
         sex: updatedUser.sex || sex,
         birthDate: formattedBirth || birthDate,
+        weight: updatedUser.weight?.toString() || weight,
+        height: updatedUser.height?.toString() || height,
+        bodyFat: updatedUser.body_fat?.toString() || bodyFat,
+        activityLevel: updatedUser.activity_level || activityLevel,
       };
 
       setInitialData(updatedBaseline);
@@ -346,6 +382,10 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
       setGoal(updatedBaseline.goal);
       setSex(updatedBaseline.sex);
       setBirthDate(updatedBaseline.birthDate);
+      setWeight(updatedBaseline.weight);
+      setHeight(updatedBaseline.height);
+      setBodyFat(updatedBaseline.bodyFat);
+      setActivityLevel(updatedBaseline.activityLevel);
 
       setSuccessMessage('Perfil atualizado com sucesso!');
       setCurrentPassword('');
@@ -384,6 +424,14 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
     { key: 'manter_peso', label: 'Manter', icon: <Target className="w-4 h-4 text-sky-400" aria-hidden="true" /> },
     { key: 'ganhar_massa', label: 'Ganhar massa', icon: <TrendingUp className="w-4 h-4 text-violet-400" aria-hidden="true" /> },
   ] as const;
+
+  const activityLevels = [
+    { key: 'sedentario', label: 'Sedentário', desc: 'Pouco ou nenhum exercício' },
+    { key: 'pouco_ativo', label: 'Pouco Ativo', desc: 'Exercício leve 1 a 3 dias na semana' },
+    { key: 'moderadamente_ativo', label: 'Moderadamente Ativo', desc: 'Exercício moderado 3 a 5 dias na semana' },
+    { key: 'muito_ativo', label: 'Muito Ativo', desc: 'Exercício pesado 6 a 7 dias na semana' },
+    { key: 'extremamente_ativo', label: 'Extremamente Ativo', desc: 'Trabalho físico pesado ou treino 2x ao dia' },
+  ];
 
   const inputBase =
     'w-full pl-9 pr-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/60 border rounded-lg text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 transition-colors duration-150 min-h-[44px]';
@@ -527,6 +575,107 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
             error={errors.birthDate}
           />
           {errors.birthDate && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.birthDate}</p>}
+        </div>
+
+        {/* Medidas Corporais */}
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 border-b border-zinc-100 dark:border-zinc-800/80 pt-4 pb-2">
+          Medidas Corporais
+        </h2>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="edit-weight" className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
+              Peso atual (kg)
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
+                <Weight className="w-4 h-4" aria-hidden="true" />
+              </div>
+              <input
+                id="edit-weight"
+                type="number"
+                step="0.1"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                placeholder="Ex: 75.5"
+                className={`${inputBase} ${errors.weight ? inputError : inputNormal}`}
+                aria-invalid={!!errors.weight}
+              />
+            </div>
+            {errors.weight && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.weight}</p>}
+          </div>
+
+          <div>
+            <label htmlFor="edit-height" className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
+              Altura (cm)
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
+                <Ruler className="w-4 h-4" aria-hidden="true" />
+              </div>
+              <input
+                id="edit-height"
+                type="number"
+                value={height}
+                onChange={(e) => setHeight(e.target.value)}
+                placeholder="Ex: 175"
+                className={`${inputBase} ${errors.height ? inputError : inputNormal}`}
+                aria-invalid={!!errors.height}
+              />
+            </div>
+            {errors.height && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.height}</p>}
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="edit-bodyfat" className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
+            Percentual de Gordura (%) <span className="text-zinc-400 font-normal text-xs">(Opcional)</span>
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
+              <ActivitySquare className="w-4 h-4" aria-hidden="true" />
+            </div>
+            <input
+              id="edit-bodyfat"
+              type="number"
+              step="0.1"
+              value={bodyFat}
+              onChange={(e) => setBodyFat(e.target.value)}
+              placeholder="Ex: 18.5"
+              className={`${inputBase} ${inputNormal}`}
+            />
+          </div>
+        </div>
+
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 border-b border-zinc-100 dark:border-zinc-800/80 pt-4 pb-2">
+          Rotina e Objetivo
+        </h2>
+
+        {/* Nível de Atividade */}
+        <div>
+          <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
+            Nível de Atividade Física
+          </label>
+          <div className="grid gap-2">
+            {activityLevels.map((a) => (
+              <button
+                key={a.key}
+                type="button"
+                onClick={() => setActivityLevel(a.key)}
+                className={`p-3 rounded-xl border flex flex-col text-left transition-all ${
+                  activityLevel === a.key
+                    ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10'
+                    : 'border-zinc-200 dark:border-zinc-700 hover:border-emerald-300 dark:hover:border-emerald-700'
+                }`}
+              >
+                <span className={`text-sm font-medium ${activityLevel === a.key ? 'text-emerald-700 dark:text-emerald-300' : 'text-zinc-800 dark:text-zinc-200'}`}>
+                  {a.label}
+                </span>
+                <span className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">{a.desc}</span>
+              </button>
+            ))}
+          </div>
+          {errors.activityLevel && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.activityLevel}</p>}
         </div>
 
         {/* Objetivo */}

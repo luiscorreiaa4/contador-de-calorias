@@ -8,6 +8,11 @@ export interface UserProfile {
   goal: string;
   sex?: string;
   birth_date?: string;
+  weight?: number;
+  height?: number;
+  body_fat?: number;
+  activity_level?: string;
+  onboarding_completed: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -23,6 +28,10 @@ export interface UpdateProfileData {
   goal?: string;
   sex?: string;
   birthDate?: string;
+  weight?: number;
+  height?: number;
+  body_fat?: number | null;
+  activity_level?: string;
   currentPassword?: string;
   newPassword?: string;
 }
@@ -44,11 +53,19 @@ export async function registerUser(data: RegisterFormData): Promise<AuthResponse
       name: data.name,
       email: data.email,
       password: data.password,
-      goal: data.goal,
-      sex: data.sex,
-      birthDate: data.birthDate,
     }),
   });
+}
+
+export async function completeUserOnboarding(data: { sex: string; birthDate: string; goal: string; weight: number; height: number; body_fat?: number; activity_level: string; }): Promise<AuthResponseData> {
+  const user = await apiFetch<UserProfile>('/users/me/onboarding', {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+  // O endpoint retorna o user atualizado, mas nossa AuthContext espera setar (user, token) se chamarmos setAuthSession, ou updateUserSession(user)
+  // Como estamos atualizando a sessão atual, basta retornar o user.
+  // Vamos ajustar para retornar { user, token } ou apenas o user dependendo do uso. O melhor é retornar o user atualizado.
+  return { user, token: localStorage.getItem('auth_token') || '' };
 }
 
 export async function getCurrentUserProfile(): Promise<UserProfile> {
