@@ -150,7 +150,7 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
   const inputBase =
     'w-full pl-9 pr-10 py-2.5 bg-zinc-50 dark:bg-zinc-800/60 border rounded-lg text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 transition-colors duration-150 min-h-[42px]';
   const inputNormal =
-    'border-zinc-200 dark:border-zinc-700 focus:border-indigo-500 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none';
+    'border-zinc-200 dark:border-zinc-700 focus:border-emerald-500 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none';
   const inputError =
     'border-red-400 dark:border-red-500 bg-red-50/50 dark:bg-red-950/20 focus:ring-2 focus:ring-red-400/20 outline-none';
 
@@ -180,7 +180,7 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
           type="button"
           onClick={handleCalendarToggle}
           aria-label="Abrir calendário"
-          className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+          className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
         >
           <CalendarIcon className="w-4 h-4" aria-hidden="true" />
         </button>
@@ -252,10 +252,10 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
                   onClick={() => handleSelectDay(day)}
                   className={`h-7 w-7 rounded-lg flex items-center justify-center font-medium transition-colors ${
                     selected
-                      ? 'bg-indigo-600 text-white font-bold'
+                      ? 'bg-emerald-600 text-white font-bold'
                       : disabled
                       ? 'text-zinc-300 dark:text-zinc-700 cursor-not-allowed opacity-50'
-                      : 'text-zinc-700 dark:text-zinc-200 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-600 dark:hover:text-indigo-400'
+                      : 'text-zinc-700 dark:text-zinc-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 dark:hover:text-emerald-400'
                   }`}
                 >
                   {day}

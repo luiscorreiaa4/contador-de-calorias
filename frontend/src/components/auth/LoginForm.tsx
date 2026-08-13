@@ -50,7 +50,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
 
   const inputBase =
     'w-full pl-9 pr-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/60 border rounded-lg text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 transition-colors duration-150 min-h-[42px]';
-  const inputNormal = 'border-zinc-200 dark:border-zinc-700 focus:border-indigo-500 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none';
+  const inputNormal = 'border-zinc-200 dark:border-zinc-700 focus:border-emerald-500 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none';
   const inputError = 'border-red-400 dark:border-red-500 bg-red-50/50 dark:bg-red-950/20 focus:ring-2 focus:ring-red-400/20 outline-none';
 
   return (
@@ -138,7 +138,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
             type="checkbox"
             checked={formData.rememberMe}
             onChange={(e) => setFormData({ ...formData, rememberMe: e.target.checked })}
-            className="w-3.5 h-3.5 rounded border-zinc-300 dark:border-zinc-600 text-indigo-600 focus:ring-indigo-500 dark:bg-zinc-800 cursor-pointer"
+            className="w-3.5 h-3.5 rounded border-zinc-300 dark:border-zinc-600 accent-emerald-600 dark:bg-zinc-800 cursor-pointer"
           />
           <label htmlFor="remember-me" className="text-xs text-zinc-500 dark:text-zinc-400 cursor-pointer select-none">
             Lembrar-me
@@ -147,7 +147,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
         <a
           href="#forgot-password"
           onClick={(e) => e.preventDefault()}
-          className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 transition-colors focus:outline-none focus:underline"
+          className="text-xs text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 transition-colors focus:outline-none focus:underline"
         >
           Esqueceu sua senha?
         </a>
@@ -157,7 +157,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full mt-1 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-medium rounded-lg transition-colors duration-150 flex items-center justify-center gap-2 min-h-[42px] disabled:opacity-60 disabled:cursor-not-allowed"
+        className="w-full mt-1 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-sm font-medium rounded-lg transition-colors duration-150 flex items-center justify-center gap-2 min-h-[42px] disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {isLoading ? (
           <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

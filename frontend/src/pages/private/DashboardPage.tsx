@@ -53,43 +53,43 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigateToEditPr
       {/* Daily Metrics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Calories Card */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Metas de Calorias</span>
+            <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">Metas de Calorias</span>
             <div className="p-2 rounded-xl bg-orange-500/10 text-orange-500">
               <Flame className="w-5 h-5" aria-hidden="true" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-extrabold text-slate-900 dark:text-white">1,450 / 2,000</span>
-            <span className="text-xs text-slate-500 dark:text-slate-400 ml-1.5">kcal</span>
+            <span className="text-2xl font-extrabold text-zinc-900 dark:text-white">1,450 / 2,000</span>
+            <span className="text-xs text-zinc-500 dark:text-zinc-400 ml-1.5">kcal</span>
           </div>
-          <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 mt-3 overflow-hidden">
+          <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-2 mt-3 overflow-hidden">
             <div className="bg-orange-500 h-2 rounded-full w-[72.5%]" />
           </div>
         </div>
 
         {/* Water Card */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Água Ingerida</span>
+            <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">Água Ingerida</span>
             <div className="p-2 rounded-xl bg-blue-500/10 text-blue-500">
               <Droplets className="w-5 h-5" aria-hidden="true" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-extrabold text-slate-900 dark:text-white">1.8 / 2.5</span>
-            <span className="text-xs text-slate-500 dark:text-slate-400 ml-1.5">litros</span>
+            <span className="text-2xl font-extrabold text-zinc-900 dark:text-white">1.8 / 2.5</span>
+            <span className="text-xs text-zinc-500 dark:text-zinc-400 ml-1.5">litros</span>
           </div>
-          <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 mt-3 overflow-hidden">
+          <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-2 mt-3 overflow-hidden">
             <div className="bg-blue-500 h-2 rounded-full w-[72%]" />
           </div>
         </div>
 
         {/* Goal Status Card */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Objetivo Atual</span>
+            <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">Objetivo Atual</span>
             <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500">
               <Target className="w-5 h-5" aria-hidden="true" />
             </div>
@@ -99,19 +99,19 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigateToEditPr
               {user?.goal ? user.goal.replace('_', ' ') : 'Perder Peso'}
             </span>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Déficit diário recomendado: -500 kcal</p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">Déficit diário recomendado: -500 kcal</p>
         </div>
       </div>
 
       {/* Quick Action Button */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex items-center justify-between">
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-2xl p-6 shadow-sm flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
             <Utensils className="w-6 h-6" aria-hidden="true" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-slate-900 dark:text-white">Registrar Refeição</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Adicione café da manhã, almoço, jantar ou lanches.</p>
+            <h2 className="text-base font-bold text-zinc-900 dark:text-white">Registrar Refeição</h2>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Adicione café da manhã, almoço, jantar ou lanches.</p>
           </div>
         </div>
         <button

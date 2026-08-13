@@ -135,10 +135,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose }) =
   const canAddItem = !!selectedFood && !!amount && Number(amount) > 0;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-sm animate-in fade-in duration-200"
-      onClick={(e) => { if (e.target === e.currentTarget && !isSubmitting) onClose(); }}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div
         ref={modalRef}
         role="dialog"

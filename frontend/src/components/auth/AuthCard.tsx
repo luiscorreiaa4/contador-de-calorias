@@ -23,7 +23,7 @@ export const AuthCard: React.FC = () => {
     <div className="w-full max-w-sm mx-auto animate-in">
       {/* Branding */}
       <div className="mb-8 text-center">
-        <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-indigo-600 text-white mb-4">
+        <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-600 text-white mb-4">
           <Flame className="w-5 h-5 fill-current" aria-hidden="true" />
         </div>
         <h1 className="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
@@ -57,7 +57,7 @@ export const AuthCard: React.FC = () => {
           >
             Entrar
             {mode === 'login' && (
-              <span className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-indigo-600 rounded-full" />
+              <span className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-emerald-500 rounded-full" />
             )}
           </button>
 
@@ -76,7 +76,7 @@ export const AuthCard: React.FC = () => {
           >
             Criar conta
             {mode === 'register' && (
-              <span className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-indigo-600 rounded-full" />
+              <span className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-emerald-500 rounded-full" />
             )}
           </button>
         </div>
@@ -85,7 +85,7 @@ export const AuthCard: React.FC = () => {
         <div className="p-6">
           {/* Success Alert */}
           {isSuccessMessage && (
-            <div className="mb-5 p-3 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-300 text-sm text-center animate-in">
+            <div className="mb-5 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-sm text-center animate-in">
               {isSuccessMessage}
             </div>
           )}

@@ -388,7 +388,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
   const inputBase =
     'w-full pl-9 pr-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/60 border rounded-lg text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 transition-colors duration-150 min-h-[44px]';
   const inputNormal =
-    'border-zinc-200 dark:border-zinc-700 focus:border-indigo-500 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 outline-none';
+    'border-zinc-200 dark:border-zinc-700 focus:border-emerald-500 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 outline-none';
   const inputError =
     'border-red-400 dark:border-red-500 bg-red-50/50 dark:bg-red-950/20 focus:ring-2 focus:ring-red-400/30 outline-none';
 
@@ -399,7 +399,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
         <button
           type="button"
           onClick={onBack}
-          className="flex items-center gap-2 text-sm font-semibold text-zinc-600 dark:text-zinc-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors p-1.5 -ml-1.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+          className="flex items-center gap-2 text-sm font-semibold text-zinc-600 dark:text-zinc-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors p-1.5 -ml-1.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
         >
           <ArrowLeft className="w-4 h-4" aria-hidden="true" />
           <span>Voltar ao Dashboard</span>
@@ -433,7 +433,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
 
       {/* Main Form */}
       <form onSubmit={handleSubmit} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm space-y-5" noValidate>
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 border-b border-zinc-100 dark:border-zinc-800/80 pb-2">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 border-b border-zinc-100 dark:border-zinc-800/80 pb-2">
           Informações Pessoais
         </h2>
 
@@ -542,9 +542,9 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
                 role="radio"
                 aria-checked={goal === key}
                 onClick={() => setGoal(key)}
-                className={`p-2.5 rounded-xl border text-center flex flex-col items-center gap-1.5 transition-all text-xs font-medium min-h-[56px] focus:outline-none focus:ring-2 focus:ring-indigo-500/40 ${
+                className={`p-2.5 rounded-xl border text-center flex flex-col items-center gap-1.5 transition-all text-xs font-medium min-h-[56px] focus:outline-none focus:ring-2 focus:ring-emerald-500/40 ${
                   goal === key
-                    ? 'border-indigo-300 dark:border-indigo-500/60 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 shadow-sm'
+                    ? 'border-emerald-300 dark:border-emerald-500/60 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 shadow-sm'
                     : 'border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:border-zinc-300 dark:hover:border-zinc-600'
                 }`}
               >
@@ -556,7 +556,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
         </div>
 
         {/* Alteração de Senha */}
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 border-b border-zinc-100 dark:border-zinc-800/80 pt-4 pb-2">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 border-b border-zinc-100 dark:border-zinc-800/80 pt-4 pb-2">
           Segurança e Senha
         </h2>
 
@@ -585,7 +585,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
               type="button"
               aria-label={showCurrentPassword ? 'Ocultar senha atual' : 'Mostrar senha atual'}
               onClick={() => setShowCurrentPassword((prev) => !prev)}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 rounded-md"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 rounded-md"
             >
               {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -618,7 +618,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
               type="button"
               aria-label={showNewPassword ? 'Ocultar nova senha' : 'Mostrar nova senha'}
               onClick={() => setShowNewPassword((prev) => !prev)}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 rounded-md"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 rounded-md"
             >
               {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -652,7 +652,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
                 type="button"
                 aria-label={showConfirmNewPassword ? 'Ocultar confirmação de nova senha' : 'Mostrar confirmação de nova senha'}
                 onClick={() => setShowConfirmNewPassword((prev) => !prev)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 rounded-md"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 rounded-md"
               >
                 {showConfirmNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -685,7 +685,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
             <button
               type="submit"
               disabled={!isDirty || isLoading}
-              className="w-1/2 sm:w-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-semibold text-sm rounded-xl transition-all shadow-md shadow-indigo-600/20 flex items-center justify-center gap-2 min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+              className="w-1/2 sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-semibold text-sm rounded-xl transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
             >
               {isLoading ? (
                 <>

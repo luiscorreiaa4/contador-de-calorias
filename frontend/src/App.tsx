@@ -43,18 +43,18 @@ function AppContent() {
       <div
         className="absolute inset-0 pointer-events-none opacity-40 dark:opacity-20"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='1' cy='1' r='1' fill='%236366f1' fill-opacity='0.25'/%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='1' cy='1' r='1' fill='%2310b981' fill-opacity='0.25'/%3E%3C/svg%3E")`,  
           backgroundSize: '20px 20px',
         }}
       />
       {/* Single ambient glow — top right */}
-      <div className="absolute -top-32 -right-32 w-80 h-80 bg-indigo-400/15 dark:bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -top-32 -right-32 w-80 h-80 bg-emerald-400/15 dark:bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Separate Layout Header */}
       <Header darkMode={darkMode} onToggleTheme={toggleTheme} />
 
       {/* Main Content (Routes Area) */}
-      <main className="flex-1 flex items-center justify-center z-10 my-4">
+      <main className="flex-1 flex items-center justify-center z-10 my-8 sm:my-12 pb-8 sm:pb-16">
         {isAuthenticated ? (
           <ProtectedRoute>
             {currentView === 'dashboard' ? (
