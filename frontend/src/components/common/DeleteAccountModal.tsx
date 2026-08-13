@@ -23,6 +23,7 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPassword('');
       setShowPassword(false);
       setTimeout(() => {

@@ -42,7 +42,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
 
   // Baseline Initial Data
   const [initialData, setInitialData] = useState(() => {
-    const rawBirthDate = user?.birth_date || (user as any)?.birthDate || '';
+    const rawBirthDate = user?.birth_date || (user as unknown as { birthDate?: string })?.birthDate || '';
     return {
       name: user?.name || '',
       email: user?.email || '',
@@ -95,7 +95,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
     getCurrentUserProfile()
       .then((freshUser) => {
         updateUserSession(freshUser);
-        const formattedBirth = formatInitialBirthDate(freshUser.birth_date || (freshUser as any)?.birthDate);
+        const formattedBirth = formatInitialBirthDate(freshUser.birth_date || (freshUser as unknown as { birthDate?: string })?.birthDate);
         const newBaseline = {
           name: freshUser.name || '',
           email: freshUser.email || '',
@@ -118,11 +118,12 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
         setBodyFat(newBaseline.bodyFat);
         setActivityLevel(newBaseline.activityLevel);
       })
-      .catch((err: any) => {
+      .catch((err: unknown) => {
+        const errorMsg = err instanceof Error ? err.message : String(err);
         if (
-          err?.message === 'Usuário não encontrado.' ||
-          err?.message?.includes('Token') ||
-          err?.message?.includes('autenticad')
+          errorMsg === 'Usuário não encontrado.' ||
+          errorMsg.includes('Token') ||
+          errorMsg.includes('autenticad')
         ) {
           logout();
         }
@@ -148,7 +149,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
     const passwordChanged = newPassword.trim().length > 0;
 
     return nameChanged || emailChanged || goalChanged || sexChanged || birthDateChanged || weightChanged || heightChanged || bodyFatChanged || activityLevelChanged || passwordChanged;
-  }, [name, email, goal, sex, birthDate, weight, height, bodyFat, activityLevel, newPassword, initialData, isEmailChanged]);
+  }, [name, goal, sex, birthDate, weight, height, bodyFat, activityLevel, newPassword, initialData, isEmailChanged]);
 
   const validateBirthDate = (val: string): string | null => {
     if (!val || !val.trim()) return null; // Opcional ao editar
@@ -343,7 +344,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
 
     setIsLoading(true);
     try {
-      const payload: any = {};
+      const payload: Record<string, unknown> = {};
 
       if (name.trim() !== initialData.name) payload.name = name.trim();
       if (isEmailChanged) payload.email = email.trim();
@@ -363,7 +364,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
       const updatedUser = await updateUserProfile(payload);
       updateUserSession(updatedUser);
 
-      const formattedBirth = formatInitialBirthDate(updatedUser.birth_date || (updatedUser as any)?.birthDate);
+      const formattedBirth = formatInitialBirthDate(updatedUser.birth_date || (updatedUser as unknown as { birthDate?: string })?.birthDate);
       const updatedBaseline = {
         name: updatedUser.name || name.trim(),
         email: updatedUser.email || email.trim(),
@@ -391,14 +392,15 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmNewPassword('');
-    } catch (err: any) {
-      if (err?.message === 'Usuário não encontrado.') {
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      if (errorMsg === 'Usuário não encontrado.') {
         setServerError('Sua sessão expirou ou a conta não foi encontrada no banco de dados. Redirecionando...');
         setTimeout(() => {
           logout();
         }, 2000);
       } else {
-        setServerError(err.message || 'Erro ao atualizar perfil.');
+        setServerError(errorMsg || 'Erro ao atualizar perfil.');
       }
     } finally {
       setIsLoading(false);
@@ -413,8 +415,9 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
     try {
       await deleteUserAccount(password);
       logout();
-    } catch (err: any) {
-      setDeleteModalError(err.message || 'Senha incorreta. Tente novamente.');
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      setDeleteModalError(errorMsg || 'Senha incorreta. Tente novamente.');
       setIsDeleting(false);
     }
   };

@@ -49,6 +49,7 @@ export async function login(data: LoginUserDTO): Promise<AuthResponse> {
   }
 
   const token = generateToken(user.id);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { password_hash, ...userWithoutPassword } = user;
 
   return {

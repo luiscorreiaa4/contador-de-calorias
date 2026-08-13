@@ -2,6 +2,11 @@ import { Request, Response } from 'express';
 import * as UserService from '../services/user.service.js';
 import { AuthenticatedRequest } from '../middlewares/auth.js';
 
+interface CustomError {
+  statusCode?: number;
+  message?: string;
+}
+
 export async function register(req: Request, res: Response) {
   try {
     const authData = await UserService.register(req.body);
@@ -10,11 +15,12 @@ export async function register(req: Request, res: Response) {
       message: 'Conta criada com sucesso!',
       data: authData,
     });
-  } catch (error: any) {
-    const statusCode = error.statusCode ?? 500;
+  } catch (error: unknown) {
+    const err = error as CustomError;
+    const statusCode = err.statusCode ?? 500;
     return res.status(statusCode).json({
       success: false,
-      message: error.message ?? 'Erro interno no servidor.',
+      message: err.message ?? 'Erro interno no servidor.',
     });
   }
 }
@@ -27,11 +33,12 @@ export async function login(req: Request, res: Response) {
       message: 'Login realizado com sucesso!',
       data: authData,
     });
-  } catch (error: any) {
-    const statusCode = error.statusCode ?? 500;
+  } catch (error: unknown) {
+    const err = error as CustomError;
+    const statusCode = err.statusCode ?? 500;
     return res.status(statusCode).json({
       success: false,
-      message: error.message ?? 'Erro interno no servidor.',
+      message: err.message ?? 'Erro interno no servidor.',
     });
   }
 }
@@ -46,11 +53,12 @@ export async function getProfile(req: AuthenticatedRequest, res: Response) {
       success: true,
       data: profile,
     });
-  } catch (error: any) {
-    const statusCode = error.statusCode ?? 500;
+  } catch (error: unknown) {
+    const err = error as CustomError;
+    const statusCode = err.statusCode ?? 500;
     return res.status(statusCode).json({
       success: false,
-      message: error.message ?? 'Erro interno no servidor.',
+      message: err.message ?? 'Erro interno no servidor.',
     });
   }
 }
@@ -66,11 +74,12 @@ export async function updateProfile(req: AuthenticatedRequest, res: Response) {
       message: 'Perfil atualizado com sucesso!',
       data: updatedUser,
     });
-  } catch (error: any) {
-    const statusCode = error.statusCode ?? 500;
+  } catch (error: unknown) {
+    const err = error as CustomError;
+    const statusCode = err.statusCode ?? 500;
     return res.status(statusCode).json({
       success: false,
-      message: error.message ?? 'Erro ao atualizar perfil.',
+      message: err.message ?? 'Erro ao atualizar perfil.',
     });
   }
 }
@@ -86,11 +95,12 @@ export async function completeOnboarding(req: AuthenticatedRequest, res: Respons
       message: 'Onboarding concluído com sucesso!',
       data: updatedUser,
     });
-  } catch (error: any) {
-    const statusCode = error.statusCode ?? 500;
+  } catch (error: unknown) {
+    const err = error as CustomError;
+    const statusCode = err.statusCode ?? 500;
     return res.status(statusCode).json({
       success: false,
-      message: error.message ?? 'Erro ao concluir onboarding.',
+      message: err.message ?? 'Erro ao concluir onboarding.',
     });
   }
 }
@@ -106,11 +116,12 @@ export async function deleteAccount(req: AuthenticatedRequest, res: Response) {
       success: true,
       message: 'Sua conta foi excluída com sucesso.',
     });
-  } catch (error: any) {
-    const statusCode = error.statusCode ?? 500;
+  } catch (error: unknown) {
+    const err = error as CustomError;
+    const statusCode = err.statusCode ?? 500;
     return res.status(statusCode).json({
       success: false,
-      message: error.message ?? 'Erro ao excluir conta.',
+      message: err.message ?? 'Erro ao excluir conta.',
     });
   }
 }

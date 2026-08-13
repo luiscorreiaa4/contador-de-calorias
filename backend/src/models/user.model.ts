@@ -56,7 +56,7 @@ export async function updateUser(
   }
 ): Promise<UserWithoutPassword> {
   const updates: string[] = [];
-  const values: any[] = [];
+  const values: unknown[] = [];
   let paramIndex = 1;
 
   if (fields.name !== undefined) {

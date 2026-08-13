@@ -45,7 +45,7 @@ export const OnboardingFlow: React.FC = () => {
   };
 
   const nextStep = () => {
-    let currentErrors: Record<string, string> = {};
+    const currentErrors: Record<string, string> = {};
     if (step === 1) {
       if (!formData.sex) currentErrors.sex = 'Selecione o sexo biológico.';
       const birthErr = validateBirthDate(formData.birthDate);
@@ -89,8 +89,9 @@ export const OnboardingFlow: React.FC = () => {
       // Atualiza a sessão com os novos dados
       setAuthSession(response.user, response.token);
       // Aqui o ProtectedRoute no App.tsx irá detectar e redirecionar para o Dashboard automaticamente.
-    } catch (err: any) {
-      setServerError(err.message || 'Erro ao salvar o perfil. Tente novamente.');
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      setServerError(errorMsg || 'Erro ao salvar o perfil. Tente novamente.');
       setIsLoading(false);
     }
   };

@@ -37,11 +37,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       const response = await loginUser(formData);
       setAuthSession(response.user, response.token);
       if (onSuccess) onSuccess();
-    } catch (err: any) {
-      if (err.message.includes('Failed to fetch') || err.message.includes('fetch')) {
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      if (errorMsg.includes('Failed to fetch') || errorMsg.includes('fetch')) {
         setServerError('Não foi possível conectar ao servidor.');
       } else {
-        setServerError(err.message || 'Erro ao realizar login. Tente novamente.');
+        setServerError(errorMsg || 'Erro ao realizar login. Tente novamente.');
       }
     } finally {
       setIsLoading(false);

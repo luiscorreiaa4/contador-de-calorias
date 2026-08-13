@@ -64,6 +64,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose }) =
   // Reset on open
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMealType('almoço');
       setSelectedFoodId('');
       setAmount('');
@@ -95,15 +96,16 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose }) =
     }
   }, [isOpen, isSubmitting, onClose]);
 
-  // Auto-fill amount when food changes
-  useEffect(() => {
-    if (selectedFood) {
-      setAmount(selectedFood.defaultAmount);
+  const handleFoodSelect = (foodId: string) => {
+    setSelectedFoodId(foodId);
+    const food = MOCK_FOODS.find((f) => f.id === foodId);
+    if (food) {
+      setAmount(food.defaultAmount);
       setTimeout(() => amountInputRef.current?.focus(), 50);
     } else {
       setAmount('');
     }
-  }, [selectedFoodId]);
+  };
 
   if (!isOpen) return null;
 
@@ -209,7 +211,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose }) =
                 <select
                   id="food-select"
                   value={selectedFoodId}
-                  onChange={(e) => setSelectedFoodId(e.target.value)}
+                  onChange={(e) => handleFoodSelect(e.target.value)}
                   disabled={isSubmitting}
                   className="w-full appearance-none pl-3 pr-8 py-2.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 focus:border-emerald-500 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 outline-none transition-colors"
                   aria-label="Selecionar alimento"

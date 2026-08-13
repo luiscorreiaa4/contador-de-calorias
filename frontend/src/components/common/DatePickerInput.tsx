@@ -140,7 +140,7 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
       try {
         nativeInputRef.current.showPicker();
         return;
-      } catch (err) {
+      } catch {
         // fallback para o popover visual caso showPicker falhe
       }
     }
