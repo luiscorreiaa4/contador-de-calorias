@@ -5,7 +5,16 @@ export async function createMealWithItems(
   userId: string,
   name: string,
   mealTime: Date,
-  itemsData: { foodId: string; quantity: number; calories: number; proteins: number; carbs: number; fats: number }[]
+  itemsData: {
+    foodId: string;
+    quantity: number;
+    unit?: string;
+    displayAmount?: number | null;
+    calories: number;
+    proteins: number;
+    carbs: number;
+    fats: number;
+  }[]
 ): Promise<Meal> {
   const client = await pool.connect();
 
@@ -23,9 +32,19 @@ export async function createMealWithItems(
     const insertedItems: MealItem[] = [];
     for (const item of itemsData) {
       const itemResult = await client.query<MealItem>(
-        `INSERT INTO meal_items (meal_id, food_id, quantity, calories, proteins, carbs, fats)
-         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-        [meal.id, item.foodId, item.quantity, item.calories, item.proteins, item.carbs, item.fats]
+        `INSERT INTO meal_items (meal_id, food_id, quantity, unit, display_amount, calories, proteins, carbs, fats)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+        [
+          meal.id,
+          item.foodId,
+          item.quantity,
+          item.unit || 'g',
+          item.displayAmount ?? null,
+          item.calories,
+          item.proteins,
+          item.carbs,
+          item.fats,
+        ]
       );
       insertedItems.push(itemResult.rows[0]);
     }
@@ -56,9 +75,13 @@ export async function findMealsByUserAndDate(userId: string, dateStart: string, 
   
   const mealIds = meals.map(m => m.id);
   
-  // Pegar os itens das refeições e dar join com foods para pegar o nome do alimento
+  // Pegar os itens das refeições e dar join com foods para pegar o nome e unidades do alimento
   const itemsResult = await pool.query<MealItem>(
-    `SELECT mi.*, f.name as food_name 
+    `SELECT mi.*, 
+            f.name as food_name, 
+            f.base_unit as food_base_unit, 
+            f.unit_name as food_unit_name, 
+            f.unit_weight as food_unit_weight
      FROM meal_items mi
      JOIN foods f ON f.id = mi.food_id
      WHERE mi.meal_id = ANY($1::uuid[])`,
@@ -97,7 +120,16 @@ export async function updateMealWithItems(
   userId: string,
   mealId: string,
   name: string,
-  itemsData: { foodId: string; quantity: number; calories: number; proteins: number; carbs: number; fats: number }[]
+  itemsData: {
+    foodId: string;
+    quantity: number;
+    unit?: string;
+    displayAmount?: number | null;
+    calories: number;
+    proteins: number;
+    carbs: number;
+    fats: number;
+  }[]
 ): Promise<Meal> {
   const client = await pool.connect();
 
@@ -123,9 +155,19 @@ export async function updateMealWithItems(
     const insertedItems: MealItem[] = [];
     for (const item of itemsData) {
       const itemResult = await client.query<MealItem>(
-        `INSERT INTO meal_items (meal_id, food_id, quantity, calories, proteins, carbs, fats)
-         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-        [meal.id, item.foodId, item.quantity, item.calories, item.proteins, item.carbs, item.fats]
+        `INSERT INTO meal_items (meal_id, food_id, quantity, unit, display_amount, calories, proteins, carbs, fats)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+        [
+          meal.id,
+          item.foodId,
+          item.quantity,
+          item.unit || 'g',
+          item.displayAmount ?? null,
+          item.calories,
+          item.proteins,
+          item.carbs,
+          item.fats,
+        ]
       );
       insertedItems.push(itemResult.rows[0]);
     }

@@ -6,7 +6,9 @@ export const createMealSchema = z.object({
   items: z.array(
     z.object({
       foodId: z.string().uuid("ID do alimento inválido."),
-      quantity: z.number().positive("A quantidade deve ser maior que zero.")
+      quantity: z.number().positive("A quantidade deve ser maior que zero."),
+      unit: z.enum(['g', 'ml', 'un']).optional(),
+      displayAmount: z.number().positive("A quantidade exibida deve ser maior que zero.").optional(),
     })
   ).min(1, "A refeição deve ter pelo menos um alimento.")
 });

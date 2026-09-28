@@ -1,6 +1,12 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { registerUserSchema, loginUserSchema, updateUserSchema, deleteUserSchema } from '../src/schemas/user.schema.js';
+import {
+  registerUserSchema,
+  loginUserSchema,
+  updateUserSchema,
+  deleteUserSchema,
+  completeOnboardingSchema,
+} from '../src/schemas/user.schema.js';
 
 describe('User Schema Validation (registerUserSchema)', () => {
   it('deve validar com sucesso um cadastro com dados válidos', () => {
@@ -8,9 +14,6 @@ describe('User Schema Validation (registerUserSchema)', () => {
       name: 'Maria Silva',
       email: 'maria@example.com',
       password: 'senhaSegura123',
-      goal: 'perder_peso',
-      sex: 'feminino',
-      birthDate: '15/05/1990',
     };
 
     const result = registerUserSchema.safeParse(validData);
@@ -18,42 +21,7 @@ describe('User Schema Validation (registerUserSchema)', () => {
     if (result.success) {
       assert.strictEqual(result.data.name, 'Maria Silva');
       assert.strictEqual(result.data.email, 'maria@example.com');
-      assert.strictEqual(result.data.sex, 'feminino');
-      assert.strictEqual(result.data.birthDate, '15/05/1990');
-    }
-  });
-
-  it('deve aceitar "masculino", "feminino" e "prefiro_nao_responder" no campo sexo', () => {
-    const sexos = ['masculino', 'feminino', 'prefiro_nao_responder'] as const;
-
-    for (const sex of sexos) {
-      const result = registerUserSchema.safeParse({
-        name: 'Usuário Teste',
-        email: `teste_${sex}@example.com`,
-        password: 'senhaSegura123',
-        goal: 'perder_peso',
-        sex,
-        birthDate: '20/10/1995',
-      });
-      assert.strictEqual(result.success, true, `Falhou para o sexo: ${sex}`);
-    }
-  });
-
-  it('deve rejeitar valor de sexo não permitido', () => {
-    const invalidData = {
-      name: 'Ana',
-      email: 'ana@example.com',
-      password: 'senhaSegura123',
-      goal: 'manter_peso',
-      sex: 'outro_valor_invalido',
-      birthDate: '01/01/2000',
-    };
-
-    const result = registerUserSchema.safeParse(invalidData);
-    assert.strictEqual(result.success, false);
-    if (!result.success) {
-      const fieldError = result.error.format().sex?._errors[0];
-      assert.strictEqual(fieldError, 'Selecione o sexo.');
+      assert.strictEqual(result.data.password, 'senhaSegura123');
     }
   });
 
@@ -62,9 +30,6 @@ describe('User Schema Validation (registerUserSchema)', () => {
       name: 'Ana',
       email: 'email_invalido',
       password: 'senhaSegura123',
-      goal: 'manter_peso',
-      sex: 'feminino',
-      birthDate: '01/01/2000',
     };
 
     const result = registerUserSchema.safeParse(invalidData);
@@ -79,9 +44,6 @@ describe('User Schema Validation (registerUserSchema)', () => {
       name: 'Ana',
       email: 'ana@example.com',
       password: '123',
-      goal: 'manter_peso',
-      sex: 'feminino',
-      birthDate: '01/01/2000',
     };
 
     const result = registerUserSchema.safeParse(invalidData);
@@ -90,18 +52,54 @@ describe('User Schema Validation (registerUserSchema)', () => {
       assert.strictEqual(result.error.format().password?._errors[0], 'A senha deve ter no mínimo 6 caracteres.');
     }
   });
+});
+
+describe('User Schema Validation (completeOnboardingSchema)', () => {
+  it('deve aceitar "masculino", "feminino" e "prefiro_nao_responder" no campo sexo', () => {
+    const sexos = ['masculino', 'feminino', 'prefiro_nao_responder'] as const;
+
+    for (const sex of sexos) {
+      const result = completeOnboardingSchema.safeParse({
+        sex,
+        birthDate: '1995-10-20',
+        goal: 'perder_peso',
+        weight: 70,
+        height: 175,
+        activity_level: 'moderadamente_ativo',
+      });
+      assert.strictEqual(result.success, true, `Falhou para o sexo: ${sex}`);
+    }
+  });
+
+  it('deve rejeitar valor de sexo não permitido', () => {
+    const invalidData = {
+      sex: 'outro_valor_invalido',
+      birthDate: '2000-01-01',
+      goal: 'manter_peso',
+      weight: 65,
+      height: 168,
+      activity_level: 'sedentario',
+    };
+
+    const result = completeOnboardingSchema.safeParse(invalidData);
+    assert.strictEqual(result.success, false);
+    if (!result.success) {
+      const fieldError = result.error.format().sex?._errors[0];
+      assert.strictEqual(fieldError, 'Selecione o sexo.');
+    }
+  });
 
   it('deve rejeitar data de nascimento vazia ou menor que 10 caracteres', () => {
     const invalidData = {
-      name: 'Carlos',
-      email: 'carlos@example.com',
-      password: 'senhaSegura123',
-      goal: 'manter_peso',
       sex: 'masculino',
       birthDate: '1990',
+      goal: 'manter_peso',
+      weight: 80,
+      height: 180,
+      activity_level: 'muito_ativo',
     };
 
-    const result = registerUserSchema.safeParse(invalidData);
+    const result = completeOnboardingSchema.safeParse(invalidData);
     assert.strictEqual(result.success, false);
     if (!result.success) {
       assert.strictEqual(result.error.format().birthDate?._errors[0], 'A data de nascimento é obrigatória.');

@@ -181,15 +181,26 @@ export const DashboardPage: React.FC = () => {
                 </div>
 
                 <div className="mb-4 space-y-1">
-                  {meal.items.slice(0, 3).map((item, idx) => (
-                    <p key={idx} className="text-sm text-zinc-600 dark:text-zinc-400 flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/40 shrink-0"></span>
-                      <span className="truncate">{item.food_name}</span>
-                      <span className="text-xs text-zinc-400 shrink-0 border-l border-zinc-200 dark:border-zinc-700 pl-2">
-                        {Number(item.quantity)} {Number(item.quantity) === 1 ? 'porção' : 'porções'}
-                      </span>
-                    </p>
-                  ))}
+                  {meal.items.slice(0, 3).map((item, idx) => {
+                    let formattedQuantity = `${Math.round(Number(item.quantity))} g`;
+                    if (item.unit === 'un' && item.display_amount) {
+                      const unitLabel = item.food_unit_name || 'unidade';
+                      const label = Number(item.display_amount) === 1 ? unitLabel : `${unitLabel}s`;
+                      formattedQuantity = `${item.display_amount} ${label} (${Math.round(Number(item.quantity))}g)`;
+                    } else if (item.unit === 'ml' || item.food_base_unit === 'ml') {
+                      formattedQuantity = `${Math.round(Number(item.quantity))} ml`;
+                    }
+
+                    return (
+                      <p key={idx} className="text-sm text-zinc-600 dark:text-zinc-400 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/40 shrink-0"></span>
+                        <span className="truncate">{item.food_name}</span>
+                        <span className="text-xs text-zinc-400 shrink-0 border-l border-zinc-200 dark:border-zinc-700 pl-2 font-medium">
+                          {formattedQuantity}
+                        </span>
+                      </p>
+                    );
+                  })}
                   {meal.items.length > 3 && (
                     <p className="text-xs font-medium text-emerald-600 dark:text-emerald-500 pt-1">
                       + {meal.items.length - 3} outro(s) alimento(s)...

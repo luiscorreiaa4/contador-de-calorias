@@ -6,8 +6,42 @@ interface CustomError extends Error {
   statusCode?: number;
 }
 
+function calculateItemNutrients(
+  item: { foodId: string; quantity: number; unit?: 'g' | 'ml' | 'un'; displayAmount?: number },
+  food: any
+) {
+  let finalQuantity = Number(item.quantity);
+  let displayAmount = item.displayAmount ? Number(item.displayAmount) : undefined;
+  const unit = item.unit || food.base_unit || 'g';
+
+  // Se a unidade for 'un' e houver peso por unidade cadastrado:
+  if (unit === 'un' && food.unit_weight) {
+    if (!displayAmount) {
+      displayAmount = finalQuantity;
+    }
+    // Converte para a quantidade real em gramas
+    finalQuantity = displayAmount * Number(food.unit_weight);
+  } else if (!displayAmount) {
+    displayAmount = finalQuantity;
+  }
+
+  // Base padrão de 100g ou 100ml
+  const servingWeight = Number(food.serving_weight) || 100;
+  const factor = finalQuantity / servingWeight;
+
+  return {
+    foodId: food.id,
+    quantity: finalQuantity,
+    unit,
+    displayAmount,
+    calories: Math.round(Number(food.calories) * factor * 10) / 10,
+    proteins: Math.round(Number(food.proteins) * factor * 10) / 10,
+    carbs: Math.round(Number(food.carbs) * factor * 10) / 10,
+    fats: Math.round(Number(food.fats) * factor * 10) / 10,
+  };
+}
+
 export async function createMeal(userId: string, data: CreateMealDTO) {
-  // Prepara os dados dos itens calculando as calorias e macros reais baseadas na quantidade
   const itemsData = [];
   
   for (const item of data.items) {
@@ -18,29 +52,13 @@ export async function createMeal(userId: string, data: CreateMealDTO) {
       throw error;
     }
     
-    // Calcula os macros: (valor / 100) * quantidade. 
-    // Considerando que os mocks e as inserções foram feitas para 100g. 
-    // Wait, no init-db tem itens que são por unidade, ex "Ovo Cozido (1 unidade - 50g)" = 78 kcal.
-    // Assim o multiplicador base do banco é 1 unidade. Ou seja, 'quantity' vai ser o multiplicador direto.
-    // Se a pessoa come 2 ovos (quantity = 2), multiplica tudo por 2.
-    // Se a pessoa come 100g de frango, quantity = 1 (porque o nome diz 100g e a porção é 1).
-    // Na interface do dashboard, a quantidade reflete a unidade definida no banco.
-    
-    itemsData.push({
-      foodId: food.id,
-      quantity: item.quantity,
-      calories: Number(food.calories) * item.quantity,
-      proteins: Number(food.proteins) * item.quantity,
-      carbs: Number(food.carbs) * item.quantity,
-      fats: Number(food.fats) * item.quantity,
-    });
+    itemsData.push(calculateItemNutrients(item, food));
   }
 
   return MealModel.createMealWithItems(userId, data.name, new Date(data.mealTime), itemsData);
 }
 
 export async function getTodayMeals(userId: string, userTimezoneDateStr?: string) {
-  // Hoje no fuso do servidor ou via parametro. Para simplificar, vamos pegar o date atual via JS ou via parametro.
   const today = userTimezoneDateStr ? new Date(userTimezoneDateStr) : new Date();
   today.setHours(0, 0, 0, 0);
   
@@ -61,14 +79,7 @@ export async function updateMeal(userId: string, mealId: string, data: CreateMea
       throw error;
     }
     
-    itemsData.push({
-      foodId: food.id,
-      quantity: item.quantity,
-      calories: Number(food.calories) * item.quantity,
-      proteins: Number(food.proteins) * item.quantity,
-      carbs: Number(food.carbs) * item.quantity,
-      fats: Number(food.fats) * item.quantity,
-    });
+    itemsData.push(calculateItemNutrients(item, food));
   }
 
   return MealModel.updateMealWithItems(userId, mealId, data.name, itemsData);

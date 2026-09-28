@@ -3,12 +3,17 @@ export interface MealItem {
   meal_id: string;
   food_id: string;
   quantity: number;
+  unit: string;
+  display_amount?: number | null;
   calories: number;
   proteins: number;
   carbs: number;
   fats: number;
   created_at: Date;
   food_name?: string; // from join
+  food_base_unit?: string;
+  food_unit_name?: string | null;
+  food_unit_weight?: number | null;
 }
 
 export interface Meal {

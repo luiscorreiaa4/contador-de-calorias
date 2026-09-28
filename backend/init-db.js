@@ -100,6 +100,10 @@ const setupDatabase = async () => {
         proteins NUMERIC(8,2) NOT NULL,
         carbs NUMERIC(8,2) NOT NULL,
         fats NUMERIC(8,2) NOT NULL,
+        base_unit VARCHAR(10) NOT NULL DEFAULT 'g',
+        serving_weight NUMERIC(8,2) NOT NULL DEFAULT 100,
+        unit_name VARCHAR(50) DEFAULT NULL,
+        unit_weight NUMERIC(8,2) DEFAULT NULL,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
@@ -126,6 +130,8 @@ const setupDatabase = async () => {
         meal_id UUID NOT NULL REFERENCES meals(id) ON DELETE CASCADE,
         food_id UUID NOT NULL REFERENCES foods(id) ON DELETE RESTRICT,
         quantity NUMERIC(8,2) NOT NULL,
+        unit VARCHAR(10) NOT NULL DEFAULT 'g',
+        display_amount NUMERIC(8,2) DEFAULT NULL,
         calories NUMERIC(8,2) NOT NULL,
         proteins NUMERIC(8,2) NOT NULL,
         carbs NUMERIC(8,2) NOT NULL,
@@ -146,20 +152,20 @@ const setupDatabase = async () => {
       ['teste', 'teste@teste.com', hashUser1, 'masculino', '1995-01-01']
     );
 
-    // Criação de Alimentos Iniciais (Seed)
+    // Criação de Alimentos Iniciais (Seed padronizado por 100g / 100ml)
     console.log('🔄 Inserindo alimentos iniciais...');
     await clientApp.query(`
-      INSERT INTO foods (name, calories, proteins, carbs, fats) VALUES
-      ('Frango Grelhado (100g)', 165, 31, 0, 3.6),
-      ('Arroz Branco Cozido (100g)', 130, 2.7, 28, 0.3),
-      ('Feijão Carioca Cozido (100g)', 76, 4.8, 13.6, 0.5),
-      ('Ovo Cozido (1 unidade - 50g)', 78, 6.3, 0.6, 5.3),
-      ('Maçã (1 unidade média - 150g)', 95, 0.5, 25, 0.3),
-      ('Banana Prata (1 unidade - 100g)', 89, 1.1, 23, 0.3),
-      ('Pão Francês (1 unidade - 50g)', 150, 4.7, 29, 1.6),
-      ('Leite Integral (200ml)', 120, 6.4, 10, 6),
-      ('Aveia em Flocos (30g)', 118, 4.3, 20, 2.2),
-      ('Manteiga (10g)', 72, 0.1, 0, 8.1);
+      INSERT INTO foods (name, calories, proteins, carbs, fats, base_unit, serving_weight, unit_name, unit_weight) VALUES
+      ('Frango Grelhado', 165, 31, 0, 3.6, 'g', 100, NULL, NULL),
+      ('Arroz Branco Cozido', 130, 2.7, 28, 0.3, 'g', 100, NULL, NULL),
+      ('Feijão Carioca Cozido', 76, 4.8, 13.6, 0.5, 'g', 100, NULL, NULL),
+      ('Ovo Cozido', 156, 12.6, 1.2, 10.6, 'g', 100, 'unidade', 50),
+      ('Maçã', 63.3, 0.3, 16.7, 0.2, 'g', 100, 'unidade', 150),
+      ('Banana Prata', 89, 1.1, 23, 0.3, 'g', 100, 'unidade', 100),
+      ('Pão Francês', 300, 9.4, 58, 3.2, 'g', 100, 'unidade', 50),
+      ('Leite Integral', 60, 3.2, 5, 3, 'ml', 100, NULL, NULL),
+      ('Aveia em Flocos', 393.3, 14.3, 66.7, 7.3, 'g', 100, NULL, NULL),
+      ('Manteiga', 720, 1, 0, 81, 'g', 100, NULL, NULL);
     `);
     console.log('✅ Alimentos iniciais criados com sucesso!');
 
