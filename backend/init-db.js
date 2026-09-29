@@ -121,7 +121,12 @@ const setupDatabase = async () => {
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `);
-    console.log('✅ Tabela "meals" criada com sucesso!');
+    
+    // Otimização: Índice composto para acelerar a busca de refeições por usuário e data
+    await clientApp.query(`
+      CREATE INDEX IF NOT EXISTS idx_meals_user_id_meal_time ON meals(user_id, meal_time DESC);
+    `);
+    console.log('✅ Tabela "meals" e índices criados com sucesso!');
 
     // Criação da Tabela de Itens da Refeição (meal_items)
     await clientApp.query(`

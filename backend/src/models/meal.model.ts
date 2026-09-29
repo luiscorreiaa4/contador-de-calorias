@@ -61,11 +61,14 @@ export async function createMealWithItems(
 }
 
 export async function findMealsByUserAndDate(userId: string, dateStart: string, dateEnd: string): Promise<Meal[]> {
-  // Retorna as refeições de um dia com os itens
-  const mealsResult = await pool.query<Meal>(
-    `SELECT * FROM meals 
-     WHERE user_id = $1 AND meal_time >= $2 AND meal_time < $3
-     ORDER BY meal_time DESC`,
+  // Retorna as refeições de um dia com as agregações feitas no banco
+  const mealsResult = await pool.query<Meal & { total_calories: string | number; total_proteins: string | number }>(
+    `SELECT m.id, m.user_id, m.name, m.meal_time, m.created_at, m.updated_at,
+            COALESCE((SELECT SUM(calories) FROM meal_items WHERE meal_id = m.id), 0) as total_calories,
+            COALESCE((SELECT SUM(proteins) FROM meal_items WHERE meal_id = m.id), 0) as total_proteins
+     FROM meals m 
+     WHERE m.user_id = $1 AND m.meal_time >= $2 AND m.meal_time < $3
+     ORDER BY m.meal_time DESC`,
     [userId, dateStart, dateEnd]
   );
   
@@ -75,9 +78,10 @@ export async function findMealsByUserAndDate(userId: string, dateStart: string, 
   
   const mealIds = meals.map(m => m.id);
   
-  // Pegar os itens das refeições e dar join com foods para pegar o nome e unidades do alimento
+  // Pegar os itens com projeção explícita (sem mi.*)
   const itemsResult = await pool.query<MealItem>(
-    `SELECT mi.*, 
+    `SELECT mi.id, mi.meal_id, mi.food_id, mi.quantity, mi.unit, mi.display_amount, 
+            mi.calories, mi.proteins, mi.carbs, mi.fats,
             f.name as food_name, 
             f.base_unit as food_base_unit, 
             f.unit_name as food_unit_name, 
@@ -96,14 +100,12 @@ export async function findMealsByUserAndDate(userId: string, dateStart: string, 
   
   return meals.map(meal => {
     const items = itemsByMeal[meal.id] || [];
-    const total_calories = items.reduce((acc, item) => acc + Number(item.calories), 0);
-    const total_proteins = items.reduce((acc, item) => acc + Number(item.proteins), 0);
     
     return {
       ...meal,
       items,
-      total_calories,
-      total_proteins
+      total_calories: Number(meal.total_calories),
+      total_proteins: Number(meal.total_proteins)
     };
   });
 }
