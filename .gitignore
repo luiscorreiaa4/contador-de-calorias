@@ -28,3 +28,6 @@ prompts/
 *prompt*
 *.prompt
 
+# Environment
+.env
+backend/.env

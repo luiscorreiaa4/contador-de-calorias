@@ -1,12 +1,10 @@
 import { app } from './app.js';
-import dotenv from 'dotenv';
+import { env } from './config/env.js';
 import userRoutes from './routes/user.routes.js';
 import foodRoutes from './routes/food.routes.js';
 import mealRoutes from './routes/meal.routes.js';
 
-dotenv.config();
-
-const PORT = process.env.PORT || 3001;
+const PORT = env.PORT;
 
 app.use('/api/users', userRoutes);
 app.use('/api/foods', foodRoutes);

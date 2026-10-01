@@ -1,14 +1,12 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
+import { env } from './config/env.js';
 import userRoutes from './routes/user.routes.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 
-dotenv.config();
-
 export const app = express();
 
-const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
+const corsOrigin = env.CORS_ORIGIN;
 
 app.use(cors({
   origin: corsOrigin,
