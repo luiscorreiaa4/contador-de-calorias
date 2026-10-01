@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import { env } from './config/env.js';
 import userRoutes from './routes/user.routes.js';
 import { errorHandler } from './middlewares/errorHandler.js';
@@ -8,6 +9,7 @@ export const app = express();
 
 const corsOrigin = env.CORS_ORIGIN;
 
+app.use(helmet());
 app.use(cors({
   origin: corsOrigin,
   credentials: true,

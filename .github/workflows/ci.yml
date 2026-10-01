@@ -1,0 +1,70 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres_test_password
+          POSTGRES_DB: contador_calorias_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install Dependencies
+      run: |
+        npm install
+        npm --prefix backend install
+        npm --prefix frontend install
+
+    - name: Run Linter
+      run: npm run lint
+
+    - name: Run Backend Tests (with DB)
+      env:
+        PORT: 3000
+        DB_HOST: localhost
+        DB_PORT: 5432
+        DB_USER: postgres
+        DB_PASSWORD: postgres_test_password
+        DB_NAME: contador_calorias_test
+        DATABASE_URL: postgres://postgres:postgres_test_password@localhost:5432/contador_calorias_test
+        JWT_SECRET: super_secret_test_key_with_at_least_32_chars_123!
+        CORS_ORIGIN: http://localhost:5173
+      run: |
+        npm --prefix backend run migrate up
+        npm --prefix backend test
+
+    - name: Run Frontend Tests
+      run: npm --prefix frontend test
+
+    - name: Build Frontend
+      run: npm --prefix frontend run build

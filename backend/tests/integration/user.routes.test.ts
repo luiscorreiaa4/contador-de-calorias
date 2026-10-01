@@ -1,9 +1,14 @@
-import { describe, it } from 'node:test';
+import { describe, it, after } from 'node:test';
 import assert from 'node:assert';
 import request from 'supertest';
 import { app } from '../../src/app.js';
+import { pool } from '../../src/database/pool.js';
 
 describe('User Routes (Integration - E2E)', () => {
+  after(async () => {
+    await pool.end();
+  });
+
   const testEmail = `tester-${Date.now()}@example.com`;
   const testPassword = 'password123';
 

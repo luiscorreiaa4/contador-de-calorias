@@ -8,7 +8,7 @@ interface CustomError extends Error {
 
 function calculateItemNutrients(
   item: { foodId: string; quantity: number; unit?: 'g' | 'ml' | 'un'; displayAmount?: number },
-  food: any
+  food: { id: string; base_unit: string; unit_weight?: number | string | null; serving_weight: number | string; calories: number | string; proteins: number | string; carbs: number | string; fats: number | string; }
 ) {
   let finalQuantity = Number(item.quantity);
   let displayAmount = item.displayAmount ? Number(item.displayAmount) : undefined;

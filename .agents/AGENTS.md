@@ -22,11 +22,14 @@ Agentes especialistas do projeto (React + TypeScript + Node.js + PostgreSQL). As
 ---
 
 ## testador
-**Quando executar:** sempre que uma alteração no backend for criada, editada ou removida (acionado pelo `desenvolvedor-backend`).
+**Quando executar:** sempre que uma alteração no frontend ou backend for criada, editada ou removida.
 
-- Ferramenta: Vitest/Jest + `supertest`, seguindo a skill `backend-testing-guide`.
+- Ferramentas Backend: `node:test`/Vitest + `supertest`.
+- Ferramentas Frontend: Vitest + React Testing Library (RTL) + MSW.
+- Regra crítica de Backend: Testes que acessam banco de dados **devem** rodar num banco isolado (terminado em `_test`). Aborte se a string de conexão for a de desenvolvimento principal.
+- Regra crítica de Frontend: Consultar elementos sempre por `role` ou `label` no RTL (ex: `getByRole('button')`); interceptar requests apenas via MSW.
 - Roteiro de verificação:
-  1. Rota responde no caminho e método HTTP esperados?
+  1. Rota responde no caminho e método HTTP esperados? No frontend, o componente renderiza corretamente?
   2. Entrada inválida retorna `400` (validação zod funcionando)?
   3. Acesso sem token retorna `401`; sem permissão retorna `403`?
   4. Regra de negócio no service processa corretamente (incluindo transações quando aplicável)?
@@ -48,9 +51,9 @@ Agentes especialistas do projeto (React + TypeScript + Node.js + PostgreSQL). As
 **Checklist de saída:**
 - [ ] Componente `.tsx` tipado, sem `any`.
 - [ ] Dark mode implementado.
-- [ ] Estados loading/error/empty/data tratados.
+- [ ] Estados loading/error/empty/data tratados via React Query.
 - [ ] Rota protegida no nível de rota, não só escondendo elementos.
-- [ ] Ao concluir, aciona o agente `ux-ui`.
+- [ ] Ao concluir, aciona o agente `testador` para cobrir o fluxo com RTL + MSW, e depois `ux-ui`.
 
 ---
 
@@ -71,7 +74,7 @@ Agentes especialistas do projeto (React + TypeScript + Node.js + PostgreSQL). As
 ## banco-de-dados
 **Quando executar:** sempre que for necessário criar/alterar schema, tabelas ou migrations do PostgreSQL — geralmente acionado antes do `desenvolvedor-backend` implementar um recurso novo.
 
-- Migrations organizadas em `backend/database/` ou `backend/prisma/`, nomeadas de forma descritiva (ex: `2026_08_06_create_examples_table`).
+- Migrations via `node-pg-migrate` (SQL puro, sem ORMs), organizadas no diretório configurado, nomeadas de forma descritiva.
 - Define PKs, FKs, índices e constraints já na criação da tabela.
 - **Regra crítica (igual `backend-rules.md`):** PROIBIDO `DROP TABLE`, `DROP DATABASE`, `TRUNCATE` ou deleção em massa sem confirmação explícita do usuário. Antes de alteração destrutiva: apresentar plano detalhado e aguardar confirmação.
 - Operações com múltiplas tabelas relacionadas usam transação.

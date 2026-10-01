@@ -87,12 +87,18 @@ JWT_SECRET=seu_segredo_super_seguro_aqui
 ```
 
 ### 4. Configuração do Banco de Dados
-Com o PostgreSQL rodando e as credenciais configuradas no `.env`, execute o script de inicialização para criar as tabelas necessárias:
+Com o PostgreSQL instalado e as credenciais configuradas no `.env`, você precisará criar o banco de dados vazio e depois rodar as migrations para construir as tabelas e dados iniciais.
 
-```bash
+No seu terminal ou gerenciador de banco (PgAdmin, DBeaver, etc), crie o banco:
+\`\`\`sql
+CREATE DATABASE contador_calorias;
+\`\`\`
+
+Após criar o banco, execute o script de migração na raiz do projeto:
+\`\`\`bash
 npm run setup
-```
-*(Este comando roda o script `backend/init-db.js`, construindo o esquema inicial do banco.)*
+\`\`\`
+*(Este comando roda o `node-pg-migrate up` no backend, construindo o esquema inicial do banco e semeando os alimentos básicos.)*
 
 ### 5. Iniciar o Servidor de Desenvolvimento
 O projeto contém um script utilitário na raiz que inicia o Frontend e o Backend **simultaneamente** usando `concurrently`.
@@ -110,7 +116,7 @@ npm run dev:all
 Esses comandos devem ser executados na **raiz** do projeto:
 
 - `npm run dev:all` - Roda Backend e Frontend simultaneamente em modo dev (Hot Reload).
-- `npm run setup` - Inicializa as tabelas do banco de dados (Cuidado: não destrutivo se configurado corretamente, mas verifique os scripts).
+- `npm run setup` - Roda as migrations do banco de dados (Cria tabelas e insere dados essenciais).
 - `npm run lint` - Roda o ESLint no projeto.
 - `npm run server` - Inicia exclusivamente o Backend em modo desenvolvimento.
 - `npm run dev` - Inicia exclusivamente o Frontend em modo desenvolvimento.

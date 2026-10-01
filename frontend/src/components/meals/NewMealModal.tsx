@@ -99,6 +99,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
   // Reset e inicialização ao abrir modal ou trocar refeição
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setErrorMessage(null);
       setSelectedFood(null);
       setAmount('');

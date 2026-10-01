@@ -13,7 +13,8 @@ Aplicação web para usuários que desejam registrar refeições diárias e acom
 
 - **RF-002 - Cadastro e Busca de Alimentos**
   - **Status:** [CONFIRMADO] Implementado (Visto `food.model.ts` e `food.routes.ts`).
-  - **Critérios de Aceite:** Criar, listar e buscar alimentos do banco com tabela nutricional (calorias, proteínas, carboidratos, gorduras).
+  - **O que está implementado:** Busca de alimentos e modelo de dados.
+  - **Critérios de Aceite:** Listar e buscar alimentos do banco com tabela nutricional. A tabela de alimentos é **somente-leitura** para os usuários comuns. A criação de novos alimentos só ocorre via scripts internos/migrations (RF alterado via Roadmap Fase 0.4b).
 
 - **RF-003 - Registro de Refeições**
   - **Status:** [CONFIRMADO] Implementado (Visto `meal.model.ts`, testes e `NewMealModal.tsx`).

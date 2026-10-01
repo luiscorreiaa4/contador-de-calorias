@@ -35,3 +35,5 @@ description: Sempre que for alterar ou criar arquivos do react
 
 ## Testes
 - Componentes e hooks com lógica relevante devem ter testes com Vitest/Jest + React Testing Library. Priorize fluxos críticos (formulários, autenticação, listagens principais).
+- **Mocks de API:** Utilize MSW (Mock Service Worker) para interceptar e mockar as chamadas de rede nos testes de componentes, evitando mocks manuais do Axios/Fetch.
+- **Consultas RTL:** Sempre faça consultas baseadas na acessibilidade, utilizando `getByRole`, `getByLabelText`, etc. Nunca selecione elementos por classe CSS ou IDs genéricos.

@@ -1,10 +1,14 @@
-import { describe, it, mock } from 'node:test';
+import { describe, it, after } from 'node:test';
 import assert from 'node:assert';
 import request from 'supertest';
 import { app } from '../../src/app.js';
-import * as MealService from '../../src/services/meal.service.js';
+import { pool } from '../../src/database/pool.js';
 
 describe('Meal Routes (Integration)', () => {
+  after(async () => {
+    await pool.end();
+  });
+
   it('GET /api/meals/today - deve retornar 401 sem token (Não Autorizado)', async () => {
     const response = await request(app).get('/api/meals/today');
     assert.strictEqual(response.status, 401);

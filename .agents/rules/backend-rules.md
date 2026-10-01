@@ -18,7 +18,7 @@ description: Sempre que criar, modificar ou interagir com o código do backend, 
   - `backend/src/middlewares/`: autenticação, autorização, tratamento de erros, rate limiting.
   - `backend/src/types/`: tipos, interfaces e DTOs compartilhados.
 - **Uso de Bibliotecas Externas:**
-  - Fique à vontade para instalar e utilizar pacotes do NPM que facilitem o desenvolvimento (ex: `express`, `pg`, `prisma`, `knex`, `zod`, `dotenv`, `cors`, `bcrypt` ou `argon2`, `jsonwebtoken`).
+  - Fique à vontade para instalar e utilizar pacotes do NPM que facilitem o desenvolvimento (ex: `express`, `pg`, `zod`, `dotenv`, `cors`, `bcrypt` ou `argon2`, `jsonwebtoken`). É **proibido** o uso de ORMs (Prisma, Sequelize); utilize driver `pg` direto e ferramentas de migração puras como `node-pg-migrate`.
 
 ## Segurança
 - **Segredos e variáveis de ambiente:**
@@ -44,7 +44,8 @@ description: Sempre que criar, modificar ou interagir com o código do backend, 
 - **Transações:**
   - Operações que envolvam múltiplas escritas relacionadas (ex: criar pedido + baixar estoque) DEVEM ser executadas dentro de uma transação (`BEGIN`/`COMMIT`/`ROLLBACK`) para garantir atomicidade.
 - **Persistência e Schemas:**
-  - Mantenha arquivos de migration ou scripts de inicialização SQL devidamente organizados em `backend/database/` ou `backend/prisma/`.
+  - Mantenha arquivos de migration SQL devidamente organizados com o uso do `node-pg-migrate` na pasta do backend.
 
 ## Testes
-- Cobrir services e models críticos com testes automatizados (Jest ou Vitest). Priorize regras de negócio e validações, não é necessário 100% de cobertura.
+- Cobrir services e models críticos com testes automatizados (node:test ou Vitest/Jest). Priorize regras de negócio e validações.
+- **Banco de Dados Isolado:** Testes de integração devem obrigatoriamente rodar contra um banco de testes separado (ex: `contador_calorias_test`). A suíte deve falhar de propósito (abortar) se a URL do banco não indicar claramente que é um ambiente de testes, evitando exclusão de dados de desenvolvimento.
