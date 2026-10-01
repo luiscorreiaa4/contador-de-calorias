@@ -63,3 +63,22 @@ export async function remove(req: AuthenticatedRequest, res: Response) {
     return res.status(statusCode).json({ success: false, message: err.message ?? 'Erro interno no servidor.' });
   }
 }
+
+export async function getStats(req: AuthenticatedRequest, res: Response) {
+  try {
+    const userId = req.userId!;
+    const clientDate = req.query.date as string;
+    
+    let targetDate = new Date();
+    if (clientDate) {
+      targetDate = new Date(clientDate);
+    }
+
+    const stats = await MealService.getMealStats(userId, targetDate.toISOString());
+    return res.status(200).json({ success: true, data: stats });
+  } catch (error: unknown) {
+    const err = error as CustomError;
+    const statusCode = err.statusCode ?? 500;
+    return res.status(statusCode).json({ success: false, message: err.message ?? 'Erro interno no servidor.' });
+  }
+}

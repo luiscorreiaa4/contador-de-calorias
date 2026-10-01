@@ -144,7 +144,12 @@ const setupDatabase = async () => {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `);
-    console.log('✅ Tabela "meal_items" criada com sucesso!');
+    
+    // Otimização: Índice na FK para evitar varredura completa ao buscar/deletar itens de uma refeição
+    await clientApp.query(`
+      CREATE INDEX IF NOT EXISTS idx_meal_items_meal_id ON meal_items(meal_id);
+    `);
+    console.log('✅ Tabela "meal_items" e índices criados com sucesso!');
 
     // Criação de Usuários Comuns de Teste
     const saltRounds = 10;

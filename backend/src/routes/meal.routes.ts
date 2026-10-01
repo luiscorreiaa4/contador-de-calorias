@@ -10,6 +10,7 @@ router.use(authenticate);
 
 router.post('/', validate(createMealSchema), MealController.create);
 router.get('/today', MealController.getToday);
+router.get('/stats', MealController.getStats);
 router.put('/:id', validate(createMealSchema), MealController.update);
 router.delete('/:id', MealController.remove);
 

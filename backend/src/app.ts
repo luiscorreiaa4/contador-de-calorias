@@ -17,8 +17,13 @@ app.use(cors({
 
 app.use(express.json());
 
+import foodRoutes from './routes/food.routes.js';
+import mealRoutes from './routes/meal.routes.js';
+
 // Routes
 app.use('/api/users', userRoutes);
+app.use('/api/foods', foodRoutes);
+app.use('/api/meals', mealRoutes);
 
 // Health Check
 app.get('/health', (_req, res) => {

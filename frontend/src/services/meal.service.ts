@@ -59,7 +59,19 @@ export const deleteMeal = async (id: string): Promise<void> => {
   });
 };
 
-export const getTodayMeals = async (dateStr?: string): Promise<Meal[]> => {
+export const getTodayMeals = async (dateStr?: string, signal?: AbortSignal): Promise<Meal[]> => {
   const query = dateStr ? `?date=${encodeURIComponent(dateStr)}` : '';
-  return apiFetch<Meal[]>(`/meals/today${query}`);
+  return apiFetch<Meal[]>(`/meals/today${query}`, { signal });
+};
+
+export interface MealStats {
+  weeklyChart: { date: string; calories: number; dayName: string }[];
+  weeklyAverage: number;
+  monthlyAverage: number;
+  daysLoggedThisMonth: number;
+}
+
+export const getMealStats = async (dateStr?: string, signal?: AbortSignal): Promise<MealStats> => {
+  const query = dateStr ? `?date=${encodeURIComponent(dateStr)}` : '';
+  return apiFetch<MealStats>(`/meals/stats${query}`, { signal });
 };

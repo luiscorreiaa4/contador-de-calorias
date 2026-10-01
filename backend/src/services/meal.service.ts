@@ -44,8 +44,13 @@ function calculateItemNutrients(
 export async function createMeal(userId: string, data: CreateMealDTO) {
   const itemsData = [];
   
+  // Otimização: Fetch all foods at once (evitar N+1 queries)
+  const foodIds = [...new Set(data.items.map(item => item.foodId))];
+  const foods = await FoodModel.findByIds(foodIds);
+  const foodsMap = new Map(foods.map(f => [f.id, f]));
+  
   for (const item of data.items) {
-    const food = await FoodModel.findById(item.foodId);
+    const food = foodsMap.get(item.foodId);
     if (!food) {
       const error: CustomError = new Error(`Alimento com ID ${item.foodId} não encontrado.`);
       error.statusCode = 404;
@@ -71,8 +76,13 @@ export async function getTodayMeals(userId: string, userTimezoneDateStr?: string
 export async function updateMeal(userId: string, mealId: string, data: CreateMealDTO) {
   const itemsData = [];
   
+  // Otimização: Fetch all foods at once (evitar N+1 queries)
+  const foodIds = [...new Set(data.items.map(item => item.foodId))];
+  const foods = await FoodModel.findByIds(foodIds);
+  const foodsMap = new Map(foods.map(f => [f.id, f]));
+  
   for (const item of data.items) {
-    const food = await FoodModel.findById(item.foodId);
+    const food = foodsMap.get(item.foodId);
     if (!food) {
       const error: CustomError = new Error(`Alimento com ID ${item.foodId} não encontrado.`);
       error.statusCode = 404;
@@ -93,4 +103,56 @@ export async function deleteMeal(userId: string, mealId: string) {
     throw error;
   }
   return true;
+}
+
+export async function getMealStats(userId: string, userTimezoneDateStr?: string) {
+  const stats = await MealModel.getDailyStats(userId, 30);
+  
+  const today = userTimezoneDateStr ? new Date(userTimezoneDateStr) : new Date();
+  
+  const weeklyChart = [];
+  let daysWithLogsInWeek = 0;
+  let sumInWeek = 0;
+
+  // Gerar os últimos 7 dias consecutivos para o gráfico
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    
+    const dayStat = stats.find(s => s.date === dateStr);
+    const cals = dayStat ? dayStat.total_calories : 0;
+    
+    weeklyChart.push({
+      date: dateStr,
+      calories: cals,
+      dayName: d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')
+    });
+
+    if (cals > 0) {
+      daysWithLogsInWeek++;
+      sumInWeek += cals;
+    }
+  }
+
+  const weeklyAverage = daysWithLogsInWeek > 0 ? Math.round(sumInWeek / daysWithLogsInWeek) : 0;
+
+  // Média mensal (últimos 30 dias com base apenas nos dias em que houve registros)
+  let sumInMonth = 0;
+  let daysWithLogsInMonth = 0;
+  stats.forEach(s => {
+    if (s.total_calories > 0) {
+      sumInMonth += s.total_calories;
+      daysWithLogsInMonth++;
+    }
+  });
+
+  const monthlyAverage = daysWithLogsInMonth > 0 ? Math.round(sumInMonth / daysWithLogsInMonth) : 0;
+
+  return {
+    weeklyChart,
+    weeklyAverage,
+    monthlyAverage,
+    daysLoggedThisMonth: daysWithLogsInMonth
+  };
 }

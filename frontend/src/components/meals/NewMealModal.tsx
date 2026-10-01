@@ -32,12 +32,7 @@ interface MealItem {
   fats: number;
 }
 
-const MEAL_TYPES = [
-  { value: 'café da manhã', label: 'Café da Manhã', emoji: '🌅' },
-  { value: 'almoço', label: 'Almoço', emoji: '☀️' },
-  { value: 'lanche', label: 'Lanche', emoji: '🍎' },
-  { value: 'jantar', label: 'Jantar', emoji: '🌙' },
-];
+// Removido MEAL_TYPES
 
 function calculateNutrients(food: Food, quantityInBaseUnit: number) {
   const serving = Number(food.serving_weight) || 100;
@@ -61,7 +56,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
 
   const foods = useMemo(() => foodsData || [], [foodsData]);
 
-  const [mealType, setMealType] = useState('almoço');
+  const [mealName, setMealName] = useState('');
   const [mealItems, setMealItems] = useState<MealItem[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -108,11 +103,11 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
       setSelectedFood(null);
       setAmount('');
 
+      const cachedMeals = queryClient.getQueryData<Meal[]>(['todayMeals']) || [];
+      const nextMealNumber = cachedMeals.length + 1;
+
       if (mealToEdit && foods.length > 0) {
-        const matchingType = MEAL_TYPES.find(
-          (mt) => mt.label.toLowerCase() === mealToEdit.name.toLowerCase()
-        );
-        setMealType(matchingType ? matchingType.value : 'almoço');
+        setMealName(mealToEdit.name);
 
         const initialItems = mealToEdit.items
           .map((item) => {
@@ -137,11 +132,11 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
 
         setMealItems(initialItems);
       } else if (!mealToEdit) {
-        setMealType('almoço');
+        setMealName(`Refeição ${nextMealNumber}`);
         setMealItems([]);
       }
     }
-  }, [isOpen, mealToEdit, foods]);
+  }, [isOpen, mealToEdit, foods, queryClient]);
 
   // Tecla Escape e Focus Trap
   useEffect(() => {
@@ -251,7 +246,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
     e.preventDefault();
     if (mealItems.length === 0) return;
 
-    const mealLabel = MEAL_TYPES.find((m) => m.value === mealType)?.label || mealType;
+    const mealLabel = mealName.trim() || `Refeição ${(queryClient.getQueryData<Meal[]>(['todayMeals']) || []).length + 1}`;
     const timeToUse = mealToEdit ? new Date(mealToEdit.meal_time) : new Date();
 
     const payload: CreateMealDTO = {
@@ -327,34 +322,20 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
 
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
           <div className="p-6 space-y-5 overflow-y-auto flex-1">
-            {/* ── Meal Type Tabs ───────────────────────────────────────────── */}
+            {/* ── Meal Name Input ───────────────────────────────────────────── */}
             <div>
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
-                Tipo de Refeição
+              <label htmlFor="meal-name" className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
+                Nome da Refeição
               </label>
-              <div
-                className="grid grid-cols-4 gap-1.5 bg-zinc-100 dark:bg-zinc-800/60 rounded-xl p-1"
-                role="group"
-                aria-label="Tipo de refeição"
-              >
-                {MEAL_TYPES.map((mt) => (
-                  <button
-                    key={mt.value}
-                    type="button"
-                    onClick={() => setMealType(mt.value)}
-                    disabled={isSubmitting}
-                    aria-pressed={mealType === mt.value}
-                    className={`flex flex-col items-center justify-center gap-0.5 py-2 px-1 rounded-lg text-xs font-semibold transition-all ${
-                      mealType === mt.value
-                        ? 'bg-white dark:bg-zinc-700 text-emerald-700 dark:text-emerald-300 shadow-sm ring-1 ring-emerald-200 dark:ring-emerald-700/50'
-                        : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'
-                    }`}
-                  >
-                    <span className="text-base leading-none">{mt.emoji}</span>
-                    <span className="truncate w-full text-center">{mt.label}</span>
-                  </button>
-                ))}
-              </div>
+              <input
+                id="meal-name"
+                type="text"
+                value={mealName}
+                onChange={(e) => setMealName(e.target.value)}
+                placeholder="ex: Café da Manhã, Almoço..."
+                className="w-full px-3 py-2.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm font-semibold text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 outline-none transition-colors"
+                disabled={isSubmitting}
+              />
             </div>
 
             {/* ── Food Picker Box ───────────────────────────────────────────── */}
@@ -563,38 +544,22 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
 
                   {/* Preview Nutricional em Tempo Real */}
                   {currentItemCalculations && (
-                    <div className="grid grid-cols-4 gap-2 pt-2 border-t border-zinc-200/60 dark:border-zinc-700/60 animate-in fade-in duration-150">
-                      <div className="p-2 rounded-lg bg-orange-50 dark:bg-orange-950/30 border border-orange-200/50 dark:border-orange-800/30 text-center">
-                        <span className="block text-[10px] uppercase font-semibold text-orange-600 dark:text-orange-400">
-                          Calorias
-                        </span>
-                        <span className="text-xs font-bold text-orange-700 dark:text-orange-300">
-                          {currentItemCalculations.calories} kcal
-                        </span>
+                    <div className="grid grid-cols-4 gap-1.5 pt-2 border-t border-zinc-200/60 dark:border-zinc-700/60 animate-in fade-in duration-150">
+                      <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800/60 text-center">
+                        <span className="block text-[10px] uppercase font-semibold text-zinc-500 dark:text-zinc-400">Calorias</span>
+                        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">{currentItemCalculations.calories} kcal</span>
                       </div>
-                      <div className="p-2 rounded-lg bg-violet-50 dark:bg-violet-950/30 border border-violet-200/50 dark:border-violet-800/30 text-center">
-                        <span className="block text-[10px] uppercase font-semibold text-violet-600 dark:text-violet-400">
-                          Proteína
-                        </span>
-                        <span className="text-xs font-bold text-violet-700 dark:text-violet-300">
-                          {currentItemCalculations.proteins}g
-                        </span>
+                      <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800/60 text-center">
+                        <span className="block text-[10px] uppercase font-semibold text-zinc-500 dark:text-zinc-400">Proteína</span>
+                        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">{currentItemCalculations.proteins}g</span>
                       </div>
-                      <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200/50 dark:border-blue-800/30 text-center">
-                        <span className="block text-[10px] uppercase font-semibold text-blue-600 dark:text-blue-400">
-                          Carboidrato
-                        </span>
-                        <span className="text-xs font-bold text-blue-700 dark:text-blue-300">
-                          {currentItemCalculations.carbs}g
-                        </span>
+                      <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800/60 text-center">
+                        <span className="block text-[10px] uppercase font-semibold text-zinc-500 dark:text-zinc-400">Carbs</span>
+                        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">{currentItemCalculations.carbs}g</span>
                       </div>
-                      <div className="p-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200/50 dark:border-amber-800/30 text-center">
-                        <span className="block text-[10px] uppercase font-semibold text-amber-600 dark:text-amber-400">
-                          Gordura
-                        </span>
-                        <span className="text-xs font-bold text-amber-700 dark:text-amber-300">
-                          {currentItemCalculations.fats}g
-                        </span>
+                      <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800/60 text-center">
+                        <span className="block text-[10px] uppercase font-semibold text-zinc-500 dark:text-zinc-400">Gordura</span>
+                        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">{currentItemCalculations.fats}g</span>
                       </div>
                     </div>
                   )}

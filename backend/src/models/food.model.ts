@@ -10,3 +10,9 @@ export async function findById(id: string): Promise<Food | null> {
   const result = await pool.query<Food>('SELECT * FROM foods WHERE id = $1', [id]);
   return result.rows[0] ?? null;
 }
+
+export async function findByIds(ids: string[]): Promise<Food[]> {
+  if (ids.length === 0) return [];
+  const result = await pool.query<Food>('SELECT * FROM foods WHERE id = ANY($1::uuid[])', [ids]);
+  return result.rows;
+}

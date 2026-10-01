@@ -3,21 +3,29 @@ import { useAuth } from '../../context/AuthContext';
 import { Flame, Plus, Utensils, Droplets, Beef, Clock, Pencil, Trash2, AlertTriangle } from 'lucide-react';
 import { NewMealModal } from '../../components/meals/NewMealModal';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getTodayMeals, deleteMeal, type Meal } from '../../services/meal.service';
+import { getTodayMeals, deleteMeal, getMealStats, type Meal } from '../../services/meal.service';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 export const DashboardPage: React.FC = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  
+
   const [isNewMealModalOpen, setIsNewMealModalOpen] = React.useState(false);
   const [mealToEdit, setMealToEdit] = React.useState<Meal | null>(null);
-  
+
   const [mealToDelete, setMealToDelete] = React.useState<Meal | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
 
   const { data: todayMeals = [], isLoading } = useQuery({
     queryKey: ['todayMeals'],
-    queryFn: () => getTodayMeals(),
+    queryFn: ({ signal }) => getTodayMeals(undefined, signal),
+    staleTime: 1000 * 60 * 5, // 5 minutos de cache (evita redundância)
+  });
+
+  const { data: mealStats, isLoading: isLoadingStats } = useQuery({
+    queryKey: ['mealStats'],
+    queryFn: ({ signal }) => getMealStats(undefined, signal),
+    staleTime: 1000 * 60 * 5,
   });
 
   const deleteMealMutation = useMutation({
@@ -29,11 +37,11 @@ export const DashboardPage: React.FC = () => {
     }
   });
 
-  const dailyCaloriesGoal = user?.daily_calories_goal || 2000;
-  const dailyProteinsGoal = user?.daily_proteins_goal || 100;
+  const dailyCaloriesGoal = Number(user?.daily_calories_goal) || 2000;
+  const dailyProteinsGoal = Number(user?.daily_proteins_goal) || 100;
 
-  const consumedCalories = todayMeals.reduce((acc, meal) => acc + (meal.total_calories || 0), 0);
-  const consumedProteins = todayMeals.reduce((acc, meal) => acc + (meal.total_proteins || 0), 0);
+  const consumedCalories = todayMeals.reduce((acc, meal) => acc + Number(meal.total_calories || 0), 0);
+  const consumedProteins = todayMeals.reduce((acc, meal) => acc + Number(meal.total_proteins || 0), 0);
 
   const caloriesPercent = Math.min((consumedCalories / dailyCaloriesGoal) * 100, 100);
   const proteinsPercent = Math.min((consumedProteins / dailyProteinsGoal) * 100, 100);
@@ -64,7 +72,7 @@ export const DashboardPage: React.FC = () => {
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-extrabold text-zinc-900 dark:text-white">{consumedCalories} / {dailyCaloriesGoal}</span>
+            <span className="text-2xl font-extrabold text-zinc-900 dark:text-white">{consumedCalories.toFixed(0)} / {dailyCaloriesGoal.toFixed(0)}</span>
             <span className="text-xs text-zinc-500 dark:text-zinc-400 ml-1.5">kcal</span>
           </div>
           <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-2 mt-3 overflow-hidden">
@@ -81,7 +89,7 @@ export const DashboardPage: React.FC = () => {
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-extrabold text-zinc-900 dark:text-white">{consumedProteins} / {dailyProteinsGoal}</span>
+            <span className="text-2xl font-extrabold text-zinc-900 dark:text-white">{consumedProteins.toFixed(0)} / {dailyProteinsGoal.toFixed(0)}</span>
             <span className="text-xs text-zinc-500 dark:text-zinc-400 ml-1.5">g</span>
           </div>
           <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-2 mt-3 overflow-hidden">
@@ -131,10 +139,52 @@ export const DashboardPage: React.FC = () => {
         </button>
       </div>
 
+      {/* Stats Panel */}
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-2xl p-6 shadow-sm">
+        <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-4">Gasto Calórico dos Últimos Dias</h3>
+        
+        {isLoadingStats ? (
+          <p className="text-sm text-zinc-500">Carregando histórico...</p>
+        ) : mealStats ? (
+          <div className="flex flex-col md:flex-row gap-6 md:gap-8">
+            <div className="flex-1 h-64 min-w-[200px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={mealStats.weeklyChart}>
+                  <XAxis dataKey="dayName" stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis hide domain={[0, 'auto']} />
+                  <Tooltip 
+                    cursor={{ fill: 'transparent' }} 
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    itemStyle={{ color: '#ea580c', fontWeight: 'bold' }}
+                    labelStyle={{ color: '#71717a', fontSize: '12px' }}
+                    formatter={(val) => [`${val} kcal`, 'Consumo']}
+                  />
+                  <Bar dataKey="calories" fill="#f97316" radius={[6, 6, 6, 6]} barSize={32} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex flex-col justify-center gap-4 border-t md:border-t-0 md:border-l border-zinc-100 dark:border-zinc-800 pt-4 md:pt-0 md:pl-8">
+              <div>
+                <span className="block text-xs font-semibold text-zinc-500 dark:text-zinc-400">Média (Últ. 7 dias)</span>
+                <span className="text-2xl font-extrabold text-zinc-900 dark:text-white">{mealStats.weeklyAverage} <span className="text-xs font-medium text-zinc-500">kcal/dia</span></span>
+              </div>
+              <div>
+                <span className="block text-xs font-semibold text-zinc-500 dark:text-zinc-400">Média (Últ. 30 dias)</span>
+                <span className="text-2xl font-extrabold text-zinc-900 dark:text-white">{mealStats.monthlyAverage} <span className="text-xs font-medium text-zinc-500">kcal/dia</span></span>
+              </div>
+              <div>
+                <span className="block text-xs font-semibold text-zinc-500 dark:text-zinc-400">Dias Registrados (Mês)</span>
+                <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{mealStats.daysLoggedThisMonth} <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">dias</span></span>
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </div>
+
       {/* Meals List */}
       <div className="space-y-4 mt-6">
         <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Refeições de Hoje</h3>
-        
+
         {isLoading ? (
           <p className="text-sm text-zinc-500">Carregando refeições...</p>
         ) : todayMeals.length === 0 ? (
@@ -207,15 +257,15 @@ export const DashboardPage: React.FC = () => {
                     </p>
                   )}
                 </div>
-                
+
                 <div className="flex items-center gap-4 text-sm pt-4 border-t border-zinc-100 dark:border-zinc-800">
                   <div className="flex items-center gap-1.5 text-orange-600 dark:text-orange-400 font-semibold">
                     <Flame className="w-4 h-4" />
-                    <span>{meal.total_calories} kcal</span>
+                    <span>{Number(meal.total_calories).toFixed(0)} kcal</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-violet-600 dark:text-violet-400 font-semibold">
                     <Beef className="w-4 h-4" />
-                    <span>{meal.total_proteins}g prot</span>
+                    <span>{Number(meal.total_proteins).toFixed(0)}g prot</span>
                   </div>
                 </div>
               </div>

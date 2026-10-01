@@ -184,3 +184,29 @@ export async function updateMealWithItems(
     client.release();
   }
 }
+
+export async function getDailyStats(userId: string, days: number = 30): Promise<{ date: string; total_calories: number }[]> {
+  const result = await pool.query(
+    `WITH daily_stats AS (
+      SELECT 
+        DATE(m.meal_time) as date_val,
+        SUM(mi.calories) as total_calories
+      FROM meals m
+      JOIN meal_items mi ON mi.meal_id = m.id
+      WHERE m.user_id = $1
+      GROUP BY DATE(m.meal_time)
+    )
+    SELECT 
+      TO_CHAR(date_val, 'YYYY-MM-DD') as date, 
+      total_calories 
+    FROM daily_stats 
+    ORDER BY date_val DESC 
+    LIMIT $2`,
+    [userId, days]
+  );
+
+  return result.rows.map(row => ({
+    date: row.date,
+    total_calories: Number(row.total_calories)
+  }));
+}
