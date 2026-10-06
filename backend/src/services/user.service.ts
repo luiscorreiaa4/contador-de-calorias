@@ -16,7 +16,7 @@ export async function register(data: RegisterUserDTO): Promise<AuthResponse> {
     throw error;
   }
 
-  const saltRounds = 10;
+  const saltRounds = process.env.NODE_ENV === 'test' ? 4 : 10;
   const passwordHash = await bcrypt.hash(data.password, saltRounds);
 
   const newUser = await UserModel.createUser(
@@ -138,7 +138,7 @@ export async function updateProfile(userId: string, data: UpdateUserDTO): Promis
       throw error;
     }
 
-    const saltRounds = 10;
+    const saltRounds = process.env.NODE_ENV === 'test' ? 4 : 10;
     newPasswordHash = await bcrypt.hash(data.newPassword, saltRounds);
   }
 

@@ -52,14 +52,14 @@ Documento vivo. Atualize o status ao fechar cada tarefa. Cada item vira uma tare
 |----|--------|----------------|
 | 0.1 | **Segredos (urgente, repo público)**. Assuma que `JWT_SECRET` e `DB_PASSWORD` já estão comprometidos (um `JWT_SECRET` vazado permite forjar tokens de qualquer usuário). (1) **Você** troca os dois agora, antes de qualquer outra coisa; as sessões atuais caem, é esperado. (2) IA cria `.env.example`, valida variáveis com Zod ao iniciar (fail-fast, `JWT_SECRET` com 32+ caracteres), confirma `.env` no `.gitignore` e fora do índice. (3) Rodar `gitleaks` no histórico completo para achar qualquer outro segredo. (4) **Você** limpa o histórico (`git filter-repo`/BFG) e faz force-push; isso não apaga clones, forks e caches já existentes, por isso a rotação vem antes. (5) Ativar *secret scanning* e *push protection* no GitHub (gratuitos em repo público) e gitleaks no CI. | Sim |
 | 0.2 | **Banco de testes isolado**: `contador_calorias_test`, e o runner aborta se o nome do banco não terminar em `_test`. | Sim |
-| 0.3 | **Lint verde**: corrigir os 4 erros (`set-state-in-effect` no `NewMealModal`, `any` em `meal.service.ts`, variáveis não usadas nos testes). | Não |
+| 0.3 | **Lint verde**: corrigir os 4 erros (`set-state-in-effect` no `NewMealModal`, `any` em `meal.service.ts`, variáveis não usadas nos testes). | Sim |
 | 0.4 | **Segurança básica**: `npm audit fix`, `helmet`, `express-rate-limit` (login/cadastro), CORS restrito por variável de ambiente. | Sim |
 | 0.4b | **Catálogo de alimentos somente leitura**. O RF-002 hoje diz "criar, listar e buscar". Verificar `food.routes.ts` e a UI: se existir `POST/PUT/DELETE` acessível a usuários comuns, remover ou bloquear. Teste de integração garantindo que essas rotas não aceitam escrita. Atualizar o RF-002 no `SPEC.md`. | Sim |
 | 0.5 | **Migrations**: criar a migration baseline com o schema atual e migrar o `init-db.js` para o fluxo de migrations. | Sim |
-| 0.6 | **CI mínimo** (GitHub Actions com serviço Postgres): lint, test, build. Ativar proteção da branch principal. | Não |
-| 0.7 | **Testes de frontend**: Vitest + RTL + MSW. Cobrir Login, Cadastro e `NewMealModal` (abrir, buscar alimento, salvar, erro). | Não |
-| 0.8 | **Baseline de performance**: medir antes de otimizar (seção Fase 4). Só registrar os números. | Não |
-| 0.9 | Investigar por que a suíte do backend leva ~38 s. | Não |
+| 0.6 | **CI mínimo** (GitHub Actions com serviço Postgres): lint, test, build. Ativar proteção da branch principal. | Sim |
+| 0.7 | **Testes de frontend**: Vitest + RTL + MSW. Cobrir Login, Cadastro e `NewMealModal` (abrir, buscar alimento, salvar, erro). | Sim |
+| 0.8 | **Baseline de performance**: medir antes de otimizar (seção Fase 4). Só registrar os números. | Sim |
+| 0.9 | Investigar por que a suíte do backend leva ~38 s. | Sim |
 
 Pronto da fase: lint, test e build verdes no CI; segredos rotacionados; testes rodam só em banco de teste.
 

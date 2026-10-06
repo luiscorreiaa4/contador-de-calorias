@@ -6,7 +6,7 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "test": "cross-env NODE_ENV=test tsx --test tests/**/*.test.ts",
+    "test": "cross-env NODE_ENV=test DB_NAME=contador_calorias_test tsx --test tests/**/*.test.ts",
     "migrate": "node-pg-migrate",
     "migrate:create": "node-pg-migrate create",
     "build": "tsc",
