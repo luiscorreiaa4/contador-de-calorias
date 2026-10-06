@@ -3,7 +3,7 @@ import rateLimit from 'express-rate-limit';
 import * as UserController from '../controllers/user.controller.js';
 import { validate } from '../middlewares/validate.js';
 import { authenticate } from '../middlewares/auth.js';
-import { registerUserSchema, loginUserSchema, updateUserSchema, deleteUserSchema, completeOnboardingSchema } from '../schemas/user.schema.js';
+import { registerUserSchema, loginUserSchema, updateUserSchema, deleteUserSchema, completeOnboardingSchema, previewGoalsSchema, updateGoalsSchema } from '../schemas/user.schema.js';
 
 const router = Router();
 
@@ -19,5 +19,9 @@ router.get('/me', authenticate, UserController.getProfile);
 router.put('/me', authenticate, validate(updateUserSchema), UserController.updateProfile);
 router.put('/me/onboarding', authenticate, validate(completeOnboardingSchema), UserController.completeOnboarding);
 router.delete('/me', authenticate, validate(deleteUserSchema), UserController.deleteAccount);
+
+router.post('/me/preview-goals', authenticate, validate(previewGoalsSchema), UserController.previewGoals);
+router.put('/me/goals', authenticate, validate(updateGoalsSchema), UserController.updateGoals);
+router.get('/me/goals', authenticate, UserController.getActiveGoal);
 
 export default router;

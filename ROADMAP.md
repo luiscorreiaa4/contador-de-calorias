@@ -67,32 +67,32 @@ Pronto da fase: lint, test e build verdes no CI; segredos rotacionados; testes r
 
 Requisito: estimar o gasto a partir do cadastro; permitir metas manuais; poder editar metas e dados corporais a qualquer momento com recálculo.
 
-- **1.0 Fuso horário (pré-requisito do histórico)**: verificar o tipo de `meal_time` (`TIMESTAMP` sem fuso é ambíguo) e como o "dia" é calculado. Padronizar (`TIMESTAMPTZ` + fuso do usuário, ou fuso fixo se o público for só Brasil). Sem isso, uma refeição às 23h pode cair no dia seguinte e as metas e médias ficam erradas.
-- **1.1 Migration**:
+- **1.0 Fuso horário (pré-requisito do histórico)**: verificar o tipo de `meal_time` (`TIMESTAMP` sem fuso é ambíguo) e como o "dia" é calculado. Padronizar (`TIMESTAMPTZ` + fuso do usuário, ou fuso fixo se o público for só Brasil). Sem isso, uma refeição às 23h pode cair no dia seguinte e as metas e médias ficam erradas. | Sim
+- **1.1 Migration**: | Sim
   - `body_measurements` (`user_id`, `weight`, `body_fat`, `measured_at`): histórico de peso e composição.
-  - `user_goals` com vigência por data: `user_id`, `effective_from DATE`, `calories`, `proteins`, `carbs`, `fats`, `mode` (`auto`/`manual`), `UNIQUE (user_id, effective_from)`. A meta de um dia é a linha mais recente com `effective_from <= dia`. Não se guarda uma linha por dia: ocupa menos e as médias saem de uma consulta SQL.
-  - Backfill: criar a primeira linha de cada usuário com as metas atuais de `users`, com `effective_from` na data de criação da conta.
+  - `user_goals` com vigência por data: `user_id`, `effective_from DATE`, `calories`, `proteins`, `carbs`, `fats`, `mode` (`auto`/`manual`), `UNIQUE (user_id, effective_from)`.
+  - Backfill: **Dispensado** (conforme aprovação, o banco será resetado, não havendo produção). Em vez disso, foi criado o script `npm run db:reset` e `npm run db:reset:test` no package.json.
   - As colunas `daily_*_goal` de `users` ficam só até o código migrar; depois, uma migration separada as remove (uma única fonte de verdade).
-- **1.2 Service puro e testado**: `calculateEnergyTargets(profile)` retorna TMB, gasto total e meta sugerida.
+- **1.2 Service puro e testado**: `calculateEnergyTargets(profile)` retorna TMB, gasto total e meta sugerida. | Sim
   - TMB: Mifflin-St Jeor (usar Katch-McArdle quando houver % de gordura).
   - Gasto total = TMB × fator de atividade (1,2 / 1,375 / 1,55 / 1,725 / 1,9).
-  - Ajuste por objetivo (déficit/superávit) como constantes configuráveis. **Confirme os percentuais.**
-  - Piso mínimo de calorias sugeridas e aviso na UI de que é uma estimativa, não orientação médica.
-  - Testes unitários com valores calculados à mão.
-- **1.3 Endpoints**: ler/atualizar perfil e metas; ao mudar peso/altura/atividade, devolver uma **prévia** ("nova sugestão X, atual Y"). Nunca sobrescrever meta manual sem confirmação.
-- **1.4 Tela de perfil/metas**: editar dados, alternar auto/manual, aplicar sugestão.
-- **1.5 Dashboard** passa a comparar consumido vs. meta (fecha o pendente do RF-004).
-- **Regra do histórico**: mudar a meta (manual ou por recálculo) cria uma nova vigência a partir de **hoje**. Dias passados mantêm a meta da época; editar o passado fica fora da v1. Mudar a meta duas vezes no mesmo dia sobrescreve a linha do dia.
+  - Ajuste por objetivo: Déficit de -20% para perda de peso, Superávit de +15% para hipertrofia.
+  - Piso mínimo de calorias sugeridas: 1200 kcal para mulheres, 1500 kcal para homens.
+  - Testes unitários com valores calculados à mão (nutrition.service.test.ts).
+- **1.3 Endpoints**: ler/atualizar perfil e metas; ao mudar peso/altura/atividade, devolver uma **prévia** ("nova sugestão X, atual Y"). Nunca sobrescrever meta manual sem confirmação. | Sim
+- **1.4 Tela de perfil/metas**: editar dados, alternar auto/manual, aplicar sugestão. | Sim
+- **1.5 Dashboard** passa a comparar consumido vs. meta (fecha o pendente do RF-004). | Sim
+- [x] **Regra do histórico**: mudar a meta (manual ou por recálculo) cria uma nova vigência a partir de **hoje**. Dias passados mantêm a meta da época; editar o passado fica fora da v1. Mudar a meta duas vezes no mesmo dia sobrescreve a linha do dia. | Sim
 
 Checkpoint seu: fórmulas, migration e qualquer texto de saúde na interface.
 
 ### Fase 2: Dashboard enxuto + página de estatísticas
 
-- **2.1** Definir o que fica no dashboard: consumo de hoje vs. meta, barras de macros, refeições de hoje, botão de registrar refeição.
-- **2.2** Nova rota (ex.: `/estatisticas`) com gastos diários, semanais e mensais, histórico e tendência de peso.
-- **2.3** Backend: `/meals/stats` com parâmetros de período (dia, semana, mês) e agregação em SQL, sem buscar todas as refeições para somar no JS. Cada dia é comparado com a meta vigente naquele dia (junção com `user_goals`). Índice `meals(user_id, meal_time)`.
-- **2.3b Médias**: média semanal e mensal de calorias e macros, ao lado da meta média do período. Padrão proposto: a média considera só os dias com pelo menos uma refeição registrada (dias esquecidos não puxam a média para zero) e mostra "X de Y dias registrados". **Confirme essa regra.**
-- **2.4** Testes de UI para os dois fluxos.
+- [x] **2.1** Definir o que fica no dashboard: consumo de hoje vs. meta, barras de macros, refeições de hoje, botão de registrar refeição.
+- [x] **2.2** Nova rota (ex.: `/estatisticas`) com gastos diários, semanais e mensais, histórico e tendência de peso.
+- [x] **2.3** Backend: `/meals/stats` com parâmetros de período (dia, semana, mês) e agregação em SQL, sem buscar todas as refeições para somar no JS. Cada dia é comparado com a meta vigente naquele dia (junção com `user_goals`). Índice `meals(user_id, meal_time)`.
+- [x] **2.3b Médias**: média semanal e mensal de calorias e macros, ao lado da meta média do período. Padrão proposto: a média considera só os dias com pelo menos uma refeição registrada (dias esquecidos não puxam a média para zero) e mostra "X de Y dias registrados". **Confirme essa regra.**
+- [x] **2.4** Testes de UI para os dois fluxos.
 
 Fazer isso antes do redesign evita redesenhar telas que vão mudar.
 

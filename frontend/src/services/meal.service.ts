@@ -65,13 +65,31 @@ export const getTodayMeals = async (dateStr?: string, signal?: AbortSignal): Pro
 };
 
 export interface MealStats {
-  weeklyChart: { date: string; calories: number; dayName: string }[];
-  weeklyAverage: number;
-  monthlyAverage: number;
-  daysLoggedThisMonth: number;
+  period: 'week' | 'month';
+  daysLogged: number;
+  totalDays: number;
+  averages: {
+    consumed: { calories: number; proteins: number; carbs: number; fats: number };
+    goal: { calories: number; proteins: number; carbs: number; fats: number };
+  };
+  chartData: {
+    date: string;
+    dayName: string;
+    consumed_calories: number;
+    consumed_proteins: number;
+    consumed_carbs: number;
+    consumed_fats: number;
+    goal_calories: number | null;
+    goal_proteins: number | null;
+    goal_carbs: number | null;
+    goal_fats: number | null;
+  }[];
 }
 
-export const getMealStats = async (dateStr?: string, signal?: AbortSignal): Promise<MealStats> => {
-  const query = dateStr ? `?date=${encodeURIComponent(dateStr)}` : '';
-  return apiFetch<MealStats>(`/meals/stats${query}`, { signal });
+export const getMealStats = async (period: 'week' | 'month' = 'month', dateStr?: string, signal?: AbortSignal): Promise<MealStats> => {
+  const params = new URLSearchParams();
+  params.append('period', period);
+  if (dateStr) params.append('date', dateStr);
+  
+  return apiFetch<MealStats>(`/meals/stats?${params.toString()}`, { signal });
 };

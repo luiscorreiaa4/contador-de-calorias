@@ -4,13 +4,14 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoginPage } from './pages/public/LoginPage';
 import { DashboardPage } from './pages/private/DashboardPage';
 import { EditProfilePage } from './pages/private/EditProfilePage';
+import { StatsPage } from './pages/private/StatsPage';
 import { OnboardingFlow } from './components/onboarding/OnboardingFlow';
 import { AppHeader } from './components/layout/AppHeader';
 import { Footer } from './components/layout/Footer';
 
 function AppContent() {
   const { user, isAuthenticated } = useAuth();
-  const [currentView, setCurrentView] = useState<'dashboard' | 'edit-profile'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'edit-profile' | 'stats'>('dashboard');
 
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
@@ -60,6 +61,16 @@ function AppContent() {
             ? () => setCurrentView('edit-profile')
             : undefined
         }
+        onNavigateToStats={
+          isAuthenticated && user?.onboarding_completed
+            ? () => setCurrentView('stats')
+            : undefined
+        }
+        onNavigateToDashboard={
+          isAuthenticated && user?.onboarding_completed
+            ? () => setCurrentView('dashboard')
+            : undefined
+        }
       />
 
       {/* Main Content (Routes Area) */}
@@ -70,6 +81,8 @@ function AppContent() {
               <OnboardingFlow />
             ) : currentView === 'dashboard' ? (
               <DashboardPage />
+            ) : currentView === 'stats' ? (
+              <StatsPage />
             ) : (
               <EditProfilePage onBack={() => setCurrentView('dashboard')} />
             )}

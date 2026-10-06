@@ -185,28 +185,77 @@ export async function updateMealWithItems(
   }
 }
 
-export async function getDailyStats(userId: string, days: number = 30): Promise<{ date: string; total_calories: number }[]> {
+export interface DailyStat {
+  date: string;
+  consumed_calories: number;
+  consumed_proteins: number;
+  consumed_carbs: number;
+  consumed_fats: number;
+  goal_calories: number | null;
+  goal_proteins: number | null;
+  goal_carbs: number | null;
+  goal_fats: number | null;
+}
+
+export async function getPeriodStats(userId: string, days: number = 30): Promise<DailyStat[]> {
   const result = await pool.query(
-    `WITH daily_stats AS (
+    `WITH daily_consumption AS (
       SELECT 
         DATE(m.meal_time) as date_val,
-        SUM(mi.calories) as total_calories
+        SUM(mi.calories) as consumed_calories,
+        SUM(mi.proteins) as consumed_proteins,
+        SUM(mi.carbs) as consumed_carbs,
+        SUM(mi.fats) as consumed_fats
       FROM meals m
       JOIN meal_items mi ON mi.meal_id = m.id
       WHERE m.user_id = $1
+        AND m.meal_time >= CURRENT_DATE - ($2 || ' days')::interval
       GROUP BY DATE(m.meal_time)
+    ),
+    daily_goals AS (
+      SELECT
+        dc.date_val,
+        dc.consumed_calories,
+        dc.consumed_proteins,
+        dc.consumed_carbs,
+        dc.consumed_fats,
+        ug.calories as goal_calories,
+        ug.proteins as goal_proteins,
+        ug.carbs as goal_carbs,
+        ug.fats as goal_fats
+      FROM daily_consumption dc
+      LEFT JOIN LATERAL (
+        SELECT calories, proteins, carbs, fats
+        FROM user_goals
+        WHERE user_id = $1 AND effective_from <= dc.date_val
+        ORDER BY effective_from DESC
+        LIMIT 1
+      ) ug ON true
     )
     SELECT 
-      TO_CHAR(date_val, 'YYYY-MM-DD') as date, 
-      total_calories 
-    FROM daily_stats 
-    ORDER BY date_val DESC 
-    LIMIT $2`,
+      TO_CHAR(date_val, 'YYYY-MM-DD') as date,
+      consumed_calories,
+      consumed_proteins,
+      consumed_carbs,
+      consumed_fats,
+      goal_calories,
+      goal_proteins,
+      goal_carbs,
+      goal_fats
+    FROM daily_goals 
+    ORDER BY date_val ASC`,
     [userId, days]
   );
 
   return result.rows.map(row => ({
     date: row.date,
-    total_calories: Number(row.total_calories)
+    consumed_calories: Number(row.consumed_calories),
+    consumed_proteins: Number(row.consumed_proteins),
+    consumed_carbs: Number(row.consumed_carbs),
+    consumed_fats: Number(row.consumed_fats),
+    goal_calories: row.goal_calories ? Number(row.goal_calories) : null,
+    goal_proteins: row.goal_proteins ? Number(row.goal_proteins) : null,
+    goal_carbs: row.goal_carbs ? Number(row.goal_carbs) : null,
+    goal_fats: row.goal_fats ? Number(row.goal_fats) : null,
   }));
 }

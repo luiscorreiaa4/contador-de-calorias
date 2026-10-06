@@ -113,7 +113,17 @@ export const OnboardingFlow: React.FC = () => {
   const inputBase = 'w-full pl-10 pr-4 py-3 bg-zinc-50 dark:bg-zinc-800/60 border rounded-lg text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-colors';
 
   return (
-    <div className="w-full max-w-md mx-auto p-6 bg-white dark:bg-zinc-900/80 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 backdrop-blur-sm">
+    <form 
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (step < 5) {
+          nextStep();
+        } else {
+          handleSubmit();
+        }
+      }}
+      className="w-full max-w-md mx-auto p-6 bg-white dark:bg-zinc-900/80 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 backdrop-blur-sm"
+    >
       <div className="mb-6 flex justify-between items-center">
         <div>
           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Configurar Perfil</h2>
@@ -176,6 +186,7 @@ export const OnboardingFlow: React.FC = () => {
             {goals.map((g) => (
               <button
                 key={g.key}
+                type="button"
                 onClick={() => { setFormData({ ...formData, goal: g.key }); setErrors({}); }}
                 className={`p-4 rounded-xl border flex items-center gap-4 transition-all ${formData.goal === g.key ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10' : 'border-zinc-200 dark:border-zinc-700 hover:border-emerald-300 dark:hover:border-emerald-700'}`}
               >
@@ -233,6 +244,7 @@ export const OnboardingFlow: React.FC = () => {
             {activityLevels.map((a) => (
               <button
                 key={a.key}
+                type="button"
                 onClick={() => { setFormData({ ...formData, activityLevel: a.key }); setErrors({}); }}
                 className={`p-3 rounded-xl border flex flex-col text-left transition-all ${formData.activityLevel === a.key ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10' : 'border-zinc-200 dark:border-zinc-700 hover:border-emerald-300 dark:hover:border-emerald-700'}`}
               >
@@ -262,6 +274,7 @@ export const OnboardingFlow: React.FC = () => {
       <div className="mt-8 flex gap-3">
         {step > 1 && (
           <button
+            type="button"
             onClick={prevStep}
             disabled={isLoading}
             className="flex-1 py-3 px-4 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
@@ -273,7 +286,7 @@ export const OnboardingFlow: React.FC = () => {
         
         {step < 5 ? (
           <button
-            onClick={nextStep}
+            type="submit"
             className="flex-1 py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm shadow-emerald-600/20"
           >
             Continuar
@@ -281,7 +294,7 @@ export const OnboardingFlow: React.FC = () => {
           </button>
         ) : (
           <button
-            onClick={handleSubmit}
+            type="submit"
             disabled={isLoading}
             className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 disabled:opacity-60"
           >
@@ -296,6 +309,6 @@ export const OnboardingFlow: React.FC = () => {
           </button>
         )}
       </div>
-    </div>
+    </form>
   );
 };

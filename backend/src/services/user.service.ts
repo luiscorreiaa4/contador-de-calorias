@@ -3,7 +3,8 @@ import jwt from 'jsonwebtoken';
 import * as UserModel from '../models/user.model.js';
 import { RegisterUserDTO, LoginUserDTO, UpdateUserDTO, CompleteOnboardingDTO } from '../schemas/user.schema.js';
 import { AuthResponse, UserWithoutPassword } from '../types/user.types.js';
-
+import * as NutritionService from './nutrition.service.js';
+import * as HistoryModel from '../models/history.model.js';
 interface CustomError extends Error {
   statusCode?: number;
 }
@@ -76,6 +77,17 @@ export async function completeOnboarding(userId: string, data: CompleteOnboardin
     throw error;
   }
 
+  // Calcula as metas iniciais automaticamente
+  const targets = NutritionService.calculateEnergyTargets({
+    sex: data.sex,
+    birthDate: data.birthDate,
+    weight: data.weight,
+    height: data.height,
+    body_fat: data.body_fat,
+    activity_level: data.activity_level,
+    goal: data.goal,
+  });
+
   const updatedUser = await UserModel.updateUser(userId, {
     sex: data.sex,
     birthDate: data.birthDate,
@@ -84,8 +96,29 @@ export async function completeOnboarding(userId: string, data: CompleteOnboardin
     height: data.height,
     body_fat: data.body_fat,
     activity_level: data.activity_level,
+    daily_calories_goal: targets.suggestedCalories, // Manter legibilidade até a fase de limpeza
+    daily_proteins_goal: targets.suggestedMacros.proteins,
     onboarding_completed: true,
   });
+
+  // Salvar no histórico
+  const todayStr = new Date().toISOString().split('T')[0];
+  await HistoryModel.insertGoal(
+    userId,
+    todayStr,
+    targets.suggestedCalories,
+    targets.suggestedMacros.proteins,
+    targets.suggestedMacros.carbs,
+    targets.suggestedMacros.fats,
+    'auto'
+  );
+
+  await HistoryModel.insertBodyMeasurement(
+    userId,
+    data.weight,
+    data.body_fat || null,
+    new Date()
+  );
 
   return updatedUser;
 }
@@ -155,6 +188,22 @@ export async function updateProfile(userId: string, data: UpdateUserDTO): Promis
     activity_level: data.activity_level,
   });
 
+  // Se houve alteração no peso ou percentual de gordura, registrar histórico
+  if (data.weight !== undefined || data.body_fat !== undefined) {
+    // Usar o peso novo se enviado, senão o atual do banco. Mesma coisa pro BF.
+    const finalWeight = data.weight ?? Number(user.weight);
+    let finalBodyFat: number | null = null;
+    if (data.body_fat !== undefined) finalBodyFat = data.body_fat;
+    else if (user.body_fat !== undefined && user.body_fat !== null) finalBodyFat = Number(user.body_fat);
+
+    await HistoryModel.insertBodyMeasurement(
+      userId,
+      finalWeight,
+      finalBodyFat,
+      new Date()
+    );
+  }
+
   return updatedUser;
 }
 
@@ -185,4 +234,74 @@ export async function deleteAccount(userId: string, password?: string): Promise<
 function generateToken(userId: string): string {
   const secret = process.env.JWT_SECRET || 'fallback_jwt_secret';
   return jwt.sign({ userId }, secret, { expiresIn: '7d' });
+}
+
+export async function previewGoals(userId: string, data: Partial<import('../schemas/user.schema.js').PreviewGoalsDTO>) {
+  const user = await UserModel.findFullUserById(userId);
+  if (!user) {
+    const error: CustomError = new Error('Usuário não encontrado.');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const profileForCalc = {
+    sex: data.sex ?? (user.sex as any),
+    birthDate: data.birthDate ?? (user.birth_date as string) ?? '',
+    goal: data.goal ?? (user.goal as any),
+    weight: data.weight ?? Number(user.weight),
+    height: data.height ?? Number(user.height),
+    body_fat: data.body_fat !== undefined ? data.body_fat : (user.body_fat ? Number(user.body_fat) : null),
+    activity_level: data.activity_level ?? (user.activity_level as any),
+  };
+
+  return NutritionService.calculateEnergyTargets(profileForCalc);
+}
+
+export async function updateGoals(userId: string, data: import('../schemas/user.schema.js').UpdateGoalsDTO) {
+  const user = await UserModel.findFullUserById(userId);
+  if (!user) {
+    const error: CustomError = new Error('Usuário não encontrado.');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const newGoal = await HistoryModel.insertGoal(
+    userId,
+    todayStr,
+    data.calories,
+    data.proteins,
+    data.carbs,
+    data.fats,
+    data.mode
+  );
+
+  await UserModel.updateUser(userId, {
+    daily_calories_goal: data.calories,
+    daily_proteins_goal: data.proteins,
+  });
+
+  return newGoal;
+}
+
+export async function getActiveGoal(userId: string, dateStr?: string) {
+  const targetDate = dateStr ?? new Date().toISOString().split('T')[0];
+  const goal = await HistoryModel.getActiveGoal(userId, targetDate);
+  if (!goal) {
+    const user = await UserModel.findFullUserById(userId);
+    if (user && user.daily_calories_goal) {
+      return {
+        id: 'fallback',
+        user_id: userId,
+        effective_from: user.created_at,
+        calories: Number(user.daily_calories_goal),
+        proteins: Number(user.daily_proteins_goal),
+        carbs: 0,
+        fats: 0,
+        mode: 'auto',
+        created_at: user.created_at
+      };
+    }
+  }
+  return goal;
 }

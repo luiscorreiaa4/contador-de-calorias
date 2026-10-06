@@ -125,3 +125,65 @@ export async function deleteAccount(req: AuthenticatedRequest, res: Response) {
     });
   }
 }
+
+export async function previewGoals(req: AuthenticatedRequest, res: Response) {
+  try {
+    if (!req.userId) {
+      return res.status(401).json({ success: false, message: 'Usuário não autenticado.' });
+    }
+    const preview = await UserService.previewGoals(req.userId, req.body);
+    return res.status(200).json({
+      success: true,
+      data: preview,
+    });
+  } catch (error: unknown) {
+    const err = error as CustomError;
+    const statusCode = err.statusCode ?? 500;
+    return res.status(statusCode).json({
+      success: false,
+      message: err.message ?? 'Erro ao calcular metas.',
+    });
+  }
+}
+
+export async function updateGoals(req: AuthenticatedRequest, res: Response) {
+  try {
+    if (!req.userId) {
+      return res.status(401).json({ success: false, message: 'Usuário não autenticado.' });
+    }
+    const newGoal = await UserService.updateGoals(req.userId, req.body);
+    return res.status(200).json({
+      success: true,
+      message: 'Metas atualizadas com sucesso!',
+      data: newGoal,
+    });
+  } catch (error: unknown) {
+    const err = error as CustomError;
+    const statusCode = err.statusCode ?? 500;
+    return res.status(statusCode).json({
+      success: false,
+      message: err.message ?? 'Erro ao salvar metas.',
+    });
+  }
+}
+
+export async function getActiveGoal(req: AuthenticatedRequest, res: Response) {
+  try {
+    if (!req.userId) {
+      return res.status(401).json({ success: false, message: 'Usuário não autenticado.' });
+    }
+    const date = req.query.date as string | undefined;
+    const goal = await UserService.getActiveGoal(req.userId, date);
+    return res.status(200).json({
+      success: true,
+      data: goal,
+    });
+  } catch (error: unknown) {
+    const err = error as CustomError;
+    const statusCode = err.statusCode ?? 500;
+    return res.status(statusCode).json({
+      success: false,
+      message: err.message ?? 'Erro ao buscar metas.',
+    });
+  }
+}

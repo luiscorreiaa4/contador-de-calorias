@@ -9,7 +9,7 @@ import {
   Scale,
   Info,
 } from 'lucide-react';
-import Select from 'react-select';
+import Select, { components, type MenuListProps } from 'react-select';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getFoods, type Food } from '../../services/food.service';
 import { createMeal, updateMeal, type Meal, type CreateMealDTO } from '../../services/meal.service';
@@ -44,6 +44,23 @@ function calculateNutrients(food: Food, quantityInBaseUnit: number) {
     fats: Math.round(Number(food.fats) * factor * 10) / 10,
   };
 }
+
+// Otimização para listas grandes de alimentos (evita lag ao rolar)
+const CustomMenuList = (props: MenuListProps) => {
+  const children = React.Children.toArray(props.children);
+  const MAX_ITEMS = 50;
+
+  return (
+    <components.MenuList {...props}>
+      {children.length > MAX_ITEMS ? children.slice(0, MAX_ITEMS) : children}
+      {children.length > MAX_ITEMS && (
+        <div className="text-xs font-medium text-center py-3 text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800/50 border-t border-zinc-100 dark:border-zinc-700/50">
+          + {children.length - MAX_ITEMS} alimentos... digite para buscar.
+        </div>
+      )}
+    </components.MenuList>
+  );
+};
 
 export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mealToEdit }) => {
   const queryClient = useQueryClient();
@@ -364,12 +381,13 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                 <Select
                   options={foodOptions}
                   isLoading={isLoadingFoods}
-                  onChange={(option) => {
+                  onChange={(option: { food: Food; label: string; value: string } | null | any) => {
                     if (option) handleSelectFood(option.food);
                   }}
                   placeholder="Pesquisar alimento (ex: frango, arroz, ovo, leite)..."
                   menuPortalTarget={document.body}
                   noOptionsMessage={() => 'Nenhum alimento encontrado'}
+                  components={{ MenuList: CustomMenuList }}
                   styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
                   classNames={{
                     control: (state) =>

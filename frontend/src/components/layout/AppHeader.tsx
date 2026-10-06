@@ -15,12 +15,16 @@ interface AppHeaderProps {
   darkMode: boolean;
   onToggleTheme: () => void;
   onNavigateToEditProfile?: () => void;
+  onNavigateToStats?: () => void;
+  onNavigateToDashboard?: () => void;
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
   darkMode,
   onToggleTheme,
   onNavigateToEditProfile,
+  onNavigateToStats,
+  onNavigateToDashboard,
 }) => {
   const { user, isAuthenticated, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -68,8 +72,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-emerald-500 to-transparent opacity-60 dark:opacity-40" />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-        {/* Brand / Logo */}
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-3 shrink-0 cursor-pointer" onClick={onNavigateToDashboard}>
           <div className="relative flex items-center justify-center">
             {/* Glow backing */}
             <div className="absolute inset-0 bg-emerald-500/20 dark:bg-emerald-400/20 rounded-xl blur-sm" />
@@ -177,6 +180,26 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
                   {/* Menu Items */}
                   <div className="space-y-1">
+                    {/* Estatísticas */}
+                    {onNavigateToStats && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          onNavigateToStats();
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/80 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors group text-left"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                          <Target className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-xs leading-tight">Estatísticas</p>
+                          <p className="text-[11px] text-zinc-400 truncate">Histórico e tendências</p>
+                        </div>
+                      </button>
+                    )}
+
                     {/* Editar Perfil */}
                     {onNavigateToEditProfile && (
                       <button

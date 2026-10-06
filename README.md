@@ -58,6 +58,28 @@ contador-de-calorias/
 
 ---
 
+## 🎯 Status do Projeto (Roadmap)
+
+A construção deste projeto está dividida em fases. Status atual:
+
+- ✅ **Fase 1: Cálculo técnico e metas editáveis**
+  - Implementado motor de cálculo de TMB (Mifflin-St Jeor / Katch-McArdle) e Gasto Total.
+  - Tela de edição de perfil (altura, peso, gordura, nível de atividade, objetivo).
+  - Controle de metas com histórico de vigência usando tabela `user_goals`.
+  - Tratamento de fusos horários fixos (América/São Paulo).
+
+- ✅ **Fase 2: Dashboard enxuto + página de estatísticas**
+  - Dashboard otimizado para mostrar apenas consumo de hoje, barras de macros e botão de registro.
+  - Nova página de Estatísticas (`/estatisticas`) com histórico de 7 ou 30 dias.
+  - Agregações avançadas de SQL com `LATERAL JOIN` para comparar consumos diários exatamente com a meta que estava vigente naquele dia.
+  - Otimização de renderização no frontend (Listas de alimentos em modais virtualizadas).
+
+- ⏳ **Fase 3: Base de alimentos em escala** *(Próxima)*
+- ⏳ **Fase 4: Passe de performance**
+- ⏳ **Fase 5: Autenticação Social e Redesign**
+
+---
+
 ## 🛠️ Como Instalar e Rodar Localmente
 
 Siga o passo a passo abaixo para rodar o projeto na sua máquina.

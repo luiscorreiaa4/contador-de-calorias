@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { updateUserProfile, deleteUserAccount, getCurrentUserProfile } from '../../services/auth.service';
 import { DatePickerInput } from '../../components/common/DatePickerInput';
 import { DeleteAccountModal } from '../../components/common/DeleteAccountModal';
+import { GoalSettingsCard } from '../../components/profile/GoalSettingsCard';
 import {
   User,
   Mail,
@@ -706,6 +707,9 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
             ))}
           </div>
         </div>
+
+        {/* Metas Diárias - Componente Separado */}
+        <GoalSettingsCard />
 
         {/* Alteração de Senha */}
         <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 border-b border-zinc-100 dark:border-zinc-800/80 pt-4 pb-2">

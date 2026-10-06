@@ -63,9 +63,15 @@ export async function createMeal(userId: string, data: CreateMealDTO) {
   return MealModel.createMealWithItems(userId, data.name, new Date(data.mealTime), itemsData);
 }
 
-export async function getTodayMeals(userId: string, userTimezoneDateStr?: string) {
-  const today = userTimezoneDateStr ? new Date(userTimezoneDateStr) : new Date();
-  today.setHours(0, 0, 0, 0);
+export async function getTodayMeals(userId: string, dateStr?: string) {
+  let today: Date;
+  if (dateStr && dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
+    const [year, month, day] = dateStr.split('T')[0].split('-');
+    today = new Date(Number(year), Number(month) - 1, Number(day));
+  } else {
+    today = new Date();
+    today.setHours(0, 0, 0, 0);
+  }
   
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -105,54 +111,90 @@ export async function deleteMeal(userId: string, mealId: string) {
   return true;
 }
 
-export async function getMealStats(userId: string, userTimezoneDateStr?: string) {
-  const stats = await MealModel.getDailyStats(userId, 30);
+export async function getMealStats(userId: string, period: 'week' | 'month' = 'month', dateStr?: string) {
+  const days = period === 'week' ? 7 : 30;
+  const stats = await MealModel.getPeriodStats(userId, days);
   
-  const today = userTimezoneDateStr ? new Date(userTimezoneDateStr) : new Date();
+  // Calculate averages (only days with logs)
+  let sumCals = 0;
+  let sumProts = 0;
+  let sumCarbs = 0;
+  let sumFats = 0;
   
-  const weeklyChart = [];
-  let daysWithLogsInWeek = 0;
-  let sumInWeek = 0;
+  let sumGoalCals = 0;
+  let sumGoalProts = 0;
+  let sumGoalCarbs = 0;
+  let sumGoalFats = 0;
+  let daysWithGoals = 0;
 
-  // Gerar os últimos 7 dias consecutivos para o gráfico
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    const dateStr = d.toISOString().split('T')[0];
-    
-    const dayStat = stats.find(s => s.date === dateStr);
-    const cals = dayStat ? dayStat.total_calories : 0;
-    
-    weeklyChart.push({
-      date: dateStr,
-      calories: cals,
-      dayName: d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')
-    });
-
-    if (cals > 0) {
-      daysWithLogsInWeek++;
-      sumInWeek += cals;
+  for (const s of stats) {
+    sumCals += s.consumed_calories;
+    sumProts += s.consumed_proteins;
+    sumCarbs += s.consumed_carbs;
+    sumFats += s.consumed_fats;
+    if (s.goal_calories) {
+       sumGoalCals += s.goal_calories;
+       sumGoalProts += (s.goal_proteins || 0);
+       sumGoalCarbs += (s.goal_carbs || 0);
+       sumGoalFats += (s.goal_fats || 0);
+       daysWithGoals++;
     }
   }
 
-  const weeklyAverage = daysWithLogsInWeek > 0 ? Math.round(sumInWeek / daysWithLogsInWeek) : 0;
-
-  // Média mensal (últimos 30 dias com base apenas nos dias em que houve registros)
-  let sumInMonth = 0;
-  let daysWithLogsInMonth = 0;
-  stats.forEach(s => {
-    if (s.total_calories > 0) {
-      sumInMonth += s.total_calories;
-      daysWithLogsInMonth++;
+  const daysLogged = stats.length;
+  
+  const averages = {
+    consumed: {
+      calories: daysLogged > 0 ? Math.round(sumCals / daysLogged) : 0,
+      proteins: daysLogged > 0 ? Math.round((sumProts / daysLogged) * 10) / 10 : 0,
+      carbs: daysLogged > 0 ? Math.round((sumCarbs / daysLogged) * 10) / 10 : 0,
+      fats: daysLogged > 0 ? Math.round((sumFats / daysLogged) * 10) / 10 : 0,
+    },
+    goal: {
+      calories: daysWithGoals > 0 ? Math.round(sumGoalCals / daysWithGoals) : 0,
+      proteins: daysWithGoals > 0 ? Math.round((sumGoalProts / daysWithGoals) * 10) / 10 : 0,
+      carbs: daysWithGoals > 0 ? Math.round((sumGoalCarbs / daysWithGoals) * 10) / 10 : 0,
+      fats: daysWithGoals > 0 ? Math.round((sumGoalFats / daysWithGoals) * 10) / 10 : 0,
     }
-  });
+  };
 
-  const monthlyAverage = daysWithLogsInMonth > 0 ? Math.round(sumInMonth / daysWithLogsInMonth) : 0;
+  // Build the chart data padding missing days with 0s
+  let today: Date;
+  if (dateStr && dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
+    const [year, month, day] = dateStr.split('T')[0].split('-');
+    today = new Date(Number(year), Number(month) - 1, Number(day));
+  } else {
+    today = new Date();
+    today.setHours(0, 0, 0, 0);
+  }
+  
+  const chartData = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dStr = d.toISOString().split('T')[0];
+    
+    const dayStat = stats.find(s => s.date === dStr);
+    
+    chartData.push({
+      date: dStr,
+      dayName: d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', ''),
+      consumed_calories: dayStat ? dayStat.consumed_calories : 0,
+      consumed_proteins: dayStat ? dayStat.consumed_proteins : 0,
+      consumed_carbs: dayStat ? dayStat.consumed_carbs : 0,
+      consumed_fats: dayStat ? dayStat.consumed_fats : 0,
+      goal_calories: dayStat?.goal_calories || null,
+      goal_proteins: dayStat?.goal_proteins || null,
+      goal_carbs: dayStat?.goal_carbs || null,
+      goal_fats: dayStat?.goal_fats || null,
+    });
+  }
 
   return {
-    weeklyChart,
-    weeklyAverage,
-    monthlyAverage,
-    daysLoggedThisMonth: daysWithLogsInMonth
+    period,
+    daysLogged,
+    totalDays: days,
+    averages,
+    chartData
   };
 }

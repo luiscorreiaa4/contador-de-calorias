@@ -24,12 +24,7 @@ export async function getToday(req: AuthenticatedRequest, res: Response) {
     const userId = req.userId!;
     const clientDate = req.query.date as string; // YYYY-MM-DD passed from client to avoid timezone mismatches
     
-    let targetDate = new Date();
-    if (clientDate) {
-      targetDate = new Date(clientDate);
-    }
-
-    const meals = await MealService.getTodayMeals(userId, targetDate.toISOString());
+    const meals = await MealService.getTodayMeals(userId, clientDate);
     return res.status(200).json({ success: true, data: meals });
   } catch (error: unknown) {
     const err = error as CustomError;
@@ -68,13 +63,9 @@ export async function getStats(req: AuthenticatedRequest, res: Response) {
   try {
     const userId = req.userId!;
     const clientDate = req.query.date as string;
+    const period = (req.query.period as string) === 'week' ? 'week' : 'month';
     
-    let targetDate = new Date();
-    if (clientDate) {
-      targetDate = new Date(clientDate);
-    }
-
-    const stats = await MealService.getMealStats(userId, targetDate.toISOString());
+    const stats = await MealService.getMealStats(userId, period, clientDate);
     return res.status(200).json({ success: true, data: stats });
   } catch (error: unknown) {
     const err = error as CustomError;

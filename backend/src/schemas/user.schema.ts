@@ -47,8 +47,28 @@ export const completeOnboardingSchema = z.object({
   activity_level: z.enum(['sedentario', 'pouco_ativo', 'moderadamente_ativo', 'muito_ativo', 'extremamente_ativo'], { message: 'Selecione um nível de atividade válido.' }),
 });
 
+export const previewGoalsSchema = z.object({
+  sex: z.enum(['masculino', 'feminino', 'prefiro_nao_responder']).optional(),
+  birthDate: z.string().min(10).optional(),
+  goal: z.enum(['perder_peso', 'manter_peso', 'ganhar_massa']).optional(),
+  weight: z.number().positive().optional(),
+  height: z.number().positive().optional(),
+  body_fat: z.number().positive().nullable().optional(),
+  activity_level: z.enum(['sedentario', 'pouco_ativo', 'moderadamente_ativo', 'muito_ativo', 'extremamente_ativo']).optional(),
+});
+
+export const updateGoalsSchema = z.object({
+  calories: z.number().positive('As calorias devem ser positivas.'),
+  proteins: z.number().nonnegative(),
+  carbs: z.number().nonnegative(),
+  fats: z.number().nonnegative(),
+  mode: z.enum(['auto', 'manual']),
+});
+
 export type RegisterUserDTO = z.infer<typeof registerUserSchema>;
 export type LoginUserDTO = z.infer<typeof loginUserSchema>;
 export type UpdateUserDTO = z.infer<typeof updateUserSchema>;
 export type DeleteUserDTO = z.infer<typeof deleteUserSchema>;
 export type CompleteOnboardingDTO = z.infer<typeof completeOnboardingSchema>;
+export type PreviewGoalsDTO = z.infer<typeof previewGoalsSchema>;
+export type UpdateGoalsDTO = z.infer<typeof updateGoalsSchema>;
