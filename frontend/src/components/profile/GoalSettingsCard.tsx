@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getActiveGoal, updateGoals, previewGoals } from '../../services/goals.service';
-import { Target, Info, Save } from 'lucide-react';
+import { Target, Info, Save, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export function GoalSettingsCard() {
@@ -76,7 +76,9 @@ export function GoalSettingsCard() {
   };
 
   if (isLoading) {
-    return <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border animate-pulse h-64"></div>;
+    return <div className="p-8 bg-card border-2 border-border animate-pulse h-64 flex items-center justify-center">
+      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">CARREGANDO METAS...</span>
+    </div>;
   }
 
   const isAuto = mode === 'auto';
@@ -86,105 +88,122 @@ export function GoalSettingsCard() {
   const displayCarb = isAuto ? previewData?.suggestedMacros.carbs : manualCarbs;
   const displayFat = isAuto ? previewData?.suggestedMacros.fats : manualFats;
 
-  // Se estiver no modo manual mas nunca salvou como manual, o preview mostra o que o backend gerou
-  
+  const inputBase =
+    'w-full px-4 py-2.5 bg-background border-2 rounded-none text-sm font-black text-foreground uppercase outline-none transition-colors min-h-[48px]';
+  const inputNormal = 'border-border hover:border-primary/50 focus:border-primary focus:ring-0';
+  const inputDisabled = 'border-border opacity-60 cursor-not-allowed';
+
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm space-y-5">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 border-b border-zinc-100 dark:border-zinc-800/80 pb-2 flex items-center gap-2">
-        <Target className="w-4 h-4" />
-        Metas Diárias
+    <div className="space-y-6">
+      <h2 className="text-xl font-heading font-black uppercase tracking-tight text-foreground border-b-2 border-border pb-2 flex items-center gap-2">
+        METAS DIÁRIAS
       </h2>
 
-      <div className="flex bg-zinc-100 dark:bg-zinc-800/50 p-1 rounded-xl">
+      {/* Toggle Mode */}
+      <div className="flex flex-col sm:flex-row gap-4 border-2 border-border p-2 bg-background">
         <button
+          type="button"
           onClick={() => setMode('auto')}
-          className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
+          className={`flex-1 py-3 px-4 text-xs font-black uppercase tracking-widest transition-all focus:outline-none ${
             mode === 'auto' 
-              ? 'bg-white dark:bg-zinc-700 shadow-sm text-emerald-600 dark:text-emerald-400' 
-              : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
+              ? 'bg-primary text-primary-foreground border-2 border-transparent shadow-[2px_2px_0_0_#000] dark:shadow-[2px_2px_0_0_#fff]' 
+              : 'bg-background text-foreground border-2 border-transparent hover:border-border'
           }`}
         >
-          Automático
+          AUTOMÁTICO
         </button>
         <button
+          type="button"
           onClick={() => setMode('manual')}
-          className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
+          className={`flex-1 py-3 px-4 text-xs font-black uppercase tracking-widest transition-all focus:outline-none ${
             mode === 'manual' 
-              ? 'bg-white dark:bg-zinc-700 shadow-sm text-emerald-600 dark:text-emerald-400' 
-              : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
+              ? 'bg-primary text-primary-foreground border-2 border-transparent shadow-[2px_2px_0_0_#000] dark:shadow-[2px_2px_0_0_#fff]' 
+              : 'bg-background text-foreground border-2 border-transparent hover:border-border'
           }`}
         >
-          Manual
+          MANUAL
         </button>
       </div>
 
       {isAuto && (
-        <div className="bg-emerald-50 dark:bg-emerald-500/10 p-3 rounded-xl flex items-start gap-3">
-          <Info className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-          <p className="text-xs text-emerald-700 dark:text-emerald-300 leading-relaxed">
-            O modo automático calcula suas necessidades ideais (TMB + Fator de Atividade) com base no seu perfil. 
-            Se você alterar seu peso ou altura, as metas se ajustarão sozinhas caso você confirme.
+        <div className="bg-primary/10 border-2 border-primary/20 p-4 flex items-start gap-3">
+          <Info className="w-5 h-5 text-primary shrink-0" />
+          <p className="text-[10px] font-bold uppercase tracking-widest text-foreground leading-relaxed">
+            O MODO AUTOMÁTICO CALCULA SUAS NECESSIDADES (TMB + FATOR DE ATIVIDADE). 
+            AS METAS SE AJUSTAM SOZINHAS SE VOCÊ ALTERAR PESO, ALTURA OU ROTINA.
           </p>
         </div>
       )}
 
       {mutation.isSuccess && (
-        <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 rounded-xl text-xs flex items-center gap-2">
-          <Save className="w-4 h-4" />
-          Metas atualizadas com sucesso!
+        <div className="p-4 bg-primary text-primary-foreground font-bold text-xs uppercase tracking-widest flex items-center gap-3 border-2 border-transparent">
+          <Save className="w-5 h-5 shrink-0" />
+          <span>METAS ATUALIZADAS COM SUCESSO!</span>
         </div>
       )}
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-zinc-500">Calorias (kcal)</label>
+      {/* Inputs Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+        <div>
+          <label className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">CALORIAS (KCAL)</label>
           <input 
             type="number" 
             readOnly={isAuto}
             value={displayCalories ?? ''}
             onChange={e => setManualCalories(e.target.value)}
-            className={`w-full px-3 py-2 rounded-lg border text-sm ${isAuto ? 'bg-zinc-50 border-zinc-200 text-zinc-500' : 'bg-white border-zinc-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'} dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100`}
+            className={`${inputBase} ${isAuto ? inputDisabled : inputNormal}`}
           />
         </div>
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-zinc-500">Proteínas (g)</label>
+        <div>
+          <label className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">PROTEÍNAS (G)</label>
           <input 
             type="number" 
             readOnly={isAuto}
             value={displayProt ?? ''}
             onChange={e => setManualProteins(e.target.value)}
-            className={`w-full px-3 py-2 rounded-lg border text-sm ${isAuto ? 'bg-zinc-50 border-zinc-200 text-zinc-500' : 'bg-white border-zinc-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'} dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100`}
+            className={`${inputBase} ${isAuto ? inputDisabled : inputNormal}`}
           />
         </div>
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-zinc-500">Carbos (g)</label>
+        <div>
+          <label className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">CARBOS (G)</label>
           <input 
             type="number" 
             readOnly={isAuto}
             value={displayCarb ?? ''}
             onChange={e => setManualCarbs(e.target.value)}
-            className={`w-full px-3 py-2 rounded-lg border text-sm ${isAuto ? 'bg-zinc-50 border-zinc-200 text-zinc-500' : 'bg-white border-zinc-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'} dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100`}
+            className={`${inputBase} ${isAuto ? inputDisabled : inputNormal}`}
           />
         </div>
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-zinc-500">Gorduras (g)</label>
+        <div>
+          <label className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">GORDURAS (G)</label>
           <input 
             type="number" 
             readOnly={isAuto}
             value={displayFat ?? ''}
             onChange={e => setManualFats(e.target.value)}
-            className={`w-full px-3 py-2 rounded-lg border text-sm ${isAuto ? 'bg-zinc-50 border-zinc-200 text-zinc-500' : 'bg-white border-zinc-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'} dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100`}
+            className={`${inputBase} ${isAuto ? inputDisabled : inputNormal}`}
           />
         </div>
       </div>
 
-      <div className="pt-2 flex justify-end">
+      <div className="flex justify-end pt-4">
         <button
+          type="button"
           onClick={handleSave}
           disabled={mutation.isPending}
-          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+          className="w-full sm:w-auto px-8 py-3 bg-foreground text-background font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-foreground/90 transition-all border-2 border-transparent disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
         >
-          {mutation.isPending ? 'Salvando...' : 'Aplicar Metas'}
+          {mutation.isPending ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>APLICANDO...</span>
+            </>
+          ) : (
+            <>
+              <Target className="w-4 h-4" />
+              <span>APLICAR METAS</span>
+            </>
+          )}
         </button>
       </div>
     </div>

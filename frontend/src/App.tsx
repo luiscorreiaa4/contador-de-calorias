@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoginPage } from './pages/public/LoginPage';
-import { DashboardPage } from './pages/private/DashboardPage';
-import { EditProfilePage } from './pages/private/EditProfilePage';
-import { StatsPage } from './pages/private/StatsPage';
+import { Suspense, lazy } from 'react';
+const DashboardPage = lazy(() => import('./pages/private/DashboardPage').then(m => ({ default: m.DashboardPage })));
+const EditProfilePage = lazy(() => import('./pages/private/EditProfilePage').then(m => ({ default: m.EditProfilePage })));
+const StatsPage = lazy(() => import('./pages/private/StatsPage').then(m => ({ default: m.StatsPage })));
 import { OnboardingFlow } from './components/onboarding/OnboardingFlow';
 import { AppHeader } from './components/layout/AppHeader';
 import { Footer } from './components/layout/Footer';
@@ -40,17 +41,8 @@ function AppContent() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors duration-300 flex flex-col justify-between relative overflow-x-hidden">
-      {/* Subtle dot grid background */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-40 dark:opacity-20"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='1' cy='1' r='1' fill='%2310b981' fill-opacity='0.25'/%3E%3C/svg%3E")`,  
-          backgroundSize: '20px 20px',
-        }}
-      />
-      {/* Single ambient glow — top right */}
-      <div className="absolute -top-32 -right-32 w-80 h-80 bg-emerald-400/15 dark:bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-300 flex flex-col justify-between relative overflow-x-hidden">
+      {/* Removed ambient glows and dot grid to maintain brutalist aesthetic */}
 
       {/* Modern App Header */}
       <AppHeader
@@ -77,15 +69,17 @@ function AppContent() {
       <main className="flex-1 flex items-center justify-center z-10 my-8 sm:my-12 pb-8 sm:pb-16">
         {isAuthenticated ? (
           <ProtectedRoute>
-            {!user?.onboarding_completed ? (
-              <OnboardingFlow />
-            ) : currentView === 'dashboard' ? (
-              <DashboardPage />
-            ) : currentView === 'stats' ? (
-              <StatsPage />
-            ) : (
-              <EditProfilePage onBack={() => setCurrentView('dashboard')} />
-            )}
+            <Suspense fallback={<div className="flex items-center justify-center w-full h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div></div>}>
+              {!user?.onboarding_completed ? (
+                <OnboardingFlow />
+              ) : currentView === 'dashboard' ? (
+                <DashboardPage />
+              ) : currentView === 'stats' ? (
+                <StatsPage />
+              ) : (
+                <EditProfilePage onBack={() => setCurrentView('dashboard')} />
+              )}
+            </Suspense>
           </ProtectedRoute>
         ) : (
           <LoginPage />

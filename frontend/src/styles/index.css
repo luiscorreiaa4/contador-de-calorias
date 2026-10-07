@@ -1,50 +1,111 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=Inter:wght@300;400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Light Mode Brutalist Aesthetic */
+    --background: 0 0% 100%; /* Pure white */
+    --foreground: 0 0% 4%;   /* Deep black */
+
+    --card: 0 0% 98%;        /* Very light gray for cards */
+    --card-foreground: 0 0% 4%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 4%;
+
+    /* NEON LIME GREEN (#CCFF00) */
+    --primary: 72 100% 50%;
+    --primary-foreground: 0 0% 4%; /* Black text on neon */
+    
+    --secondary: 0 0% 90%;
+    --secondary-foreground: 0 0% 4%;
+    
+    --muted: 0 0% 90%;
+    --muted-foreground: 0 0% 40%;
+    
+    --accent: 72 100% 50%;
+    --accent-foreground: 0 0% 4%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 85%;
+    --input: 0 0% 85%;
+    --ring: 72 100% 50%;
+
+    --radius: 0rem;
+  }
+
+  .dark, :root.dark {
+    /* Premium High-Performance Dark Mode Aesthetic */
+    --background: 0 0% 4%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 72 100% 50%;
+    --primary-foreground: 0 0% 4%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 80%;
+    --accent: 72 100% 50%;
+    --accent-foreground: 0 0% 4%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 72 100% 50%;
+  }
+}
+
+@layer base {
   body {
     font-family: 'Inter', system-ui, sans-serif;
-    @apply bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 antialiased min-h-screen transition-colors duration-300;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    @apply antialiased min-h-screen transition-colors duration-300;
+  }
+
+  ::selection {
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+
+  /* Headings: Sans-serif, Black/Bold weight, STRICTLY UPPERCASE */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Montserrat', system-ui, sans-serif;
+    text-transform: uppercase;
+    font-weight: 900;
+    letter-spacing: -0.02em;
   }
 
   * {
-    @apply border-zinc-200 dark:border-zinc-800;
+    border-color: hsl(var(--border));
   }
 }
 
 @layer utilities {
   .animate-in {
-    animation: fadeIn 0.2s ease-out;
+    animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  
+  /* Noise texture background utility for that raw editorial feel */
+  .bg-noise {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
   }
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0);   }
-}
-
-/*
- * NOTA: focus rings são gerenciados pelos próprios componentes via Tailwind
- * (focus-visible:outline-none + focus-visible:ring-* ou focus:ring-*).
- * Não colocar outline global aqui para evitar dupla borda visual.
- */
-
-/* Override webkit browser default blue background on autofill inputs */
+/* Autofill fixes - adapting to dark mode */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 30px white inset !important;
-  -webkit-text-fill-color: #18181b !important;
-  transition: background-color 5000s ease-in-out 0s;
-}
-
-.dark input:-webkit-autofill,
-.dark input:-webkit-autofill:hover,
-.dark input:-webkit-autofill:focus,
-.dark input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 30px #18181b inset !important;
-  -webkit-text-fill-color: #f4f4f5 !important;
+  -webkit-box-shadow: 0 0 0 30px hsl(var(--background)) inset !important;
+  -webkit-text-fill-color: hsl(var(--foreground)) !important;
   transition: background-color 5000s ease-in-out 0s;
 }

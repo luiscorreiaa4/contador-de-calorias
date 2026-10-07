@@ -19,7 +19,7 @@ async function downloadTaco() {
   }
 }
 
-function saveData(data: any[]) {
+function saveData(data: Record<string, unknown>[]) {
   // O dataset do danperrout possui a estrutura:
   // {
   //   "id": 1,
@@ -35,8 +35,8 @@ function saveData(data: any[]) {
   //   }
   // }
   
-  const foods = data.map((item: any) => {
-    const parseNum = (val: any) => {
+  const foods = data.map((item: Record<string, unknown>) => {
+    const parseNum = (val: unknown) => {
       if (typeof val === 'number') return val;
       if (typeof val === 'string') {
         if (val === 'NA' || val === 'Tr' || val === '*') return 0;
@@ -46,7 +46,8 @@ function saveData(data: any[]) {
       return 0;
     };
 
-    const attrs = item.attributes || {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const attrs = (item.attributes as any) || {};
 
     return {
       name: item.description,
@@ -59,7 +60,7 @@ function saveData(data: any[]) {
       source: 'TACO',
       external_id: `TACO-${item.id}`
     };
-  }).filter((f: any) => f.name && f.name.trim() !== '');
+  }).filter((f: Record<string, unknown>) => typeof f.name === 'string' && f.name.trim() !== '');
 
   const outPath = path.join(process.cwd(), 'data', 'taco-full.json');
   fs.mkdirSync(path.dirname(outPath), { recursive: true });

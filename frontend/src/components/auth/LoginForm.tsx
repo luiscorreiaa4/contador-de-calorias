@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
 import type { LoginFormData, FormErrors } from '../../types/auth';
 import { useAuth } from '../../context/AuthContext';
 import { loginUser } from '../../services/auth.service';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Button } from '../ui/button';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -22,7 +25,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
 
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
-    if (!formData.email.trim()) newErrors.email = 'O e-mail é obrigatório.';
+    if (!formData.email.trim()) newErrors.email = 'O email é obrigatório.';
     if (!formData.password) newErrors.password = 'A senha é obrigatória.';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -49,30 +52,23 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     }
   };
 
-  const inputBase =
-    'w-full pl-9 pr-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/60 border rounded-lg text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 transition-colors duration-150 min-h-[42px]';
-  const inputNormal = 'border-zinc-200 dark:border-zinc-700 focus:border-emerald-500 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none';
-  const inputError = 'border-red-400 dark:border-red-500 bg-red-50/50 dark:bg-red-950/20 focus:ring-2 focus:ring-red-400/20 outline-none';
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+    <form onSubmit={handleSubmit} className="space-y-6" noValidate>
       {serverError && (
-        <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-xs flex items-center gap-2">
+        <div className="p-4 bg-destructive text-destructive-foreground text-xs font-bold uppercase tracking-widest flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
           <span>{serverError}</span>
         </div>
       )}
 
       {/* Email */}
-      <div>
-        <label htmlFor="login-email" className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
-          E-mail
-        </label>
+      <div className="space-y-2">
+        <Label htmlFor="login-email">Email</Label>
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
             <Mail className="w-4 h-4" aria-hidden="true" />
           </div>
-          <input
+          <Input
             id="login-email"
             type="email"
             value={formData.email}
@@ -80,29 +76,27 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
               setFormData({ ...formData, email: e.target.value });
               if (errors.email) setErrors({ ...errors, email: undefined });
             }}
-            placeholder="example@email.com"
+            placeholder="SEU@EMAIL.COM"
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? 'login-email-error' : undefined}
-            className={`${inputBase} ${errors.email ? inputError : inputNormal}`}
+            className={`pl-10 uppercase ${errors.email ? 'border-destructive focus-visible:border-destructive' : ''}`}
           />
         </div>
         {errors.email && (
-          <p id="login-email-error" className="mt-1 text-xs text-red-500 dark:text-red-400">
+          <p id="login-email-error" className="text-xs font-bold text-red-500 dark:text-red-400 uppercase">
             {errors.email}
           </p>
         )}
       </div>
 
       {/* Password */}
-      <div>
-        <label htmlFor="login-password" className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
-          Senha
-        </label>
+      <div className="space-y-2">
+        <Label htmlFor="login-password">Senha</Label>
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
             <Lock className="w-4 h-4" aria-hidden="true" />
           </div>
-          <input
+          <Input
             id="login-password"
             type={showPassword ? 'text' : 'password'}
             value={formData.password}
@@ -113,59 +107,58 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
             placeholder="••••••••"
             aria-invalid={!!errors.password}
             aria-describedby={errors.password ? 'login-password-error' : undefined}
-            className={`${inputBase} pr-9 ${errors.password ? inputError : inputNormal}`}
+            className={`pl-10 pr-10 font-mono tracking-widest ${errors.password ? 'border-destructive focus-visible:border-destructive' : ''}`}
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             aria-label={showPassword ? 'Ocultar senha' : 'Exibir senha'}
-            className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+            className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground transition-colors"
           >
             {showPassword ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
           </button>
         </div>
         {errors.password && (
-          <p id="login-password-error" className="mt-1 text-xs text-red-500 dark:text-red-400">
+          <p id="login-password-error" className="text-xs font-bold text-red-500 dark:text-red-400 uppercase">
             {errors.password}
           </p>
         )}
       </div>
 
       {/* Remember Me & Forgot Password */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pt-2">
         <div className="flex items-center gap-2">
           <input
             id="remember-me"
             type="checkbox"
             checked={formData.rememberMe}
             onChange={(e) => setFormData({ ...formData, rememberMe: e.target.checked })}
-            className="w-3.5 h-3.5 rounded border-zinc-300 dark:border-zinc-600 accent-emerald-600 dark:bg-zinc-800 cursor-pointer"
+            className="w-4 h-4 rounded-none border-2 border-border bg-background accent-primary cursor-pointer"
           />
-          <label htmlFor="remember-me" className="text-xs text-zinc-500 dark:text-zinc-400 cursor-pointer select-none">
+          <Label htmlFor="remember-me" className="cursor-pointer select-none">
             Lembrar-me
-          </label>
+          </Label>
         </div>
         <a
           href="#forgot-password"
           onClick={(e) => e.preventDefault()}
-          className="text-xs text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 transition-colors focus:outline-none focus:underline"
+          className="text-xs font-bold uppercase tracking-widest text-primary hover:text-primary/80 transition-colors focus:outline-none focus:underline"
         >
-          Esqueceu sua senha?
+          Esqueci minha senha
         </a>
       </div>
 
       {/* Submit */}
-      <button
-        type="submit"
-        disabled={isLoading}
-        className="w-full mt-1 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-sm font-medium rounded-lg transition-colors duration-150 flex items-center justify-center gap-2 min-h-[42px] disabled:opacity-60 disabled:cursor-not-allowed"
-      >
+      <Button type="submit" disabled={isLoading} className="w-full mt-4 group">
         {isLoading ? (
-          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          <Loader2 className="w-5 h-5 animate-spin" />
         ) : (
-          <span>Entrar</span>
+          <>
+            <span>Acessar Dashboard</span>
+            <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
+          </>
         )}
-      </button>
+      </Button>
     </form>
   );
 };

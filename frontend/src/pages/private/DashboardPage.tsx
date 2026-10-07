@@ -6,7 +6,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getTodayMeals, deleteMeal, type Meal } from '../../services/meal.service';
 import { getActiveGoal } from '../../services/goals.service';
 
-
 export const DashboardPage: React.FC = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -22,8 +21,6 @@ export const DashboardPage: React.FC = () => {
     queryFn: ({ signal }) => getTodayMeals(undefined, signal),
     staleTime: 1000 * 60 * 5, // 5 minutos de cache (evita redundância)
   });
-
-
 
   // Buscar meta do dia
   const { data: activeGoal } = useQuery({
@@ -58,100 +55,105 @@ export const DashboardPage: React.FC = () => {
   const fatsPercent = Math.min((consumedFats / dailyFatsGoal) * 100, 100);
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 py-8 space-y-6">
+    <div className="w-full max-w-5xl mx-auto px-4 py-8 space-y-10">
       {/* Greeting */}
-      <div className="pb-2">
-        <p className="text-xs font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-500 mb-0.5">
-          Painel do Dia
+      <div className="border-b-2 border-border pb-6">
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-2">
+          Painel de Performance
         </p>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 dark:text-white">
-          Olá, {user?.name?.split(' ')[0] || 'Usuário'}! 👋
+        <h1 className="text-3xl sm:text-5xl font-heading font-black text-foreground uppercase tracking-tighter">
+          OLÁ, {user?.name?.split(' ')[0] || 'ATLETA'}!
         </h1>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-          Objetivo: <strong className="text-zinc-700 dark:text-zinc-300 capitalize">{user?.goal?.replace(/_/g, ' ') || 'perder peso'}</strong>
+        <p className="text-xs font-bold text-muted-foreground mt-2 uppercase tracking-widest">
+          FOCO ATUAL: <strong className="text-foreground">{user?.goal?.replace(/_/g, ' ') || 'ALTA PERFORMANCE'}</strong>
         </p>
       </div>
 
       {/* Daily Metrics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Calories Card */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">Calorias</span>
-            <div className="p-2 rounded-xl bg-orange-500/10 text-orange-500">
-              <Flame className="w-5 h-5" aria-hidden="true" />
+        <div className="bg-card border-2 border-border p-5 shadow-hard flex flex-col justify-between group">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">Calorias</span>
+            <Flame className="w-5 h-5 text-primary" aria-hidden="true" />
+          </div>
+          <div>
+            <div className="flex items-baseline gap-1">
+              <span className="text-4xl font-heading font-black text-foreground tracking-tighter">{consumedCalories.toFixed(0)}</span>
+              <span className="text-sm font-bold text-muted-foreground">/{dailyCaloriesGoal.toFixed(0)}</span>
             </div>
           </div>
-          <div className="mt-3">
-            <span className="text-2xl font-extrabold text-zinc-900 dark:text-white">{consumedCalories.toFixed(0)} / {dailyCaloriesGoal.toFixed(0)}</span>
-            <span className="text-xs text-zinc-500 dark:text-zinc-400 ml-1.5">kcal</span>
-          </div>
-          <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-2 mt-3 overflow-hidden">
-            <div className="bg-orange-500 h-2 rounded-full transition-all duration-500" style={{ width: `${caloriesPercent}%` }} />
+          <div className="w-full bg-background border-2 border-border h-3 mt-4 overflow-hidden">
+            <div className="bg-primary h-full transition-all duration-500" style={{ width: `${caloriesPercent}%` }} />
           </div>
         </div>
 
         {/* Proteins Card */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">Proteínas</span>
-            <div className="p-2 rounded-xl bg-violet-500/10 text-violet-500">
-              <Beef className="w-5 h-5" aria-hidden="true" />
+        <div className="bg-card border-2 border-border p-5 shadow-hard flex flex-col justify-between group">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">Proteínas</span>
+            <Beef className="w-5 h-5 text-primary" aria-hidden="true" />
+          </div>
+          <div>
+            <div className="flex items-baseline gap-1">
+              <span className="text-4xl font-heading font-black text-foreground tracking-tighter">{consumedProteins.toFixed(0)}</span>
+              <span className="text-sm font-bold text-muted-foreground">/{dailyProteinsGoal.toFixed(0)}g</span>
             </div>
           </div>
-          <div className="mt-3">
-            <span className="text-2xl font-extrabold text-zinc-900 dark:text-white">{consumedProteins.toFixed(0)} / {dailyProteinsGoal.toFixed(0)}</span>
-            <span className="text-xs text-zinc-500 dark:text-zinc-400 ml-1.5">g</span>
-          </div>
-          <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-2 mt-3 overflow-hidden">
-            <div className="bg-violet-500 h-2 rounded-full transition-all duration-500" style={{ width: `${proteinsPercent}%` }} />
+          <div className="w-full bg-background border-2 border-border h-3 mt-4 overflow-hidden">
+            <div className="bg-primary h-full transition-all duration-500" style={{ width: `${proteinsPercent}%` }} />
           </div>
         </div>
 
         {/* Carbs Card */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">Carboidratos</span>
-            <div className="p-2 rounded-xl bg-sky-500/10 text-sky-500">
-              <span className="font-bold text-sm">C</span>
+        <div className="bg-card border-2 border-border p-5 shadow-hard flex flex-col justify-between group">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">Carboidratos</span>
+            <div className="w-5 h-5 flex items-center justify-center font-bold text-primary bg-primary/10 border border-primary/20">C</div>
+          </div>
+          <div>
+            <div className="flex items-baseline gap-1">
+              <span className="text-4xl font-heading font-black text-foreground tracking-tighter">{consumedCarbs.toFixed(0)}</span>
+              <span className="text-sm font-bold text-muted-foreground">/{dailyCarbsGoal.toFixed(0)}g</span>
             </div>
           </div>
-          <div className="mt-3">
-            <span className="text-2xl font-extrabold text-zinc-900 dark:text-white">{consumedCarbs.toFixed(0)} / {dailyCarbsGoal.toFixed(0)}</span>
-            <span className="text-xs text-zinc-500 dark:text-zinc-400 ml-1.5">g</span>
-          </div>
-          <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-2 mt-3 overflow-hidden">
-            <div className="bg-sky-500 h-2 rounded-full transition-all duration-500" style={{ width: `${carbsPercent}%` }} />
+          <div className="w-full bg-background border-2 border-border h-3 mt-4 overflow-hidden">
+            <div className="bg-primary h-full transition-all duration-500" style={{ width: `${carbsPercent}%` }} />
           </div>
         </div>
 
         {/* Fats Card */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">Gorduras</span>
-            <div className="p-2 rounded-xl bg-yellow-500/10 text-yellow-500">
-              <span className="font-bold text-sm">G</span>
+        <div className="bg-card border-2 border-border p-5 shadow-hard flex flex-col justify-between group">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">Gorduras</span>
+            <div className="w-5 h-5 flex items-center justify-center font-bold text-primary bg-primary/10 border border-primary/20">G</div>
+          </div>
+          <div>
+            <div className="flex items-baseline gap-1">
+              <span className="text-4xl font-heading font-black text-foreground tracking-tighter">{consumedFats.toFixed(0)}</span>
+              <span className="text-sm font-bold text-muted-foreground">/{dailyFatsGoal.toFixed(0)}g</span>
             </div>
           </div>
-          <div className="mt-3">
-            <span className="text-2xl font-extrabold text-zinc-900 dark:text-white">{consumedFats.toFixed(0)} / {dailyFatsGoal.toFixed(0)}</span>
-            <span className="text-xs text-zinc-500 dark:text-zinc-400 ml-1.5">g</span>
-          </div>
-          <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-2 mt-3 overflow-hidden">
-            <div className="bg-yellow-500 h-2 rounded-full transition-all duration-500" style={{ width: `${fatsPercent}%` }} />
+          <div className="w-full bg-background border-2 border-border h-3 mt-4 overflow-hidden">
+            <div className="bg-primary h-full transition-all duration-500" style={{ width: `${fatsPercent}%` }} />
           </div>
         </div>
       </div>
 
       {/* Quick Action Button */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-2xl p-6 shadow-sm flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+      <div className="bg-background border-2 border-border p-6 shadow-hard flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative overflow-hidden">
+        {/* Decorative background element */}
+        <div className="absolute -right-4 -bottom-4 opacity-5 pointer-events-none">
+          <Utensils className="w-48 h-48" />
+        </div>
+        
+        <div className="flex items-center gap-4 relative z-10">
+          <div className="p-3 bg-primary text-primary-foreground shadow-sm">
             <Utensils className="w-6 h-6" aria-hidden="true" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-zinc-900 dark:text-white">Registrar Refeição</h2>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">Adicione café da manhã, almoço, jantar ou lanches.</p>
+            <h2 className="text-lg font-heading font-black uppercase text-foreground">Registrar Refeição</h2>
+            <p className="text-[11px] font-bold tracking-widest text-muted-foreground uppercase mt-1">Adicione o combustível da sua máquina.</p>
           </div>
         </div>
         <button
@@ -160,100 +162,104 @@ export const DashboardPage: React.FC = () => {
             setMealToEdit(null);
             setIsNewMealModalOpen(true);
           }}
-          className="py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl shadow-md text-sm flex items-center gap-2 min-h-[44px] transition-all"
+          className="relative z-10 w-full sm:w-auto py-3 px-6 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-transparent focus:outline-none focus:border-foreground"
         >
           <Plus className="w-4 h-4" aria-hidden="true" />
           <span>Nova Refeição</span>
         </button>
       </div>
 
-
-
       {/* Meals List */}
-      <div className="space-y-4 mt-6">
-        <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Refeições de Hoje</h3>
+      <div className="space-y-6 pt-4">
+        <h3 className="text-xl font-heading font-black text-foreground uppercase tracking-tight flex items-center gap-2">
+          Refeições de Hoje
+          <span className="text-xs font-bold bg-primary text-primary-foreground px-2 py-0.5">{todayMeals.length}</span>
+        </h3>
 
         {isLoading ? (
-          <p className="text-sm text-zinc-500">Carregando refeições...</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">CARREGANDO REFEIÇÕES...</p>
         ) : todayMeals.length === 0 ? (
-          <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl p-8 text-center border border-zinc-200/50 dark:border-zinc-800/50">
-            <Utensils className="w-8 h-8 mx-auto text-zinc-400 mb-3" />
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">Nenhuma refeição registrada hoje.</p>
+          <div className="bg-card border-2 border-border border-dashed p-12 text-center flex flex-col items-center justify-center">
+            <Utensils className="w-10 h-10 text-muted-foreground mb-4 opacity-50" />
+            <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">NENHUMA REFEIÇÃO REGISTRADA HOJE.</p>
           </div>
         ) : (
-          <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {todayMeals.map((meal) => (
-              <div key={meal.id} className="bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-bold text-zinc-900 dark:text-white capitalize">{meal.name}</h4>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1 text-xs text-zinc-500 mr-2">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>
-                        {new Date(meal.meal_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMealToEdit(meal);
-                        setIsNewMealModalOpen(true);
-                      }}
-                      className="p-1.5 text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-                      title="Editar refeição"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMealToDelete(meal);
-                        setIsDeleteModalOpen(true);
-                      }}
-                      className="p-1.5 text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-                      title="Excluir refeição"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="mb-4 space-y-1">
-                  {meal.items.slice(0, 3).map((item, idx) => {
-                    let formattedQuantity = `${Math.round(Number(item.quantity))} g`;
-                    if (item.unit === 'un' && item.display_amount) {
-                      const unitLabel = item.food_unit_name || 'unidade';
-                      const label = Number(item.display_amount) === 1 ? unitLabel : `${unitLabel}s`;
-                      formattedQuantity = `${item.display_amount} ${label} (${Math.round(Number(item.quantity))}g)`;
-                    } else if (item.unit === 'ml' || item.food_base_unit === 'ml') {
-                      formattedQuantity = `${Math.round(Number(item.quantity))} ml`;
-                    }
-
-                    return (
-                      <p key={idx} className="text-sm text-zinc-600 dark:text-zinc-400 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/40 shrink-0"></span>
-                        <span className="truncate">{item.food_name}</span>
-                        <span className="text-xs text-zinc-400 shrink-0 border-l border-zinc-200 dark:border-zinc-700 pl-2 font-medium">
-                          {formattedQuantity}
+              <div key={meal.id} className="bg-card border-2 border-border p-5 shadow-sm hover:shadow-hard transition-shadow flex flex-col justify-between group">
+                <div>
+                  <div className="flex items-start justify-between mb-4 border-b-2 border-border pb-4">
+                    <div>
+                      <h4 className="font-heading font-black text-lg text-foreground uppercase tracking-tighter">{meal.name}</h4>
+                      <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-muted-foreground mt-1">
+                        <Clock className="w-3 h-3" />
+                        <span>
+                          {new Date(meal.meal_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMealToEdit(meal);
+                          setIsNewMealModalOpen(true);
+                        }}
+                        className="p-2 border-2 border-border bg-background text-foreground hover:bg-primary hover:text-primary-foreground transition-colors focus:outline-none"
+                        title="Editar refeição"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMealToDelete(meal);
+                          setIsDeleteModalOpen(true);
+                        }}
+                        className="p-2 border-2 border-border bg-background text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors focus:outline-none"
+                        title="Excluir refeição"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 mb-6">
+                    {meal.items.slice(0, 3).map((item, idx) => {
+                      let formattedQuantity = `${Math.round(Number(item.quantity))} g`;
+                      if (item.unit === 'un' && item.display_amount) {
+                        const unitLabel = item.food_unit_name || 'un';
+                        const label = Number(item.display_amount) === 1 ? unitLabel : `${unitLabel}s`;
+                        formattedQuantity = `${item.display_amount} ${label} (${Math.round(Number(item.quantity))}g)`;
+                      } else if (item.unit === 'ml' || item.food_base_unit === 'ml') {
+                        formattedQuantity = `${Math.round(Number(item.quantity))} ml`;
+                      }
+
+                      return (
+                        <p key={idx} className="text-xs font-bold text-foreground flex items-center justify-between">
+                          <span className="truncate pr-4 uppercase">{item.food_name}</span>
+                          <span className="text-[10px] text-muted-foreground shrink-0 bg-background border-2 border-border px-1.5 py-0.5 tracking-wider">
+                            {formattedQuantity}
+                          </span>
+                        </p>
+                      );
+                    })}
+                    {meal.items.length > 3 && (
+                      <p className="text-[10px] font-bold text-primary uppercase tracking-widest pt-2">
+                        + {meal.items.length - 3} OUTROS ALIMENTOS...
                       </p>
-                    );
-                  })}
-                  {meal.items.length > 3 && (
-                    <p className="text-xs font-medium text-emerald-600 dark:text-emerald-500 pt-1">
-                      + {meal.items.length - 3} outro(s) alimento(s)...
-                    </p>
-                  )}
+                    )}
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-4 text-sm pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                  <div className="flex items-center gap-1.5 text-orange-600 dark:text-orange-400 font-semibold">
-                    <Flame className="w-4 h-4" />
-                    <span>{Number(meal.total_calories).toFixed(0)} kcal</span>
+                <div className="flex items-center gap-6 text-xs pt-4 border-t-2 border-border mt-auto">
+                  <div className="flex items-center gap-2 font-black text-foreground uppercase tracking-widest">
+                    <Flame className="w-4 h-4 text-primary" />
+                    <span>{Number(meal.total_calories).toFixed(0)} KCAL</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-violet-600 dark:text-violet-400 font-semibold">
-                    <Beef className="w-4 h-4" />
-                    <span>{Number(meal.total_proteins).toFixed(0)}g prot</span>
+                  <div className="flex items-center gap-2 font-black text-foreground uppercase tracking-widest">
+                    <Beef className="w-4 h-4 text-primary" />
+                    <span>{Number(meal.total_proteins).toFixed(0)}G PROT</span>
                   </div>
                 </div>
               </div>
@@ -273,28 +279,28 @@ export const DashboardPage: React.FC = () => {
 
       {/* Delete Meal Confirm Modal */}
       {isDeleteModalOpen && mealToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-background/90 backdrop-blur-sm">
           <div
             role="dialog"
             aria-modal="true"
-            className="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+            className="w-full max-w-md bg-card border-2 border-border shadow-hard overflow-hidden"
           >
-            <div className="p-6">
+            <div className="p-6 border-b-2 border-border">
               <div className="flex items-start gap-4">
-                <div className="p-3 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl shrink-0">
+                <div className="p-3 bg-destructive text-destructive-foreground shrink-0 border-2 border-transparent">
                   <AlertTriangle className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-1">
-                    Excluir Refeição
+                  <h2 className="text-lg font-heading font-black text-foreground uppercase tracking-tight mb-2">
+                    EXCLUIR REFEIÇÃO
                   </h2>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                    Tem certeza de que deseja excluir a refeição <strong className="text-zinc-900 dark:text-zinc-200">{mealToDelete.name}</strong>? Essa ação não pode ser desfeita.
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-relaxed">
+                    VOCÊ VAI DELETAR: <strong className="text-foreground">{mealToDelete.name}</strong>. ESSA AÇÃO NÃO PODE SER DESFEITA.
                   </p>
                 </div>
               </div>
             </div>
-            <div className="flex items-center justify-end gap-3 px-6 py-4 bg-zinc-50 dark:bg-zinc-800/50 border-t border-zinc-100 dark:border-zinc-800">
+            <div className="flex items-center justify-end gap-4 p-4 bg-background">
               <button
                 type="button"
                 onClick={() => {
@@ -302,7 +308,7 @@ export const DashboardPage: React.FC = () => {
                   setMealToDelete(null);
                 }}
                 disabled={deleteMealMutation.isPending}
-                className="px-4 py-2 font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors disabled:opacity-50"
+                className="px-4 py-2 font-bold uppercase tracking-widest text-xs text-foreground hover:bg-secondary transition-colors focus:outline-none focus:border-primary border-2 border-transparent"
               >
                 Cancelar
               </button>
@@ -310,7 +316,7 @@ export const DashboardPage: React.FC = () => {
                 type="button"
                 onClick={() => deleteMealMutation.mutate(mealToDelete.id)}
                 disabled={deleteMealMutation.isPending}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-sm transition-colors disabled:opacity-50 flex items-center gap-2"
+                className="px-6 py-2 bg-destructive text-destructive-foreground font-black uppercase tracking-widest text-xs flex items-center gap-2 hover:bg-destructive/90 transition-colors focus:outline-none focus:ring-2 focus:ring-destructive focus:ring-offset-2 focus:ring-offset-background"
               >
                 {deleteMealMutation.isPending ? 'Excluindo...' : 'Sim, Excluir'}
               </button>

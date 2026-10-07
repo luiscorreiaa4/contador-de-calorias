@@ -13,7 +13,7 @@ import {
   Save,
   ArrowLeft,
   Trash2,
-  AlertCircle,
+  AlertTriangle,
   CheckCircle2,
   Flame,
   Target,
@@ -31,7 +31,6 @@ interface EditProfilePageProps {
 export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
   const { user, updateUserSession, logout } = useAuth();
 
-  // Format initial birth_date from YYYY-MM-DD to DD/MM/AAAA if needed
   const formatInitialBirthDate = (val?: string): string => {
     if (!val) return '';
     if (val.includes('-')) {
@@ -41,7 +40,6 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
     return val;
   };
 
-  // Baseline Initial Data
   const [initialData, setInitialData] = useState(() => {
     const rawBirthDate = user?.birth_date || (user as unknown as { birthDate?: string })?.birthDate || '';
     return {
@@ -57,7 +55,6 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
     };
   });
 
-  // Form State
   const [name, setName] = useState(initialData.name);
   const [email, setEmail] = useState(initialData.email);
   const [goal, setGoal] = useState(initialData.goal);
@@ -68,12 +65,10 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
   const [bodyFat, setBodyFat] = useState(initialData.bodyFat);
   const [activityLevel, setActivityLevel] = useState(initialData.activityLevel);
 
-  // Password State
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
-  // UI State
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
@@ -86,7 +81,6 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Flag so single fetch on mount occurs without infinite re-renders
   const isFetchedRef = useRef(false);
 
   useEffect(() => {
@@ -131,12 +125,10 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
       });
   }, [logout, updateUserSession]);
 
-  // Check if email is changed relative to initialData
   const isEmailChanged = useMemo(() => {
     return email.trim().toLowerCase() !== initialData.email.trim().toLowerCase();
   }, [email, initialData.email]);
 
-  // Check if form is dirty (has changes)
   const isDirty = useMemo(() => {
     const nameChanged = name.trim() !== initialData.name.trim();
     const emailChanged = isEmailChanged;
@@ -153,21 +145,20 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
   }, [name, goal, sex, birthDate, weight, height, bodyFat, activityLevel, newPassword, initialData, isEmailChanged]);
 
   const validateBirthDate = (val: string): string | null => {
-    if (!val || !val.trim()) return null; // Opcional ao editar
-    if (val.length < 10) return 'Informe a data completa (DD/MM/AAAA).';
+    if (!val || !val.trim()) return null;
+    if (val.length < 10) return 'INFORME A DATA COMPLETA (DD/MM/AAAA).';
     const parts = val.split('/');
-    if (parts.length !== 3) return 'Data inválida (DD/MM/AAAA).';
+    if (parts.length !== 3) return 'DATA INVÁLIDA (DD/MM/AAAA).';
     const day = parseInt(parts[0], 10);
     const month = parseInt(parts[1], 10);
     const year = parseInt(parts[2], 10);
 
-    if (isNaN(day) || isNaN(month) || isNaN(year)) return 'Data de nascimento inválida.';
-    if (month < 1 || month > 12) return 'Mês inválido.';
-    if (year < 1900 || year > new Date().getFullYear()) return 'Ano inválido.';
+    if (isNaN(day) || isNaN(month) || isNaN(year)) return 'DATA DE NASCIMENTO INVÁLIDA.';
+    if (month < 1 || month > 12) return 'MÊS INVÁLIDO.';
+    if (year < 1900 || year > new Date().getFullYear()) return 'ANO INVÁLIDO.';
     return null;
   };
 
-  // Real-time Handlers for Inputs
   const handleNameChange = (val: string) => {
     setName(val);
     if (errors.name && val.trim()) {
@@ -184,9 +175,9 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
     setErrors((prev) => {
       const next = { ...prev };
       if (!val.trim()) {
-        next.email = 'O e-mail é obrigatório.';
+        next.email = 'O E-MAIL É OBRIGATÓRIO.';
       } else if (!/\S+@\S+\.\S+/.test(val)) {
-        next.email = 'Digite um e-mail válido.';
+        next.email = 'DIGITE UM E-MAIL VÁLIDO.';
       } else {
         delete next.email;
       }
@@ -202,9 +193,9 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
         delete next.currentPassword;
       } else {
         if (isEmailChanged) {
-          next.currentPassword = 'Digite sua senha atual para confirmar a alteração do e-mail.';
+          next.currentPassword = 'DIGITE SUA SENHA ATUAL PARA CONFIRMAR A ALTERAÇÃO DO E-MAIL.';
         } else if (newPassword.length > 0) {
-          next.currentPassword = 'Informe sua senha atual para alterar a senha.';
+          next.currentPassword = 'INFORME SUA SENHA ATUAL PARA ALTERAR A SENHA.';
         }
       }
       return next;
@@ -217,20 +208,20 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
       const next = { ...prev };
 
       if (val.length > 0 && val.length < 6) {
-        next.newPassword = 'A nova senha deve ter no mínimo 6 caracteres.';
+        next.newPassword = 'A NOVA SENHA DEVE TER NO MÍNIMO 6 CARACTERES.';
       } else {
         delete next.newPassword;
       }
 
       if (val.length > 0 && !currentPassword.trim()) {
-        next.currentPassword = 'Informe sua senha atual para alterar a senha.';
+        next.currentPassword = 'INFORME SUA SENHA ATUAL PARA ALTERAR A SENHA.';
       } else if (!isEmailChanged && !val.length) {
         delete next.currentPassword;
       }
 
       if (confirmNewPassword.length > 0) {
         if (val !== confirmNewPassword) {
-          next.confirmNewPassword = 'As senhas não coincidem.';
+          next.confirmNewPassword = 'AS SENHAS NÃO COINCIDEM.';
         } else {
           delete next.confirmNewPassword;
         }
@@ -247,12 +238,12 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
 
       if (!val) {
         if (newPassword.length > 0) {
-          next.confirmNewPassword = 'Confirme sua nova senha.';
+          next.confirmNewPassword = 'CONFIRME SUA NOVA SENHA.';
         } else {
           delete next.confirmNewPassword;
         }
       } else if (newPassword !== val) {
-        next.confirmNewPassword = 'As senhas não coincidem.';
+        next.confirmNewPassword = 'AS SENHAS NÃO COINCIDEM.';
       } else {
         delete next.confirmNewPassword;
       }
@@ -263,29 +254,29 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
 
   const handleBlur = (field: string) => {
     if (field === 'name' && !name.trim()) {
-      setErrors((prev) => ({ ...prev, name: 'O nome é obrigatório.' }));
+      setErrors((prev) => ({ ...prev, name: 'O NOME É OBRIGATÓRIO.' }));
     } else if (field === 'email') {
       if (!email.trim()) {
-        setErrors((prev) => ({ ...prev, email: 'O e-mail é obrigatório.' }));
+        setErrors((prev) => ({ ...prev, email: 'O E-MAIL É OBRIGATÓRIO.' }));
       } else if (!/\S+@\S+\.\S+/.test(email)) {
-        setErrors((prev) => ({ ...prev, email: 'Digite um e-mail válido.' }));
+        setErrors((prev) => ({ ...prev, email: 'DIGITE UM E-MAIL VÁLIDO.' }));
       }
     } else if (field === 'birthDate') {
       const err = validateBirthDate(birthDate);
       if (err) setErrors((prev) => ({ ...prev, birthDate: err }));
     } else if (field === 'newPassword' && newPassword) {
       if (newPassword.length < 6) {
-        setErrors((prev) => ({ ...prev, newPassword: 'A nova senha deve ter no mínimo 6 caracteres.' }));
+        setErrors((prev) => ({ ...prev, newPassword: 'A NOVA SENHA DEVE TER NO MÍNIMO 6 CARACTERES.' }));
       }
     } else if (field === 'confirmNewPassword' && newPassword) {
       if (!confirmNewPassword) {
-        setErrors((prev) => ({ ...prev, confirmNewPassword: 'Confirme sua nova senha.' }));
+        setErrors((prev) => ({ ...prev, confirmNewPassword: 'CONFIRME SUA NOVA SENHA.' }));
       } else if (newPassword !== confirmNewPassword) {
-        setErrors((prev) => ({ ...prev, confirmNewPassword: 'As senhas não coincidem.' }));
+        setErrors((prev) => ({ ...prev, confirmNewPassword: 'AS SENHAS NÃO COINCIDEM.' }));
       }
     } else if (field === 'currentPassword') {
       if ((isEmailChanged || newPassword) && !currentPassword.trim()) {
-        setErrors((prev) => ({ ...prev, currentPassword: 'Informe sua senha atual.' }));
+        setErrors((prev) => ({ ...prev, currentPassword: 'INFORME SUA SENHA ATUAL.' }));
       }
     }
   };
@@ -303,31 +294,31 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!name.trim()) newErrors.name = 'O nome é obrigatório.';
-    if (!email.trim()) newErrors.email = 'O e-mail é obrigatório.';
-    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Digite um e-mail válido.';
+    if (!name.trim()) newErrors.name = 'O NOME É OBRIGATÓRIO.';
+    if (!email.trim()) newErrors.email = 'O E-MAIL É OBRIGATÓRIO.';
+    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'DIGITE UM E-MAIL VÁLIDO.';
 
     const birthErr = validateBirthDate(birthDate);
     if (birthErr) newErrors.birthDate = birthErr;
 
-    if (!sex) newErrors.sex = 'Selecione o sexo.';
-    if (!weight) newErrors.weight = 'Informe seu peso.';
-    if (!height) newErrors.height = 'Informe sua altura.';
-    if (!activityLevel) newErrors.activityLevel = 'Selecione seu nível de atividade.';
+    if (!sex) newErrors.sex = 'SELECIONE O SEXO.';
+    if (!weight) newErrors.weight = 'INFORME SEU PESO.';
+    if (!height) newErrors.height = 'INFORME SUA ALTURA.';
+    if (!activityLevel) newErrors.activityLevel = 'SELECIONE SEU NÍVEL DE ATIVIDADE.';
 
     if (isEmailChanged && !currentPassword.trim()) {
-      newErrors.currentPassword = 'Digite sua senha atual para confirmar a alteração do e-mail.';
+      newErrors.currentPassword = 'DIGITE SUA SENHA ATUAL PARA CONFIRMAR A ALTERAÇÃO DO E-MAIL.';
     }
 
     if (newPassword) {
       if (!currentPassword.trim()) {
-        newErrors.currentPassword = 'Informe sua senha atual para alterar a senha.';
+        newErrors.currentPassword = 'INFORME SUA SENHA ATUAL PARA ALTERAR A SENHA.';
       }
       if (newPassword.length < 6) {
-        newErrors.newPassword = 'A nova senha deve ter no mínimo 6 caracteres.';
+        newErrors.newPassword = 'A NOVA SENHA DEVE TER NO MÍNIMO 6 CARACTERES.';
       }
       if (newPassword !== confirmNewPassword) {
-        newErrors.confirmNewPassword = 'As senhas não coincidem.';
+        newErrors.confirmNewPassword = 'AS SENHAS NÃO COINCIDEM.';
       }
     }
 
@@ -389,19 +380,19 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
       setBodyFat(updatedBaseline.bodyFat);
       setActivityLevel(updatedBaseline.activityLevel);
 
-      setSuccessMessage('Perfil atualizado com sucesso!');
+      setSuccessMessage('PERFIL ATUALIZADO COM SUCESSO!');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmNewPassword('');
     } catch (err: unknown) {
       const errorMsg = err instanceof Error ? err.message : String(err);
       if (errorMsg === 'Usuário não encontrado.') {
-        setServerError('Sua sessão expirou ou a conta não foi encontrada no banco de dados. Redirecionando...');
+        setServerError('SESSÃO EXPIRADA. REDIRECIONANDO...');
         setTimeout(() => {
           logout();
         }, 2000);
       } else {
-        setServerError(errorMsg || 'Erro ao atualizar perfil.');
+        setServerError(errorMsg || 'ERRO AO ATUALIZAR PERFIL.');
       }
     } finally {
       setIsLoading(false);
@@ -418,46 +409,51 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
       logout();
     } catch (err: unknown) {
       const errorMsg = err instanceof Error ? err.message : String(err);
-      setDeleteModalError(errorMsg || 'Senha incorreta. Tente novamente.');
+      setDeleteModalError(errorMsg || 'SENHA INCORRETA. TENTE NOVAMENTE.');
       setIsDeleting(false);
     }
   };
 
   const goals = [
-    { key: 'perder_peso', label: 'Emagrecer', icon: <Flame className="w-4 h-4 text-orange-400" aria-hidden="true" /> },
-    { key: 'manter_peso', label: 'Manter', icon: <Target className="w-4 h-4 text-sky-400" aria-hidden="true" /> },
-    { key: 'ganhar_massa', label: 'Ganhar massa', icon: <TrendingUp className="w-4 h-4 text-violet-400" aria-hidden="true" /> },
+    { key: 'perder_peso', label: 'EMAGRECER', icon: <Flame className="w-5 h-5" aria-hidden="true" /> },
+    { key: 'manter_peso', label: 'MANTER', icon: <Target className="w-5 h-5" aria-hidden="true" /> },
+    { key: 'ganhar_massa', label: 'GANHAR MASSA', icon: <TrendingUp className="w-5 h-5" aria-hidden="true" /> },
   ] as const;
 
   const activityLevels = [
-    { key: 'sedentario', label: 'Sedentário', desc: 'Pouco ou nenhum exercício' },
-    { key: 'pouco_ativo', label: 'Pouco Ativo', desc: 'Exercício leve 1 a 3 dias na semana' },
-    { key: 'moderadamente_ativo', label: 'Moderadamente Ativo', desc: 'Exercício moderado 3 a 5 dias na semana' },
-    { key: 'muito_ativo', label: 'Muito Ativo', desc: 'Exercício pesado 6 a 7 dias na semana' },
-    { key: 'extremamente_ativo', label: 'Extremamente Ativo', desc: 'Trabalho físico pesado ou treino 2x ao dia' },
+    { key: 'sedentario', label: 'SEDENTÁRIO', desc: 'POUCO OU NENHUM EXERCÍCIO' },
+    { key: 'pouco_ativo', label: 'POUCO ATIVO', desc: 'EXERCÍCIO LEVE 1-3 DIAS/SEM' },
+    { key: 'moderadamente_ativo', label: 'MODERADAMENTE ATIVO', desc: 'EXERCÍCIO MODERADO 3-5 DIAS/SEM' },
+    { key: 'muito_ativo', label: 'MUITO ATIVO', desc: 'EXERCÍCIO PESADO 6-7 DIAS/SEM' },
+    { key: 'extremamente_ativo', label: 'EXTREMAMENTE ATIVO', desc: 'TRABALHO FÍSICO / TREINO 2X AO DIA' },
   ];
 
   const inputBase =
-    'w-full pl-9 pr-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/60 border rounded-lg text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 transition-colors duration-150 min-h-[44px]';
+    'w-full pl-10 pr-4 py-2.5 bg-background border-2 rounded-none text-sm font-medium text-foreground outline-none transition-colors min-h-[48px]';
   const inputNormal =
-    'border-zinc-200 dark:border-zinc-700 focus:border-emerald-500 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 outline-none';
+    'border-border hover:border-primary/50 focus:border-primary focus:ring-0';
   const inputError =
-    'border-red-400 dark:border-red-500 bg-red-50/50 dark:bg-red-950/20 focus:ring-2 focus:ring-red-400/30 outline-none';
+    'border-destructive bg-destructive/10 text-destructive focus:border-destructive';
 
   return (
-    <div className="w-full max-w-2xl mx-auto px-4 py-6 space-y-6">
+    <div className="w-full max-w-3xl mx-auto px-4 py-8 space-y-10">
       {/* Top Bar / Navigation */}
-      <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b-2 border-border pb-6 gap-4">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-2">
+            Configurações
+          </p>
+          <h1 className="text-3xl sm:text-4xl font-heading font-black text-foreground uppercase tracking-tighter">
+            EDITAR PERFIL
+          </h1>
+        </div>
         <button
           type="button"
           onClick={onBack}
-          className="flex items-center gap-2 text-sm font-semibold text-zinc-600 dark:text-zinc-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors p-1.5 -ml-1.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+          className="self-start sm:self-auto flex items-center justify-center w-12 h-12 border-2 border-border bg-background hover:bg-primary hover:text-primary-foreground transition-colors text-foreground focus:outline-none focus:border-primary group"
         >
-          <ArrowLeft className="w-4 h-4" aria-hidden="true" />
-          <span>Voltar ao Dashboard</span>
+          <ArrowLeft className="w-5 h-5" aria-hidden="true" />
         </button>
-
-        <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Editar Perfil</h1>
       </div>
 
       {/* Alerts */}
@@ -465,9 +461,9 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
         <div
           role="alert"
           aria-live="polite"
-          className="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-xs flex items-center gap-2.5"
+          className="p-4 bg-destructive text-destructive-foreground font-bold text-xs uppercase tracking-widest flex items-center gap-3 border-2 border-transparent"
         >
-          <AlertCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
+          <AlertTriangle className="w-5 h-5 shrink-0" aria-hidden="true" />
           <span>{serverError}</span>
         </div>
       )}
@@ -476,382 +472,395 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
         <div
           role="status"
           aria-live="polite"
-          className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs flex items-center gap-2.5"
+          className="p-4 bg-primary text-primary-foreground font-bold text-xs uppercase tracking-widest flex items-center gap-3 border-2 border-transparent"
         >
-          <CheckCircle2 className="w-4 h-4 shrink-0" aria-hidden="true" />
+          <CheckCircle2 className="w-5 h-5 shrink-0" aria-hidden="true" />
           <span>{successMessage}</span>
         </div>
       )}
 
       {/* Main Form */}
-      <form onSubmit={handleSubmit} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm space-y-5" noValidate>
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 border-b border-zinc-100 dark:border-zinc-800/80 pb-2">
-          Informações Pessoais
-        </h2>
+      <form onSubmit={handleSubmit} className="bg-card border-2 border-border shadow-hard p-6 sm:p-8 space-y-10" noValidate>
+        
+        {/* Informações Pessoais */}
+        <div className="space-y-6">
+          <h2 className="text-xl font-heading font-black uppercase tracking-tight text-foreground border-b-2 border-border pb-2">
+            INFORMAÇÕES PESSOAIS
+          </h2>
 
-        {/* Nome */}
-        <div>
-          <label htmlFor="edit-name" className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
-            Nome Completo
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
-              <User className="w-4 h-4" aria-hidden="true" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Nome */}
+            <div>
+              <label htmlFor="edit-name" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                NOME COMPLETO
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
+                  <User className="w-4 h-4" aria-hidden="true" />
+                </div>
+                <input
+                  id="edit-name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => handleNameChange(e.target.value)}
+                  onBlur={() => handleBlur('name')}
+                  onFocus={() => handleFocus('name')}
+                  placeholder="SEU NOME"
+                  className={`${inputBase} ${errors.name ? inputError : inputNormal}`}
+                  aria-invalid={!!errors.name}
+                />
+              </div>
+              {errors.name && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.name}</p>}
             </div>
-            <input
-              id="edit-name"
-              type="text"
-              value={name}
-              onChange={(e) => handleNameChange(e.target.value)}
-              onBlur={() => handleBlur('name')}
-              onFocus={() => handleFocus('name')}
-              placeholder="Seu nome"
-              className={`${inputBase} ${errors.name ? inputError : inputNormal}`}
-              aria-invalid={!!errors.name}
-              aria-describedby={errors.name ? 'edit-name-error' : undefined}
-            />
-          </div>
-          {errors.name && <p id="edit-name-error" className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.name}</p>}
-        </div>
 
-        {/* E-mail */}
-        <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <label htmlFor="edit-email" className="block text-xs font-medium text-zinc-500 dark:text-zinc-400">
-              E-mail
-            </label>
-            {isEmailChanged && (
-              <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">
-                *Exige senha atual abaixo para confirmar
-              </span>
-            )}
-          </div>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
-              <Mail className="w-4 h-4" aria-hidden="true" />
+            {/* E-mail */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label htmlFor="edit-email" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                  E-MAIL
+                </label>
+                {isEmailChanged && (
+                  <span className="text-[10px] font-bold tracking-widest text-primary uppercase">
+                    *EXIGE SENHA
+                  </span>
+                )}
+              </div>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
+                  <Mail className="w-4 h-4" aria-hidden="true" />
+                </div>
+                <input
+                  id="edit-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => handleEmailChange(e.target.value)}
+                  onBlur={() => handleBlur('email')}
+                  onFocus={() => handleFocus('email')}
+                  placeholder="SEU@EMAIL.COM"
+                  className={`${inputBase} ${errors.email ? inputError : inputNormal}`}
+                  aria-invalid={!!errors.email}
+                />
+              </div>
+              {errors.email && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.email}</p>}
             </div>
-            <input
-              id="edit-email"
-              type="email"
-              value={email}
-              onChange={(e) => handleEmailChange(e.target.value)}
-              onBlur={() => handleBlur('email')}
-              onFocus={() => handleFocus('email')}
-              placeholder="seu@email.com"
-              className={`${inputBase} ${errors.email ? inputError : inputNormal}`}
-              aria-invalid={!!errors.email}
-              aria-describedby={errors.email ? 'edit-email-error' : undefined}
-            />
+
+            {/* Sexo biológico */}
+            <div>
+              <label htmlFor="edit-sex" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                SEXO BIOLÓGICO
+              </label>
+              <select
+                id="edit-sex"
+                value={sex}
+                onChange={(e) => setSex(e.target.value as 'masculino' | 'feminino' | 'prefiro_nao_responder')}
+                className={`w-full pl-4 pr-10 py-2.5 bg-background border-2 rounded-none text-sm font-medium text-foreground uppercase outline-none transition-colors min-h-[48px] appearance-none cursor-pointer ${
+                  errors.sex ? inputError : inputNormal
+                }`}
+                aria-invalid={!!errors.sex}
+              >
+                <option value="masculino">MASCULINO</option>
+                <option value="feminino">FEMININO</option>
+                <option value="prefiro_nao_responder">NÃO RESPONDER</option>
+              </select>
+              {errors.sex && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.sex}</p>}
+            </div>
+
+            {/* Data de Nascimento */}
+            <div>
+              <label htmlFor="edit-birth-date" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                NASCIMENTO (DD/MM/AAAA)
+              </label>
+              <DatePickerInput
+                id="edit-birth-date"
+                value={birthDate}
+                onChange={(val) => setBirthDate(val)}
+                error={errors.birthDate}
+              />
+              {errors.birthDate && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.birthDate}</p>}
+            </div>
           </div>
-          {errors.email && <p id="edit-email-error" className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.email}</p>}
-        </div>
-
-        {/* Sexo biológico */}
-        <div>
-          <label htmlFor="edit-sex" className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
-            Sexo biológico
-          </label>
-          <select
-            id="edit-sex"
-            value={sex}
-            onChange={(e) => setSex(e.target.value as 'masculino' | 'feminino' | 'prefiro_nao_responder')}
-            className={`w-full pl-3 pr-8 py-2.5 bg-zinc-50 dark:bg-zinc-800/60 border rounded-lg text-sm text-zinc-900 dark:text-zinc-100 transition-colors duration-150 min-h-[44px] cursor-pointer ${
-              errors.sex ? inputError : inputNormal
-            }`}
-            aria-invalid={!!errors.sex}
-          >
-            <option value="masculino">Masculino</option>
-            <option value="feminino">Feminino</option>
-            <option value="prefiro_nao_responder">Prefiro não responder</option>
-          </select>
-          {errors.sex && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.sex}</p>}
-        </div>
-
-        {/* Data de Nascimento */}
-        <div>
-          <label htmlFor="edit-birth-date" className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
-            Data de Nascimento
-          </label>
-          <DatePickerInput
-            id="edit-birth-date"
-            value={birthDate}
-            onChange={(val) => setBirthDate(val)}
-            error={errors.birthDate}
-          />
-          {errors.birthDate && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.birthDate}</p>}
         </div>
 
         {/* Medidas Corporais */}
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 border-b border-zinc-100 dark:border-zinc-800/80 pt-4 pb-2">
-          Medidas Corporais
-        </h2>
+        <div className="space-y-6">
+          <h2 className="text-xl font-heading font-black uppercase tracking-tight text-foreground border-b-2 border-border pb-2">
+            MEDIDAS CORPORAIS
+          </h2>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="edit-weight" className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
-              Peso atual (kg)
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
-                <Weight className="w-4 h-4" aria-hidden="true" />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div>
+              <label htmlFor="edit-weight" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                PESO ATUAL (KG)
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
+                  <Weight className="w-4 h-4" aria-hidden="true" />
+                </div>
+                <input
+                  id="edit-weight"
+                  type="number"
+                  step="0.1"
+                  value={weight}
+                  onChange={(e) => setWeight(e.target.value)}
+                  placeholder="EX: 75.5"
+                  className={`${inputBase} ${errors.weight ? inputError : inputNormal}`}
+                  aria-invalid={!!errors.weight}
+                />
               </div>
-              <input
-                id="edit-weight"
-                type="number"
-                step="0.1"
-                value={weight}
-                onChange={(e) => setWeight(e.target.value)}
-                placeholder="Ex: 75.5"
-                className={`${inputBase} ${errors.weight ? inputError : inputNormal}`}
-                aria-invalid={!!errors.weight}
-              />
+              {errors.weight && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.weight}</p>}
             </div>
-            {errors.weight && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.weight}</p>}
-          </div>
 
-          <div>
-            <label htmlFor="edit-height" className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
-              Altura (cm)
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
-                <Ruler className="w-4 h-4" aria-hidden="true" />
+            <div>
+              <label htmlFor="edit-height" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                ALTURA (CM)
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
+                  <Ruler className="w-4 h-4" aria-hidden="true" />
+                </div>
+                <input
+                  id="edit-height"
+                  type="number"
+                  value={height}
+                  onChange={(e) => setHeight(e.target.value)}
+                  placeholder="EX: 175"
+                  className={`${inputBase} ${errors.height ? inputError : inputNormal}`}
+                  aria-invalid={!!errors.height}
+                />
               </div>
-              <input
-                id="edit-height"
-                type="number"
-                value={height}
-                onChange={(e) => setHeight(e.target.value)}
-                placeholder="Ex: 175"
-                className={`${inputBase} ${errors.height ? inputError : inputNormal}`}
-                aria-invalid={!!errors.height}
-              />
+              {errors.height && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.height}</p>}
             </div>
-            {errors.height && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.height}</p>}
-          </div>
-        </div>
 
-        <div>
-          <label htmlFor="edit-bodyfat" className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
-            Percentual de Gordura (%) <span className="text-zinc-400 font-normal text-xs">(Opcional)</span>
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
-              <ActivitySquare className="w-4 h-4" aria-hidden="true" />
+            <div>
+              <label htmlFor="edit-bodyfat" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                GORDURA (%) <span className="opacity-50">(OPCIONAL)</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
+                  <ActivitySquare className="w-4 h-4" aria-hidden="true" />
+                </div>
+                <input
+                  id="edit-bodyfat"
+                  type="number"
+                  step="0.1"
+                  value={bodyFat}
+                  onChange={(e) => setBodyFat(e.target.value)}
+                  placeholder="EX: 18.5"
+                  className={`${inputBase} ${inputNormal}`}
+                />
+              </div>
             </div>
-            <input
-              id="edit-bodyfat"
-              type="number"
-              step="0.1"
-              value={bodyFat}
-              onChange={(e) => setBodyFat(e.target.value)}
-              placeholder="Ex: 18.5"
-              className={`${inputBase} ${inputNormal}`}
-            />
           </div>
         </div>
 
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 border-b border-zinc-100 dark:border-zinc-800/80 pt-4 pb-2">
-          Rotina e Objetivo
-        </h2>
+        {/* Rotina e Objetivo */}
+        <div className="space-y-6">
+          <h2 className="text-xl font-heading font-black uppercase tracking-tight text-foreground border-b-2 border-border pb-2">
+            OBJETIVO E ROTINA
+          </h2>
 
-        {/* Nível de Atividade */}
-        <div>
-          <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
-            Nível de Atividade Física
-          </label>
-          <div className="grid gap-2">
-            {activityLevels.map((a) => (
-              <button
-                key={a.key}
-                type="button"
-                onClick={() => setActivityLevel(a.key)}
-                className={`p-3 rounded-xl border flex flex-col text-left transition-all ${
-                  activityLevel === a.key
-                    ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10'
-                    : 'border-zinc-200 dark:border-zinc-700 hover:border-emerald-300 dark:hover:border-emerald-700'
-                }`}
-              >
-                <span className={`text-sm font-medium ${activityLevel === a.key ? 'text-emerald-700 dark:text-emerald-300' : 'text-zinc-800 dark:text-zinc-200'}`}>
-                  {a.label}
-                </span>
-                <span className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">{a.desc}</span>
-              </button>
-            ))}
-          </div>
-          {errors.activityLevel && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.activityLevel}</p>}
-        </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            {/* Objetivo */}
+            <div>
+              <label id="goal-group-label" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3">
+                SEU FOCO PRINCIPAL
+              </label>
+              <div role="radiogroup" aria-labelledby="goal-group-label" className="flex flex-col gap-3">
+                {goals.map(({ key, label, icon }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    role="radio"
+                    aria-checked={goal === key}
+                    onClick={() => setGoal(key)}
+                    className={`p-4 border-2 flex items-center gap-4 transition-all focus:outline-none ${
+                      goal === key
+                        ? 'border-primary bg-primary text-primary-foreground shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff]'
+                        : 'border-border bg-background text-foreground hover:border-primary/50 hover:bg-secondary'
+                    }`}
+                  >
+                    <div className={goal === key ? 'text-primary-foreground' : 'text-primary'}>
+                      {icon}
+                    </div>
+                    <span className="font-black uppercase tracking-widest text-sm">{label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
 
-        {/* Objetivo */}
-        <div>
-          <label id="goal-group-label" className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
-            Objetivo
-          </label>
-          <div role="radiogroup" aria-labelledby="goal-group-label" className="grid grid-cols-3 gap-2">
-            {goals.map(({ key, label, icon }) => (
-              <button
-                key={key}
-                type="button"
-                role="radio"
-                aria-checked={goal === key}
-                onClick={() => setGoal(key)}
-                className={`p-2.5 rounded-xl border text-center flex flex-col items-center gap-1.5 transition-all text-xs font-medium min-h-[56px] focus:outline-none focus:ring-2 focus:ring-emerald-500/40 ${
-                  goal === key
-                    ? 'border-emerald-300 dark:border-emerald-500/60 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 shadow-sm'
-                    : 'border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:border-zinc-300 dark:hover:border-zinc-600'
-                }`}
-              >
-                {icon}
-                <span>{label}</span>
-              </button>
-            ))}
+            {/* Nível de Atividade */}
+            <div>
+              <label className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3">
+                NÍVEL DE ATIVIDADE FÍSICA
+              </label>
+              <div className="grid gap-3">
+                {activityLevels.map((a) => (
+                  <button
+                    key={a.key}
+                    type="button"
+                    onClick={() => setActivityLevel(a.key)}
+                    className={`p-3 border-2 flex flex-col text-left transition-all focus:outline-none ${
+                      activityLevel === a.key
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-border bg-background hover:border-primary/50 text-foreground'
+                    }`}
+                  >
+                    <span className="text-xs font-black uppercase tracking-widest">
+                      {a.label}
+                    </span>
+                    <span className={`text-[10px] font-bold tracking-widest uppercase mt-1 ${activityLevel === a.key ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                      {a.desc}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              {errors.activityLevel && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.activityLevel}</p>}
+            </div>
           </div>
         </div>
 
         {/* Metas Diárias - Componente Separado */}
         <GoalSettingsCard />
 
-        {/* Alteração de Senha */}
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 border-b border-zinc-100 dark:border-zinc-800/80 pt-4 pb-2">
-          Segurança e Senha
-        </h2>
+        {/* Segurança e Senha */}
+        <div className="space-y-6">
+          <h2 className="text-xl font-heading font-black uppercase tracking-tight text-foreground border-b-2 border-border pb-2">
+            SEGURANÇA
+          </h2>
 
-        {/* Senha Atual */}
-        <div>
-          <label htmlFor="edit-current-password" className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
-            Senha Atual {isEmailChanged || newPassword ? <span className="text-amber-500 font-bold">*</span> : '(obrigatória apenas se alterar e-mail ou senha)'}
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
-              <Lock className="w-4 h-4" aria-hidden="true" />
-            </div>
-            <input
-              id="edit-current-password"
-              type={showCurrentPassword ? 'text' : 'password'}
-              value={currentPassword}
-              onChange={(e) => handleCurrentPasswordChange(e.target.value)}
-              onBlur={() => handleBlur('currentPassword')}
-              onFocus={() => handleFocus('currentPassword')}
-              placeholder="Digite a senha atual"
-              className={`${inputBase} pr-10 ${errors.currentPassword ? inputError : inputNormal}`}
-              aria-invalid={!!errors.currentPassword}
-              aria-describedby={errors.currentPassword ? 'edit-current-password-error' : undefined}
-            />
-            <button
-              type="button"
-              aria-label={showCurrentPassword ? 'Ocultar senha atual' : 'Mostrar senha atual'}
-              onClick={() => setShowCurrentPassword((prev) => !prev)}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 rounded-md"
-            >
-              {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
-          </div>
-          {errors.currentPassword && <p id="edit-current-password-error" className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.currentPassword}</p>}
-        </div>
-
-        {/* Nova Senha */}
-        <div>
-          <label htmlFor="edit-new-password" className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
-            Nova Senha (opcional)
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
-              <Lock className="w-4 h-4" aria-hidden="true" />
-            </div>
-            <input
-              id="edit-new-password"
-              type={showNewPassword ? 'text' : 'password'}
-              value={newPassword}
-              onChange={(e) => handleNewPasswordChange(e.target.value)}
-              onBlur={() => handleBlur('newPassword')}
-              onFocus={() => handleFocus('newPassword')}
-              placeholder="Mínimo 6 caracteres"
-              className={`${inputBase} pr-10 ${errors.newPassword ? inputError : inputNormal}`}
-              aria-invalid={!!errors.newPassword}
-              aria-describedby={errors.newPassword ? 'edit-new-password-error' : undefined}
-            />
-            <button
-              type="button"
-              aria-label={showNewPassword ? 'Ocultar nova senha' : 'Mostrar nova senha'}
-              onClick={() => setShowNewPassword((prev) => !prev)}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 rounded-md"
-            >
-              {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
-          </div>
-          {errors.newPassword && <p id="edit-new-password-error" className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.newPassword}</p>}
-        </div>
-
-        {/* Confirmar Nova Senha */}
-        {newPassword.length > 0 && (
-          <div>
-            <label htmlFor="edit-confirm-new-password" className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
-              Confirmar Nova Senha
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
-                <Lock className="w-4 h-4" aria-hidden="true" />
+          <div className="grid grid-cols-1 gap-6">
+            <div>
+              <label htmlFor="edit-current-password" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                SENHA ATUAL {isEmailChanged || newPassword ? <span className="text-primary">*</span> : <span className="opacity-50">(OPCIONAL)</span>}
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
+                  <Lock className="w-4 h-4" aria-hidden="true" />
+                </div>
+                <input
+                  id="edit-current-password"
+                  type={showCurrentPassword ? 'text' : 'password'}
+                  value={currentPassword}
+                  onChange={(e) => handleCurrentPasswordChange(e.target.value)}
+                  onBlur={() => handleBlur('currentPassword')}
+                  onFocus={() => handleFocus('currentPassword')}
+                  placeholder="DIGITE A SENHA ATUAL"
+                  className={`${inputBase} pr-12 ${errors.currentPassword ? inputError : inputNormal}`}
+                  aria-invalid={!!errors.currentPassword}
+                />
+                <button
+                  type="button"
+                  aria-label={showCurrentPassword ? 'Ocultar' : 'Mostrar'}
+                  onClick={() => setShowCurrentPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground focus:outline-none"
+                >
+                  {showCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
-              <input
-                id="edit-confirm-new-password"
-                type={showConfirmNewPassword ? 'text' : 'password'}
-                value={confirmNewPassword}
-                onChange={(e) => handleConfirmNewPasswordChange(e.target.value)}
-                onBlur={() => handleBlur('confirmNewPassword')}
-                onFocus={() => handleFocus('confirmNewPassword')}
-                placeholder="Repita a nova senha"
-                className={`${inputBase} pr-10 ${errors.confirmNewPassword ? inputError : inputNormal}`}
-                aria-invalid={!!errors.confirmNewPassword}
-                aria-describedby={errors.confirmNewPassword ? 'edit-confirm-new-password-error' : undefined}
-              />
-              <button
-                type="button"
-                aria-label={showConfirmNewPassword ? 'Ocultar confirmação de nova senha' : 'Mostrar confirmação de nova senha'}
-                onClick={() => setShowConfirmNewPassword((prev) => !prev)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 rounded-md"
-              >
-                {showConfirmNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
+              {errors.currentPassword && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.currentPassword}</p>}
             </div>
-            {errors.confirmNewPassword && <p id="edit-confirm-new-password-error" className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.confirmNewPassword}</p>}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="edit-new-password" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                  NOVA SENHA <span className="opacity-50">(OPCIONAL)</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
+                    <Lock className="w-4 h-4" aria-hidden="true" />
+                  </div>
+                  <input
+                    id="edit-new-password"
+                    type={showNewPassword ? 'text' : 'password'}
+                    value={newPassword}
+                    onChange={(e) => handleNewPasswordChange(e.target.value)}
+                    onBlur={() => handleBlur('newPassword')}
+                    onFocus={() => handleFocus('newPassword')}
+                    placeholder="NOVA SENHA"
+                    className={`${inputBase} pr-12 ${errors.newPassword ? inputError : inputNormal}`}
+                    aria-invalid={!!errors.newPassword}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword((prev) => !prev)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground focus:outline-none"
+                  >
+                    {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+                {errors.newPassword && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.newPassword}</p>}
+              </div>
+
+              {newPassword.length > 0 && (
+                <div>
+                  <label htmlFor="edit-confirm-new-password" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                    CONFIRMAR NOVA SENHA
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
+                      <Lock className="w-4 h-4" aria-hidden="true" />
+                    </div>
+                    <input
+                      id="edit-confirm-new-password"
+                      type={showConfirmNewPassword ? 'text' : 'password'}
+                      value={confirmNewPassword}
+                      onChange={(e) => handleConfirmNewPasswordChange(e.target.value)}
+                      onBlur={() => handleBlur('confirmNewPassword')}
+                      onFocus={() => handleFocus('confirmNewPassword')}
+                      placeholder="REPITA A SENHA"
+                      className={`${inputBase} pr-12 ${errors.confirmNewPassword ? inputError : inputNormal}`}
+                      aria-invalid={!!errors.confirmNewPassword}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmNewPassword((prev) => !prev)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground focus:outline-none"
+                    >
+                      {showConfirmNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                  {errors.confirmNewPassword && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.confirmNewPassword}</p>}
+                </div>
+              )}
+            </div>
           </div>
-        )}
+        </div>
 
         {/* Action Buttons */}
-        <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-3">
-          {/* Delete Account Link / Button */}
+        <div className="pt-8 border-t-2 border-border flex flex-col-reverse sm:flex-row items-center justify-between gap-6">
+          
           <button
             type="button"
             onClick={() => setShowDeleteModal(true)}
-            className="w-full sm:w-auto text-xs font-semibold text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500/40"
+            className="w-full sm:w-auto px-4 py-3 border-2 border-destructive bg-background text-destructive font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-destructive hover:text-destructive-foreground transition-colors focus:outline-none"
           >
             <Trash2 className="w-4 h-4" aria-hidden="true" />
-            <span>Excluir Conta</span>
+            <span>EXCLUIR CONTA</span>
           </button>
 
-          <div className="w-full sm:w-auto flex items-center gap-3">
+          <div className="w-full sm:w-auto flex flex-col sm:flex-row items-center gap-4">
             <button
               type="button"
               onClick={onBack}
-              className="w-1/2 sm:w-auto px-4 py-2.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 font-medium text-sm rounded-xl transition-colors min-h-[44px] focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-500"
+              className="w-full sm:w-auto px-6 py-3 border-2 border-border bg-background text-foreground font-black uppercase tracking-widest text-xs hover:bg-secondary transition-colors focus:outline-none focus:border-primary"
             >
-              Cancelar
+              CANCELAR
             </button>
 
             <button
               type="submit"
               disabled={!isDirty || isLoading}
-              className="w-1/2 sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-semibold text-sm rounded-xl transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+              className="w-full sm:w-auto px-8 py-3 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-transparent disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:border-foreground shadow-hard disabled:shadow-none"
             >
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
-                  <span>Salvando...</span>
+                  <span>SALVANDO...</span>
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4" aria-hidden="true" />
-                  <span>Salvar Alterações</span>
+                  <span>SALVAR ALTERAÇÕES</span>
                 </>
               )}
             </button>

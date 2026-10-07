@@ -38,7 +38,6 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const nativeInputRef = useRef<HTMLInputElement>(null);
 
-  // Fecha o popover ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -49,7 +48,6 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Máscara automática DD/MM/AAAA
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
     const digits = raw.replace(/\D/g, '').slice(0, 8);
@@ -64,7 +62,6 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
     onChange(formatted);
   };
 
-  // Converte DD/MM/AAAA para YYYY-MM-DD (para o input date nativo)
   const getNativeDateValue = (): string => {
     if (value && value.length === 10) {
       const [d, m, y] = value.split('/');
@@ -75,7 +72,6 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
     return '';
   };
 
-  // Quando o input date nativo muda (mobile)
   const handleNativeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value; // YYYY-MM-DD
     if (val) {
@@ -85,13 +81,12 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
     setIsOpen(false);
   };
 
-  // Lógica do Calendário Popover
   const currentYear = viewDate.getFullYear();
   const currentMonth = viewDate.getMonth();
 
   const monthNames = [
-    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    'JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO',
+    'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'
   ];
 
   const handlePrevMonth = () => {
@@ -110,7 +105,6 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
     setIsOpen(false);
   };
 
-  // Dias do mês
   const firstDayOfWeek = new Date(currentYear, currentMonth, 1).getDay();
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
@@ -135,30 +129,26 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
   };
 
   const handleCalendarToggle = () => {
-    // Se estiver em mobile/touch e o browser suportar showPicker
     if (nativeInputRef.current && 'showPicker' in HTMLInputElement.prototype && window.innerWidth < 640) {
       try {
         nativeInputRef.current.showPicker();
         return;
       } catch {
-        // fallback para o popover visual caso showPicker falhe
+        // fallback
       }
     }
     setIsOpen(!isOpen);
   };
 
   const inputBase =
-    'w-full pl-9 pr-10 py-2.5 bg-zinc-50 dark:bg-zinc-800/60 border rounded-lg text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 transition-colors duration-150 min-h-[42px]';
-  const inputNormal =
-    'border-zinc-200 dark:border-zinc-700 focus:border-emerald-500 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none';
-  const inputError =
-    'border-red-400 dark:border-red-500 bg-red-50/50 dark:bg-red-950/20 focus:ring-2 focus:ring-red-400/20 outline-none';
+    'w-full pl-10 pr-10 py-2.5 bg-background border-2 rounded-none text-sm font-black text-foreground uppercase placeholder:text-muted-foreground outline-none transition-colors min-h-[48px]';
+  const inputNormal = 'border-border hover:border-primary/50 focus:border-primary focus:ring-0';
+  const inputError = 'border-destructive bg-destructive/10 text-destructive focus:border-destructive';
 
   return (
     <div ref={containerRef} className="relative w-full">
-      {/* Campo de Texto Principal */}
       <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
           <CalendarIcon className="w-4 h-4" aria-hidden="true" />
         </div>
         <input
@@ -175,17 +165,15 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
           className={`${inputBase} ${error ? inputError : inputNormal}`}
         />
 
-        {/* Botão do Calendário */}
         <button
           type="button"
           onClick={handleCalendarToggle}
           aria-label="Abrir calendário"
-          className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+          className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground transition-colors focus:outline-none"
         >
           <CalendarIcon className="w-4 h-4" aria-hidden="true" />
         </button>
 
-        {/* Input Nativo Invisível para Mobile */}
         <input
           ref={nativeInputRef}
           type="date"
@@ -197,34 +185,31 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
         />
       </div>
 
-      {/* Popover de Calendário Desktop */}
       {isOpen && (
-        <div className="absolute z-50 mt-1 right-0 sm:left-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg p-3 text-xs w-64 animate-in">
-          {/* Header do Mês/Ano */}
-          <div className="flex items-center justify-between mb-2">
+        <div className="absolute z-50 mt-2 right-0 sm:left-0 bg-card border-2 border-border shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff] p-4 w-72 rounded-none animate-in fade-in zoom-in-95 duration-150">
+          <div className="flex items-center justify-between mb-4 border-b-2 border-border pb-2">
             <button
               type="button"
               onClick={handlePrevMonth}
-              className="p-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300"
+              className="p-1 border-2 border-transparent hover:border-border text-foreground transition-colors focus:outline-none"
               aria-label="Mês anterior"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+            <span className="font-heading font-black text-foreground uppercase tracking-widest text-sm">
               {monthNames[currentMonth]} {currentYear}
             </span>
             <button
               type="button"
               onClick={handleNextMonth}
-              className="p-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300"
+              className="p-1 border-2 border-transparent hover:border-border text-foreground transition-colors focus:outline-none"
               aria-label="Próximo mês"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Dias da Semana */}
-          <div className="grid grid-cols-7 text-center font-medium text-zinc-400 dark:text-zinc-500 mb-1">
+          <div className="grid grid-cols-7 text-center font-black text-[10px] text-muted-foreground tracking-widest mb-2">
             <span>D</span>
             <span>S</span>
             <span>T</span>
@@ -234,7 +219,6 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
             <span>S</span>
           </div>
 
-          {/* Grid de Dias */}
           <div className="grid grid-cols-7 text-center gap-1">
             {daysArray.map((day, idx) => {
               if (day === null) {
@@ -250,12 +234,12 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
                   type="button"
                   disabled={disabled}
                   onClick={() => handleSelectDay(day)}
-                  className={`h-7 w-7 rounded-lg flex items-center justify-center font-medium transition-colors ${
+                  className={`h-8 w-8 flex items-center justify-center font-black text-xs transition-colors rounded-none border-2 border-transparent focus:outline-none focus:border-primary ${
                     selected
-                      ? 'bg-emerald-600 text-white font-bold'
+                      ? 'bg-primary text-primary-foreground'
                       : disabled
-                      ? 'text-zinc-300 dark:text-zinc-700 cursor-not-allowed opacity-50'
-                      : 'text-zinc-700 dark:text-zinc-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 dark:hover:text-emerald-400'
+                      ? 'text-muted-foreground opacity-30 cursor-not-allowed'
+                      : 'text-foreground hover:bg-secondary hover:border-border'
                   }`}
                 >
                   {day}

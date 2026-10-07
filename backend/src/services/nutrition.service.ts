@@ -39,7 +39,7 @@ export function calculateAge(birthDate: string | Date): number {
 }
 
 export function calculateEnergyTargets(profile: UserProfile): EnergyTargets {
-  let tmb = 0;
+  let tmb: number;
 
   // 1. Calcular TMB (Taxa Metabólica Basal)
   if (profile.body_fat && profile.body_fat > 0) {

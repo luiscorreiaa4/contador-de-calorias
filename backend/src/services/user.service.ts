@@ -17,7 +17,7 @@ export async function register(data: RegisterUserDTO): Promise<AuthResponse> {
     throw error;
   }
 
-  const saltRounds = process.env.NODE_ENV === 'test' ? 4 : 10;
+  const saltRounds = process.env.NODE_ENV === 'test' ? 1 : 10;
   const passwordHash = await bcrypt.hash(data.password, saltRounds);
 
   const newUser = await UserModel.createUser(
@@ -171,7 +171,7 @@ export async function updateProfile(userId: string, data: UpdateUserDTO): Promis
       throw error;
     }
 
-    const saltRounds = process.env.NODE_ENV === 'test' ? 4 : 10;
+    const saltRounds = process.env.NODE_ENV === 'test' ? 1 : 10;
     newPasswordHash = await bcrypt.hash(data.newPassword, saltRounds);
   }
 
@@ -245,13 +245,13 @@ export async function previewGoals(userId: string, data: Partial<import('../sche
   }
 
   const profileForCalc = {
-    sex: data.sex ?? (user.sex as any),
+    sex: data.sex ?? (user.sex as 'masculino' | 'feminino' | 'prefiro_nao_responder'),
     birthDate: data.birthDate ?? (user.birth_date as string) ?? '',
-    goal: data.goal ?? (user.goal as any),
+    goal: data.goal ?? (user.goal as 'perder_peso' | 'manter_peso' | 'ganhar_massa'),
     weight: data.weight ?? Number(user.weight),
     height: data.height ?? Number(user.height),
     body_fat: data.body_fat !== undefined ? data.body_fat : (user.body_fat ? Number(user.body_fat) : null),
-    activity_level: data.activity_level ?? (user.activity_level as any),
+    activity_level: data.activity_level ?? (user.activity_level as 'sedentario' | 'pouco_ativo' | 'moderadamente_ativo' | 'muito_ativo' | 'extremamente_ativo'),
   };
 
   return NutritionService.calculateEnergyTargets(profileForCalc);

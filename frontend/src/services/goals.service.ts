@@ -28,7 +28,7 @@ export async function getActiveGoal(date?: string): Promise<UserGoal> {
   return apiFetch<UserGoal>(`/users/me/goals${query}`);
 }
 
-export async function previewGoals(data: Record<string, any>): Promise<EnergyTargets> {
+export async function previewGoals(data: Record<string, unknown>): Promise<EnergyTargets> {
   return apiFetch<EnergyTargets>('/users/me/preview-goals', {
     method: 'POST',
     body: JSON.stringify(data),

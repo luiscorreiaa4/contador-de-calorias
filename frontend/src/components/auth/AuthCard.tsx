@@ -21,26 +21,25 @@ export const AuthCard: React.FC = () => {
 
   return (
     <div className="w-full max-w-sm mx-auto animate-in">
-      {/* Branding */}
-      <div className="mb-8 text-center">
-        <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-600 text-white mb-4">
-          <Flame className="w-5 h-5 fill-current" aria-hidden="true" />
+      <div className="mb-10 text-center">
+        <div className="inline-flex items-center justify-center w-12 h-12 bg-primary text-primary-foreground mb-6">
+          <Flame className="w-6 h-6 fill-current" aria-hidden="true" />
         </div>
-        <h1 className="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+        <h1 className="text-3xl font-heading font-black tracking-tighter text-foreground uppercase">
           Bem-vindo de volta
         </h1>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-          Monitore suas calorias e alcance seus objetivos.
+        <p className="mt-2 text-sm font-medium text-muted-foreground uppercase tracking-widest">
+          Monitore calorias. Supere metas.
         </p>
       </div>
 
       {/* Card */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm shadow-zinc-900/5 dark:shadow-none">
+      <div className="bg-card border-2 border-border shadow-hard">
         {/* Tab Header */}
         <div
           role="tablist"
           aria-label="Opções de acesso"
-          className="flex border-b border-zinc-100 dark:border-zinc-800"
+          className="flex border-b-2 border-border bg-background"
         >
           <button
             id="tab-login"
@@ -49,16 +48,13 @@ export const AuthCard: React.FC = () => {
             aria-selected={mode === 'login'}
             aria-controls="panel-auth"
             onClick={() => setMode('login')}
-            className={`flex-1 py-3.5 text-sm font-medium transition-all duration-200 relative ${
+            className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-all duration-200 border-r-2 border-border ${
               mode === 'login'
-                ? 'text-zinc-900 dark:text-zinc-50'
-                : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300'
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:bg-secondary hover:text-secondary-foreground'
             }`}
           >
             Entrar
-            {mode === 'login' && (
-              <span className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-emerald-500 rounded-full" />
-            )}
           </button>
 
           <button
@@ -68,24 +64,21 @@ export const AuthCard: React.FC = () => {
             aria-selected={mode === 'register'}
             aria-controls="panel-auth"
             onClick={() => setMode('register')}
-            className={`flex-1 py-3.5 text-sm font-medium transition-all duration-200 relative ${
+            className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-all duration-200 ${
               mode === 'register'
-                ? 'text-zinc-900 dark:text-zinc-50'
-                : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300'
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:bg-secondary hover:text-secondary-foreground'
             }`}
           >
             Criar conta
-            {mode === 'register' && (
-              <span className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-emerald-500 rounded-full" />
-            )}
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-6">
+        <div className="p-8">
           {/* Success Alert */}
           {isSuccessMessage && (
-            <div className="mb-5 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-sm text-center animate-in">
+            <div className="mb-6 p-4 bg-primary text-primary-foreground text-xs font-bold uppercase tracking-widest text-center animate-in">
               {isSuccessMessage}
             </div>
           )}
