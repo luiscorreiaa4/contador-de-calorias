@@ -64,14 +64,25 @@ const CustomMenuList = (props: MenuListProps) => {
 
 export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mealToEdit }) => {
   const queryClient = useQueryClient();
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  // Debounce caseiro simples
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
-  const { data: foodsData, isLoading: isLoadingFoods } = useQuery<Food[]>({
-    queryKey: ['foods'],
-    queryFn: getFoods,
+  const { data: foodsData, isLoading: isLoadingFoods } = useQuery({
+    queryKey: ['foods', debouncedSearch],
+    queryFn: () => getFoods(debouncedSearch.length >= 2 ? debouncedSearch : '', 1, 50),
     enabled: isOpen,
+    placeholderData: (previousData) => previousData,
   });
 
-  const foods = useMemo(() => foodsData || [], [foodsData]);
+  const foods = useMemo(() => foodsData?.foods || [], [foodsData]);
 
   const [mealName, setMealName] = useState('');
   const [mealItems, setMealItems] = useState<MealItem[]>([]);
@@ -381,7 +392,10 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                 <Select
                   options={foodOptions}
                   isLoading={isLoadingFoods}
-                  onChange={(option: { food: Food; label: string; value: string } | null | any) => {
+                  onInputChange={(newValue, { action }) => {
+                    if (action === 'input-change') setSearchTerm(newValue);
+                  }}
+                  onChange={(option: { food: Food; label: string; value: string } | null) => {
                     if (option) handleSelectFood(option.food);
                   }}
                   placeholder="Pesquisar alimento (ex: frango, arroz, ovo, leite)..."

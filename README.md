@@ -74,8 +74,12 @@ A construção deste projeto está dividida em fases. Status atual:
   - Agregações avançadas de SQL com `LATERAL JOIN` para comparar consumos diários exatamente com a meta que estava vigente naquele dia.
   - Otimização de renderização no frontend (Listas de alimentos em modais virtualizadas).
 
-- ⏳ **Fase 3: Base de alimentos em escala** *(Próxima)*
-- ⏳ **Fase 4: Passe de performance**
+- ✅ **Fase 3: Base de alimentos em escala**
+  - Implementação de paginação e busca por similaridade (trigram) no backend, ignorando acentos (`unaccent`).
+  - Otimização do frontend com debounce de busca e limitação segura de 50 itens.
+  - Script isolado de importação em massa com upsert (idempotente) via `backend/scripts/import-foods.ts`, não exposto aos usuários para garantir que o catálogo principal seja apenas leitura.
+
+- ⏳ **Fase 4: Passe de performance** *(Próxima)*
 - ⏳ **Fase 5: Autenticação Social e Redesign**
 
 ---

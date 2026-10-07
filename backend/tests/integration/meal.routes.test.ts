@@ -29,7 +29,7 @@ describe('Meal Routes (Integration)', () => {
     const foodsRes = await request(app)
       .get('/api/foods')
       .set('Authorization', `Bearer ${userToken}`);
-    foodId = foodsRes.body.data[0].id;
+    foodId = foodsRes.body.data.foods[0].id;
   });
 
   it('POST /api/meals - criar refeição às 23:59 de Brasília e garantir que aparece no dia correto', async () => {

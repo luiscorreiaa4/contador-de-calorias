@@ -31,3 +31,7 @@ prompts/
 # Environment
 .env
 backend/.env
+
+# Raw data
+backend/data/*.json
+backend/data/*.csv
