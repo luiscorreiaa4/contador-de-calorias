@@ -46,15 +46,12 @@ function saveData(data: Record<string, unknown>[]) {
       return 0;
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const attrs = (item.attributes as any) || {};
-
     return {
       name: item.description,
-      calories: attrs.energy && attrs.energy.kcal ? parseNum(attrs.energy.kcal) : 0,
-      proteins: attrs.protein ? parseNum(attrs.protein.qty) : 0,
-      carbs: attrs.carbohydrate ? parseNum(attrs.carbohydrate.qty) : 0,
-      fats: attrs.lipid ? parseNum(attrs.lipid.qty) : 0,
+      calories: parseNum(item.energy_kcal),
+      proteins: parseNum(item.protein_g),
+      carbs: parseNum(item.carbohydrate_g),
+      fats: parseNum(item.lipid_g),
       base_unit: item.base_unit || 'g',
       serving_weight: item.base_qty || 100,
       source: 'TACO',

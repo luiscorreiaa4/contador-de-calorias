@@ -98,7 +98,7 @@ export async function updateMeal(userId: string, mealId: string, data: CreateMea
     itemsData.push(calculateItemNutrients(item, food));
   }
 
-  return MealModel.updateMealWithItems(userId, mealId, data.name, itemsData);
+  return MealModel.updateMealWithItems(userId, mealId, data.name, new Date(data.mealTime), itemsData);
 }
 
 export async function deleteMeal(userId: string, mealId: string) {

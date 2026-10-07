@@ -81,6 +81,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
   const foods = useMemo(() => foodsData?.foods || [], [foodsData]);
 
   const [mealName, setMealName] = useState('');
+  const [mealTimeStr, setMealTimeStr] = useState('');
   const [mealItems, setMealItems] = useState<MealItem[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -118,9 +119,15 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
   });
 
   const isSubmitting = createMealMutation.isPending || updateMealMutation.isPending;
+  const hasInitializedRef = useRef(false);
 
   useEffect(() => {
-    if (isOpen) {
+    if (!isOpen) {
+      hasInitializedRef.current = false;
+      return;
+    }
+
+    if (isOpen && !hasInitializedRef.current) {
       setErrorMessage(null);
       setSelectedFood(null);
       setAmount('');
@@ -128,37 +135,60 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
       const cachedMeals = queryClient.getQueryData<Meal[]>(['todayMeals']) || [];
       const nextMealNumber = cachedMeals.length + 1;
 
-      if (mealToEdit && foods.length > 0) {
+      if (mealToEdit) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMealName(mealToEdit.name.toUpperCase());
+        const editDate = new Date(mealToEdit.meal_time);
+        setMealTimeStr(
+          `${editDate.getHours().toString().padStart(2, '0')}:${editDate.getMinutes().toString().padStart(2, '0')}`
+        );
 
         const initialItems = mealToEdit.items
           .map((item) => {
-            const food = foods.find((f) => f.id === item.food_id);
-            if (!food) return null;
+            const mockFood: Food = {
+              id: item.food_id,
+              name: item.food_name || 'ALIMENTO',
+              base_unit: (item.food_base_unit as 'g' | 'ml') || 'g',
+              serving_weight: 100,
+              calories: 0,
+              proteins: 0,
+              carbs: 0,
+              fats: 0,
+              unit_name: item.food_unit_name,
+              unit_weight: item.food_unit_weight,
+            };
 
-            const unit = (item.unit as 'g' | 'ml' | 'un') || (food.base_unit as 'g' | 'ml');
+            const unit = (item.unit as 'g' | 'ml' | 'un') || mockFood.base_unit;
             const displayAmount = Number(item.display_amount ?? item.quantity);
             const quantity = Number(item.quantity);
-            const nutrients = calculateNutrients(food, quantity);
 
             return {
               uid: `${item.food_id}-${Date.now()}-${Math.random()}`,
-              food,
+              food: mockFood,
               quantity,
               unit,
               displayAmount,
-              ...nutrients,
+              calories: Number(item.calories),
+              proteins: Number(item.proteins),
+              carbs: Number(item.carbs),
+              fats: Number(item.fats),
             };
           })
           .filter(Boolean) as MealItem[];
 
         setMealItems(initialItems);
-      } else if (!mealToEdit) {
+      } else {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMealName(`REFEIÇÃO ${nextMealNumber}`);
+        const now = new Date();
+        setMealTimeStr(
+          `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`
+        );
         setMealItems([]);
       }
+      hasInitializedRef.current = true;
     }
-  }, [isOpen, mealToEdit, foods, queryClient]);
+  }, [isOpen, mealToEdit, queryClient]);
 
   useEffect(() => {
     if (isOpen) {
@@ -265,7 +295,23 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
     if (mealItems.length === 0) return;
 
     const mealLabel = mealName.trim() || `REFEIÇÃO ${(queryClient.getQueryData<Meal[]>(['todayMeals']) || []).length + 1}`;
-    const timeToUse = mealToEdit ? new Date(mealToEdit.meal_time) : new Date();
+    let timeToUse = mealToEdit ? new Date(mealToEdit.meal_time) : new Date();
+
+    if (mealTimeStr.trim()) {
+      if (mealTimeStr.length !== 5) {
+        setErrorMessage('FORMATO DE HORÁRIO INVÁLIDO. USE HH:MM (EX: 14:30).');
+        return;
+      }
+      const [hoursStr, minutesStr] = mealTimeStr.split(':');
+      const hours = Number(hoursStr);
+      const minutes = Number(minutesStr);
+
+      if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+        setErrorMessage('HORÁRIO INVÁLIDO. POR FAVOR, INSIRA UM HORÁRIO REAL.');
+        return;
+      }
+      timeToUse.setHours(hours, minutes, 0, 0);
+    }
 
     const payload: CreateMealDTO = {
       name: mealLabel,
@@ -340,20 +386,43 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
 
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
           <div className="p-6 space-y-6 overflow-y-auto flex-1">
-            {/* Meal Name Input */}
-            <div>
-              <label htmlFor="meal-name" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
-                NOME DA REFEIÇÃO
-              </label>
-              <input
-                id="meal-name"
-                type="text"
-                value={mealName}
-                onChange={(e) => setMealName(e.target.value.toUpperCase())}
-                placeholder="EX: CAFÉ DA MANHÃ, ALMOÇO..."
-                className="w-full px-4 py-3 bg-background border-2 border-border text-sm font-black text-foreground uppercase placeholder:text-muted-foreground focus:border-primary outline-none transition-colors"
-                disabled={isSubmitting}
-              />
+            {/* Header / Name and Time */}
+            <div className="grid grid-cols-[1fr_100px] gap-4">
+              <div>
+                <label htmlFor="meal-name" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                  NOME
+                </label>
+                <input
+                  id="meal-name"
+                  type="text"
+                  value={mealName}
+                  onChange={(e) => setMealName(e.target.value.toUpperCase())}
+                  placeholder="EX: ALMOÇO..."
+                  className="w-full px-4 py-3 bg-background border-2 border-border text-sm font-black text-foreground uppercase placeholder:text-muted-foreground focus:border-primary outline-none transition-colors"
+                  disabled={isSubmitting}
+                />
+              </div>
+              <div>
+                <label htmlFor="meal-time" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                  HORÁRIO
+                </label>
+                <input
+                  id="meal-time"
+                  type="text"
+                  value={mealTimeStr}
+                  onChange={(e) => {
+                    let val = e.target.value.replace(/\D/g, '');
+                    if (val.length > 4) val = val.slice(0, 4);
+                    if (val.length >= 3) {
+                      val = `${val.slice(0, 2)}:${val.slice(2)}`;
+                    }
+                    setMealTimeStr(val);
+                  }}
+                  placeholder="00:00"
+                  className="w-full px-4 py-3 bg-background border-2 border-border text-sm font-black text-foreground uppercase placeholder:text-muted-foreground focus:border-primary outline-none transition-colors text-center"
+                  disabled={isSubmitting}
+                />
+              </div>
             </div>
 
             {/* Food Picker Box */}

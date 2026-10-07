@@ -129,6 +129,34 @@ Só começa com a Fase 0.7 concluída e as telas das fases 1 e 2 estáveis.
 5. Regra: o comportamento não muda. Os testes de UI devem continuar passando (por isso consultas por role/label, não por classe).
 6. Verificar contraste, foco de teclado e dark mode em cada tela.
 
+### Fase 6: Profissionalização e Segurança (Padrão Ouro)
+
+O que transforma um projeto pessoal em um SaaS pronto para produção, garantindo segurança, antispam e retenção.
+
+1. **Validação de E-mail (Verificação em 2 Etapas)**: Cadastro gera status `is_verified: false` e envia um código OTP (6 dígitos) ou link de confirmação por e-mail (usando Resend, SendGrid ou AWS SES). Bloqueia acesso até a confirmação.
+2. **Social Login (Google & Apple)**: Autenticação rápida e sem senha (OAuth2). *Nota: O Login com a Apple é um requisito obrigatório da App Store caso o app ofereça Login com o Google.* O backend receberá o token nativo (Web/React Native) e validará diretamente com os provedores, gerando nosso JWT em seguida.
+3. **Esqueci Minha Senha**: Fluxo completo: usuário digita e-mail -> backend gera token temporário criptografado (validade de 30min) -> envia link por e-mail -> usuário redefine.
+4. **Proteção contra Bots (Anti-Spam)**: Implementar Cloudflare Turnstile (invisível e grátis) ou reCAPTCHA nas rotas de Auth (Login, Cadastro, Reset).
+5. **Rate Limiting Estrito**: Limitar o número de e-mails enviados por IP para evitar custos inesperados com disparo de e-mails.
+
+### Fase 7: Adequação Legal (LGPD & UX)
+
+Dados de peso, altura, dieta e biometria são considerados **dados sensíveis** pela LGPD. Proteção legal é obrigatória.
+
+1. **Termos de Uso e Políticas de Privacidade**: Criação das páginas públicas. *(Nota: A IA pode gerar a base completa desses documentos para você revisar).*
+2. **Aceite Explícito (Opt-in)**: Checkbox no formulário de cadastro, e registro no banco de dados (`terms_accepted_at TIMESTAMPTZ`) comprovando quando o usuário aceitou.
+3. **Exportação de Dados**: Opção para o usuário baixar um `.json` ou `.csv` com todo o seu histórico (Right to Portability da LGPD).
+4. **Exclusão Transparente**: Garantir que a função atual de "Excluir Perfil" apague definitivamente o registro físico do banco de dados (Right to be Forgotten).
+
+### Fase 8: Prontidão para Escala (Observabilidade e Deploy)
+
+Colocar a aplicação no ar de forma profissional, sabendo o que acontece com ela.
+
+1. **Monitoramento (Error Tracking)**: Integrar **Sentry** (grátis) no Frontend e Backend. Se a tela de um usuário quebrar, você recebe a linha exata do erro no seu e-mail, sem depender dele te avisar.
+2. **Analytics e SEO Oculto**: Configuração de meta tags estruturadas para quando o link for compartilhado no WhatsApp/Twitter, e integração com PostHog ou Google Analytics.
+3. **Segurança Avançada de Sessão (HTTP-Only Cookies)**: Mudar o JWT que hoje fica vulnerável no LocalStorage para Cookies HTTP-Only + Refresh Token. (Previne ataques de XSS onde extensões do navegador roubam o token).
+4. **Pipeline de CI/CD Completo**: Configurar o GitHub Actions para fazer deploy automático a cada push na main (ex: Vercel/Netlify para frontend, Render/Railway para Node+Postgres).
+
 ---
 
 ## 5. Onde a IA vai sozinha e onde você entra
@@ -176,6 +204,8 @@ Proponha o plano antes de alterar arquivos.
 - Hospedagem e deploy automatizado
 - Repo público: adicionar `LICENSE` e `README` (e reavaliar se `TECH_DEBT.md` deve ficar público enquanto houver falhas de segurança abertas)
 - Logs estruturados e monitoramento de erros
+- **[Futuro] Engajamento e Retenção**: Notificações Push (ex: lembrar de registrar refeição) via Firebase ou OneSignal (foco no React Native).
+- **[Futuro] Monetização**: Integração de propagandas (Ads) ou funcionalidades premium.
 
 ## 8. Manutenção dos documentos
 

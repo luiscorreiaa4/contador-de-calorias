@@ -122,6 +122,7 @@ export async function updateMealWithItems(
   userId: string,
   mealId: string,
   name: string,
+  mealTime: Date,
   itemsData: {
     foodId: string;
     quantity: number;
@@ -140,8 +141,8 @@ export async function updateMealWithItems(
 
     // 1. Update the meal name and updated_at (check if it belongs to user)
     const mealResult = await client.query<Meal>(
-      'UPDATE meals SET name = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 AND user_id = $3 RETURNING *',
-      [name, mealId, userId]
+      'UPDATE meals SET name = $1, meal_time = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 AND user_id = $4 RETURNING *',
+      [name, mealTime, mealId, userId]
     );
 
     if (mealResult.rowCount === 0) {

@@ -44,6 +44,7 @@ export function GoalSettingsCard() {
   // Sync mode with loaded goal
   useEffect(() => {
     if (goal) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMode(goal.mode);
       if (goal.mode === 'manual') {
         setManualCalories(goal.calories.toString());

@@ -137,7 +137,7 @@ export const StatsPage: React.FC = () => {
             
             <div className="h-[400px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stats.chartData} margin={{ top: 20, right: 0, left: -20, bottom: 0 }}>
+                <BarChart data={stats.chartData} margin={{ top: 30, right: 20, left: 10, bottom: 20 }}>
                   <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="hsl(var(--border))" opacity={0.8} />
                   <XAxis 
                     dataKey="date" 
@@ -146,7 +146,8 @@ export const StatsPage: React.FC = () => {
                     fontWeight="bold"
                     tickLine={false} 
                     axisLine={false} 
-                    dy={16}
+                    dy={10}
+                    minTickGap={15}
                     tickFormatter={(val) => {
                       if (period === 'week') {
                         const item = stats.chartData.find(d => d.date === val);
@@ -163,7 +164,8 @@ export const StatsPage: React.FC = () => {
                     fontWeight="bold"
                     tickLine={false} 
                     axisLine={false} 
-                    dx={-10}
+                    dx={-5}
+                    width={45}
                   />
                   <Tooltip 
                     cursor={{ fill: 'hsl(var(--muted) / 0.2)' }} 

@@ -47,6 +47,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       } else {
         setServerError(errorMsg || 'Erro ao realizar login. Tente novamente.');
       }
+      setFormData(prev => ({ ...prev, password: '' }));
     } finally {
       setIsLoading(false);
     }
@@ -79,7 +80,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
             placeholder="SEU@EMAIL.COM"
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? 'login-email-error' : undefined}
-            className={`pl-10 uppercase ${errors.email ? 'border-destructive focus-visible:border-destructive' : ''}`}
+            className={`pl-10 ${errors.email ? 'border-destructive focus-visible:border-destructive' : ''}`}
           />
         </div>
         {errors.email && (
