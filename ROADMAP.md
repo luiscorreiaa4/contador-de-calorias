@@ -60,8 +60,9 @@ Documento vivo. Atualize o status ao fechar cada tarefa. Cada item vira uma tare
 | 0.7 | **Testes de frontend**: Vitest + RTL + MSW. Cobrir Login, Cadastro e `NewMealModal` (abrir, buscar alimento, salvar, erro). | Sim |
 | 0.8 | **Baseline de performance**: medir antes de otimizar (seção Fase 4). Só registrar os números. | Sim |
 | 0.9 | Investigar por que a suíte do backend leva ~38 s. | Sim |
+| 0.10 | **Padronização de Branding / Rebranding (Urgente - CalorieSync)**: O projeto teve a marca alterada para **CalorieSync** no visual (Header e Footer), mas ainda constam resquícios de "Contador de Calorias" em vários locais fundamentais: <br>• **Aba do Navegador e SEO**: `frontend/index.html` (o `<title>` ainda está "Contador de Calorias" e a `<meta name="description">` cita o nome antigo).<br>• **Health Check da API**: `backend/src/app.ts` (`GET /health` ainda responde com `{ service: 'Contador de Calorias Backend API' }`).<br>• **Metadados e Descrições de Pacotes**: `package.json` da raiz, `frontend/package.json` e `backend/package.json` (campos `name` e `description` ainda referenciam contador-de-calorias).<br>• **Documentação Geral**: `README.md` (título principal `# 🍏 Contador de Calorias` e textos introdutórios desatualizados).<br>• **Atenção em Banco/Ambiente**: Avaliar impacto ao renomear variáveis de conexão padrão (`contador_calorias` / `contador_calorias_test`) para evitar quebras em ambientes locais já em uso. | Sim |
 
-Pronto da fase: lint, test e build verdes no CI; segredos rotacionados; testes rodam só em banco de teste.
+Pronto da fase: lint, test e build verdes no CI; segredos rotacionados; testes rodam só em banco de teste; naming e branding 100% padronizados.
 
 ### Fase 1: Cálculo técnico e metas editáveis (RF-005, RF-004)
 
