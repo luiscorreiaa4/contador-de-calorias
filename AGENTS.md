@@ -27,26 +27,26 @@ Executar na **raiz** do monorepo:
 
 ---
 
-## 3. Convenções Essenciais [CONFIRMADO]
+## 3. Convenções Essenciais
 1. **Contrato de API Estrito:** Toda resposta HTTP segue `{ success: boolean, data?: unknown, message?: string }`.
-2. **Validação Zod Obrigatória:** Todo payload HTTP (body/query/params) e form deve ser validado via Zod.
-3. **Data Fetching:** Toda chamada no React deve usar TanStack Query (React Query) consumindo `src/services/api.ts` (`apiFetch`). Tratamento obrigatório de `loading`, `error`, `empty` e `data`.
-4. **Arquitetura Backend 4 Camadas:** `routes` → `controllers` (apenas HTTP) → `services` (regras puras) → `models` (SQL puro via `pool.query`).
-5. **Estilo Brutalista & Acessibilidade:** Design brutalista (`rounded-none`, contornos firmes), tokens semânticos de tema claro/escuro via CSS Variables, sem alert/confirm nativos.
+2. **Validação Zod Obrigatória:** Todo payload HTTP (body/query/params) validado via middleware Zod na rota (ver `.agents/rules/backend-rules.md`).
+3. **Data Fetching:** Toda chamada no React deve usar TanStack Query consumindo funções de `src/services/` (ver `.agents/rules/react-rules.md`).
+4. **Arquitetura Backend 4 Camadas:** `routes` → `controllers` (HTTP apenas) → `services` (regras puras) → `models` (SQL puro via `pool.query`).
+5. **Estilo Brutalista & Acessibilidade:** Design brutalista (`rounded-none`, contornos firmes), tokens semânticos via CSS Variables, sem alert/confirm nativos (ver `.agents/rules/style-rules.md`).
 
 ---
 
-## 4. O que NÃO Fazer (Regras Rígidas) [CONFIRMADO]
+## 4. O que NÃO Fazer (Regras Rígidas)
 - ❌ **PROIBIDO Comandos Destrutivos de Banco:** NUNCA execute `DROP TABLE`, `DROP DATABASE` ou `TRUNCATE` sem consentimento explícito prévio do usuário.
 - ❌ **PROIBIDO ORMs:** Não instale nem utilize Prisma, Sequelize, TypeORM ou Drizzle; utilize driver `pg` e SQL puro.
-- ❌ **PROIBIDO Fetch Manual no React:** Proibido `fetch` solto com `useEffect` manual nos componentes.
+- ❌ **PROIBIDO Fetch Manual no React:** Proibido `window.fetch()` nativo fora de `api.ts`, e proibido chamar serviços em `useEffect` para carregar dados de servidor.
 - ❌ **PROIBIDO Alert/Confirm Nativos:** Não use `alert()` ou `confirm()`. Use modais acessíveis com focus trap (Radix UI) e tecla `Esc`.
 - ❌ **PROIBIDO Modificar Código quando a Tarefa for de Documentação:** Obedeça estritamente o escopo solicitado.
 - ❌ **PROIBIDO Banco de Produção/Dev em Testes:** Testes que tocam o banco só podem rodar se o nome terminar em `_test`.
 
 ---
 
-## 5. Ponteiros de Documentação e Regras
+## 5. Ponteiros de Documentação e Regras Detalhadas
 - **Regras Detalhadas:**
   - Backend: [.agents/rules/backend-rules.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/.agents/rules/backend-rules.md)
   - React: [.agents/rules/react-rules.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/.agents/rules/react-rules.md)

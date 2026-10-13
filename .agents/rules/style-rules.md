@@ -1,44 +1,38 @@
 ---
 trigger: model_decision
-description: Sempre que criar, alterar ou estilizar componentes e páginas no frontend
+description: Regras obrigatórias e verificáveis de UI, identidade brutalista, tokens de estilo e acessibilidade
 ---
 
-# Regras de Estilo e UI (Identidade Brutalista)
+# Regras de Estilo, UI e Acessibilidade (Identidade Brutalista)
 
-## Identidade Visual Principal (Brutalismo de Alta Performance)
-O projeto utiliza um design inspirado no brutalismo digital moderno, focado em alta performance atlética. O visual deve ser "agressivo", com alto contraste e sem adornos fofos.
-- **Geometria:** PROIBIDO arredondamentos. Use sempre bordas retas (`rounded-none`).
-- **Bordas e Linhas:** Abuso de divisórias e contornos fortes (`border-2 border-border`).
-- **Sombras:** Não use sombras suaves (`shadow-sm`, `shadow-lg`). Use sempre `shadow-hard` para criar profundidade em blocos sólidos.
-- **Tipografia:**
-  - Títulos e Textos de Destaque: Devem usar `font-heading`, `font-black` (peso 900), `uppercase` e letter-spacing apertado (`tracking-tighter` ou largo `tracking-widest` para subtítulos menores).
-  - Títulos, botões e labels devem ser sempre em MAIÚSCULAS (`uppercase`).
-- **Zero Decoração:** Sem gradientes, sem glows, sem opacidades delicadas. Tudo deve ser sólido e legível.
+## 1. Identidade Geométrica (Zero Arredondamento)
+- **Proibição Estrita de Bordas Arredondadas:** É **terminantemente proibido** utilizar classes utilitárias de arredondamento como `rounded`, `rounded-sm`, `rounded-md`, `rounded-lg`, `rounded-xl`, `rounded-2xl` ou `rounded-full`.
+- **Classe Única Permitida:** Todo componente, botão, input, card, modal, badge ou container DEVE utilizar explicitamente `rounded-none` ou omitir a classe de raio se o reset global já aplicar borda reta.
+- **Divisórias e Bordas:** Utilizar contornos firmes e divisórias sólidas com `border-2 border-border`.
 
-## Uso do Tailwind CSS e Design Tokens (Modo Claro/Escuro)
-O projeto suporta Light/Dark Mode **através de CSS Variables**, o que significa que o modo escuro altera as variáveis no arquivo `index.css`.
-- **NUNCA USE CORES FIXAS** (como `bg-white`, `bg-zinc-900`, `text-zinc-500`, `dark:bg-black`). 
-- **USE SEMPRE OS TOKENS PADRONIZADOS:**
-  - Fundos: `bg-background` (fundo geral da tela) e `bg-card` (fundo de containers e cartões).
-  - Textos: `text-foreground` (texto principal) e `text-muted-foreground` (texto secundário/labels).
-  - Destaque/Neon: `bg-primary` (para botões primários, ícones de atenção) e `text-primary-foreground` (texto que vai em cima da cor primária).
-  - Bordas: `border-border`.
-  - Destrutivo: `bg-destructive` e `text-destructive-foreground`.
-- **Classe `dark:`**: Evite espalhar o prefixo `dark:` pelo código HTML, pois os tokens acima se adaptam automaticamente. Use `dark:` apenas em situações onde um override de estrutura for estritamente necessário e não puder ser resolvido pelas variáveis CSS.
+## 2. Design Tokens e Cores (Modo Claro / Escuro)
+O tema claro/escuro é gerenciado **estritamente através de variáveis CSS** definidas em `src/styles/index.css`.
+- **PROIBIÇÃO DE CORES FIXAS E LITERAIS:**
+  - É proibido usar cores literais do Tailwind, como `bg-white`, `bg-black`, `text-black`, `text-white`, `bg-zinc-*`, `text-zinc-*`, `border-zinc-*` ou cores de outras paletas (ex: `border-emerald-500`).
+  - É proibido utilizar valores hexadecimais arbitrários inline (ex: `bg-[#0a0a0a]`).
+- **USO OBRIGATÓRIO DOS TOKENS SEMÂNTICOS:**
+  - **Superfícies:** `bg-background` (fundo principal), `bg-card` (cartões e modais), `bg-secondary` (blocos de apoio e tags).
+  - **Tipografia:** `text-foreground` (texto padrão de alto contraste), `text-muted-foreground` (textos secundários, legendas e placeholders).
+  - **Destaque Primário:** `bg-primary`, `text-primary-foreground`, `border-primary` (para botões de ação e indicadores de destaque).
+  - **Bordas:** `border-border`.
+  - **Ações Destrutivas / Erros:** `bg-destructive`, `text-destructive-foreground`, `border-destructive`.
+- **Proibição de `dark:` Redundante:** Não adicione classes com prefixo `dark:` para cores que já possuem tokens semânticos mapeados nas CSS Variables (ex: não usar `bg-background dark:bg-zinc-900` ou `bg-white dark:bg-[#0a0a0a]`). O Tailwind alterna automaticamente os tokens quando a classe `.dark` está ativa na raiz.
 
-## Design e Responsividade Mobile-First
-- **Layout Mobile-First:** Escreva as classes utilitárias pensando primeiro em telas pequenas (mobile) e adicione breakpoints (`sm:`, `md:`, `lg:`) para telas maiores.
-- **Adaptação Mobile:**
-  - Elementos clicáveis devem ter áreas de toque adequadas (mínimo de `44px` de altura/largura ou `p-3`).
-  - Garanta que tabelas, modais e menus naveguem bem em telas móveis (use scroll horizontal responsivo ou layouts empilhados/flex-col em mobile).
-  - Evite larguras fixas em `px`; prefira `w-full`, `max-w-*` e tamanhos relativos.
+## 3. Sombras e Profundidade
+- **Sem Sombras Suaves:** É proibido o uso de sombras desfocadas tradicionais (`shadow-sm`, `shadow`, `shadow-md`, `shadow-lg`, `shadow-xl`).
+- **Profundidade Brutalista:** Utilizar blocos sólidos de sombra dura:
+  - `shadow-hard` ou sombras de deslocamento rígido: `shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff]`.
 
-## Acessibilidade
-- Use elementos HTML semânticos (`button`, `nav`, `header`, `label`) em vez de `div`/`span` genéricos para elementos interativos.
-- Todo input de formulário deve ter um `label` associado (visível ou `sr-only`).
-- Imagens devem ter `alt` descritivo; ícones puramente decorativos devem ter `aria-hidden="true"`.
-- Interações visuais importantes de teclado (`focus`) devem ser demarcadas claramente (`focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background`).
+## 4. Tipografia
+- **Caixa Alta Obrigatória:** Todos os títulos de páginas, cabeçalhos de seção, botões de ação e labels de formulário DEVEM utilizar a classe `uppercase`.
+- **Títulos e Ênfases:** Utilizar `font-heading`, `font-black` (peso 900) e espaçamento estreito (`tracking-tighter`) ou espaçamento expandido para legendas (`tracking-widest`).
 
-## Estados de Interface
-- Todo componente que exibe dados assíncronos deve ter estados visuais claros para `loading` e `error`. 
-- No padrão brutalista, carregamentos e erros não são amigáveis: use bordas tracejadas, opacidade alta, mensagens diretas em uppercase ("CARREGANDO...").
+## 5. Acessibilidade (WCAG AA) e Interações
+- **Associação de Labels:** Todo elemento `<input>`, `<select>` ou `<textarea>` DEVE possuir um `<label>` correspondente com o atributo `htmlFor` associado ao `id` do campo, ou atributo `aria-label` descritivo quando o label visual for oculto.
+- **Foco por Teclado:** Elementos interativos devem demarcar claramente o foco para navegação por teclado (`focus:outline-none focus:border-primary` ou anel com contraste visível).
+- **Proibição de Diálogos Nativos:** É **terminantemente proibido** utilizar `window.alert()` ou `window.confirm()`. Todas as confirmações e alertas devem utilizar modais acessíveis construídos com Radix UI (com foco preso, tecla `Escape` para fechar e atributo `aria-modal="true"`).

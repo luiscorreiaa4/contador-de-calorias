@@ -1,51 +1,52 @@
 ---
 trigger: always_on
-description: Sempre que criar, modificar ou interagir com o código do backend, APIs ou banco de dados
+description: Regras obrigatórias e verificáveis para desenvolvimento de backend, banco de dados e APIs
 ---
 
 # Regras de Backend e Banco de Dados
 
-## Estrutura de Arquivos e Isolamento
-- **Diretório Unificado (`/backend`):** Todos os arquivos de lógica do servidor, rotas, modelos, controladores, serviços, scripts de banco de dados, arquivos de configuração e migrações DEVEM residir exclusivamente dentro do diretório `/backend`.
-- Nenhum código do backend ou do banco de dados deve vazar para a raiz do projeto ou pasta de frontend.
+## 1. Estrutura de Arquivos e Isolamento
+- **Diretório Unificado (`/backend`):** Todos os arquivos de lógica do servidor, rotas, modelos, controladores, serviços, scripts e migrações DEVEM residir exclusivamente dentro de `/backend`.
+- É proibido vazar arquivos de backend para a raiz do repositório ou diretório do frontend.
 
-## Arquitetura de Código (Node.js)
-- **Padrão MVC + Camada de Serviço:**
-  - `backend/src/controllers/`: apenas tradução de requisição/resposta HTTP (parse de input, chamada do service, formatação de resposta). Nunca coloque regra de negócio aqui.
-  - `backend/src/services/`: toda a lógica de negócio, orquestração de regras e chamadas entre models.
-  - `backend/src/models/`: consultas, esquemas e acesso direto ao banco de dados.
-  - `backend/src/routes/`: definição das rotas, sem lógica.
-  - `backend/src/middlewares/`: autenticação, autorização, tratamento de erros, rate limiting.
-  - `backend/src/types/`: tipos, interfaces e DTOs compartilhados.
-- **Uso de Bibliotecas Externas:**
-  - Fique à vontade para instalar e utilizar pacotes do NPM que facilitem o desenvolvimento (ex: `express`, `pg`, `zod`, `dotenv`, `cors`, `bcrypt` ou `argon2`, `jsonwebtoken`). É **proibido** o uso de ORMs (Prisma, Sequelize); utilize driver `pg` direto e ferramentas de migração puras como `node-pg-migrate`.
+## 2. Arquitetura em 4 Camadas (Node.js + Express)
+- **`backend/src/routes/`:** Define apenas caminhos HTTP, métodos e associa middlewares (`validate`, `authenticate`). Não deve conter lógica de resposta ou regras.
+- **`backend/src/controllers/`:** Camada exclusiva de tradução HTTP. Responsável por receber `req`, invocar o `service` correspondente e devolver a resposta formatada no padrão `{ success, data, message }`. É **proibido** colocar lógica de negócio ou queries de banco diretamente no controller.
+- **`backend/src/services/`:** Lógica de negócio pura, cálculos matemáticos e orquestração de chamadas aos models. Não deve lidar com objetos `req` ou `res` do Express.
+- **`backend/src/models/`:** Acesso direto ao PostgreSQL via driver nativo `pg.Pool`. Todas as queries SQL devem ser parametrizadas (`$1`, `$2`) para prevenir SQL Injection. É **terminantemente proibido** o uso de ORMs (Prisma, Sequelize, TypeORM).
 
-## Segurança
-- **Segredos e variáveis de ambiente:**
-  - Nunca commitar arquivos `.env`. Sempre versionar um `.env.example` com as chaves necessárias (sem valores reais).
-  - Toda credencial (connection string do Postgres, JWT secret, chaves de API externas) DEVE vir de variáveis de ambiente, nunca hardcoded.
-- **Validação de input:**
-  - Toda rota que recebe dados do usuário (body, query, params) DEVE validar o input com `zod` (ou equivalente) antes de processar. Isso é obrigatório, não opcional — é a principal proteção contra SQL injection, payloads malformados e XSS refletido.
-- **Autenticação e Autorização:**
-  - Defina um padrão único para o projeto (ex: JWT em header `Authorization: Bearer`) e centralize a verificação em um middleware (`backend/src/middlewares/auth.ts`).
-  - Rotas protegidas devem checar autorização (papel/permissão do usuário) além de autenticação, quando aplicável.
-- **Senhas:**
-  - Nunca armazenar senha em texto puro. Usar `bcrypt` ou `argon2` para hash antes de persistir.
-- **Erros:**
-  - Nunca expor stack trace, mensagens de erro do banco de dados ou detalhes internos na resposta ao cliente.
-  - Padronizar toda resposta da API (sucesso ou erro) no formato: `{ "success": boolean, "data"?: any, "message"?: string }`. Ver detalhes de status codes em `create-backend-resource`.
+## 3. Validação Estrita de Input (Zod na Rota)
+- **Obrigatoriedade do Middleware:** Toda rota que recebe dados de entrada (seja via `body`, `query` ou `params`) DEVE aplicar o middleware `validate(schema)` diretamente na definição da rota antes do controller.
+- **Proibição de `.parse()` no Controller:** É proibido instanciar esquemas Zod e executar `.parse()` manualmente dentro dos controllers. A validação deve interceptar e rejeitar com status `400` antes da entrada no controller.
 
-## Regras Críticas de Segurança do Banco de Dados (PostgreSQL)
-- **PROIBIDO EXCLUIR TABELAS SEM CONFIRMAÇÃO:**
-  - NUNCA execute comandos como `DROP TABLE`, `DROP DATABASE`, `TRUNCATE` ou deleções em massa sem o consentimento explícito do usuário.
-  - Antes de qualquer alteração destrutiva ou destruição de esquema no PostgreSQL:
-    1. Apresente um plano detalhado de alteração ao usuário.
-    2. Aguarde a confirmação direta antes de rodar o script ou migration.
-- **Transações:**
-  - Operações que envolvam múltiplas escritas relacionadas (ex: criar pedido + baixar estoque) DEVEM ser executadas dentro de uma transação (`BEGIN`/`COMMIT`/`ROLLBACK`) para garantir atomicidade.
-- **Persistência e Schemas:**
-  - Mantenha arquivos de migration SQL devidamente organizados com o uso do `node-pg-migrate` na pasta do backend.
+## 4. Contrato de Resposta da API
+- Toda resposta da API (sucesso ou erro) DEVE seguir estritamente a estrutura JSON:
+  ```json
+  {
+    "success": boolean,
+    "data"?: any,
+    "message"?: string
+  }
+  ```
+- **Códigos HTTP Padronizados:**
+  - `200 OK`: Consulta ou atualização bem-sucedida.
+  - `201 Created`: Criação bem-sucedida de recurso.
+  - `400 Bad Request`: Payload inválido, falha de validação Zod ou regra de negócio impeditiva.
+  - `401 Unauthorized`: Ausência de token JWT ou token expirado/inválido.
+  - `403 Forbidden`: Usuário autenticado sem autorização para o recurso.
+  - `404 Not Found`: Recurso inexistente.
+  - `500 Internal Server Error`: Erro inesperado, tratado globalmente pelo `errorHandler` sem expor stack traces ou detalhes internos do PostgreSQL.
 
-## Testes
-- Cobrir services e models críticos com testes automatizados (node:test ou Vitest/Jest). Priorize regras de negócio e validações.
-- **Banco de Dados Isolado:** Testes de integração devem obrigatoriamente rodar contra um banco de testes separado (ex: `contador_calorias_test`). A suíte deve falhar de propósito (abortar) se a URL do banco não indicar claramente que é um ambiente de testes, evitando exclusão de dados de desenvolvimento.
+## 5. Segurança e Variáveis de Ambiente
+- **Sem Segredos Hardcoded:** Nenhuma credencial (senhas, `DATABASE_URL`, `JWT_SECRET`, chaves de API) pode ser codificada em arquivos de código ou scripts (`package.json`). Todos os valores devem vir exclusivamente de `process.env`.
+- **Fail-Fast via Zod:** Variáveis de ambiente são validadas na inicialização (`backend/src/config/env.ts`). Se alguma variável obrigatória faltar ou se `JWT_SECRET` tiver menos de 32 caracteres, o processo encerra imediatamente (`process.exit(1)`).
+- **Senhas:** Nunca persistir senhas em texto puro. Utilizar `bcrypt` com hash seguro (fator de custo 10 em desenvolvimento/produção; custo 1 em ambiente de testes).
+
+## 6. Integridade do Banco de Dados (PostgreSQL)
+- **PROIBIDO Ações Destrutivas sem Consentimento:** É TERMINANTEMENTE PROIBIDO executar comandos como `DROP TABLE`, `DROP DATABASE`, `TRUNCATE` ou deleções em massa sem autorização prévia e explícita do usuário.
+- **Transações Atômicas Obrigatórias:** Qualquer operação que realize mais de uma instrução de escrita (`INSERT`, `UPDATE`, `DELETE`) relacionada DEVE ser encapsulada em transação com `client = await pool.connect()`, `BEGIN`, `COMMIT` e `ROLLBACK` em bloco `try/finally` com `client.release()`.
+- **Migrações Versionadas:** Mudanças estruturais de esquema devem ser registradas em arquivos de migração via `node-pg-migrate` em `backend/migrations/`.
+
+## 7. Isolamento de Testes
+- **Banco Exclusivo de Testes:** Testes automatizados do backend devem rodar exclusivamente contra o banco `contador_calorias_test`.
+- **Trava de Segurança:** O pool de banco de dados (`backend/src/database/pool.ts`) aborta a execução (`process.exit(1)`) se `NODE_ENV === 'test'` e o nome do banco não terminar com o sufixo `_test`.
