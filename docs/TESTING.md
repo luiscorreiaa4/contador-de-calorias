@@ -1,80 +1,101 @@
 # Guia e Estratégia de Testes (TESTING.md)
 
-Este documento descreve a arquitetura, ferramentas e procedimentos para execução e escrita de testes automatizados no **CalorieSync**.
+Este documento estabelece as diretrizes, comandos, suítes existentes, convenções e o mapeamento do que **não** está coberto pela suíte de testes do **CalorieSync**.
 
 ---
 
-## 1. Visão Geral da Suíte
+## 1. Como Rodar [CONFIRMADO]
 
-| Camada | Ferramentas | Runner | Banco / Mocks | Comando (Raiz) |
-| :--- | :--- | :--- | :--- | :--- |
-| **Backend** | `node:test` + `node:assert` + `supertest` | `tsx --test` | Banco Postgres isolado (`contador_calorias_test`) | `npm run test` |
-| **Frontend** | `Vitest` + `React Testing Library` + `MSW` | `vitest run` | MSW (Mock Service Worker) + `jsdom` | `npm --prefix frontend test` |
-| **Linter** | ESLint + `typescript-eslint` | `eslint .` | N/A | `npm run lint` |
-| **Build & Tipagem** | `tsc` + Vite | `tsc` / `vite build` | N/A | `npm run build` |
+Comandos executados a partir da **raiz** do monorepo:
 
----
-
-## 2. Testes de Backend (Node.js + TypeScript)
-
-### Execução
 ```bash
+# 1. Testes de Backend (Node Native Test Runner contra banco isolado)
 npm run test
-# Ou diretamente na pasta backend:
-npm --prefix backend test
-```
 
-### Regra Crítica: Banco de Dados Isolado
-- **Isolamento Mandatório:** Testes que tocam o banco de dados rodam exclusivamente contra o banco `contador_calorias_test`.
-- **Fail-Safe em `backend/src/database/pool.ts`:** Se `NODE_ENV === 'test'` e o banco de dados configurado não terminar com o sufixo `_test`, o pool aborta o processo imediatamente (`process.exit(1)`), impedindo que dados manuais de desenvolvimento ou produção sejam alterados.
-- O script injeta automaticamente:
-  `cross-env NODE_ENV=test DB_NAME=contador_calorias_test TZ=America/Sao_Paulo tsx --test tests/**/*.test.ts`
-
-### Estrutura de Testes do Backend (`backend/tests/`)
-1. **Testes Unitários (`tests/unit/`):**
-   - Focados em funções puras de regras de negócio sem tocar o banco.
-   - Exemplo: `tests/unit/nutrition.service.test.ts` (validação das fórmulas de TMB Mifflin-St Jeor e Katch-McArdle, TDEE e pisos mínimos de calorias).
-2. **Testes de Integração (`tests/integration/`):**
-   - Validam rotas HTTP com `supertest` e persistência real no PostgreSQL isolado.
-   - Cobrem caminhos felizes (200/201), validação de entrada Zod (400), autenticação JWT (401) e recursos inexistentes (404).
-   - Arquivos: `user.routes.test.ts`, `meal.routes.test.ts`, `food.routes.test.ts`.
-3. **Testes de Carga (`tests/load/`):**
-   - Script `autocannon.js` para aferição de vazão e latência sob concorrência.
-
----
-
-## 3. Testes de Frontend (React + Vite)
-
-### Execução
-```bash
+# 2. Testes de Frontend (Vitest + RTL + MSW)
 npm --prefix frontend test
-# Ou modo watch para desenvolvimento:
-cd frontend && npm run test -- --watch
-```
 
-### Diretrizes e Boas Práticas
-1. **Consultas Baseadas em Acessibilidade (RTL):**
-   - Selecione elementos exclusivamente por `getByRole`, `getByLabelText`, `getByText`.
-   - **Proibido** selecionar elementos por classes CSS (`.btn-primary`) ou seletores genéricos (`div > button`).
-2. **Interceptação de Rede (MSW):**
-   - Todas as chamadas de API (`apiFetch`) são interceptadas em nível de rede por MSW (`frontend/src/mocks/server.ts` e `handlers.ts`).
-   - Não utilizamos mocks manuais de `global.fetch` dentro dos testes.
-3. **Tratamento de Estados Assíncronos:**
-   - Testes cobrem os fluxos de sucesso e estados de erro/carregamento renderizados via React Query.
-4. **Arquivos Cobertos:**
-   - `LoginForm.test.tsx` e `RegisterForm.test.tsx`: submissão, validação Zod e mensagens de erro.
-   - `NewMealModal.test.tsx`: abertura de modal, busca de alimentos, seleção e salvamento de refeição.
-   - `StatsPage.test.tsx`: renderização de gráficos, histórico e cálculo de médias.
-   - `LoginPage.test.tsx`: integração de página pública e redirecionamento.
+# 3. Validação de Linter (ESLint em todo o projeto)
+npm run lint
+
+# 4. Validação de Build e Tipagem (TypeScript + Vite)
+npm run build
+```
 
 ---
 
-## 4. Integração Contínua (CI)
+## 2. O Que Existe e Status Verificado em Sessão [CONFIRMADO]
 
-O repositório conta com pipeline automatizado via **GitHub Actions** em `.github/workflows/ci.yml`. A cada push ou Pull Request na branch principal, o pipeline:
-1. Sobe um contêiner oficial do PostgreSQL como service.
-2. Roda `npm run lint` em todo o monorepo.
-3. Executa as migrações do banco com `npm run setup`.
-4. Roda os testes de backend (`npm run test`).
-5. Roda os testes de frontend (`npm --prefix frontend test`).
-6. Valida o build de produção (`npm run build`).
+Abaixo está o status real verificado através da execução direta dos comandos no ambiente local:
+
+| Camada | Ferramenta / Runner | Total de Testes | Status Atual | Detalhes / Observações |
+| :--- | :--- | :--- | :--- | :--- |
+| **Backend** | `node:test` + `node:assert` + `supertest` via `tsx --test` | **37 testes em 11 arquivos** | ✅ **37 PASSOU / 0 FALHOU** (~9s) | Roda exclusivamente contra o banco `contador_calorias_test`. Todas as suítes passaram com sucesso. |
+| **Frontend** | `Vitest 3.0.0` + `React Testing Library` + `MSW 2.7.0` | **13 testes em 5 arquivos** | ⚠️ **4 PASSOU / 9 FALHOU** | 2 arquivos passaram (`LoginForm.test.tsx`, `RegisterForm.test.tsx`), 3 falharam (`NewMealModal.test.tsx`, `StatsPage.test.tsx`, `LoginPage.test.tsx`). |
+| **Linter** | `ESLint` | Monorepo completo | ❌ **1 Erro / 1 Warning** | 1 erro (`prefer-const` em `NewMealModal.tsx:298:9` `timeToUse`) e 1 warning (`unused eslint-disable`). |
+| **Build** | `tsc -b && vite build` | Frontend | ❌ **Erro de Tipagem TS** | Erro de compatibilidade de tipos no `react-select` em `NewMealModal.tsx(455,19)` e `(461,33)`. |
+
+### Suítes Existentes no Backend (`backend/tests/`) [CONFIRMADO]
+1. **Unitários (`tests/unit/nutrition.service.test.ts`):**
+   - Validação matemática de cálculo de TMB: Mifflin-St Jeor (masculino e feminino/neutro) e Katch-McArdle (quando % de gordura corporal é fornecido).
+   - Validação de TDEE com base nos multiplicadores de nível de atividade.
+   - Aplicação de déficit calórico (20% para perda de peso) e superávit (15% para ganho de massa).
+   - Validação do piso calórico de segurança (1500 kcal para homens, 1200 kcal para mulheres).
+   - Divisão de macronutrientes: 2.0g/kg de proteína, 1.0g/kg de gordura e o saldo em carboidratos.
+2. **Integração (`tests/integration/`):**
+   - `user.routes.test.ts`: Registro, login, obtenção de perfil, fluxo de onboarding, prévia e atualização de metas com vigência, e exclusão física de conta com validação de senha.
+   - `meal.routes.test.ts`: Criação de refeição com múltiplos itens calculados, listagem de refeições do dia (`/today`), atualização completa (com substituição atômica de itens), exclusão e estatísticas por período via `LATERAL JOIN`.
+   - `food.routes.test.ts`: Busca de alimentos com tolerância a acentos (`unaccent`) e caixa (`ILIKE`), cálculo de proximidade trigram (`pg_trgm`), paginação (`limit`/`offset`) e bloqueio de criação/edição/deleção por usuários comuns (catálogo somente-leitura).
+3. **Carga (`tests/load/autocannon.js`):**
+   - Script de estresse com `autocannon` para medição de requisições por segundo e latência da API sob concorrência.
+
+### Suítes Existentes no Frontend (`frontend/src/`) [CONFIRMADO]
+1. `src/components/auth/LoginForm.test.tsx`: Renderização, preenchimento, submissão e mensagens de erro via MSW.
+2. `src/components/auth/RegisterForm.test.tsx`: Validação de senha mínima, campos obrigatórios e submissão.
+3. `src/pages/public/__tests__/LoginPage.test.tsx`: Integração da página de login com redirecionamento.
+4. `src/components/meals/NewMealModal.test.tsx`: Abertura do modal, preenchimento e seleção de alimentos. *(Atualmente com 4 falhas devido ao texto do botão de ação ser "CRIAR REFEIÇÃO" e o teste buscar por "Salvar")*.
+5. `src/pages/private/__tests__/StatsPage.test.tsx`: Renderização de métricas e gráficos Recharts. *(Atualmente com falha de requisição não interceptada no MSW)*.
+
+---
+
+## 3. Convenções e Regras de Testes [CONFIRMADO]
+
+### Backend: Isolamento Mandatório de Banco
+- **Fail-Safe no Pool (`backend/src/database/pool.ts`):** O pool de conexões possui uma trava em código que verifica:
+  ```ts
+  if (process.env.NODE_ENV === 'test' && !dbName.endsWith('_test')) {
+    console.error('FATAL: Testes devem rodar exclusivamente em banco terminado em _test!');
+    process.exit(1);
+  }
+  ```
+  Se qualquer desenvolvedor ou agente tentar rodar a suíte contra `contador_calorias` de desenvolvimento, o runner aborta instantaneamente.
+- **Limpeza Entre Testes:** O banco de testes executa limpeza controlada de tabelas dependentes antes/depois das suites para manter independência dos testes.
+
+### Frontend: Acessibilidade e MSW
+- **Seleção por Acessibilidade (RTL):** Elementos devem ser buscados via `getByRole`, `getByLabelText`, `getByPlaceholderText`, simulando como o usuário interage. **É terminantemente proibido** buscar elementos por classes CSS (`.btn`, `.bg-primary`) ou seletores hierárquicos genéricos (`div > span`).
+- **Interceptação de Rede (MSW):** Todas as chamadas de API são interceptadas em `src/mocks/handlers.ts`. Não são permitidos mocks manuais de `global.fetch` em arquivos de teste individuais.
+
+---
+
+## 4. O Que NÃO Está Coberto (Gaps da Suíte) [CONFIRMADO]
+
+Os seguintes itens foram verificados no código e **não possuem cobertura de testes automatizados**:
+
+### No Frontend:
+1. **`DashboardPage.tsx`:** A tela principal (resumo de calorias de hoje, barras de progresso de macronutrientes e listagem de refeições consumidas) não possui suite de teste no Vitest.
+2. **`ProfilePage.tsx` / `EditProfilePage.tsx`:** Telas de visualização e edição de perfil do usuário (atualização de peso, altura, e-mail e senha) não possuem testes de frontend.
+3. **`OnboardingPage.tsx` / `OnboardingFlow.tsx`:** O fluxo de primeiro acesso onde o usuário preenche suas medidas e gera o cálculo inicial de metas não possui teste automatizado.
+4. **Modais de Ação Específica:**
+   - `EditMealModal.tsx`: Fluxo de edição de refeição existente.
+   - `GoalsModal.tsx`: Modal de alteração de metas automáticas/manuais.
+   - `MeasurementModal.tsx`: Modal de registro de novas medições de peso/gordura.
+   - `DeleteAccountModal.tsx`: Confirmação com senha para exclusão definitiva de conta.
+5. **Tema Escuro / Claro:** Não há testes visuais ou de regressão para alternância do tema via tokens de CSS.
+
+### No Backend:
+1. **Rotas de Medições Corporais:** Não há arquivo `measurement.routes.test.ts` dedicado. As medições em `body_measurements` são testadas apenas como efeito colateral do onboarding ou updateProfile.
+2. **Rate Limiting em Cenário Real:** Os limites de requisição do `express-rate-limit` não são testados na suíte de integração para evitar falsos positivos nos testes normais.
+
+### Ponta a Ponta (E2E):
+1. **Testes E2E (Playwright / Cypress):** Inexistentes no repositório. Não há testes cobrindo o fluxo completo real com navegador interagindo com o backend vivo e banco de dados simultaneamente.
+2. **Race Conditions de Concorrência:** Comportamento sob múltiplos acessos simultâneos ao mesmo registro de refeição não possui teste específico de isolamento de transação.
