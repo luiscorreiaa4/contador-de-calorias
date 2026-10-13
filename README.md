@@ -1,99 +1,115 @@
-# 🍏 Contador de Calorias
+# 🍏 CalorieSync
 
-O **Contador de Calorias** é uma aplicação web completa (Full-stack) projetada para auxiliar usuários a registrarem suas refeições diárias, acompanharem a ingestão de calorias e macros, e manterem o controle sobre sua dieta e saúde.
+O **CalorieSync** (Contador de Calorias) é uma aplicação web completa (Full-stack) projetada para auxiliar usuários a registrarem suas refeições diárias, calcularem sua Taxa Metabólica Basal (TMB), acompanharem o consumo de calorias e macronutrientes, e gerenciarem o histórico de sua dieta e saúde.
 
 ---
 
 ## 🚀 Tecnologias e Arquitetura
 
-O projeto adota uma arquitetura moderna separada entre Frontend e Backend, mantendo alta tipagem, modularidade e padrões rigorosos.
+O projeto adota uma arquitetura monorepo unificada, mantendo separação estrita entre Frontend e Backend com tipagem estática e testes automatizados.
 
 ### 💻 Frontend (Interface do Usuário)
 - **Framework:** React 19 + Vite
 - **Linguagem:** TypeScript
-- **Estilização:** Tailwind CSS (com suporte robusto a Dark Mode)
-- **Componentes:** Radix UI (`@radix-ui`) e validações de interface com `clsx` + `tailwind-merge` + `cva`.
+- **Estilização:** Tailwind CSS (Identidade Brutalista de alta performance com temas via CSS Variables)
+- **Componentes:** Radix UI (`@radix-ui`) para acessibilidade nativa, modais semânticos e focus trap
 - **Ícones:** Lucide React
+- **Gráficos:** Recharts (histórico e distribuição de macros na página de estatísticas)
 - **Data Fetching & Cache:** React Query (TanStack Query) v5
-- **Roteamento & Validação:** Zod (integrado com formulários)
+- **Testes:** Vitest + React Testing Library (RTL) + MSW (Mock Service Worker)
 
 ### ⚙️ Backend (API e Lógica de Negócios)
-- **Ambiente:** Node.js + Express
-- **Linguagem:** TypeScript (executado via `tsx`)
-- **Autenticação:** JWT (JSON Web Tokens) e Hashing de senhas com `bcrypt`
-- **Validação de Dados:** Zod (obrigatório para todos os inputs de rotas)
-- **Arquitetura:** MVC + Services Layers (`Controllers` → `Services` → `Models` → `Routes`)
+- **Ambiente:** Node.js 22+ com Express
+- **Linguagem:** TypeScript (executado via `tsx` em desenvolvimento e build via `tsc`)
+- **Autenticação:** JWT (JSON Web Tokens) com hashing de senhas via `bcrypt`
+- **Validação de Dados:** Zod (obrigatório em todas as rotas e DTOs)
+- **Arquitetura:** MVC + Service Layer (`Controllers` → `Services` → `Models` → `Routes`)
+- **Testes:** Node Native Test Runner (`node:test` + `node:assert` + `supertest`) executado via `tsx --test`
 
 ### 🗄️ Banco de Dados
 - **Motor:** PostgreSQL
-- **Acesso:** Comunicação direta com driver `pg` via consultas preparadas e models tipados.
+- **Acesso:** Comunicação direta com driver `pg` (Pool com limite de conexões e timeout configurado; sem ORMs)
+- **Migrações:** SQL puro gerenciado por `node-pg-migrate`
+- **Pesquisa Avançada:** Busca por similaridade com `pg_trgm` e normalização com `unaccent`
 
 ---
 
 ## 📁 Estrutura do Projeto
 
-O repositório está organizado num formato Monorepo (Workspace unificado) para facilitar o desenvolvimento:
-
 ```text
 contador-de-calorias/
-├── backend/                # API Express + Node.js
-│   ├── database/           # Scripts SQL e migrações
+├── AGENTS.md                  # Regras globais de pareamento e agentes especialistas
+├── README.md                  # Este documento
+├── package.json               # Scripts de orquestração do monorepo
+├── docs/                      # Documentação técnica e especificações
+│   ├── ARCHITECTURE.md        # Diagrama ER, fluxo de dados e decisões técnicas
+│   ├── SPEC.md                # Requisitos funcionais (RFs) e de negócio
+│   ├── ROADMAP.md             # Planejamento das fases do projeto
+│   ├── TESTING.md             # Guia de testes de backend e frontend
+│   ├── TECH_DEBT.md           # Registro de débitos técnicos e segurança
+│   ├── TASK_TEMPLATE.md       # Modelo de abertura de novas tarefas
+│   ├── PERFORMANCE_BASELINE.md# Métricas de referência para otimizações
+│   └── reviews/               # Auditorias e inventários de código/documentação
+├── .agents/                   # Configurações de agentes e automação
+│   ├── rules/                 # Regras obrigatórias (backend, react, style)
+│   └── skills/                # Procedimentos reutilizáveis (middlewares, recursos, testes)
+├── backend/                   # API Express + Node.js
+│   ├── migrations/            # Migrações SQL versionadas (node-pg-migrate)
+│   ├── scripts/               # Scripts operacionais (importação TACO, reset de banco)
 │   ├── src/
-│   │   ├── controllers/    # Camada HTTP (req/res)
-│   │   ├── middlewares/    # Autenticação e tratamento de erros
-│   │   ├── models/         # Acesso direto ao PostgreSQL
-│   │   ├── routes/         # Definição dos endpoints
-│   │   ├── schemas/        # Schemas Zod para validação
-│   │   └── services/       # Regras de negócio e orquestração
-│   └── package.json
-├── frontend/               # SPA em React + Vite
-│   ├── src/
-│   │   ├── components/     # Componentes reutilizáveis (UI)
-│   │   ├── hooks/          # Custom hooks
-│   │   ├── pages/          # Páginas/Rotas
-│   │   └── services/       # Cliente HTTP (Axios/Fetch configurado)
-│   └── package.json
-└── package.json            # Package.json da raiz (orquestração)
+│   │   ├── controllers/       # Camada HTTP (parse e resposta)
+│   │   ├── middlewares/       # Auth JWT, Zod validate, errorHandler
+│   │   ├── models/            # Queries diretas ao PostgreSQL
+│   │   ├── routes/            # Endpoints da API REST
+│   │   ├── schemas/           # Schemas de validação Zod
+│   │   ├── services/          # Regras de negócio puras (cálculo TMB, metas)
+│   │   └── types/             # Tipagens e DTOs compartilhados
+│   └── tests/                 # Testes unitários e de integração (node:test)
+└── frontend/                  # SPA em React 19 + Vite
+    └── src/
+        ├── components/        # Componentes UI (Radix, modais, formulários)
+        ├── context/           # AuthContext (sessão e estado global do usuário)
+        ├── pages/             # Páginas públicas e privadas (Dashboard, Stats, Perfil)
+        ├── services/          # Cliente API centralizado (apiFetch) e React Query
+        ├── styles/            # Design tokens e temas brutalistas (index.css)
+        └── tests/             # Testes de componentes e integração (Vitest + MSW)
 ```
 
 ---
 
 ## 🎯 Status do Projeto (Roadmap)
 
-A construção deste projeto está dividida em fases. Status atual:
-
-- ✅ **Fase 1: Cálculo técnico e metas editáveis**
-  - Implementado motor de cálculo de TMB (Mifflin-St Jeor / Katch-McArdle) e Gasto Total.
-  - Tela de edição de perfil (altura, peso, gordura, nível de atividade, objetivo).
-  - Controle de metas com histórico de vigência usando tabela `user_goals`.
-  - Tratamento de fusos horários fixos (América/São Paulo).
-
-- ✅ **Fase 2: Dashboard enxuto + página de estatísticas**
-  - Dashboard otimizado para mostrar apenas consumo de hoje, barras de macros e botão de registro.
-  - Nova página de Estatísticas (`/estatisticas`) com histórico de 7 ou 30 dias.
-  - Agregações avançadas de SQL com `LATERAL JOIN` para comparar consumos diários exatamente com a meta que estava vigente naquele dia.
-  - Otimização de renderização no frontend (Listas de alimentos em modais virtualizadas).
-
-- ✅ **Fase 3: Base de alimentos em escala**
-  - Implementação de paginação e busca por similaridade (trigram) no backend, ignorando acentos (`unaccent`).
-  - Otimização do frontend com debounce de busca e limitação segura de 50 itens.
-  - Script isolado de importação em massa com upsert (idempotente) via `backend/scripts/import-foods.ts`, não exposto aos usuários para garantir que o catálogo principal seja apenas leitura.
-
-- ⏳ **Fase 4: Passe de performance** *(Próxima)*
-- ⏳ **Fase 5: Autenticação Social e Redesign**
+- ✅ **Fase 0: Fundação e Qualidade**
+  - Isolamento de banco de testes com fail-safe (`contador_calorias_test`).
+  - Linter sem erros em todo o monorepo.
+  - Segurança web com `helmet`, `express-rate-limit` e validação de ambiente com fail-fast via Zod.
+  - Migrações versionadas com `node-pg-migrate`.
+  - CI configurado com GitHub Actions (`.github/workflows/ci.yml`).
+  - Suíte de testes do frontend com Vitest + RTL + MSW.
+- ✅ **Fase 1: Cálculo Técnico e Metas Editáveis**
+  - Motor de cálculo de TMB (Mifflin-St Jeor / Katch-McArdle) e Gasto Energético Total.
+  - Histórico de medidas e composição corporal (`body_measurements`).
+  - Controle de metas por data de vigência (`user_goals`).
+- ✅ **Fase 2: Dashboard Enxuto + Página de Estatísticas**
+  - Dashboard focado no dia corrente comparando consumo real com meta ativa.
+  - Página de Estatísticas (`/estatisticas`) com histórico de 7 e 30 dias e agregações SQL via `LATERAL JOIN`.
+- ✅ **Fase 3: Base de Alimentos em Escala**
+  - Busca trigram com extensão `unaccent` e índice GIN no PostgreSQL.
+  - Importação de catálogo da TACO via script idempotente (`backend/scripts/import-foods.ts`).
+  - Catálogo principal somente-leitura para usuários comuns.
+- ⏳ **Fase 4: Passe de Performance** *(Próxima)*
+- ⏳ **Fase 5: Redesign e Tokens de CSS**
 
 ---
 
 ## 🛠️ Como Instalar e Rodar Localmente
 
-Siga o passo a passo abaixo para rodar o projeto na sua máquina.
-
 ### 1. Pré-requisitos
-- **Node.js** (versão 20 ou superior)
-- **PostgreSQL** rodando localmente ou remotamente.
+- **Node.js** (versão 20 ou superior; recomendado Node 22+)
+- **PostgreSQL** (versão 14 ou superior)
 
-### 2. Clonar e Instalar Dependências
-No diretório raiz do projeto, instale as dependências de todos os workspaces (raiz, backend e frontend):
+### 2. Instalação de Dependências
+No diretório raiz do projeto, instale as dependências de todos os workspaces:
 
 ```bash
 npm install
@@ -101,60 +117,79 @@ npm --prefix backend install
 npm --prefix frontend install
 ```
 
-### 3. Configuração de Ambiente (.env)
-Crie o arquivo `.env` dentro da pasta `backend/` usando o exemplo disponibilizado no repositório (se houver `.env.example`).
-Você precisará preencher as credenciais de banco de dados e segredos:
+### 3. Configuração de Ambiente (`.env`)
+Copie o arquivo de exemplo para `backend/.env`:
 
-```env
-# Exemplo (backend/.env)
-PORT=3000
-DATABASE_URL=postgres://usuario:senha@localhost:5432/contador_de_calorias
-JWT_SECRET=seu_segredo_super_seguro_aqui
+```bash
+cp backend/.env.example backend/.env
 ```
 
-### 4. Configuração do Banco de Dados
-Com o PostgreSQL instalado e as credenciais configuradas no `.env`, você precisará criar o banco de dados vazio e depois rodar as migrations para construir as tabelas e dados iniciais.
+Preencha com as credenciais do seu banco local:
 
-No seu terminal ou gerenciador de banco (PgAdmin, DBeaver, etc), crie o banco:
-\`\`\`sql
+```env
+PORT=3001
+NODE_ENV=development
+
+# Configurações do PostgreSQL
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=sua_senha_segura_aqui
+DB_NAME=contador_calorias
+
+DATABASE_URL=postgresql://postgres:sua_senha_segura_aqui@localhost:5432/contador_calorias
+JWT_SECRET=preencha_com_32_caracteres_no_minimo_para_seguranca
+JWT_EXPIRES_IN=7d
+CORS_ORIGIN=http://localhost:5173
+```
+
+### 4. Criação do Banco e Migrações
+No seu PostgreSQL (via `psql` ou cliente gráfico), crie o banco de desenvolvimento e o de testes:
+
+```sql
 CREATE DATABASE contador_calorias;
-\`\`\`
+CREATE DATABASE contador_calorias_test;
+```
 
-Após criar o banco, execute o script de migração na raiz do projeto:
-\`\`\`bash
+Em seguida, execute as migrações a partir da raiz:
+
+```bash
 npm run setup
-\`\`\`
-*(Este comando roda o `node-pg-migrate up` no backend, construindo o esquema inicial do banco e semeando os alimentos básicos.)*
+```
+*(Executa o `node-pg-migrate up` no backend, criando as 6 tabelas, funções `unaccent` e semeando os alimentos iniciais).*
 
-### 5. Iniciar o Servidor de Desenvolvimento
-O projeto contém um script utilitário na raiz que inicia o Frontend e o Backend **simultaneamente** usando `concurrently`.
+### 5. Execução em Modo de Desenvolvimento
+Inicie Frontend e Backend simultaneamente com um único comando:
 
 ```bash
 npm run dev:all
 ```
-- **Backend:** Ficará disponível geralmente em `http://localhost:3000`
-- **Frontend:** Ficará disponível no endereço gerado pelo Vite (normalmente `http://localhost:5173`)
+- **Backend API:** `http://localhost:3001/api`
+- **Frontend App:** `http://localhost:5173`
 
 ---
 
-## 📜 Principais Comandos (Scripts)
+## 📜 Principais Comandos
 
-Esses comandos devem ser executados na **raiz** do projeto:
+Executados a partir da **raiz** do projeto:
 
-- `npm run dev:all` - Roda Backend e Frontend simultaneamente em modo dev (Hot Reload).
-- `npm run setup` - Roda as migrations do banco de dados (Cria tabelas e insere dados essenciais).
-- `npm run lint` - Roda o ESLint no projeto.
-- `npm run server` - Inicia exclusivamente o Backend em modo desenvolvimento.
-- `npm run dev` - Inicia exclusivamente o Frontend em modo desenvolvimento.
+| Comando | Descrição |
+| :--- | :--- |
+| `npm run dev:all` | Inicia Backend e Frontend simultaneamente via `concurrently` |
+| `npm run server` | Inicia apenas a API backend em modo watch (`tsx`) |
+| `npm run dev` | Inicia apenas o frontend Vite |
+| `npm run setup` | Aplica todas as migrações pendentes no PostgreSQL |
+| `npm run test` | Executa os testes automatizados do backend em banco isolado (`_test`) |
+| `npm --prefix frontend test` | Executa os testes do frontend via Vitest |
+| `npm run lint` | Valida formatação e tipos com ESLint em todo o projeto |
+| `npm run build` | Compila o frontend para produção (`dist/`) |
 
 ---
 
-## 🛡️ Padrões e Regras do Código (Guidelines)
+## 🛡️ Diretrizes e Regras do Código
 
-Este projeto possui regras estritas de arquitetura descritas no diretório `.agents/rules/`. Destaques:
-
-1. **Backend sem hardcoding:** Nenhum segredo ou credencial de BD solto no código. Use `.env`.
-2. **Validação Zod:** Obrigatória para toda e qualquer rota backend e formulários críticos do frontend.
-3. **Sem exclusão arbitrária:** Nenhuma tabela do Postgres (ex: `DROP TABLE`) deve ser deletada via código ou script não homologado sem aprovação.
-4. **Data Fetching Frontend:** Proibido uso de `fetch` manual com `useEffect` soltos; utilize **React Query** para manter cache, estados de *loading*, *error* e sincronia corretos.
-5. **Componentização UI:** Privilegiar Radix e Tailwind. Acessibilidade (WCAG) tem peso forte (suporte de teclado em modais, focus trap, etc).
+As regras detalhadas do repositório estão formalizadas em:
+- [AGENTS.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/AGENTS.md) — Regra principal de workspace e divisão de responsabilidades.
+- [.agents/rules/backend-rules.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/.agents/rules/backend-rules.md) — Regras de arquitetura, isolamento e segurança no backend.
+- [.agents/rules/react-rules.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/.agents/rules/react-rules.md) — Padrões do frontend, React Query e formulários.
+- [.agents/rules/style-rules.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/.agents/rules/style-rules.md) — Identidade visual brutalista e acessibilidade (WCAG).

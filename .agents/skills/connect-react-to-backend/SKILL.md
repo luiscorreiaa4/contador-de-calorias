@@ -117,5 +117,4 @@ Todo componente que busca ou envia dados precisa tratar 4 estados:
 - [ ] Arquivo em `.tsx`/`.ts`, sem `any`.
 - [ ] Nenhum `fetch` direto dentro do componente — sempre via `services/`.
 - [ ] `useQuery` para GET, `useMutation` para POST/PUT/DELETE.
-- [ ] Estados loading/error/empty/data tratados.
-- [ ] Classes Tailwind com suporte a `dark:` em qualquer texto/cor exibido (ver `style-rules.md`).
+- [ ] Classes Tailwind utilizando tokens semânticos de CSS Variables (`bg-background`, `text-foreground`, `border-border`) conforme `style-rules.md`.

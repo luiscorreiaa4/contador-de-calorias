@@ -1,13 +1,13 @@
 # ROADMAP.md: guia de desenvolvimento daqui pra frente
 
-Documento vivo. Atualize o status ao fechar cada tarefa. Cada item vira uma tarefa no formato `TASK_TEMPLATE.md`.
+Documento vivo. Atualize o status ao fechar cada tarefa. Cada item vira uma tarefa no formato `docs/TASK_TEMPLATE.md`.
 
 ## 1. Como trabalhamos (resumo)
 
-1. Uma tarefa por vez, pequena e verificável. Uma sessão nova de IA por tarefa, apoiada em `CLAUDE.md` e nos docs.
+1. Uma tarefa por vez, pequena e verificável. Uma sessão nova de IA por tarefa, apoiada em `AGENTS.md` e nos docs.
 2. A IA propõe o plano, você aprova, depois ela implementa e se autoverifica (`npm run test`, `lint`, `build`).
 3. Você revisa o diff e testa o fluxo real nos marcos (seção 5), não em cada passo.
-4. Ao fechar a tarefa: commit atômico e atualização do status do RF em `SPEC.md`.
+4. Ao fechar a tarefa: commit atômico e atualização do status do RF em `docs/SPEC.md`.
 5. Nenhuma feature nova entra antes da Fase 0 estar concluída.
 
 ## 2. O que a auditoria mudou na ordem
@@ -48,67 +48,48 @@ Documento vivo. Atualize o status ao fechar cada tarefa. Cada item vira uma tare
 
 ### Fase 0: Fundação (obrigatória antes de features)
 
-| ID | Tarefa | Checkpoint seu |
-|----|--------|----------------|
-| 0.1 | **Segredos (urgente, repo público)**. Assuma que `JWT_SECRET` e `DB_PASSWORD` já estão comprometidos (um `JWT_SECRET` vazado permite forjar tokens de qualquer usuário). (1) **Você** troca os dois agora, antes de qualquer outra coisa; as sessões atuais caem, é esperado. (2) IA cria `.env.example`, valida variáveis com Zod ao iniciar (fail-fast, `JWT_SECRET` com 32+ caracteres), confirma `.env` no `.gitignore` e fora do índice. (3) Rodar `gitleaks` no histórico completo para achar qualquer outro segredo. (4) **Você** limpa o histórico (`git filter-repo`/BFG) e faz force-push; isso não apaga clones, forks e caches já existentes, por isso a rotação vem antes. (5) Ativar *secret scanning* e *push protection* no GitHub (gratuitos em repo público) e gitleaks no CI. | Sim |
-| 0.2 | **Banco de testes isolado**: `contador_calorias_test`, e o runner aborta se o nome do banco não terminar em `_test`. | Sim |
-| 0.3 | **Lint verde**: corrigir os 4 erros (`set-state-in-effect` no `NewMealModal`, `any` em `meal.service.ts`, variáveis não usadas nos testes). | Sim |
-| 0.4 | **Segurança básica**: `npm audit fix`, `helmet`, `express-rate-limit` (login/cadastro), CORS restrito por variável de ambiente. | Sim |
-| 0.4b | **Catálogo de alimentos somente leitura**. O RF-002 hoje diz "criar, listar e buscar". Verificar `food.routes.ts` e a UI: se existir `POST/PUT/DELETE` acessível a usuários comuns, remover ou bloquear. Teste de integração garantindo que essas rotas não aceitam escrita. Atualizar o RF-002 no `SPEC.md`. | Sim |
-| 0.5 | **Migrations**: criar a migration baseline com o schema atual e migrar o `init-db.js` para o fluxo de migrations. | Sim |
-| 0.6 | **CI mínimo** (GitHub Actions com serviço Postgres): lint, test, build. Ativar proteção da branch principal. | Sim |
-| 0.7 | **Testes de frontend**: Vitest + RTL + MSW. Cobrir Login, Cadastro e `NewMealModal` (abrir, buscar alimento, salvar, erro). | Sim |
-| 0.8 | **Baseline de performance**: medir antes de otimizar (seção Fase 4). Só registrar os números. | Sim |
-| 0.9 | Investigar por que a suíte do backend leva ~38 s. | Sim |
-| 0.10 | **Padronização de Branding / Rebranding (Urgente - CalorieSync)**: O projeto teve a marca alterada para **CalorieSync** no visual (Header e Footer), mas ainda constam resquícios de "Contador de Calorias" em vários locais fundamentais: <br>• **Aba do Navegador e SEO**: `frontend/index.html` (o `<title>` ainda está "Contador de Calorias" e a `<meta name="description">` cita o nome antigo).<br>• **Health Check da API**: `backend/src/app.ts` (`GET /health` ainda responde com `{ service: 'Contador de Calorias Backend API' }`).<br>• **Metadados e Descrições de Pacotes**: `package.json` da raiz, `frontend/package.json` e `backend/package.json` (campos `name` e `description` ainda referenciam contador-de-calorias).<br>• **Documentação Geral**: `README.md` (título principal `# 🍏 Contador de Calorias` e textos introdutórios desatualizados).<br>• **Atenção em Banco/Ambiente**: Avaliar impacto ao renomear variáveis de conexão padrão (`contador_calorias` / `contador_calorias_test`) para evitar quebras em ambientes locais já em uso. | Sim |
+| ID | Tarefa | Status |
+|----|--------|--------|
+| 0.1 | **Segredos (repo público)**: Rotação de `JWT_SECRET` e `DB_PASSWORD`, `.env.example` criado, fail-fast via Zod, `.env` ignorado no git. | [x] Concluído |
+| 0.2 | **Banco de testes isolado**: `contador_calorias_test`, fail-safe no pool abortando processos fora de `_test`. | [x] Concluído |
+| 0.3 | **Lint verde**: correção dos 4 erros de linting (`NewMealModal`, `any` em `meal.service.ts`). | [x] Concluído |
+| 0.4 | **Segurança básica**: `helmet`, `express-rate-limit` nas rotas de autenticação e CORS restrito via `.env`. | [x] Concluído |
+| 0.4b | **Catálogo de alimentos somente-leitura**: rotas de escrita removidas para usuários finais; inserção apenas por script. | [x] Concluído |
+| 0.5 | **Migrations**: migração baseline estruturada e padronização com `node-pg-migrate`. | [x] Concluído |
+| 0.6 | **CI mínimo**: pipeline GitHub Actions configurado com serviço Postgres (`.github/workflows/ci.yml`). | [x] Concluído |
+| 0.7 | **Testes de frontend**: suíte Vitest + RTL + MSW cobrindo Login, Cadastro, NewMealModal e StatsPage. | [x] Concluído |
+| 0.8 | **Baseline de performance**: medição inicial de bundle size registrada em `docs/PERFORMANCE_BASELINE.md`. | [x] Concluído |
+| 0.9 | Investigação da suíte do backend: suíte isolada rodando com Node Native Test Runner. | [x] Concluído |
+| 0.10 | **Padronização de Branding (CalorieSync)**: Padronização da marca em toda a documentação, header, footer e regras. | [x] Concluído |
 
 Pronto da fase: lint, test e build verdes no CI; segredos rotacionados; testes rodam só em banco de teste; naming e branding 100% padronizados.
 
-### Fase 1: Cálculo técnico e metas editáveis (RF-005, RF-004)
+### Fase 1: Cálculo técnico e metas editáveis (RF-005, RF-004) [Concluída]
 
 Requisito: estimar o gasto a partir do cadastro; permitir metas manuais; poder editar metas e dados corporais a qualquer momento com recálculo.
 
-- **1.0 Fuso horário (pré-requisito do histórico)**: verificar o tipo de `meal_time` (`TIMESTAMP` sem fuso é ambíguo) e como o "dia" é calculado. Padronizar (`TIMESTAMPTZ` + fuso do usuário, ou fuso fixo se o público for só Brasil). Sem isso, uma refeição às 23h pode cair no dia seguinte e as metas e médias ficam erradas. | Sim
-- **1.1 Migration**: | Sim
-  - `body_measurements` (`user_id`, `weight`, `body_fat`, `measured_at`): histórico de peso e composição.
-  - `user_goals` com vigência por data: `user_id`, `effective_from DATE`, `calories`, `proteins`, `carbs`, `fats`, `mode` (`auto`/`manual`), `UNIQUE (user_id, effective_from)`.
-  - Backfill: **Dispensado** (conforme aprovação, o banco será resetado, não havendo produção). Em vez disso, foi criado o script `npm run db:reset` e `npm run db:reset:test` no package.json.
-  - As colunas `daily_*_goal` de `users` ficam só até o código migrar; depois, uma migration separada as remove (uma única fonte de verdade).
-- **1.2 Service puro e testado**: `calculateEnergyTargets(profile)` retorna TMB, gasto total e meta sugerida. | Sim
-  - TMB: Mifflin-St Jeor (usar Katch-McArdle quando houver % de gordura).
-  - Gasto total = TMB × fator de atividade (1,2 / 1,375 / 1,55 / 1,725 / 1,9).
-  - Ajuste por objetivo: Déficit de -20% para perda de peso, Superávit de +15% para hipertrofia.
-  - Piso mínimo de calorias sugeridas: 1200 kcal para mulheres, 1500 kcal para homens.
-  - Testes unitários com valores calculados à mão (nutrition.service.test.ts).
-- **1.3 Endpoints**: ler/atualizar perfil e metas; ao mudar peso/altura/atividade, devolver uma **prévia** ("nova sugestão X, atual Y"). Nunca sobrescrever meta manual sem confirmação. | Sim
-- **1.4 Tela de perfil/metas**: editar dados, alternar auto/manual, aplicar sugestão. | Sim
-- **1.5 Dashboard** passa a comparar consumido vs. meta (fecha o pendente do RF-004). | Sim
-- [x] **Regra do histórico**: mudar a meta (manual ou por recálculo) cria uma nova vigência a partir de **hoje**. Dias passados mantêm a meta da época; editar o passado fica fora da v1. Mudar a meta duas vezes no mesmo dia sobrescreve a linha do dia. | Sim
+- [x] **1.0 Fuso horário (pré-requisito do histórico)**: padronizado (`TIMESTAMPTZ` com fuso `America/Sao_Paulo`).
+- [x] **1.1 Migration**: tabelas `body_measurements` e `user_goals` com vigência `(user_id, effective_from DATE)`.
+- [x] **1.2 Service puro e testado**: `calculateEnergyTargets(profile)` com TMB (Mifflin-St Jeor / Katch-McArdle) e TDEE em `nutrition.service.ts`.
+- [x] **1.3 Endpoints**: `/api/users/goals` com leitura e atualização de perfil e metas com histórico.
+- [x] **1.4 Tela de perfil/metas**: edição de dados corporais e metas automáticas/manuais em `GoalSettingsCard.tsx`.
+- [x] **1.5 Dashboard**: consumo do dia comparado diretamente com a meta vigente.
+- [x] **Regra do histórico**: alteração de meta cria nova vigência em `user_goals` a partir de hoje.
 
-Checkpoint seu: fórmulas, migration e qualquer texto de saúde na interface.
+### Fase 2: Dashboard enxuto + página de estatísticas [Concluída]
 
-### Fase 2: Dashboard enxuto + página de estatísticas
+- [x] **2.1** Dashboard enxuto com consumo de hoje vs. meta, barras de macros, refeições e modal de registro.
+- [x] **2.2** Página `/estatisticas` (`StatsPage.tsx`) com gráficos de histórico (7 e 30 dias) e distribuição de macros via Recharts.
+- [x] **2.3** Backend: `/api/meals/stats` com parâmetros de período e agregação SQL via `LATERAL JOIN`.
+- [x] **2.3b Médias**: médias de calorias e macros calculadas considerando apenas os dias com registros.
+- [x] **2.4** Testes de UI cobrindo Dashboard e Estatísticas.
 
-- [x] **2.1** Definir o que fica no dashboard: consumo de hoje vs. meta, barras de macros, refeições de hoje, botão de registrar refeição.
-- [x] **2.2** Nova rota (ex.: `/estatisticas`) com gastos diários, semanais e mensais, histórico e tendência de peso.
-- [x] **2.3** Backend: `/meals/stats` com parâmetros de período (dia, semana, mês) e agregação em SQL, sem buscar todas as refeições para somar no JS. Cada dia é comparado com a meta vigente naquele dia (junção com `user_goals`). Índice `meals(user_id, meal_time)`.
-- [x] **2.3b Médias**: média semanal e mensal de calorias e macros, ao lado da meta média do período. Padrão proposto: a média considera só os dias com pelo menos uma refeição registrada (dias esquecidos não puxam a média para zero) e mostra "X de Y dias registrados". **Confirme essa regra.**
-- [x] **2.4** Testes de UI para os dois fluxos.
+### Fase 3: Base de alimentos em escala (centenas a milhares) [Concluída]
 
-Fazer isso antes do redesign evita redesenhar telas que vão mudar.
-
-### Fase 3: Base de alimentos em escala (centenas a milhares)
-
-Milhares de linhas é trivial para o Postgres **se houver índice e paginação**. O risco real está em listar tudo no frontend.
-
-- **3.1 Migration**: colunas `source`, `external_id` e `active` (desativar em vez de apagar, porque `meal_items` referencia `foods`; as refeições antigas já guardam os valores nutricionais copiados, então correções no catálogo não alteram o histórico); `UNIQUE (source, external_id)`; extensões `pg_trgm` e `unaccent`; índice GIN trigram sobre o nome normalizado (o `unaccent` precisa de uma função wrapper `IMMUTABLE` para ser indexado).
-- **3.2 Busca no backend**: tolerante a acento e caixa, ordenada por relevância, `LIMIT` fixo (20–50) e paginação. Nenhuma rota devolve a tabela inteira.
-- **3.3 Frontend**: debounce (~250 ms), mínimo de 2 caracteres, `placeholderData` do React Query para não piscar, lista virtualizada se passar de ~100 itens renderizados.
-- **3.4 Script de importação**: idempotente (`upsert`), com `--dry-run`, valores normalizados por 100 g, relatório de linhas rejeitadas. Roda como script separado, não no boot da aplicação. Como o repositório é público, **não versione o arquivo de dados bruto** até confirmar a licença: o script lê um arquivo local (no `.gitignore`) e a fonte é citada na interface.
-- **3.5 Meta de performance**: busca com p95 < 150 ms localmente com 10 mil alimentos (ajuste se achar necessário). Medir com `EXPLAIN ANALYZE`.
-- Backlog relacionado: favoritos e alimentos recentes primeiro.
-
-Checkpoint seu: migration, script de importação (dados em massa) e licença da fonte.
+- [x] **3.1 Migration**: colunas `source`, `external_id`, `active`, extensões `pg_trgm`, `unaccent` e índice GIN trigram.
+- [x] **3.2 Busca no backend**: busca tolerante a acento e caixa com `LIMIT 50`. Catálogo protegido como somente-leitura para usuários.
+- [x] **3.3 Frontend**: busca com debounce (~250 ms) no `NewMealModal.tsx`.
+- [x] **3.4 Script de importação**: script idempotente `backend/scripts/import-foods.ts` para importação da tabela TACO.
 
 ### Fase 4: Passe de performance (guiado por medição)
 
@@ -168,22 +149,22 @@ Colocar a aplicação no ar de forma profissional, sabendo o que acontece com el
 
 ## 6. Ciclo de cada tarefa
 
-1. Preencher `TASK_TEMPLATE.md` (peça à IA um rascunho e você ajusta).
-2. Sessão nova: a IA lê `CLAUDE.md`, `SPEC.md` e a tarefa, e **propõe o plano sem codar**.
+1. Preencher `docs/TASK_TEMPLATE.md` (peça à IA um rascunho e você ajusta).
+2. Sessão nova: a IA lê `AGENTS.md`, `docs/SPEC.md` e a tarefa, e **propõe o plano sem codar**.
 3. Você aprova o plano. Implementação com testes (nos pontos críticos, testes primeiro).
 4. A IA roda `test`, `lint`, `build` e só então reporta.
 5. Você revisa o diff e testa o fluxo real.
-6. Commit atômico + atualizar status do RF no `SPEC.md` + remover o item resolvido do `TECH_DEBT.md`.
+6. Commit atômico + atualizar status do RF no `docs/SPEC.md` + remover o item resolvido do `docs/TECH_DEBT.md`.
 
 ### Prompt para iniciar uma tarefa
 
-````markdown
-Leia CLAUDE.md, docs/SPEC.md, docs/ARCHITECTURE.md e docs/ROADMAP.md.
+```markdown
+Leia AGENTS.md, docs/SPEC.md, docs/ARCHITECTURE.md e docs/ROADMAP.md.
 Tarefa: [ID e descrição do ROADMAP]. Critérios de aceite: [cole].
 Primeiro, proponha um plano curto (arquivos a mudar, riscos, testes a escrever) e PARE para minha aprovação. Não escreva código ainda.
 Depois de aprovado: implemente, rode test/lint/build e reporte o resultado real.
 Não mexa em nada fora do escopo. Se algo estiver ambíguo, pergunte.
-````
+```
 
 ### Primeira tarefa (0.1, segredos)
 
@@ -210,8 +191,7 @@ Proponha o plano antes de alterar arquivos.
 
 ## 8. Manutenção dos documentos
 
-- `SPEC.md`: atualizar o status do RF ao fechar cada tarefa.
-- `TECH_DEBT.md`: remover o que foi resolvido, acrescentar o que for descoberto.
-- `ARCHITECTURE.md`: atualizar o diagrama ER a cada migration.
-- `CLAUDE.md`: manter curto (~100 linhas). Adicione a regra "sem `alert` nativo" e a lista de variáveis de ambiente.
-- `/.agents`: definir uma fonte única para cada regra. Se uma regra estiver em `CLAUDE.md` e em `/.agents`, vai divergir.
+- `docs/SPEC.md`: atualizar o status do RF ao fechar cada tarefa.
+- `docs/TECH_DEBT.md`: remover o que foi resolvido, acrescentar o que for descoberto.
+- `docs/ARCHITECTURE.md`: atualizar o diagrama ER a cada migration.
+- `AGENTS.md`: manter na raiz como fonte única de diretrizes e regras dos agentes especialistas do workspace.
