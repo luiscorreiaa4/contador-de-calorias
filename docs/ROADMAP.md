@@ -2,6 +2,8 @@
 
 Este documento registra o planejamento estratégico e a evolução do **CalorieSync**, organizando as fases concluídas e os próximos ciclos de desenvolvimento.
 
+> Os IDs `CA-xx`, `PC-xx`, `BL-xx` e as decisões `D-xx` referenciam o backlog consolidado em [docs/BACKLOG.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/BACKLOG.md), derivado de `docs/reviews/*.md` (13/10/2026).
+
 ---
 
 ## 1. Método de Trabalho e Ciclo de Tarefas
@@ -39,7 +41,7 @@ Este documento registra o planejamento estratégico e a evolução do **CalorieS
 
 ### ✅ Fase 2: Dashboard Enxuto e Página de Estatísticas (RF-005, RF-006)
 - [x] **2.1 Dashboard do Dia:** Visão focada no dia corrente comparando o consumo real contra a meta ativa do dia.
-- [x] **2.2 Página de Estatísticas (`/estatisticas`):** Telas com visualização gráfica de histórico (7 e 30 dias) e distribuição de macronutrientes via Recharts.
+- [x] **2.2 Página de Estatísticas:** Telas com visualização gráfica de histórico (7 e 30 dias) e distribuição de macronutrientes via Recharts. *(Correção 13/10/2026: não existe rota `/estatisticas`; a navegação usa estado `currentView` em `App.tsx` — ver PC-21 / D-16.)*
 - [x] **2.3 Agregações Analíticas com `LATERAL JOIN`:** Endpoint `/api/meals/stats` utilizando CTE e `LEFT JOIN LATERAL` para correlacionar a meta histórica de cada dia consumido em uma única consulta SQL.
 - [x] **2.4 Médias Justas:** Cálculo das médias considerando unicamente os dias em que houve registros alimentares.
 
@@ -53,30 +55,95 @@ Este documento registra o planejamento estratégico e a evolução do **CalorieS
 
 ---
 
-## 3. Débitos Técnicos Imediatos (Pré-Fase 4) [CONFIRMADO]
+## 3. Fase 3.5: Estabilização — Corrigir Agora [CONFIRMADO]
 
-Antes de iniciar as melhorias da Fase 4, devem ser corrigidas as inconsistências descobertas na auditoria:
-1. **Compilação TypeScript (`npm run build`):** Corrigir tipagens do componente `react-select` em `frontend/src/components/meals/NewMealModal.tsx`.
-2. **Linter (`npm run lint`):** Ajustar `prefer-const` em `NewMealModal.tsx:298:9` e remover diretiva `eslint-disable` não utilizada.
-3. **Suíte do Frontend (`npm --prefix frontend test`):** Atualizar o texto esperado do botão nos testes do `NewMealModal.test.tsx` (alinhar com "CRIAR REFEIÇÃO") e interceptar rotas pendentes no MSW para o `StatsPage.test.tsx`.
+*Objetivo: Eliminar falhas de segurança e bugs críticos e devolver o CI ao verde antes de qualquer otimização. Substitui a antiga lista "Débitos Técnicos Imediatos (Pré-Fase 4)".*
+
+Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/BACKLOG.md)):
+
+**CI verde (pré-requisito de todo o resto)**
+- [ ] **CA-02** Build: generics do `react-select` em `NewMealModal.tsx:455,461`.
+- [ ] **CA-08** Lint: `prefer-const` em `NewMealModal.tsx:298` e diretiva órfã na `:181`.
+- [ ] **CA-03** Suíte do frontend: 9/13 testes falhando em `LoginForm`, `RegisterForm` e `NewMealModal` + erro MSW em `StatsPage` (contrato `/foods` e handler `/meals/stats`).
+
+**Segurança**
+- [ ] **CA-01** Remover fallback `'fallback_jwt_secret'` (`auth.ts:19`, `user.service.ts:235`).
+- [ ] **CA-06** Rotacionar segredos do commit `24d1ce65` *(expurgo do histórico depende de D-12)*.
+- [ ] **CA-07** Remover senha hardcoded do `db:reset:test`.
+- [ ] **CA-05** SSL estrito no pool de produção *(D-19)*.
+- [ ] **CA-10** Mascarar mensagens do PostgreSQL em respostas 500 *(D-10)*.
+- [ ] **CA-11** Tetos Zod/payload (itens, nomes, quantidade, busca + escape `ILIKE`, senha ≤ 72, `express.json` limit).
+- [ ] **CA-12** Trava de ambiente em `scripts/reset-db.js`.
+- [ ] **CA-13** Atualizar dependências vulneráveis (`proxy-addr`, `tar`, `shell-quote`, `brace-expansion`).
+- [ ] **CA-15** `validate()` para `query`/`params` + schemas de UUID, data, período e busca *(D-09)*.
+
+**Bugs de cálculo e data**
+- [ ] **CA-04** Vigência de metas gravada no dia seguinte após 21h BRT *(D-01)*.
+- [ ] **CA-09** `calculateAge` com parse UTC.
+- [ ] **CA-14** Janela diária e agrupamento de estatísticas independentes do TZ do processo + `?date=` no frontend + testes com `TZ=UTC` *(D-01)*.
+- [ ] **CA-16** Macros para IMC alto (soma P+G > meta; carboidrato zerado) *(D-15)*.
 
 ---
 
 ## 4. Fases Planejadas
 
-### ⏳ Fase 4: Passe de Performance
-*Objetivo: Medir com precisão e otimizar gargalos reais no frontend e backend.*
-- **Frontend:** Implementar code-splitting por rota com `React.lazy()` para resolver o aviso de bundle acima de 500 kB identificado no build do Vite.
-- **Backend:** Avaliar planos de execução com `EXPLAIN ANALYZE` na consulta analítica de `/api/meals/stats` sob grandes volumes de registros.
-- **Cache:** Ajustar tempos de `staleTime` e `gcTime` nas consultas mais frequentes do TanStack Query.
+### ⏳ Fase 4: Performance, Robustez e Rede de Testes
+*Objetivo: Medir com precisão e otimizar gargalos reais no frontend e backend, fechar lacunas de robustez do backend e criar a rede de testes necessária para as refatorações da Fase 5. Pré-requisito: Fase 3.5 concluída.*
+
+**Escopo original (mantido)**
+- [ ] **Frontend — code-splitting por rota** com `React.lazy()` + `manualChunks` de vendor → **PC-20** *(depende de D-16: adotar roteador antes — PC-21)*.
+- [ ] **Backend — `EXPLAIN ANALYZE`** em `/api/meals/stats` sob volume, usando o seed de `docs/reviews/performance.md` §4 → **PC-23**.
+- [ ] **Cache — `staleTime`/`gcTime`** + invalidação cruzada de `mealStats`, `todayMeals` e `active-goal` → **PC-05**.
+
+**Performance (integrado do backlog)**
+- [ ] **PC-02** Compressão HTTP (`compression`).
+- [ ] **PC-03** Cache do catálogo de alimentos *(D-07)*.
+- [ ] **PC-09** SQL: remover subqueries do dashboard, `count(*) OVER()`, projeção explícita em `foods` *(D-08)*.
+- [ ] **PC-10** Índices `foods(name) WHERE active` e `meal_items(food_id)` (nova migração).
+- [ ] **PC-12** Lazy `NewMealModal`, `useMemo` no `AuthContext`, `AbortSignal` no autocomplete.
+- [ ] **PC-21** Roteamento SPA real (URL, Voltar, F5) *(D-16)*.
+- [ ] **PC-22** Inserção multi-row de `meal_items`.
+
+**Robustez e hardening**
+- [ ] **PC-04** Remover registro duplicado de rotas em `server.ts`.
+- [ ] **PC-06** `apiFetch`: respostas não-JSON e 401 sincronizado com `AuthContext`.
+- [ ] **PC-07** Bloquear reexecução do onboarding.
+- [ ] **PC-08** Política de senha + `bcrypt.compare` dummy no login.
+- [ ] **PC-11** `statement_timeout`, `/health` com probe de banco, graceful shutdown.
+- [ ] **PC-13** CI com `npm audit` + Gitleaks; `@vitest/coverage-v8`.
+- [ ] **PC-15** Edição de refeição preservando macros base do alimento.
+- [ ] **PC-17** Transações atômicas em onboarding/perfil/metas + teste de rollback.
+- [ ] **PC-19** Remover perfil biométrico do `localStorage`.
+
+**Rede de testes**
+- [ ] **PC-01** Substituir testes tautológicos/no-op.
+- [ ] **PC-14** Limpeza do banco de testes *(D-11 — exige consentimento)*.
+- [ ] **PC-18** Testes de autorização multiusuário (IDOR).
+- [ ] **PC-24** Cobertura de perfil, onboarding, metas com vigência, PUT/DELETE de refeições e stats.
+
+**Documentação**
+- [ ] **PC-16** Sincronizar `AGENTS.md` (versões), `TESTING.md`, `README.md`, `ARCHITECTURE.md`, `SPEC.md` e skills com o código *(D-18)*.
 
 ---
 
-### ⏳ Fase 5: Redesign e Consolidação de Design Tokens
-*Objetivo: Elevar a consistência visual e acessibilidade sem alterar comportamentos de negócio.*
-- **Centralização de Tokens:** Estruturar variáveis CSS completas para cores, espaçamentos e contornos brutalistas em `frontend/src/styles/index.css`.
-- **Componentes Primitivos:** Refatorar botões, inputs, cards e selects para componentes base reutilizáveis.
-- **Revisão de Acessibilidade:** Testar contraste WCAG AA e navegação completa por teclado em todas as telas.
+### ⏳ Fase 5: Redesign, Design Tokens e Conformidade do Frontend
+*Objetivo: Elevar a consistência visual e a acessibilidade e alinhar o frontend às regras de `react-rules.md` e `style-rules.md`, sem alterar comportamentos de negócio. Pré-requisito: PC-34 (testes de telas) antes das refatorações estruturais.*
+
+**Escopo original (mantido)**
+- [ ] **Centralização de Tokens:** variáveis CSS completas para cores, espaçamentos e contornos brutalistas em `frontend/src/styles/index.css` → **PC-32**.
+- [ ] **Componentes Primitivos:** botões, inputs, cards e selects como componentes base reutilizáveis → **PC-32**.
+- [ ] **Revisão de Acessibilidade:** contraste WCAG AA e navegação completa por teclado → **PC-32** + **PC-26**.
+
+**Integrado do backlog (ordem sugerida)**
+- [ ] **PC-31** Excluir código morto e dependências órfãs — executar primeiro *(D-06)*.
+- [ ] **PC-25** Tokens e geometria: cores fixas/`dark:`/hex, `rounded-*`, sombras suaves.
+- [ ] **PC-26** Acessibilidade: label de `food-amount`, `aria-label` no `react-select`, `DatePickerInput` com Esc + ARIA.
+- [ ] **PC-27** Estados `isError` e vazio no Dashboard e na Stats.
+- [ ] **PC-33** Fontes self-hosted e `Montserrat` efetivamente carregada.
+- [ ] **PC-34** Testes de telas: Dashboard, Onboarding, EditProfile, AuthContext.
+- [ ] **PC-28** `useQuery`/`useMutation` no lugar de `useEffect` + chamadas manuais.
+- [ ] **PC-29** `react-hook-form` + Zod nos formulários complexos.
+- [ ] **PC-30** Decompor `EditProfilePage` e `NewMealModal`.
 
 ---
 
@@ -86,6 +153,7 @@ Antes de iniciar as melhorias da Fase 4, devem ser corrigidas as inconsistência
 - **Login Social (OAuth2):** Autenticação rápida com Google e Apple.
 - **Recuperação de Senha:** Fluxo de "Esqueci minha senha" com token assinado e expiração de 30 minutos.
 - **Proteção Antispam:** Integração de Cloudflare Turnstile nas rotas públicas de autenticação.
+- *Itens do backlog vinculados:* BL-05 (recuperação de senha), BL-06 (login social), BL-12 (verificação de e-mail + registro sem enumeração). *Prioridade em disputa: D-03.*
 
 ---
 
@@ -95,6 +163,7 @@ Antes de iniciar as melhorias da Fase 4, devem ser corrigidas as inconsistência
 - **Consentimento Explícito:** Checkbox no cadastro com registro de auditoria (`terms_accepted_at`).
 - **Portabilidade de Dados:** Endpoint para download do histórico completo em formato `.json` ou `.csv`.
 - **Auditoria de Exclusão:** Garantir que o processo de exclusão de conta respeite integralmente o Direito ao Esquecimento.
+- *Itens do backlog vinculados:* BL-10 (exportação — D-04), BL-11 (consentimento e páginas legais), BL-16 (retenção de contas inativas). Exclusão já verificada como conforme (SEC-022).
 
 ---
 
@@ -103,3 +172,14 @@ Antes de iniciar as melhorias da Fase 4, devem ser corrigidas as inconsistência
 - **Sessão Segura:** Migrar o token JWT do `localStorage` para cookies seguros `HTTP-Only` com Refresh Tokens rotacionados.
 - **Rastreamento de Erros:** Integração do **Sentry** no frontend e backend para alerta imediato de exceções em produção.
 - **Deploy Automatizado:** Configurar pipeline de deploy contínuo via GitHub Actions para plataformas em nuvem (ex: Render/Railway para backend e Vercel para frontend).
+- *Itens do backlog vinculados:* BL-04 (sessão/refresh — D-02), BL-01 (`trust proxy` — D-19), BL-07 (CSP), BL-08 (logging estruturado).
+
+---
+
+## 5. Fora das Fases (Aguardando Decisão)
+
+Itens de alto valor sem fase definida. Ver [BACKLOG §3 e §5](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/BACKLOG.md).
+- **BL-02** Navegação por data + registro retroativo (Crítica) — *D-20: criar fase de produto ou promover para a Fase 4*.
+- **BL-03** Tipos e cálculo compartilhados — *D-17*.
+- **BL-18 a BL-24** Features de retenção (copiar refeição, recentes/favoritos, combos, evolução de peso, alimentos personalizados, água, código de barras).
+- **BL-25** App mobile (Expo) — *D-05*.
