@@ -29,4 +29,11 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
 - **Status:** CORRIGIDO
 - **Ação:** Criação do tipo `FoodOption` e aplicação explícita de generics `<FoodOption, false>` no componente `Select` e em `CustomMenuList` (`MenuListProps<FoodOption, false>`).
 - **Validação:** `tsc -b && vite build` passou com sucesso (0 erros). Testes do backend e lint passaram com sucesso.
+- **Commit:** `c81d59f`
+
+### CA-08: Restaurar npm run lint (prefer-const e diretivas órfãs)
+- **Status:** CORRIGIDO
+- **Ação:** Variável `timeToUse` confirmada como `const`, diretiva órfã na `:181` removida e escopo de lint mantido limpo com 0 erros e 0 warnings.
+- **Validação:** `npm run lint` passou com código 0 em todo o repositório.
+
 
