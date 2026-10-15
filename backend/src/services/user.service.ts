@@ -7,6 +7,7 @@ import { AuthResponse, UserWithoutPassword } from '../types/user.types.js';
 import * as NutritionService from './nutrition.service.js';
 import * as HistoryModel from '../models/history.model.js';
 import { getSaoPauloDateString } from '../utils/date.js';
+import { pool } from '../database/pool.js';
 interface CustomError extends Error {
   statusCode?: number;
 }
@@ -100,39 +101,56 @@ export async function completeOnboarding(userId: string, data: CompleteOnboardin
     goal: data.goal,
   });
 
-  const updatedUser = await UserModel.updateUser(userId, {
-    sex: data.sex,
-    birthDate: data.birthDate,
-    goal: data.goal,
-    weight: data.weight,
-    height: data.height,
-    body_fat: data.body_fat,
-    activity_level: data.activity_level,
-    daily_calories_goal: targets.suggestedCalories, // Manter legibilidade até a fase de limpeza
-    daily_proteins_goal: targets.suggestedMacros.proteins,
-    onboarding_completed: true,
-  });
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
 
-  // Salvar no histórico
-  const todayStr = getSaoPauloDateString();
-  await HistoryModel.insertGoal(
-    userId,
-    todayStr,
-    targets.suggestedCalories,
-    targets.suggestedMacros.proteins,
-    targets.suggestedMacros.carbs,
-    targets.suggestedMacros.fats,
-    'auto'
-  );
+    const updatedUser = await UserModel.updateUser(
+      userId,
+      {
+        sex: data.sex,
+        birthDate: data.birthDate,
+        goal: data.goal,
+        weight: data.weight,
+        height: data.height,
+        body_fat: data.body_fat,
+        activity_level: data.activity_level,
+        daily_calories_goal: targets.suggestedCalories, // Manter legibilidade até a fase de limpeza
+        daily_proteins_goal: targets.suggestedMacros.proteins,
+        onboarding_completed: true,
+      },
+      client
+    );
 
-  await HistoryModel.insertBodyMeasurement(
-    userId,
-    data.weight,
-    data.body_fat || null,
-    new Date()
-  );
+    // Salvar no histórico
+    const todayStr = getSaoPauloDateString();
+    await HistoryModel.insertGoal(
+      userId,
+      todayStr,
+      targets.suggestedCalories,
+      targets.suggestedMacros.proteins,
+      targets.suggestedMacros.carbs,
+      targets.suggestedMacros.fats,
+      'auto',
+      client
+    );
 
-  return updatedUser;
+    await HistoryModel.insertBodyMeasurement(
+      userId,
+      data.weight,
+      data.body_fat || null,
+      new Date(),
+      client
+    );
+
+    await client.query('COMMIT');
+    return updatedUser;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 export async function updateProfile(userId: string, data: UpdateUserDTO): Promise<UserWithoutPassword> {
@@ -187,36 +205,52 @@ export async function updateProfile(userId: string, data: UpdateUserDTO): Promis
     newPasswordHash = await bcrypt.hash(data.newPassword, saltRounds);
   }
 
-  const updatedUser = await UserModel.updateUser(userId, {
-    name: data.name,
-    email: data.email,
-    passwordHash: newPasswordHash,
-    goal: data.goal,
-    sex: data.sex,
-    birthDate: data.birthDate,
-    weight: data.weight,
-    height: data.height,
-    body_fat: data.body_fat,
-    activity_level: data.activity_level,
-  });
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
 
-  // Se houve alteração no peso ou percentual de gordura, registrar histórico
-  if (data.weight !== undefined || data.body_fat !== undefined) {
-    // Usar o peso novo se enviado, senão o atual do banco. Mesma coisa pro BF.
-    const finalWeight = data.weight ?? Number(user.weight);
-    let finalBodyFat: number | null = null;
-    if (data.body_fat !== undefined) finalBodyFat = data.body_fat;
-    else if (user.body_fat !== undefined && user.body_fat !== null) finalBodyFat = Number(user.body_fat);
-
-    await HistoryModel.insertBodyMeasurement(
+    const updatedUser = await UserModel.updateUser(
       userId,
-      finalWeight,
-      finalBodyFat,
-      new Date()
+      {
+        name: data.name,
+        email: data.email,
+        passwordHash: newPasswordHash,
+        goal: data.goal,
+        sex: data.sex,
+        birthDate: data.birthDate,
+        weight: data.weight,
+        height: data.height,
+        body_fat: data.body_fat,
+        activity_level: data.activity_level,
+      },
+      client
     );
-  }
 
-  return updatedUser;
+    // Se houve alteração no peso ou percentual de gordura, registrar histórico
+    if (data.weight !== undefined || data.body_fat !== undefined) {
+      // Usar o peso novo se enviado, senão o atual do banco. Mesma coisa pro BF.
+      const finalWeight = data.weight ?? Number(user.weight);
+      let finalBodyFat: number | null = null;
+      if (data.body_fat !== undefined) finalBodyFat = data.body_fat;
+      else if (user.body_fat !== undefined && user.body_fat !== null) finalBodyFat = Number(user.body_fat);
+
+      await HistoryModel.insertBodyMeasurement(
+        userId,
+        finalWeight,
+        finalBodyFat,
+        new Date(),
+        client
+      );
+    }
+
+    await client.query('COMMIT');
+    return updatedUser;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 export async function deleteAccount(userId: string, password?: string): Promise<boolean> {
@@ -276,23 +310,39 @@ export async function updateGoals(userId: string, data: import('../schemas/user.
     throw error;
   }
 
-  const todayStr = getSaoPauloDateString();
-  const newGoal = await HistoryModel.insertGoal(
-    userId,
-    todayStr,
-    data.calories,
-    data.proteins,
-    data.carbs,
-    data.fats,
-    data.mode
-  );
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
 
-  await UserModel.updateUser(userId, {
-    daily_calories_goal: data.calories,
-    daily_proteins_goal: data.proteins,
-  });
+    const todayStr = getSaoPauloDateString();
+    const newGoal = await HistoryModel.insertGoal(
+      userId,
+      todayStr,
+      data.calories,
+      data.proteins,
+      data.carbs,
+      data.fats,
+      data.mode,
+      client
+    );
 
-  return newGoal;
+    await UserModel.updateUser(
+      userId,
+      {
+        daily_calories_goal: data.calories,
+        daily_proteins_goal: data.proteins,
+      },
+      client
+    );
+
+    await client.query('COMMIT');
+    return newGoal;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 export async function getActiveGoal(userId: string, dateStr?: string) {

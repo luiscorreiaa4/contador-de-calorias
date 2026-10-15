@@ -1,4 +1,5 @@
 import { pool } from '../database/pool.js';
+import type { PoolClient } from 'pg';
 
 export interface UserGoal {
   id: string;
@@ -28,11 +29,13 @@ export async function insertGoal(
   proteins: number,
   carbs: number,
   fats: number,
-  mode: 'auto' | 'manual'
+  mode: 'auto' | 'manual',
+  client?: PoolClient
 ): Promise<UserGoal> {
   // Fazemos um UPSERT para garantir que haja apenas uma meta por dia.
   // Se já existir, atualiza com os novos valores.
-  const result = await pool.query<UserGoal>(
+  const db = client || pool;
+  const result = await db.query<UserGoal>(
     `INSERT INTO user_goals (user_id, effective_from, calories, proteins, carbs, fats, mode)
      VALUES ($1, $2, $3, $4, $5, $6, $7)
      ON CONFLICT (user_id, effective_from) 
@@ -64,9 +67,11 @@ export async function insertBodyMeasurement(
   userId: string,
   weight: number,
   bodyFat: number | null,
-  measuredAt: Date
+  measuredAt: Date,
+  client?: PoolClient
 ): Promise<BodyMeasurement> {
-  const result = await pool.query<BodyMeasurement>(
+  const db = client || pool;
+  const result = await db.query<BodyMeasurement>(
     `INSERT INTO body_measurements (user_id, weight, body_fat, measured_at)
      VALUES ($1, $2, $3, $4)
      RETURNING *`,

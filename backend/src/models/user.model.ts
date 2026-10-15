@@ -1,4 +1,5 @@
 import { pool } from '../database/pool.js';
+import type { PoolClient } from 'pg';
 import { User, UserWithoutPassword } from '../types/user.types.js';
 
 export async function createUser(
@@ -55,7 +56,8 @@ export async function updateUser(
     daily_calories_goal?: number;
     daily_proteins_goal?: number;
     onboarding_completed?: boolean;
-  }
+  },
+  client?: PoolClient
 ): Promise<UserWithoutPassword> {
   const updates: string[] = [];
   const values: unknown[] = [];
@@ -129,7 +131,8 @@ export async function updateUser(
     RETURNING id, name, email, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, created_at, updated_at
   `;
 
-  const result = await pool.query<UserWithoutPassword>(query, values);
+  const db = client || pool;
+  const result = await db.query<UserWithoutPassword>(query, values);
   return result.rows[0];
 }
 

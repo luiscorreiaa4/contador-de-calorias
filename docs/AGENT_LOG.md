@@ -267,3 +267,12 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - `backend/tests/unit/password_security.test.ts`: suíte unitária reproduzindo e confirmando as regras de senha forte e timing attack mitigation.
   - `docs/SPEC.md`: atualizado RF-001 documentando as novas políticas de segurança de credenciais.
 - **Validação:** 97 testes de backend passando (22 suítes), 14 testes de frontend passando (5 suítes), lint 0 erros, build verde.
+
+### PC-17: Transações atômicas e rollbacks em onboarding, perfil e metas (ARCH-002, TST-012)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/models/user.model.ts`: atualizada a função `updateUser` para aceitar opcionalmente instância de `PoolClient`, permitindo execução dentro de transações atômicas.
+  - `backend/src/models/history.model.ts`: atualizadas as funções `insertGoal` e `insertBodyMeasurement` para aceitar opcionalmente instância de `PoolClient`.
+  - `backend/src/services/user.service.ts`: operações multi-escrita em `completeOnboarding` (`updateUser` + `insertGoal` + `insertBodyMeasurement`), `updateProfile` (`updateUser` + `insertBodyMeasurement`) e `updateGoals` (`insertGoal` + `updateUser`) encapsuladas em transações atômicas estruturadas com `client = await pool.connect()`, `BEGIN`, `COMMIT` e `ROLLBACK` em bloco `try/catch/finally` garantindo `client.release()`.
+  - `backend/tests/integration/transactions_rollback.test.ts`: testes de integração reproduzindo falhas forçadas via constraints nas tabelas do PostgreSQL comprovando que falhas intermediárias disparam rollback total sem deixar o usuário em estado inconsistente.
+- **Validação:** 100 testes de backend passando (23 suítes), 14 testes de frontend passando (5 suítes), lint 0 erros, build verde.
