@@ -164,19 +164,21 @@ erDiagram
 | **Transações Atômicas** | `BEGIN` / `COMMIT` / `ROLLBACK` | Operações de gravação que tocam `meals` e múltiplos `meal_items` (criação e atualização) executam obrigatoriamente dentro de transações de banco para evitar registros órfãos. |
 | **Validação Universal** | Zod em todo o pipeline | O Zod é usado para validar variáveis de ambiente na inicialização (fail-fast), parâmetros HTTP nos middlewares do backend e entradas de formulários no frontend. |
 | **Catálogo Protegido** | `foods` somente-leitura para usuários | Usuários comuns não possuem endpoints para cadastrar, editar ou apagar alimentos globais, evitando corrupção do catálogo. A inserção é restrita a migrações e scripts de carga (`import-foods.ts`). |
+| **Estratégia de Fuso Horário (D-01)** | Opção A+B: servidor fixa `America/Sao_Paulo` via `Intl` e consultas com `AT TIME ZONE`; cliente envia `?date=YYYY-MM-DD` | Desacopla a consistência das datas civis do fuso do ambiente operacional e garante agregação correta independente de onde o servidor ou container esteja executando. |
+| **Tratamento de Falhas 500 (D-10)** | Mascaramento de erros internos nos controllers com mensagem genérica | Previne vazamento de detalhes estruturais, tabelas ou constraints do PostgreSQL em respostas HTTP 500. |
+| **SSL e Proxy Seguro (D-19)** | SSL estrito no pool em prod (`rejectUnauthorized: true`), CA via `DB_SSL_CA`, e proxy via `TRUST_PROXY` | Evita ataques de man-in-the-middle em bancos remotos mantendo flexibilidade para certificados de nuvem e proxies reversos. |
 
 ---
 
 ## 4. Tratamento de Fuso Horário e Datas [CONFIRMADO]
 
-1. **Definição de Fuso no Node.js:**
-   - Todos os scripts de execução no `backend/package.json` (`dev`, `test`, `start`) injetam obrigatoriamente:
-     `cross-env TZ=America/Sao_Paulo`
+1. **Definição e Desacoplamento de Fuso no Node.js (D-01):**
+   - Embora scripts injetem `cross-env TZ=America/Sao_Paulo`, as rotas e regras de negócio não dependem do fuso da máquina hospedeira: manipulações de data civil e janelas diárias utilizam `getSaoPauloDateString` ancorado em `Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' })` e queries de banco utilizam `AT TIME ZONE 'America/Sao_Paulo'`.
 2. **Armazenamento no Banco de Dados:**
    - Colunas de momento temporal (`created_at`, `updated_at`, `meal_time`, `measured_at`) são tipadas como `TIMESTAMP WITH TIME ZONE` (`TIMESTAMPTZ`), garantindo persistência em UTC com preservação de offset.
    - Colunas puramente de data civil (`birth_date`, `user_goals.effective_from`) são do tipo `DATE`.
 3. **Consultas Diárias:**
-   - Na listagem de refeições de hoje (`GET /api/meals/today`), o frontend envia o parâmetro de consulta `date=YYYY-MM-DD` com base no relógio do navegador. O backend utiliza esse intervalo `[dateT00:00:00, date+1T00:00:00[` para evitar que usuários no fuso UTC-3 vejam refeições agrupadas no dia incorreto.
+   - Na listagem de refeições de hoje (`GET /api/meals/today`) e estatísticas (`GET /api/meals/stats`), o frontend envia o parâmetro de consulta `date=YYYY-MM-DD` com base no relógio do navegador. O backend utiliza esse intervalo `[dateT00:00:00-03:00, date+1T00:00:00-03:00[` para evitar que usuários no fuso UTC-3 vejam refeições agrupadas no dia incorreto.
 
 ---
 

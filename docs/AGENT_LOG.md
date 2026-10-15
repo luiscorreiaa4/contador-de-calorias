@@ -152,4 +152,8 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - `docs/SPEC.md`: corrigido parâmetro de busca do catálogo para usar estritamente `search` conforme D-09.
   - `backend/tests/unit/validate.middleware.test.ts` e `backend/tests/integration/meal.routes.test.ts`: testes unitários e de integração validando rejeição com 400 em params/query inválidos e formato UUID.
 - **Validação:** 65 testes de backend passando (18 suítes), 13 testes de frontend passando (5 suítes), lint limpo e build de produção verde.
-- **Commit:** `b32a2bc`
+- **Commit:** `9f89c22`
+
+### CA-16: Macros para IMC alto (soma P+G > meta calórica)
+- **Status:** PULADO (bloqueado por D-15)
+- **Motivo:** O item depende da decisão D-15 (regras para evitar que carboidratos zerem quando soma de proteínas e gorduras exceder a meta calórica em usuários com IMC elevado: fórmula de Wilkens vs % do VET vs massa magra). D-15 não consta no lote de decisões pré-aprovadas e aguarda definição do usuário.
