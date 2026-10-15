@@ -302,4 +302,13 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - `backend/tests/integration/health_and_resilience.test.ts`: criados testes de integração validando a configuração de `statement_timeout`, a resposta positiva de `GET /health` no padrão `{ success, data }` e o retorno de status 503 quando a sonda do banco falha.
 - **Validação:** 104 testes de backend passando (23 suítes), 14 testes de frontend passando (5 suítes), lint 0 erros, build verde.
 
+### PC-02: Middleware de compressão HTTP (compression)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/package.json`: adicionadas as dependências estáveis `compression` (`^1.8.0`) e `@types/compression` (`^1.7.5`).
+  - `backend/src/app.ts`: importado e registrado `app.use(compression())` no topo da cadeia de middlewares da API.
+  - `backend/tests/integration/compression.test.ts`: teste de integração confirmando o envio do cabeçalho `Content-Encoding: gzip` quando requisitado por clientes compatíveis para payloads acima do threshold (> 1KB).
+- **Validação:** 106 testes de backend passando (23 suítes), 14 testes de frontend passando (5 suítes), lint 0 erros, build verde.
+
+
 

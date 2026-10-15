@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import compression from 'compression';
 import { env } from './config/env.js';
 import userRoutes from './routes/user.routes.js';
 import foodRoutes from './routes/food.routes.js';
@@ -18,6 +19,7 @@ app.use(cors({
   credentials: true,
 }));
 
+app.use(compression());
 app.use(express.json({ limit: '50kb' }));
 
 // Routes
