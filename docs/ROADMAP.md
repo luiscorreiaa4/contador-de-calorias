@@ -74,7 +74,7 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 - [x] **CA-10** Mascarar mensagens do PostgreSQL em respostas 500 *(D-10)*.
 - [x] **CA-11** Tetos Zod/payload (itens, nomes, quantidade, busca + escape `ILIKE`, senha ≤ 72, `express.json` limit).
 - [x] **CA-12** Trava de ambiente em `scripts/reset-db.js`.
-- [ ] **CA-13** Atualizar dependências vulneráveis (`proxy-addr`, `tar`, `shell-quote`, `brace-expansion`).
+- [x] **CA-13** Atualizar dependências vulneráveis (`proxy-addr`, `tar`, `shell-quote`, `brace-expansion`).
 - [ ] **CA-15** `validate()` para `query`/`params` + schemas de UUID, data, período e busca *(D-09)*.
 
 **Bugs de cálculo e data**

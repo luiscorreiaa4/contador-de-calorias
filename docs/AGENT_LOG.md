@@ -121,5 +121,12 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
 - **Ação:**
   - `backend/scripts/reset-db.js`: implementada função guard `validateEnvironment()` que aborta imediatamente a execução lançando exceção caso `NODE_ENV !== 'test'` ou `DB_NAME` não termine com o sufixo `_test`. Além disso, a execução automática no carregamento do módulo foi protegida para executar apenas quando o script for chamado diretamente via CLI (`isDirectCall`).
   - `backend/tests/unit/reset_db_guard.test.ts`: testes unitários garantindo que a execução seja impedida em produção, desenvolvimento ou bases sem sufixo `_test`.
+- **Commit:** `7e11139`
+
+### CA-13: Atualização de dependências vulneráveis (proxy-addr, tar, shell-quote, brace-expansion)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `package.json`: adicionado bloco `overrides` para `shell-quote` (`^1.12.0`) e `brace-expansion` (`^5.0.12`). Executado `npm install` na raiz, eliminando todas as vulnerabilidades críticas e altas de injeção de comando e negação de serviço (`found 0 vulnerabilities`).
+  - `backend/package.json`: adicionado bloco `overrides` para `proxy-addr` (`^2.0.8`), `tar` (`^7.5.22`) e `braces` (`^3.0.3`). Executado `npm --prefix backend install`, eliminando as vulnerabilidades críticas de IP spoofing em subredes IPv4-mapped IPv6 e Directory Traversal do `node-tar`.
 - **Validação:** 62 testes de backend passando (17 suítes), 13 testes de frontend passando (5 suítes), lint limpo e build de produção verde.
-- **Commit:** `ebe726f`
+- **Commit:** `d91e1be`
