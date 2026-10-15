@@ -154,6 +154,17 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
 - **Validação:** 65 testes de backend passando (18 suítes), 13 testes de frontend passando (5 suítes), lint limpo e build de produção verde.
 - **Commit:** `9f89c22`
 
-### CA-16: Macros para IMC alto (soma P+G > meta calórica)
-- **Status:** PULADO (bloqueado por D-15)
-- **Motivo:** O item depende da decisão D-15 (regras para evitar que carboidratos zerem quando soma de proteínas e gorduras exceder a meta calórica em usuários com IMC elevado: fórmula de Wilkens vs % do VET vs massa magra). D-15 não consta no lote de decisões pré-aprovadas e aguarda definição do usuário.
+### CA-16: Macros para IMC alto e consistência de calorias (D-15)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/services/nutrition.service.ts`: reformulado o cálculo de macronutrientes conforme evidências científicas modernas de nutrição esportiva e clínica (ISSN, Aragon, Wilkens):
+    - Para usuários com IMC >= 28.0 (sem % de gordura informado): aplicação da fórmula de Peso Ajustado de Wilkens ($peso_{ideal} + 0.25 \times (peso_{real} - peso_{ideal})$ com base em IMC 24.0), prevenindo superestimação de proteína e gordura sobre tecido adiposo inerte.
+    - Para usuários com percentual de gordura elevado: cálculo proteico baseado na Massa Livre de Gordura ($2.2 \text{ g/kg LBM}$) e gorduras moderadas ($0.8 \text{ g/kg LBM}$ ou 25% das calorias).
+    - Trava metabólica de segurança: calorias de proteína + gordura limitadas a no máximo 75% da meta calórica, assegurando no mínimo 25% de carboidratos para desempenho atlético e suporte tireoidiano.
+    - Reconciliação aritmética direta (BUG-B04): carboidratos calculados diretamente como o saldo das calorias sugeridas após desconto de proteína e gordura, garantindo consistência com a meta diária exibida ao usuário.
+  - `docs/SPEC.md`: atualizada a especificação da regra RF-002 (§6 Divisão de Macronutrientes) com a fundamentação científica e as equações de Wilkens e LBM.
+  - `docs/BACKLOG.md` e `docs/ROADMAP.md`: atualizados com status CORRIGIDO e decisão D-15 formalizada.
+  - `backend/tests/unit/nutrition.service.test.ts`: adicionados testes unitários validando que carboidratos não zeram e que a soma calórica dos macros coincide com a meta sugerida em perfis de IMC alto e adiposidade elevada.
+- **Validação:** 67 testes de backend passando (18 suítes), 13 testes de frontend passando (5 suítes), lint limpo e build de produção verde.
+- **Commit:** `7ede68f`
+

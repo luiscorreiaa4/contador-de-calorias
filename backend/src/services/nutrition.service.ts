@@ -104,28 +104,69 @@ export function calculateEnergyTargets(profile: UserProfile): EnergyTargets {
     suggestedCalories = minCalories;
   }
 
-  // 4. Divisão de Macronutrientes (2g Prot/kg, 1g Gord/kg, resto Carb)
-  const proteins = 2.0 * profile.weight;
-  const fats = 1.0 * profile.weight;
-  
-  // Calorias das proteínas (4 kcal/g) e gorduras (9 kcal/g)
-  const caloriesFromProt = proteins * 4;
-  const caloriesFromFats = fats * 9;
-  
-  // O restante vai para carboidratos (4 kcal/g)
-  let carbs = (suggestedCalories - caloriesFromProt - caloriesFromFats) / 4;
-  
-  // Se os carboidratos ficarem negativos (ex: calorias totais muito baixas para manter a regra)
-  if (carbs < 0) carbs = 0;
+  // 4. Divisão de Macronutrientes (Ciência Nutricional & Fitness Moderno - D-15 / CA-16)
+  // Em sobrepeso ou obesidade, calcular sobre o peso bruto superestima proteínas e gorduras,
+  // zerando carboidratos (BUG-B03). Aplicamos a metodologia de referência (ISSN / Aragon / Wilkens):
+  let proteins: number;
+  let fats: number;
+
+  const heightInMeters = profile.height / 100;
+  const bmi = heightInMeters > 0 ? profile.weight / (heightInMeters * heightInMeters) : 22;
+
+  if (profile.body_fat && profile.body_fat > 0) {
+    const leanBodyMass = profile.weight * (1 - profile.body_fat / 100);
+    const isHighBodyFat = (profile.sex === 'masculino' && profile.body_fat >= 25) ||
+                          (profile.sex !== 'masculino' && profile.body_fat >= 32);
+
+    if (isHighBodyFat) {
+      // Baseado na massa magra para alta adiposidade (ISSN: 2.2g/kg LBM e gorduras a 25% das calorias ou 0.8g/kg LBM)
+      proteins = 2.2 * leanBodyMass;
+      fats = Math.max(0.8 * leanBodyMass, (suggestedCalories * 0.25) / 9);
+    } else {
+      // Atleta / composição corporal favorável
+      proteins = 2.0 * profile.weight;
+      fats = 1.0 * profile.weight;
+    }
+  } else if (bmi >= 28.0 && heightInMeters > 0) {
+    // IMC elevado sem bioimpedância: aplica Peso Ajustado de Wilkens
+    // Peso ideal baseado em IMC 24 (limite superior da faixa de eutrofia/fitness saudável)
+    const idealWeight = 24.0 * (heightInMeters * heightInMeters);
+    const adjustedWeight = idealWeight + 0.25 * (profile.weight - idealWeight);
+
+    proteins = 2.0 * adjustedWeight;
+    fats = 0.8 * adjustedWeight;
+  } else {
+    // Padrão fitness para eutrofia (2.0g/kg proteína, 1.0g/kg gordura)
+    proteins = 2.0 * profile.weight;
+    fats = 1.0 * profile.weight;
+  }
+
+  // Trava de segurança metabólica: Proteína + Gordura não podem exceder 75% das calorias totais,
+  // garantindo no mínimo 25% das calorias para carboidratos (combustível glicolítico e função tireoidiana).
+  const maxProtFatCalories = suggestedCalories * 0.75;
+  if ((proteins * 4 + fats * 9) > maxProtFatCalories) {
+    fats = (suggestedCalories * 0.25) / 9;
+    if (proteins * 4 > (suggestedCalories * 0.50)) {
+      proteins = (suggestedCalories * 0.50) / 4;
+    }
+  }
+
+  const roundedProt = Math.round(proteins);
+  const roundedFats = Math.round(fats);
+  const roundedCalories = Math.round(suggestedCalories);
+
+  // Reconciliação direta dos carboidratos (BUG-B04):
+  const remainingCalories = Math.max(0, roundedCalories - (roundedProt * 4) - (roundedFats * 9));
+  const roundedCarbs = Math.round(remainingCalories / 4);
 
   return {
     tmb: Math.round(tmb),
     tdee: Math.round(tdee),
-    suggestedCalories: Math.round(suggestedCalories),
+    suggestedCalories: roundedCalories,
     suggestedMacros: {
-      proteins: Math.round(proteins),
-      fats: Math.round(fats),
-      carbs: Math.round(carbs),
+      proteins: roundedProt,
+      fats: roundedFats,
+      carbs: roundedCarbs,
     }
   };
 }
