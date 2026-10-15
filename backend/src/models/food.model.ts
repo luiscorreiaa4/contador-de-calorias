@@ -13,7 +13,8 @@ export async function searchFoods(query: string, limit: number, offset: number):
       ORDER BY f_unaccent(name) <-> f_unaccent($2) ASC
       LIMIT $3 OFFSET $4
     `;
-    const searchPattern = `%${query}%`;
+    const sanitized = query.replace(/[%_\\]/g, '\\$&');
+    const searchPattern = `%${sanitized}%`;
     foodsResult = await pool.query<Food>(sql, [searchPattern, query, limit, offset]);
 
     const countSql = `

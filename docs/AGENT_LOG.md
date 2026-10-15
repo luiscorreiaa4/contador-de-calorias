@@ -101,4 +101,17 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - `backend/src/controllers/user.controller.ts`, `backend/src/controllers/meal.controller.ts`, `backend/src/controllers/food.controller.ts`: atualizados todos os blocos `catch` para que qualquer resposta de erro com status HTTP 500 retorne estritamente `'Erro interno no servidor.'`, impedindo vazamento de mensagens internas do PostgreSQL (sintaxe, tipagem, constraints ou tabelas).
   - `backend/tests/integration/meal.routes.test.ts`: adicionado teste de integração reproduzindo requisição com ID inválido e validando que o corpo da resposta 500 não expõe a mensagem nativa do Postgres.
 - **Validação:** 49 testes de backend passando (15 suítes), 13 testes de frontend passando (5 suítes), lint limpo (0 erros / 0 avisos) e build de produção verde.
-- **Commit:** `0c05d36`
+- **Commit:** `0d6f7c4`
+
+### CA-11: Tetos de entrada, limites de payload e sanitização de buscas
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/app.ts`: configurado limite explícito de `50kb` para `express.json({ limit: '50kb' })`.
+  - `backend/src/middlewares/errorHandler.ts`: adicionado suporte a `err.status` para captura do erro 413 (`PayloadTooLargeError`).
+  - `backend/src/schemas/meal.schema.ts`: adicionados tetos para `name` (`.max(100)`), `items` (`.max(50)`), `quantity` (`.max(10000)`) e `displayAmount` (`.max(10000)`).
+  - `backend/src/schemas/user.schema.ts`: adicionados limites para `name` (`.max(100)`) e `password` / `newPassword` / `currentPassword` (`.max(72)` para respeitar o limite de truncamento do bcrypt).
+  - `backend/src/controllers/food.controller.ts`: adicionado teto de busca `search.max(100)`.
+  - `backend/src/models/food.model.ts`: sanitização e escape de caracteres curingas `%`, `_` e `\` na montagem da query `ILIKE`.
+  - `backend/tests/unit/input.limits.test.ts` e `backend/tests/integration/food.routes.test.ts`: testes cobrindo todos os limites de entrada, sanitização e rejeição de payloads > 50kb com status 413.
+- **Validação:** 58 testes de backend passando (16 suítes), 13 testes de frontend passando (5 suítes), lint limpo e build de produção verde.
+- **Commit:** `61bd7bc`

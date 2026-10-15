@@ -9,7 +9,7 @@ interface CustomError {
 import { z } from 'zod';
 
 const listQuerySchema = z.object({
-  search: z.string().optional(),
+  search: z.string().max(100, 'A busca deve ter no máximo 100 caracteres.').optional(),
   page: z.coerce.number().int().min(1).optional().default(1),
   limit: z.coerce.number().int().min(1).max(50).optional().default(50)
 });

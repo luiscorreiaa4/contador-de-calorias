@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 
 interface CustomError extends Error {
   statusCode?: number;
+  status?: number;
 }
 
 export function errorHandler(
@@ -11,7 +12,7 @@ export function errorHandler(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _next: NextFunction
 ) {
-  const statusCode = err.statusCode ?? 500;
+  const statusCode = err.statusCode ?? err.status ?? 500;
   const message = statusCode === 500 ? 'Erro interno no servidor.' : err.message;
 
   if (statusCode === 500) {

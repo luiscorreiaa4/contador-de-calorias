@@ -1,18 +1,18 @@
 import { z } from 'zod';
 
 export const registerUserSchema = z.object({
-  name: z.string().min(2, 'O nome deve ter no mínimo 2 caracteres.'),
+  name: z.string().min(2, 'O nome deve ter no mínimo 2 caracteres.').max(100, 'O nome deve ter no máximo 100 caracteres.'),
   email: z.string().email('Digite um e-mail válido.'),
-  password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres.'),
+  password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres.').max(72, 'A senha deve ter no máximo 72 caracteres.'),
 });
 
 export const loginUserSchema = z.object({
   email: z.string().email('Digite um e-mail válido.'),
-  password: z.string().min(1, 'A senha é obrigatória.'),
+  password: z.string().min(1, 'A senha é obrigatória.').max(72, 'A senha deve ter no máximo 72 caracteres.'),
 });
 
 export const updateUserSchema = z.object({
-  name: z.string().min(2, 'O nome deve ter no mínimo 2 caracteres.').optional(),
+  name: z.string().min(2, 'O nome deve ter no mínimo 2 caracteres.').max(100, 'O nome deve ter no máximo 100 caracteres.').optional(),
   email: z.string().email('Digite um e-mail válido.').optional(),
   goal: z.enum(['perder_peso', 'manter_peso', 'ganhar_massa']).optional(),
   sex: z.enum(['masculino', 'feminino', 'prefiro_nao_responder']).optional(),
@@ -21,8 +21,8 @@ export const updateUserSchema = z.object({
   height: z.number().positive('A altura deve ser maior que zero.').optional(),
   body_fat: z.number().positive('O percentual de gordura deve ser maior que zero.').nullable().optional(),
   activity_level: z.enum(['sedentario', 'pouco_ativo', 'moderadamente_ativo', 'muito_ativo', 'extremamente_ativo']).optional(),
-  currentPassword: z.string().optional(),
-  newPassword: z.string().min(6, 'A nova senha deve ter no mínimo 6 caracteres.').optional(),
+  currentPassword: z.string().max(72, 'A senha deve ter no máximo 72 caracteres.').optional(),
+  newPassword: z.string().min(6, 'A nova senha deve ter no mínimo 6 caracteres.').max(72, 'A senha deve ter no máximo 72 caracteres.').optional(),
 }).superRefine((data, ctx) => {
   if (data.newPassword && (!data.currentPassword || !data.currentPassword.trim())) {
     ctx.addIssue({
@@ -34,7 +34,7 @@ export const updateUserSchema = z.object({
 });
 
 export const deleteUserSchema = z.object({
-  password: z.string().min(1, 'Informe sua senha para confirmar a exclusão da conta.'),
+  password: z.string().min(1, 'Informe sua senha para confirmar a exclusão da conta.').max(72, 'A senha deve ter no máximo 72 caracteres.'),
 });
 
 export const completeOnboardingSchema = z.object({

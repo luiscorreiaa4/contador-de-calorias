@@ -50,4 +50,21 @@ describe('Food Routes (Integration)', () => {
     assert.strictEqual(res.status, 400); // Porque o validador limit max é 50
     assert.match(res.body.message, /Number must be less than or equal to 50/);
   });
+
+  it('GET /api/foods - rejeita busca com mais de 100 caracteres (CA-11)', async () => {
+    const res = await request(app)
+      .get(`/api/foods?search=${'A'.repeat(101)}`)
+      .set('Authorization', `Bearer ${userToken}`);
+
+    assert.strictEqual(res.status, 400);
+  });
+
+  it('GET /api/foods - sanitiza curingas SQL % e _ sem quebrar ou vazar todos os registros (CA-11)', async () => {
+    const res = await request(app)
+      .get('/api/foods?search=__nao_existe__')
+      .set('Authorization', `Bearer ${userToken}`);
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.data.foods.length, 0);
+  });
 });
