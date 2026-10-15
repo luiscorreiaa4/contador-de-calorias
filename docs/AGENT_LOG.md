@@ -241,6 +241,15 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - `backend/tests/integration/meal.routes.test.ts`: adicionados 3 novos testes de integração cobrindo atualização com substituição atômica de itens (`PUT /meals/:id`), estatísticas mensais com médias justas (`GET /meals/stats`) e exclusão com sucesso (`DELETE /meals/:id`).
 - **Validação:** 89 testes de backend passando (20 suítes), 13 testes de frontend passando, lint 0 erros, build verde.
 
+### PC-04: Remover registro duplicado de rotas no Express (ARCH-004)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/server.ts`: removida importação redundante e segundo registro de `userRoutes`, `foodRoutes` e `mealRoutes`.
+  - `backend/src/app.ts`: organizados todos os imports no topo do arquivo antes da instanciação do Express e registro das rotas unificado exclusivamente antes do `errorHandler`.
+  - `backend/tests/unit/routes_registration.test.ts`: teste unitário criado inspecionando a stack interna de roteamento do Express, garantindo que `/api/users`, `/api/foods` e `/api/meals` estejam registrados rigorosamente 1 única vez.
+- **Validação:** 90 testes de backend passando (21 suítes), 13 testes de frontend passando, lint 0 erros, build verde.
+
+
 
 
 

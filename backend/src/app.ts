@@ -3,6 +3,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { env } from './config/env.js';
 import userRoutes from './routes/user.routes.js';
+import foodRoutes from './routes/food.routes.js';
+import mealRoutes from './routes/meal.routes.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 
 export const app = express();
@@ -16,9 +18,6 @@ app.use(cors({
 }));
 
 app.use(express.json({ limit: '50kb' }));
-
-import foodRoutes from './routes/food.routes.js';
-import mealRoutes from './routes/meal.routes.js';
 
 // Routes
 app.use('/api/users', userRoutes);
