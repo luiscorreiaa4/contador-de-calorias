@@ -43,7 +43,13 @@ function calculateNutrients(food: Food, quantityInBaseUnit: number) {
   };
 }
 
-const CustomMenuList = (props: MenuListProps) => {
+interface FoodOption {
+  value: string;
+  label: string;
+  food: Food;
+}
+
+const CustomMenuList = (props: MenuListProps<FoodOption, false>) => {
   const children = React.Children.toArray(props.children);
   const MAX_ITEMS = 50;
 
@@ -92,7 +98,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
   const modalRef = useRef<HTMLDivElement>(null);
   const amountInputRef = useRef<HTMLInputElement>(null);
 
-  const foodOptions = useMemo(() => {
+  const foodOptions: FoodOption[] = useMemo(() => {
     return foods.map((food) => ({ value: food.id, label: food.name.toUpperCase(), food }));
   }, [foods]);
 
@@ -445,13 +451,13 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
               </div>
 
               {!selectedFood ? (
-                <Select
+                <Select<FoodOption, false>
                   options={foodOptions}
                   isLoading={isLoadingFoods}
                   onInputChange={(newValue, { action }) => {
                     if (action === 'input-change') setSearchTerm(newValue);
                   }}
-                  onChange={(option: { food: Food; label: string; value: string } | null) => {
+                  onChange={(option) => {
                     if (option) handleSelectFood(option.food);
                   }}
                   placeholder="PESQUISAR ALIMENTO..."

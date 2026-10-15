@@ -62,7 +62,7 @@ Este documento registra o planejamento estratégico e a evolução do **CalorieS
 Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/BACKLOG.md)):
 
 **CI verde (pré-requisito de todo o resto)**
-- [ ] **CA-02** Build: generics do `react-select` em `NewMealModal.tsx:455,461`.
+- [x] **CA-02** Build: generics do `react-select` em `NewMealModal.tsx:455,461`.
 - [ ] **CA-08** Lint: `prefer-const` em `NewMealModal.tsx:298` e diretiva órfã na `:181`.
 - [ ] **CA-03** Suíte do frontend: 9/13 testes falhando em `LoginForm`, `RegisterForm` e `NewMealModal` + erro MSW em `StatsPage` (contrato `/foods` e handler `/meals/stats`).
 
