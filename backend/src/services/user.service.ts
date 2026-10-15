@@ -6,6 +6,7 @@ import { RegisterUserDTO, LoginUserDTO, UpdateUserDTO, CompleteOnboardingDTO } f
 import { AuthResponse, UserWithoutPassword } from '../types/user.types.js';
 import * as NutritionService from './nutrition.service.js';
 import * as HistoryModel from '../models/history.model.js';
+import { getSaoPauloDateString } from '../utils/date.js';
 interface CustomError extends Error {
   statusCode?: number;
 }
@@ -103,7 +104,7 @@ export async function completeOnboarding(userId: string, data: CompleteOnboardin
   });
 
   // Salvar no histórico
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getSaoPauloDateString();
   await HistoryModel.insertGoal(
     userId,
     todayStr,
@@ -265,7 +266,7 @@ export async function updateGoals(userId: string, data: import('../schemas/user.
     throw error;
   }
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getSaoPauloDateString();
   const newGoal = await HistoryModel.insertGoal(
     userId,
     todayStr,
@@ -285,7 +286,7 @@ export async function updateGoals(userId: string, data: import('../schemas/user.
 }
 
 export async function getActiveGoal(userId: string, dateStr?: string) {
-  const targetDate = dateStr ?? new Date().toISOString().split('T')[0];
+  const targetDate = dateStr ?? getSaoPauloDateString();
   const goal = await HistoryModel.getActiveGoal(userId, targetDate);
   if (!goal) {
     const user = await UserModel.findFullUserById(userId);

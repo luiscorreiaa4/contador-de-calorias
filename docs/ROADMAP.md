@@ -78,7 +78,7 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 - [ ] **CA-15** `validate()` para `query`/`params` + schemas de UUID, data, período e busca *(D-09)*.
 
 **Bugs de cálculo e data**
-- [ ] **CA-04** Vigência de metas gravada no dia seguinte após 21h BRT *(D-01)*.
+- [x] **CA-04** Vigência de metas gravada no dia seguinte após 21h BRT *(D-01)*.
 - [ ] **CA-09** `calculateAge` com parse UTC.
 - [ ] **CA-14** Janela diária e agrupamento de estatísticas independentes do TZ do processo + `?date=` no frontend + testes com `TZ=UTC` *(D-01)*.
 - [ ] **CA-16** Macros para IMC alto (soma P+G > meta; carboidrato zerado) *(D-15)*.

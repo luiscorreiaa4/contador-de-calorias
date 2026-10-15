@@ -1,6 +1,7 @@
 import * as MealModel from '../models/meal.model.js';
 import * as FoodModel from '../models/food.model.js';
 import { CreateMealDTO } from '../schemas/meal.schema.js';
+import { getSaoPauloDateString } from '../utils/date.js';
 
 interface CustomError extends Error {
   statusCode?: number;
@@ -172,7 +173,7 @@ export async function getMealStats(userId: string, period: 'week' | 'month' = 'm
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date(today);
     d.setDate(d.getDate() - i);
-    const dStr = d.toISOString().split('T')[0];
+    const dStr = getSaoPauloDateString(d);
     
     const dayStat = stats.find(s => s.date === dStr);
     

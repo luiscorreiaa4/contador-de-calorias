@@ -54,5 +54,16 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - `backend/src/services/user.service.ts`: remoção de `|| 'fallback_jwt_secret'` e uso estrito de `env.JWT_SECRET`.
   - `backend/tests/unit/auth.middleware.test.ts`: teste unitário criado garantindo rejeição (401) de tokens assinados com chaves fallback inseguras e validação com `env.JWT_SECRET`.
 - **Validação:** 40 testes de backend passando (12 suítes), lint limpo e build verde.
+- **Commit:** `6d59b0f`
+
+### CA-04: Fuso horário em vigência de metas (Intl America/Sao_Paulo)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/utils/date.ts`: criado módulo de data com `getSaoPauloDateString` fixando `America/Sao_Paulo` via `Intl.DateTimeFormat('en-CA', ...)` (conforme decisão D-01).
+  - `backend/src/services/user.service.ts`: substituídas chamadas a `toISOString().split('T')[0]` por `getSaoPauloDateString()` nas linhas 106, 268 e 288.
+  - `backend/src/services/meal.service.ts`: substituída chamada a `toISOString().split('T')[0]` por `getSaoPauloDateString(d)` na linha 175.
+  - `backend/tests/unit/date.util.test.ts`: teste unitário reproduzindo a virada indevida de data após as 21h BRT e comprovando a estabilidade com `getSaoPauloDateString`.
+- **Validação:** 43 testes de backend passando (13 suítes), lint limpo e build verde.
+
 
 
