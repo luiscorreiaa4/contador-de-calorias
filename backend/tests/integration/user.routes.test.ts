@@ -3,13 +3,15 @@ import assert from 'node:assert';
 import request from 'supertest';
 import { app } from '../../src/app.js';
 import { pool } from '../../src/database/pool.js';
+import { cleanupTestData } from '../helpers/db.js';
 
 describe('User Routes (Integration - E2E)', () => {
   after(async () => {
+    await cleanupTestData('tester-user-%');
     await pool.end();
   });
 
-  const testEmail = `tester-${Date.now()}@example.com`;
+  const testEmail = `tester-user-${Date.now()}@example.com`;
   const testPassword = 'password123';
 
   it('POST /api/users/register - deve retornar 201 no caminho feliz real', async () => {

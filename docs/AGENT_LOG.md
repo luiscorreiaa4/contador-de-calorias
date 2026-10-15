@@ -221,7 +221,14 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - `backend/src/services/meal.service.ts`: exportada função `calculateItemNutrients` para permitir testes unitários diretos.
   - `backend/tests/meal.test.ts`: suíte `Nutritional Factor Calculations` refatorada para importar e chamar `calculateItemNutrients` com cenários reais (gramas, ml, unidades), eliminando variáveis locais e contas tautológicas isoladas.
   - `backend/tests/integration/food.routes.test.ts`: substituída a asserção no-op por verificação real de que o resultado da busca insensível a acentuação (`search=maca`) retorna alimentos contendo "Maçã".
-- **Validação:** 67 testes de backend passando (18 suítes), lint 0 erros, build verde.
+### PC-14: Limpeza determinística do banco de testes (D-11)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/tests/helpers/db.ts`: criado módulo de suporte a testes com função `assertIsTestDatabase` (trava em runtime que valida sufixo `_test` antes de qualquer deleção) e `cleanupTestData(pattern = 'tester-%')` com exclusão em cascata parametrizada por prefixo.
+  - `backend/tests/unit/db_cleanup.test.ts`: testes unitários validando bloqueio contra bancos sem sufixo `_test`, rejeição de padrões que não iniciem com `tester-` e confirmação de deleção efetiva.
+  - `backend/tests/integration/food.routes.test.ts`, `meal.routes.test.ts`, `user.routes.test.ts`: padronização de e-mails de teste com prefixo `tester-` e chamada determinística de `cleanupTestData` no hook `after()`.
+- **Validação:** 70 testes de backend passando (19 suítes), 13 testes de frontend passando, lint 0 erros, build verde.
+
 
 
 

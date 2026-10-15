@@ -3,9 +3,11 @@ import assert from 'node:assert';
 import request from 'supertest';
 import { app } from '../../src/app.js';
 import { pool } from '../../src/database/pool.js';
+import { cleanupTestData } from '../helpers/db.js';
 
 describe('Meal Routes (Integration)', () => {
   after(async () => {
+    await cleanupTestData('tester-tz-%');
     await pool.end();
   });
 
@@ -21,7 +23,7 @@ describe('Meal Routes (Integration)', () => {
   it('Setup: Registrar usuário e pegar alimento para o teste de fuso', async () => {
     const res = await request(app).post('/api/users/register').send({
       name: 'Timezone Tester',
-      email: `tz-${Date.now()}@example.com`,
+      email: `tester-tz-${Date.now()}@example.com`,
       password: 'password123'
     });
     userToken = res.body.data.token;
