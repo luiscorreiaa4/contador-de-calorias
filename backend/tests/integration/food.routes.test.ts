@@ -70,4 +70,23 @@ describe('Food Routes (Integration)', () => {
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.data.foods.length, 0);
   });
+
+  it('GET /api/foods - deve incluir cabeçalhos de cache privado e ETag (PC-03 / D-07)', async () => {
+    const res = await request(app)
+      .get('/api/foods?search=arroz')
+      .set('Authorization', `Bearer ${userToken}`);
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.headers['cache-control'], 'private, max-age=300');
+    assert.match(res.headers['vary'] || '', /Authorization/);
+    assert.ok(res.headers['etag'], 'Esperado cabeçalho ETag');
+
+    // Valida resposta 304 Not Modified com If-None-Match
+    const res304 = await request(app)
+      .get('/api/foods?search=arroz')
+      .set('Authorization', `Bearer ${userToken}`)
+      .set('If-None-Match', res.headers['etag']);
+
+    assert.strictEqual(res304.status, 304);
+  });
 });

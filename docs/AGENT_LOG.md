@@ -310,5 +310,13 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - `backend/tests/integration/compression.test.ts`: teste de integração confirmando o envio do cabeçalho `Content-Encoding: gzip` quando requisitado por clientes compatíveis para payloads acima do threshold (> 1KB).
 - **Validação:** 106 testes de backend passando (23 suítes), 14 testes de frontend passando (5 suítes), lint 0 erros, build verde.
 
+### PC-03: Cache do catálogo de alimentos (HTTP Cache-Control e ETag) (D-07)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/controllers/food.controller.ts`: configurados cabeçalhos de resposta HTTP `Cache-Control: private, max-age=300` e `Vary: Authorization`, preservando segurança e compatibilidade com alimentos personalizados futuros, com suporte nativo do Express a `ETag` e status 304 (Not Modified).
+  - `backend/tests/integration/food.routes.test.ts`: teste de integração validando a presença de `Cache-Control: private, max-age=300`, `Vary: Authorization`, emissão de `ETag` e resposta 304 Not Modified sob envio de `If-None-Match`.
+- **Validação:** 107 testes de backend passando (23 suítes), 14 testes de frontend passando (5 suítes), lint 0 erros, build verde.
+
+
 
 

@@ -17,6 +17,11 @@ export async function list(req: Request, res: Response) {
     }
 
     const data = await FoodService.list(search?.trim(), page, limit);
+
+    // Cache HTTP seguro por usuário (PC-03 / D-07)
+    res.setHeader('Cache-Control', 'private, max-age=300');
+    res.setHeader('Vary', 'Authorization');
+
     return res.status(200).json({ success: true, data });
   } catch (error: unknown) {
     const err = error as CustomError;
