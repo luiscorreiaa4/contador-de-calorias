@@ -73,6 +73,19 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - `backend/src/database/pool.ts`: implementada e exportada função `getSslConfig()` que aplica SSL estrito com `rejectUnauthorized: true` em ambiente de produção, suportando CA personalizado via `DB_SSL_CA` (conforme decisão D-19).
   - `backend/tests/unit/pool.ssl.test.ts`: testes unitários garantindo que `rejectUnauthorized` nunca seja `false`, cobrindo cenários com e sem `DB_SSL_CA`.
 - **Validação:** 46 testes de backend passando (14 suítes), lint limpo e build verde.
+- **Commit:** `8863ad8`
+
+### CA-06: Rotacionar segredos vazados no commit 24d1ce65
+- **Status:** PULADO
+- **Motivo:** Bloqueado por D-12 (decisão sobre expurgo definitivo do histórico via `git filter-repo`/BFG vs apenas rotação pendente de definição do desenvolvedor).
+
+### CA-07: Remover senha hardcoded do script db:reset:test
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/package.json`: substituída a connection string com senha em texto puro por `node-pg-migrate --database-url-var DATABASE_URL_TEST up`.
+  - `backend/.env.example`: documentada a variável `DATABASE_URL_TEST`.
+- **Validação:** Verificado cumprimento das regras de segurança; 46 testes de backend passando (14 suítes), lint limpo e build verde.
+
 
 
 

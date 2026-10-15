@@ -10,7 +10,7 @@
     "migrate": "node-pg-migrate",
     "migrate:create": "node-pg-migrate create",
     "db:reset": "tsx scripts/reset-db.js && npm run migrate up",
-    "db:reset:test": "cross-env NODE_ENV=test DB_NAME=contador_calorias_test tsx scripts/reset-db.js && cross-env DATABASE_URL=postgresql://postgres:vN7qL2xR9mK4zP8wT6aB3@localhost:5432/contador_calorias_test npm run migrate up",
+    "db:reset:test": "cross-env NODE_ENV=test DB_NAME=contador_calorias_test tsx scripts/reset-db.js && cross-env NODE_ENV=test node-pg-migrate --database-url-var DATABASE_URL_TEST up",
     "build": "tsc",
     "start": "cross-env TZ=America/Sao_Paulo node dist/server.js"
   },
