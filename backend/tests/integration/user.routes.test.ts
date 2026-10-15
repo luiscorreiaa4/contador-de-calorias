@@ -81,6 +81,24 @@ describe('User Routes (Integration - E2E)', () => {
     assert.ok(Number(res.body.data.daily_calories_goal) > 0);
   });
 
+  it('PUT /api/users/me/onboarding - deve bloquear reexecução quando onboarding_completed já for true (PC-07 / SEC-008)', async () => {
+    const res = await request(app)
+      .put('/api/users/me/onboarding')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({
+        sex: 'feminino',
+        birthDate: '1995-05-20',
+        height: 175,
+        weight: 70,
+        activity_level: 'sedentario',
+        goal: 'manter_peso'
+      });
+
+    assert.strictEqual(res.status, 400);
+    assert.strictEqual(res.body.success, false);
+    assert.match(res.body.message, /Onboarding já foi concluído/i);
+  });
+
   it('POST /api/users/me/preview-goals - deve calcular prévia de metas energéticas', async () => {
     const res = await request(app)
       .post('/api/users/me/preview-goals')

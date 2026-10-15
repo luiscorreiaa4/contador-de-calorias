@@ -79,6 +79,12 @@ export async function completeOnboarding(userId: string, data: CompleteOnboardin
     throw error;
   }
 
+  if (user.onboarding_completed) {
+    const error: CustomError = new Error('Onboarding já foi concluído para este usuário.');
+    error.statusCode = 400;
+    throw error;
+  }
+
   // Calcula as metas iniciais automaticamente
   const targets = NutritionService.calculateEnergyTargets({
     sex: data.sex,

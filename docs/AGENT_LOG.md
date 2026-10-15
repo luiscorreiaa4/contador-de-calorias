@@ -249,6 +249,15 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - `backend/tests/unit/routes_registration.test.ts`: teste unitário criado inspecionando a stack interna de roteamento do Express, garantindo que `/api/users`, `/api/foods` e `/api/meals` estejam registrados rigorosamente 1 única vez.
 - **Validação:** 90 testes de backend passando (21 suítes), 13 testes de frontend passando, lint 0 erros, build verde.
 
+### PC-07: Bloquear reexecução indevida de onboarding (SEC-008)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/services/user.service.ts`: adicionada checagem em `completeOnboarding` validando se `user.onboarding_completed` já é `true`. Caso positivo, aborta e lança erro com status `400 Bad Request` ("Onboarding já foi concluído para este usuário."), protegendo a tabela `body_measurements` contra poluição e recálculos espúrios.
+  - `docs/SPEC.md`: atualizada a seção RF-001 documentando formalmente a regra de Execução Única de Onboarding e bloqueio subsequente com status 400.
+  - `backend/tests/integration/user.routes.test.ts`: adicionado teste de integração reproduzindo e confirmando a rejeição com código HTTP 400 ao submeter requisições subsequentes ao endpoint de onboarding.
+- **Validação:** 91 testes de backend passando (21 suítes), 13 testes de frontend passando, lint 0 erros, build verde.
+
+
 
 
 

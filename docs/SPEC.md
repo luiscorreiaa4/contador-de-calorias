@@ -18,6 +18,7 @@ Este documento descreve detalhadamente os Requisitos Funcionais (RFs) e as regra
   - **Tokens JWT:** Sessão autenticada via token Bearer assinado com `JWT_SECRET` (mínimo de 32 caracteres) e validade de 7 dias (`JWT_EXPIRES_IN=7d`).
   - **Alteração Segura de E-mail ou Senha:** Caso o usuário altere seu e-mail ou defina uma nova senha, o envio da senha atual (`currentPassword`) é mandatório.
   - **Exclusão com Cascata:** A exclusão de um usuário dispara remoção física imediata em todas as tabelas dependentes (`meals`, `meal_items`, `body_measurements`, `user_goals`) por integridade referencial `ON DELETE CASCADE`.
+  - **Execução Única de Onboarding (PC-07 / SEC-008):** O endpoint `PUT /api/users/me/onboarding` só pode ser concluído uma única vez. Se `onboarding_completed === true`, requisições subsequentes são bloqueadas com status `400 Bad Request` ("Onboarding já foi concluído para este usuário."), impedindo poluição da tabela `body_measurements` e recalculações espúrias. Atualizações posteriores de medidas corporais devem ocorrer via `PUT /api/users/me`.
 
 ---
 
