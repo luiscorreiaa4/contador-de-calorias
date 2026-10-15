@@ -64,6 +64,16 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - `backend/src/services/meal.service.ts`: substituída chamada a `toISOString().split('T')[0]` por `getSaoPauloDateString(d)` na linha 175.
   - `backend/tests/unit/date.util.test.ts`: teste unitário reproduzindo a virada indevida de data após as 21h BRT e comprovando a estabilidade com `getSaoPauloDateString`.
 - **Validação:** 43 testes de backend passando (13 suítes), lint limpo e build verde.
+- **Commit:** `0278db0`
+
+### CA-05: SSL estrito no pool de conexões (rejectUnauthorized: true)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/config/env.ts`: adicionada variável opcional `DB_SSL_CA` ao `envSchema`.
+  - `backend/src/database/pool.ts`: implementada e exportada função `getSslConfig()` que aplica SSL estrito com `rejectUnauthorized: true` em ambiente de produção, suportando CA personalizado via `DB_SSL_CA` (conforme decisão D-19).
+  - `backend/tests/unit/pool.ssl.test.ts`: testes unitários garantindo que `rejectUnauthorized` nunca seja `false`, cobrindo cenários com e sem `DB_SSL_CA`.
+- **Validação:** 46 testes de backend passando (14 suítes), lint limpo e build verde.
+
 
 
 

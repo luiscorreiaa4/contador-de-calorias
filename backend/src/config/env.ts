@@ -16,6 +16,7 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32, 'JWT_SECRET deve ter no mínimo 32 caracteres para garantir segurança criptográfica adequada.'),
   JWT_EXPIRES_IN: z.string().default('7d'),
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
+  DB_SSL_CA: z.string().optional(),
 });
 
 const _env = envSchema.safeParse(process.env);
