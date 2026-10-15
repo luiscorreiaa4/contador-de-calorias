@@ -45,8 +45,8 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
     } else if (field === 'password') {
       if (!formData.password) {
         setErrors((prev) => ({ ...prev, password: 'A senha é obrigatória.' }));
-      } else if (formData.password.length < 6) {
-        setErrors((prev) => ({ ...prev, password: 'Mínimo 6 caracteres.' }));
+      } else if (formData.password.length < 8 || !/(?=.*[a-zA-Z])(?=.*[0-9])/.test(formData.password)) {
+        setErrors((prev) => ({ ...prev, password: 'Mínimo 8 caracteres com letra e número.' }));
       }
       if (formData.confirmPassword && formData.password !== formData.confirmPassword) {
         setErrors((prev) => ({ ...prev, confirmPassword: 'As senhas não coincidem.' }));
@@ -67,7 +67,9 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
     else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Digite um email válido.';
 
     if (!formData.password) newErrors.password = 'A senha é obrigatória.';
-    else if (formData.password.length < 6) newErrors.password = 'Mínimo 6 caracteres.';
+    else if (formData.password.length < 8 || !/(?=.*[a-zA-Z])(?=.*[0-9])/.test(formData.password)) {
+      newErrors.password = 'Mínimo 8 caracteres com letra e número.';
+    }
     if (!formData.confirmPassword) newErrors.confirmPassword = 'Confirme sua senha.';
     else if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'As senhas não coincidem.';
     setErrors(newErrors);

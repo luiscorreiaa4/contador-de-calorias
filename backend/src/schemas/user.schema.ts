@@ -1,9 +1,15 @@
 import { z } from 'zod';
 
+export const strongPasswordSchema = z
+  .string()
+  .min(8, 'A senha deve ter no mínimo 8 caracteres.')
+  .max(72, 'A senha deve ter no máximo 72 caracteres.')
+  .regex(/(?=.*[a-zA-Z])(?=.*[0-9])/, 'A senha deve conter pelo menos uma letra e um número.');
+
 export const registerUserSchema = z.object({
   name: z.string().min(2, 'O nome deve ter no mínimo 2 caracteres.').max(100, 'O nome deve ter no máximo 100 caracteres.'),
   email: z.string().email('Digite um e-mail válido.'),
-  password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres.').max(72, 'A senha deve ter no máximo 72 caracteres.'),
+  password: strongPasswordSchema,
 });
 
 export const loginUserSchema = z.object({
@@ -22,7 +28,7 @@ export const updateUserSchema = z.object({
   body_fat: z.number().positive('O percentual de gordura deve ser maior que zero.').nullable().optional(),
   activity_level: z.enum(['sedentario', 'pouco_ativo', 'moderadamente_ativo', 'muito_ativo', 'extremamente_ativo']).optional(),
   currentPassword: z.string().max(72, 'A senha deve ter no máximo 72 caracteres.').optional(),
-  newPassword: z.string().min(6, 'A nova senha deve ter no mínimo 6 caracteres.').max(72, 'A senha deve ter no máximo 72 caracteres.').optional(),
+  newPassword: strongPasswordSchema.optional(),
 }).superRefine((data, ctx) => {
   if (data.newPassword && (!data.currentPassword || !data.currentPassword.trim())) {
     ctx.addIssue({

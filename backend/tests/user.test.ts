@@ -39,7 +39,7 @@ describe('User Schema Validation (registerUserSchema)', () => {
     }
   });
 
-  it('deve rejeitar senha com menos de 6 caracteres', () => {
+  it('deve rejeitar senha com menos de 8 caracteres', () => {
     const invalidData = {
       name: 'Ana',
       email: 'ana@example.com',
@@ -49,7 +49,7 @@ describe('User Schema Validation (registerUserSchema)', () => {
     const result = registerUserSchema.safeParse(invalidData);
     assert.strictEqual(result.success, false);
     if (!result.success) {
-      assert.strictEqual(result.error.format().password?._errors[0], 'A senha deve ter no mínimo 6 caracteres.');
+      assert.strictEqual(result.error.format().password?._errors[0], 'A senha deve ter no mínimo 8 caracteres.');
     }
   });
 });

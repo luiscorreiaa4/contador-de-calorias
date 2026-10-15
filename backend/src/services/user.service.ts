@@ -36,9 +36,13 @@ export async function register(data: RegisterUserDTO): Promise<AuthResponse> {
   };
 }
 
+// Hash bcrypt estático para mitigar timing attacks na enumeração de usuários (PC-08 / SEC-005)
+const DUMMY_HASH = '$2b$10$7EqJtq98hPqEX7fNZaFWoO9m5N9fKqy4i4U0p1W6eG5q7Xv6eJ8mK';
+
 export async function login(data: LoginUserDTO): Promise<AuthResponse> {
   const user = await UserModel.findUserByEmail(data.email);
   if (!user) {
+    await bcrypt.compare(data.password, DUMMY_HASH);
     const error: CustomError = new Error('E-mail ou senha incorretos.');
     error.statusCode = 401;
     throw error;

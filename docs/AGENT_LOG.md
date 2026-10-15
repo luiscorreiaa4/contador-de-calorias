@@ -257,10 +257,13 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - `backend/tests/integration/user.routes.test.ts`: adicionado teste de integração reproduzindo e confirmando a rejeição com código HTTP 400 ao submeter requisições subsequentes ao endpoint de onboarding.
 - **Validação:** 91 testes de backend passando (21 suítes), 13 testes de frontend passando, lint 0 erros, build verde.
 
-
-
-
-
-
-
-
+### PC-08: Política de senha forte e mitigação de timing attack no login (SEC-004, SEC-005)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/schemas/user.schema.ts`: criado `strongPasswordSchema` exigindo no mínimo 8 caracteres, no máximo 72 caracteres e regex `/(?=.*[a-zA-Z])(?=.*[0-9])/` (ao menos uma letra e um número). Aplicado em `registerUserSchema.password` e `updateUserSchema.newPassword`.
+  - `backend/src/services/user.service.ts`: adicionada constante `DUMMY_HASH` e chamada `await bcrypt.compare(data.password, DUMMY_HASH)` na função `login` quando o usuário não é encontrado, equalizando o tempo de resposta e mitigando timing attacks / enumeração de contas válidas.
+  - `frontend/src/components/auth/RegisterForm.tsx` e `frontend/src/pages/private/EditProfilePage.tsx`: atualizada a validação client-side para exigir no mínimo 8 caracteres com letra e número.
+  - `frontend/src/components/auth/RegisterForm.test.tsx` e `backend/tests/user.test.ts`: testes atualizados com senhas válidas e cobertura de rejeição para senhas fracas.
+  - `backend/tests/unit/password_security.test.ts`: suíte unitária reproduzindo e confirmando as regras de senha forte e timing attack mitigation.
+  - `docs/SPEC.md`: atualizado RF-001 documentando as novas políticas de segurança de credenciais.
+- **Validação:** 97 testes de backend passando (22 suítes), 14 testes de frontend passando (5 suítes), lint 0 erros, build verde.

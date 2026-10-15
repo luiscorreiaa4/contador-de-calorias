@@ -106,7 +106,7 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 - [x] **PC-04** Remover registro duplicado de rotas em `server.ts` *(D-14)*.
 - [ ] **PC-06** `apiFetch`: tratamento de respostas não-JSON (ex: 502) e 401 que limpa `localStorage` sincronizado com `AuthContext`.
 - [x] **PC-07** Bloquear reexecução indevida de onboarding se `onboarding_completed: true`.
-- [ ] **PC-08** Política de senha forte + `bcrypt.compare` dummy no login para mitigação de timing attack.
+- [x] **PC-08** Política de senha forte + `bcrypt.compare` dummy no login para mitigação de timing attack.
 - [ ] **PC-11** Resiliência: `statement_timeout`, `/health` com probe ativo de banco, graceful shutdown.
 - [ ] **PC-13** CI: integrar `npm audit --audit-level=high` + Gitleaks; `@vitest/coverage-v8`.
 - [ ] **PC-15** Edição de refeição preservando valores nutricionais base do alimento.

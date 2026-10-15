@@ -207,8 +207,8 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
     setErrors((prev) => {
       const next = { ...prev };
 
-      if (val.length > 0 && val.length < 6) {
-        next.newPassword = 'A NOVA SENHA DEVE TER NO MÍNIMO 6 CARACTERES.';
+      if (val.length > 0 && (val.length < 8 || !/(?=.*[a-zA-Z])(?=.*[0-9])/.test(val))) {
+        next.newPassword = 'A NOVA SENHA DEVE TER NO MÍNIMO 8 CARACTERES COM LETRA E NÚMERO.';
       } else {
         delete next.newPassword;
       }
@@ -265,8 +265,8 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
       const err = validateBirthDate(birthDate);
       if (err) setErrors((prev) => ({ ...prev, birthDate: err }));
     } else if (field === 'newPassword' && newPassword) {
-      if (newPassword.length < 6) {
-        setErrors((prev) => ({ ...prev, newPassword: 'A NOVA SENHA DEVE TER NO MÍNIMO 6 CARACTERES.' }));
+      if (newPassword.length < 8 || !/(?=.*[a-zA-Z])(?=.*[0-9])/.test(newPassword)) {
+        setErrors((prev) => ({ ...prev, newPassword: 'A NOVA SENHA DEVE TER NO MÍNIMO 8 CARACTERES COM LETRA E NÚMERO.' }));
       }
     } else if (field === 'confirmNewPassword' && newPassword) {
       if (!confirmNewPassword) {
@@ -314,8 +314,8 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
       if (!currentPassword.trim()) {
         newErrors.currentPassword = 'INFORME SUA SENHA ATUAL PARA ALTERAR A SENHA.';
       }
-      if (newPassword.length < 6) {
-        newErrors.newPassword = 'A NOVA SENHA DEVE TER NO MÍNIMO 6 CARACTERES.';
+      if (newPassword.length < 8 || !/(?=.*[a-zA-Z])(?=.*[0-9])/.test(newPassword)) {
+        newErrors.newPassword = 'A NOVA SENHA DEVE TER NO MÍNIMO 8 CARACTERES COM LETRA E NÚMERO.';
       }
       if (newPassword !== confirmNewPassword) {
         newErrors.confirmNewPassword = 'AS SENHAS NÃO COINCIDEM.';

@@ -8,13 +8,15 @@ Este documento descreve detalhadamente os Requisitos Funcionais (RFs) e as regra
 
 ### RF-001: Autenticação, Gestão de Conta e Sessão [CONFIRMADO]
 - **Endpoints:**
-  - `POST /api/users/register`: Cadastro com nome, e-mail e senha (mínimo 6 caracteres).
+  - `POST /api/users/register`: Cadastro com nome, e-mail e senha forte (mínimo 8 caracteres, contendo ao menos uma letra e um número).
   - `POST /api/users/login`: Autenticação por e-mail e senha.
   - `GET /api/users/profile`: Obtenção dos dados cadastrais do usuário logado (excluindo hash de senha).
   - `PUT /api/users/profile`: Atualização de dados cadastrais, biometria e credenciais.
   - `DELETE /api/users/account`: Exclusão definitiva de conta mediante confirmação com a senha atual.
 - **Regras de Negócio:**
   - **Criptografia:** Senhas são protegidas com `bcrypt` (fator de custo 10 em desenvolvimento/produção; custo 1 em ambiente de testes para agilidade).
+  - **Política de Senha Forte (PC-08 / SEC-004):** O cadastro e a alteração de credenciais exigem senha com no mínimo 8 caracteres, no máximo 72 caracteres, e obrigatoriedade de ao menos uma letra e um número (`/(?=.*[a-zA-Z])(?=.*[0-9])/`).
+  - **Mitigação de Timing Attack no Login (PC-08 / SEC-005):** Caso o e-mail não seja encontrado no banco durante a autenticação (`POST /api/users/login`), uma verificação `bcrypt.compare` contra um hash dummy pré-computado é executada antes do retorno de erro 401, equalizando o tempo de resposta e prevenindo a enumeração de contas válidas por análise de temporização.
   - **Tokens JWT:** Sessão autenticada via token Bearer assinado com `JWT_SECRET` (mínimo de 32 caracteres) e validade de 7 dias (`JWT_EXPIRES_IN=7d`).
   - **Alteração Segura de E-mail ou Senha:** Caso o usuário altere seu e-mail ou defina uma nova senha, o envio da senha atual (`currentPassword`) é mandatório.
   - **Exclusão com Cascata:** A exclusão de um usuário dispara remoção física imediata em todas as tabelas dependentes (`meals`, `meal_items`, `body_measurements`, `user_goals`) por integridade referencial `ON DELETE CASCADE`.
