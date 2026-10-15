@@ -326,6 +326,20 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - `backend/tests/integration/food.routes.test.ts`: adicionado teste de integração garantindo que `GET /api/foods` projeta `source` e nunca expõe `external_id` nem `active`.
 - **Validação:** 108 testes de backend passando (23 suítes), 14 testes de frontend passando (5 suítes), lint 0 erros, build verde.
 
+### PC-10: Criação de índices via migração (foods name WHERE active e meal_items food_id) (D-13, D-14)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/migrations/1792099463766_add-food-and-meal-indexes.js`: criada nova migração versionada em formato ESM nativo (em conformidade com imutabilidade D-13):
+    - `idx_foods_active_name`: índice parcial B-Tree em `foods (name ASC) WHERE active = true`, otimizando a ordenação e paginação padrão do catálogo de alimentos (PERF-002).
+    - `idx_meal_items_food_id`: índice de chave estrangeira em `meal_items (food_id)`, acelerando verificações de integridade referencial, exclusões e agregações por alimento (PERF-005, ARCH-016).
+    - `down`: `DROP INDEX IF EXISTS idx_foods_active_name` e `DROP INDEX IF EXISTS idx_meal_items_food_id`.
+  - Executado `npm run setup` no banco de desenvolvimento (`contador_calorias`) e migração aplicada no banco de testes (`contador_calorias_test`).
+  - `backend/tests/integration/database_indexes.test.ts`: testes de integração confirmando a presença efetiva dos índices `idx_foods_active_name` e `idx_meal_items_food_id` no PostgreSQL.
+- **Migrações para Revisão do Usuário:**
+  - `backend/migrations/1792099463766_add-food-and-meal-indexes.js`
+- **Validação:** 111 testes de backend passando (23 suítes), 14 testes de frontend passando (5 suítes), lint 0 erros, build verde.
+
+
 
 
 
