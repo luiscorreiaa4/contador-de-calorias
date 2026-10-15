@@ -117,7 +117,7 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 - [x] **PC-01** Substituir testes falso-positivos por asserções reais.
 - [x] **PC-14** Limpeza determinística do banco de testes em hook `after` (`DELETE FROM users WHERE email LIKE 'tester-%'` com trava de runtime `_test`) *(D-11)*.
 - [x] **PC-18** Testes de integração de autorização multiusuário (IDOR) em todas as rotas *(D-14)*.
-- [ ] **PC-24** Cobertura de integração: perfil, onboarding, metas com vigência, PUT/DELETE refeições e stats *(D-14)*.
+- [x] **PC-24** Cobertura de integração: perfil, onboarding, metas com vigência, PUT/DELETE refeições e stats *(D-14)*.
 
 **Documentação**
 - [ ] **PC-16** Sincronizar documentação com o código; consolidar `docs/BACKLOG.md` como fonte única; arquivar `docs/TECH_DEBT.md` e mover arquivos `.txt` para `docs/archive/` *(D-18, D-05)*.

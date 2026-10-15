@@ -92,7 +92,7 @@ O planejamento por fases está em [ROADMAP.md](file:///c:/Users/Luis/Documents/C
 | **PC-21** | Arquitetura | Roteamento SPA real com URLs declarativas, histórico do navegador, suporte a botão Voltar e F5 (`frontend/src/App.tsx`) | GAP-A08 | Média | M | 4 | **[CONFIRMADO]** navegação gerenciada via `useState('dashboard')` em `App.tsx` | Econômico | D-16 |
 | **PC-22** | Performance | Inserção multi-row em lote para `meal_items` (`backend/src/models/meal.model.ts:159-168`) | PERF-004 | Média | M | 4 | **[CONFIRMADO]** itens inseridos sequencialmente em loop `for...of` com múltiplas viagens ao banco | Econômico | D-14 |
 | **PC-23** | Performance | Execução de `EXPLAIN ANALYZE` no endpoint `/api/meals/stats` sob volume real (seed de performance de 10k itens) | ROADMAP F4 | Média | M | 4 | **[CONFIRMADO]** medição pendente sob base volumétrica de dados | Econômico | — |
-| **PC-24** | Qualidade | Expansão de cobertura de testes de integração backend: perfil, onboarding, metas com vigência, PUT/DELETE refeições, stats (`backend/tests/integration/`) | TST-009 | Alta | G | 3 | **[CONFIRMADO]** rotas de perfil, onboarding e edição/deleção de refeições sem testes de integração | Forte + diff | — |
+| **PC-24** | Qualidade | Expansão de cobertura de testes de integração backend: perfil, onboarding, metas com vigência, PUT/DELETE refeições, stats (`backend/tests/integration/`) | TST-009 | Alta | G | 3 | **[CORRIGIDO]** `user.routes.test.ts` e `meal.routes.test.ts` expandidos com 12 novos cenários de integração | Forte + diff | — |
 
 ---
 

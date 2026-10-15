@@ -13,6 +13,7 @@ describe('User Routes (Integration - E2E)', () => {
 
   const testEmail = `tester-user-${Date.now()}@example.com`;
   const testPassword = 'password123';
+  let userToken: string;
 
   it('POST /api/users/register - deve retornar 201 no caminho feliz real', async () => {
     const response = await request(app).post('/api/users/register').send({
@@ -24,6 +25,7 @@ describe('User Routes (Integration - E2E)', () => {
     assert.strictEqual(response.status, 201);
     assert.strictEqual(response.body.success, true);
     assert.strictEqual(response.body.data.user.email, testEmail);
+    userToken = response.body.data.token;
   });
 
   it('POST /api/users/register - deve retornar 400 em caso de payload inválido', async () => {
@@ -46,5 +48,138 @@ describe('User Routes (Integration - E2E)', () => {
     assert.strictEqual(response.status, 200);
     assert.strictEqual(response.body.success, true);
     assert.ok(response.body.data.token);
+    userToken = response.body.data.token;
+  });
+
+  it('GET /api/users/me - deve retornar dados do perfil do usuário autenticado', async () => {
+    const res = await request(app)
+      .get('/api/users/me')
+      .set('Authorization', `Bearer ${userToken}`);
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.success, true);
+    assert.strictEqual(res.body.data.email, testEmail);
+    assert.strictEqual(res.body.data.name, 'Integração Tester');
+  });
+
+  it('PUT /api/users/me/onboarding - deve concluir onboarding e calcular metas iniciais', async () => {
+    const res = await request(app)
+      .put('/api/users/me/onboarding')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({
+        sex: 'masculino',
+        birthDate: '1995-05-20',
+        height: 180,
+        weight: 80,
+        activity_level: 'moderadamente_ativo',
+        goal: 'perder_peso'
+      });
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.success, true);
+    assert.strictEqual(res.body.data.onboarding_completed, true);
+    assert.ok(Number(res.body.data.daily_calories_goal) > 0);
+  });
+
+  it('POST /api/users/me/preview-goals - deve calcular prévia de metas energéticas', async () => {
+    const res = await request(app)
+      .post('/api/users/me/preview-goals')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({
+        weight: 85,
+        height: 180,
+        goal: 'ganhar_massa'
+      });
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.success, true);
+    assert.ok(res.body.data.suggestedCalories > 0);
+    assert.ok(res.body.data.suggestedMacros.proteins > 0);
+  });
+
+  it('PUT /api/users/me/goals - deve atualizar metas manuais e persistir vigência', async () => {
+    const res = await request(app)
+      .put('/api/users/me/goals')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({
+        calories: 2200,
+        proteins: 160,
+        carbs: 250,
+        fats: 60,
+        mode: 'manual'
+      });
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.success, true);
+    assert.strictEqual(Number(res.body.data.calories), 2200);
+    assert.strictEqual(res.body.data.mode, 'manual');
+  });
+
+  it('GET /api/users/me/goals - deve retornar a meta ativa para a data', async () => {
+    const res = await request(app)
+      .get('/api/users/me/goals')
+      .set('Authorization', `Bearer ${userToken}`);
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.success, true);
+    assert.strictEqual(Number(res.body.data.calories), 2200);
+  });
+
+  it('PUT /api/users/me - deve rejeitar troca de senha sem fornecer senha atual', async () => {
+    const res = await request(app)
+      .put('/api/users/me')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({
+        newPassword: 'newpassword123'
+      });
+
+    assert.strictEqual(res.status, 400);
+    assert.strictEqual(res.body.success, false);
+  });
+
+  it('PUT /api/users/me - deve atualizar nome e senha com sucesso quando senha atual for fornecida', async () => {
+    const res = await request(app)
+      .put('/api/users/me')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({
+        name: 'Nome Atualizado',
+        currentPassword: testPassword,
+        newPassword: 'newpassword123'
+      });
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.success, true);
+    assert.strictEqual(res.body.data.name, 'Nome Atualizado');
+  });
+
+  it('DELETE /api/users/me - deve rejeitar exclusão com senha incorreta', async () => {
+    const res = await request(app)
+      .delete('/api/users/me')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({
+        password: 'senha_incorreta'
+      });
+
+    assert.strictEqual(res.status, 400);
+    assert.strictEqual(res.body.success, false);
+  });
+
+  it('DELETE /api/users/me - deve excluir a conta com a senha correta e revogar acesso', async () => {
+    const res = await request(app)
+      .delete('/api/users/me')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({
+        password: 'newpassword123'
+      });
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.success, true);
+
+    // Tentativa de login subsequente deve falhar
+    const loginRes = await request(app).post('/api/users/login').send({
+      email: testEmail,
+      password: 'newpassword123'
+    });
+    assert.strictEqual(loginRes.status, 401);
   });
 });

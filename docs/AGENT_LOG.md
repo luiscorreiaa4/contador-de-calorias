@@ -234,7 +234,13 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
 - **Ação:**
   - `backend/src/models/meal.model.ts`: adicionado `statusCode = 404` explícito quando `updateMealWithItems` não encontra a refeição ou quando ela pertence a outro usuário, prevenindo status 500 indevido.
   - `backend/tests/integration/authorization.test.ts`: criada suíte completa de isolamento multiusuário instanciando `Usuário A` e `Usuário B` com namespaces isolados, garantindo que `Usuário B` receba 404 ao tentar atualizar ou excluir refeição de `Usuário A`, não veja refeições de `A` em `/api/meals/today`, não receba calorias de `A` em `/api/meals/stats` e acesse unicamente seus próprios dados em `/api/users/me`.
-- **Validação:** 77 testes de backend passando (20 suítes), 13 testes de frontend passando, lint 0 erros, build verde.
+### PC-24: Expansão de cobertura de testes de integração backend
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/tests/integration/user.routes.test.ts`: adicionados 9 novos testes de integração cobrindo consulta de perfil (`GET /me`), fluxo completo de onboarding com cálculo de metas e medidas (`PUT /me/onboarding`), simulação de metas (`POST /me/preview-goals`), metas manuais com vigência (`PUT /me/goals` e `GET /me/goals`), atualização protegida de perfil com validação de senha (`PUT /me`) e exclusão de conta com senha e bloqueio de acessos subsequentes (`DELETE /me`).
+  - `backend/tests/integration/meal.routes.test.ts`: adicionados 3 novos testes de integração cobrindo atualização com substituição atômica de itens (`PUT /meals/:id`), estatísticas mensais com médias justas (`GET /meals/stats`) e exclusão com sucesso (`DELETE /meals/:id`).
+- **Validação:** 89 testes de backend passando (20 suítes), 13 testes de frontend passando, lint 0 erros, build verde.
+
 
 
 
