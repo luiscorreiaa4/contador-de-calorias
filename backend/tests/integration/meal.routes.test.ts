@@ -60,4 +60,14 @@ describe('Meal Routes (Integration)', () => {
       
     assert.strictEqual(tomorrowRes.body.data.length, 0);
   });
+
+  it('DELETE /api/meals/:id - erro 500 não deve vazar mensagens internas do PostgreSQL (CA-10 / D-10)', async () => {
+    const res = await request(app)
+      .delete('/api/meals/abc-nao-eh-uuid')
+      .set('Authorization', `Bearer ${userToken}`);
+
+    assert.strictEqual(res.status, 500);
+    assert.strictEqual(res.body.success, false);
+    assert.strictEqual(res.body.message, 'Erro interno no servidor.');
+  });
 });

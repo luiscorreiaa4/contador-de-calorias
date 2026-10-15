@@ -93,9 +93,12 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - `backend/src/services/nutrition.service.ts`: ajustada a função `calculateAge` para extrair diretamente os componentes de ano, mês e dia no padrão `YYYY-MM-DD`, prevenindo o recuo de 1 dia gerado pelo parse UTC padrão do JavaScript no fuso horário brasileiro.
   - `backend/tests/unit/nutrition.service.test.ts`: criados testes unitários validando limites de aniversário, vésperas e virada de ano em 01 de janeiro.
 - **Validação:** 48 testes de backend passando (15 suítes), lint limpo e build verde.
+- **Commit:** `1df3505`
 
-
-
-
-
-
+### CA-10: Mascarar mensagens internas do banco de dados em respostas HTTP 500
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/controllers/user.controller.ts`, `backend/src/controllers/meal.controller.ts`, `backend/src/controllers/food.controller.ts`: atualizados todos os blocos `catch` para que qualquer resposta de erro com status HTTP 500 retorne estritamente `'Erro interno no servidor.'`, impedindo vazamento de mensagens internas do PostgreSQL (sintaxe, tipagem, constraints ou tabelas).
+  - `backend/tests/integration/meal.routes.test.ts`: adicionado teste de integração reproduzindo requisição com ID inválido e validando que o corpo da resposta 500 não expõe a mensagem nativa do Postgres.
+- **Validação:** 49 testes de backend passando (15 suítes), 13 testes de frontend passando (5 suítes), lint limpo (0 erros / 0 avisos) e build de produção verde.
+- **Commit:** `0c05d36`

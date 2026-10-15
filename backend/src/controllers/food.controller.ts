@@ -31,6 +31,7 @@ export async function list(req: Request, res: Response) {
     }
     const err = error as CustomError;
     const statusCode = err.statusCode ?? 500;
-    return res.status(statusCode).json({ success: false, message: err.message ?? 'Erro interno no servidor.' });
+    const message = statusCode === 500 ? 'Erro interno no servidor.' : (err.message ?? 'Erro interno no servidor.');
+    return res.status(statusCode).json({ success: false, message });
   }
 }

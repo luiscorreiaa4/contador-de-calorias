@@ -18,9 +18,10 @@ export async function register(req: Request, res: Response) {
   } catch (error: unknown) {
     const err = error as CustomError;
     const statusCode = err.statusCode ?? 500;
+    const message = statusCode === 500 ? 'Erro interno no servidor.' : (err.message ?? 'Erro interno no servidor.');
     return res.status(statusCode).json({
       success: false,
-      message: err.message ?? 'Erro interno no servidor.',
+      message,
     });
   }
 }
@@ -36,9 +37,10 @@ export async function login(req: Request, res: Response) {
   } catch (error: unknown) {
     const err = error as CustomError;
     const statusCode = err.statusCode ?? 500;
+    const message = statusCode === 500 ? 'Erro interno no servidor.' : (err.message ?? 'Erro interno no servidor.');
     return res.status(statusCode).json({
       success: false,
-      message: err.message ?? 'Erro interno no servidor.',
+      message,
     });
   }
 }
@@ -56,9 +58,10 @@ export async function getProfile(req: AuthenticatedRequest, res: Response) {
   } catch (error: unknown) {
     const err = error as CustomError;
     const statusCode = err.statusCode ?? 500;
+    const message = statusCode === 500 ? 'Erro interno no servidor.' : (err.message ?? 'Erro interno no servidor.');
     return res.status(statusCode).json({
       success: false,
-      message: err.message ?? 'Erro interno no servidor.',
+      message,
     });
   }
 }
@@ -77,9 +80,10 @@ export async function updateProfile(req: AuthenticatedRequest, res: Response) {
   } catch (error: unknown) {
     const err = error as CustomError;
     const statusCode = err.statusCode ?? 500;
+    const message = statusCode === 500 ? 'Erro interno no servidor.' : (err.message ?? 'Erro ao atualizar perfil.');
     return res.status(statusCode).json({
       success: false,
-      message: err.message ?? 'Erro ao atualizar perfil.',
+      message,
     });
   }
 }
@@ -98,9 +102,10 @@ export async function completeOnboarding(req: AuthenticatedRequest, res: Respons
   } catch (error: unknown) {
     const err = error as CustomError;
     const statusCode = err.statusCode ?? 500;
+    const message = statusCode === 500 ? 'Erro interno no servidor.' : (err.message ?? 'Erro ao concluir onboarding.');
     return res.status(statusCode).json({
       success: false,
-      message: err.message ?? 'Erro ao concluir onboarding.',
+      message,
     });
   }
 }
@@ -119,9 +124,10 @@ export async function deleteAccount(req: AuthenticatedRequest, res: Response) {
   } catch (error: unknown) {
     const err = error as CustomError;
     const statusCode = err.statusCode ?? 500;
+    const message = statusCode === 500 ? 'Erro interno no servidor.' : (err.message ?? 'Erro ao excluir conta.');
     return res.status(statusCode).json({
       success: false,
-      message: err.message ?? 'Erro ao excluir conta.',
+      message,
     });
   }
 }
@@ -139,9 +145,10 @@ export async function previewGoals(req: AuthenticatedRequest, res: Response) {
   } catch (error: unknown) {
     const err = error as CustomError;
     const statusCode = err.statusCode ?? 500;
+    const message = statusCode === 500 ? 'Erro interno no servidor.' : (err.message ?? 'Erro ao calcular metas.');
     return res.status(statusCode).json({
       success: false,
-      message: err.message ?? 'Erro ao calcular metas.',
+      message,
     });
   }
 }
@@ -160,9 +167,10 @@ export async function updateGoals(req: AuthenticatedRequest, res: Response) {
   } catch (error: unknown) {
     const err = error as CustomError;
     const statusCode = err.statusCode ?? 500;
+    const message = statusCode === 500 ? 'Erro interno no servidor.' : (err.message ?? 'Erro ao salvar metas.');
     return res.status(statusCode).json({
       success: false,
-      message: err.message ?? 'Erro ao salvar metas.',
+      message,
     });
   }
 }
@@ -181,9 +189,10 @@ export async function getActiveGoal(req: AuthenticatedRequest, res: Response) {
   } catch (error: unknown) {
     const err = error as CustomError;
     const statusCode = err.statusCode ?? 500;
+    const message = statusCode === 500 ? 'Erro interno no servidor.' : (err.message ?? 'Erro ao buscar metas.');
     return res.status(statusCode).json({
       success: false,
-      message: err.message ?? 'Erro ao buscar metas.',
+      message,
     });
   }
 }

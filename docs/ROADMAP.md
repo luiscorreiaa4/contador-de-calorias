@@ -71,7 +71,7 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 - [ ] **CA-06** Rotacionar segredos do commit `24d1ce65` *(expurgo do histórico depende de D-12)*.
 - [x] **CA-07** Remover senha hardcoded do `db:reset:test`.
 - [x] **CA-05** SSL estrito no pool de produção *(D-19)*.
-- [ ] **CA-10** Mascarar mensagens do PostgreSQL em respostas 500 *(D-10)*.
+- [x] **CA-10** Mascarar mensagens do PostgreSQL em respostas 500 *(D-10)*.
 - [ ] **CA-11** Tetos Zod/payload (itens, nomes, quantidade, busca + escape `ILIKE`, senha ≤ 72, `express.json` limit).
 - [ ] **CA-12** Trava de ambiente em `scripts/reset-db.js`.
 - [ ] **CA-13** Atualizar dependências vulneráveis (`proxy-addr`, `tar`, `shell-quote`, `brace-expansion`).
