@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { env } from '../config/env.js';
 import * as UserModel from '../models/user.model.js';
 import { RegisterUserDTO, LoginUserDTO, UpdateUserDTO, CompleteOnboardingDTO } from '../schemas/user.schema.js';
 import { AuthResponse, UserWithoutPassword } from '../types/user.types.js';
@@ -232,8 +233,7 @@ export async function deleteAccount(userId: string, password?: string): Promise<
 }
 
 function generateToken(userId: string): string {
-  const secret = process.env.JWT_SECRET || 'fallback_jwt_secret';
-  return jwt.sign({ userId }, secret, { expiresIn: '7d' });
+  return jwt.sign({ userId }, env.JWT_SECRET, { expiresIn: '7d' });
 }
 
 export async function previewGoals(userId: string, data: Partial<import('../schemas/user.schema.js').PreviewGoalsDTO>) {

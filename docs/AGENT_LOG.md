@@ -45,5 +45,14 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - `frontend/src/components/auth/RegisterForm.test.tsx`: alinhada consulta da label `Email` e mensagem de validação correspondente.
   - `frontend/src/components/meals/NewMealModal.test.tsx`: alinhadas buscas case-insensitive para alimento (`ARROZ BRANCO`), label `NOME`, unidade `150 G` e botão `CRIAR REFEIÇÃO`.
 - **Validação:** `npm --prefix frontend test` com 13/13 testes passando (5 arquivos, 0 erros). `npm run test`, `npm run lint` e `npm run build` 100% verdes.
+- **Commit:** `7cb617a`
+
+### CA-01: Remover fallback de JWT_SECRET
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/middlewares/auth.ts`: remoção de `|| 'fallback_jwt_secret'` e uso estrito de `env.JWT_SECRET`.
+  - `backend/src/services/user.service.ts`: remoção de `|| 'fallback_jwt_secret'` e uso estrito de `env.JWT_SECRET`.
+  - `backend/tests/unit/auth.middleware.test.ts`: teste unitário criado garantindo rejeição (401) de tokens assinados com chaves fallback inseguras e validação com `env.JWT_SECRET`.
+- **Validação:** 40 testes de backend passando (12 suítes), lint limpo e build verde.
 
 

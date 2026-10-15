@@ -67,7 +67,7 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 - [x] **CA-03** Suíte do frontend: 9/13 testes falhando em `LoginForm`, `RegisterForm` e `NewMealModal` + erro MSW em `StatsPage` (contrato `/foods` e handler `/meals/stats`).
 
 **Segurança**
-- [ ] **CA-01** Remover fallback `'fallback_jwt_secret'` (`auth.ts:19`, `user.service.ts:235`).
+- [x] **CA-01** Remover fallback `'fallback_jwt_secret'` (`auth.ts:19`, `user.service.ts:235`).
 - [ ] **CA-06** Rotacionar segredos do commit `24d1ce65` *(expurgo do histórico depende de D-12)*.
 - [ ] **CA-07** Remover senha hardcoded do `db:reset:test`.
 - [ ] **CA-05** SSL estrito no pool de produção *(D-19)*.
