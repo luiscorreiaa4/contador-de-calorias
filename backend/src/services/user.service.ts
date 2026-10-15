@@ -1,10 +1,12 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { env } from '../config/env.js';
 import * as UserModel from '../models/user.model.js';
 import { RegisterUserDTO, LoginUserDTO, UpdateUserDTO, CompleteOnboardingDTO } from '../schemas/user.schema.js';
 import { AuthResponse, UserWithoutPassword } from '../types/user.types.js';
 import * as NutritionService from './nutrition.service.js';
 import * as HistoryModel from '../models/history.model.js';
+import { getSaoPauloDateString } from '../utils/date.js';
 interface CustomError extends Error {
   statusCode?: number;
 }
@@ -102,7 +104,7 @@ export async function completeOnboarding(userId: string, data: CompleteOnboardin
   });
 
   // Salvar no histórico
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getSaoPauloDateString();
   await HistoryModel.insertGoal(
     userId,
     todayStr,
@@ -232,8 +234,7 @@ export async function deleteAccount(userId: string, password?: string): Promise<
 }
 
 function generateToken(userId: string): string {
-  const secret = process.env.JWT_SECRET || 'fallback_jwt_secret';
-  return jwt.sign({ userId }, secret, { expiresIn: '7d' });
+  return jwt.sign({ userId }, env.JWT_SECRET, { expiresIn: '7d' });
 }
 
 export async function previewGoals(userId: string, data: Partial<import('../schemas/user.schema.js').PreviewGoalsDTO>) {
@@ -265,7 +266,7 @@ export async function updateGoals(userId: string, data: import('../schemas/user.
     throw error;
   }
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getSaoPauloDateString();
   const newGoal = await HistoryModel.insertGoal(
     userId,
     todayStr,
@@ -285,7 +286,7 @@ export async function updateGoals(userId: string, data: import('../schemas/user.
 }
 
 export async function getActiveGoal(userId: string, dateStr?: string) {
-  const targetDate = dateStr ?? new Date().toISOString().split('T')[0];
+  const targetDate = dateStr ?? getSaoPauloDateString();
   const goal = await HistoryModel.getActiveGoal(userId, targetDate);
   if (!goal) {
     const user = await UserModel.findFullUserById(userId);

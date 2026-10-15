@@ -15,7 +15,8 @@ export async function create(req: AuthenticatedRequest, res: Response) {
   } catch (error: unknown) {
     const err = error as CustomError;
     const statusCode = err.statusCode ?? 500;
-    return res.status(statusCode).json({ success: false, message: err.message ?? 'Erro interno no servidor.' });
+    const message = statusCode === 500 ? 'Erro interno no servidor.' : (err.message ?? 'Erro interno no servidor.');
+    return res.status(statusCode).json({ success: false, message });
   }
 }
 
@@ -29,7 +30,8 @@ export async function getToday(req: AuthenticatedRequest, res: Response) {
   } catch (error: unknown) {
     const err = error as CustomError;
     const statusCode = err.statusCode ?? 500;
-    return res.status(statusCode).json({ success: false, message: err.message ?? 'Erro interno no servidor.' });
+    const message = statusCode === 500 ? 'Erro interno no servidor.' : (err.message ?? 'Erro interno no servidor.');
+    return res.status(statusCode).json({ success: false, message });
   }
 }
 
@@ -42,7 +44,8 @@ export async function update(req: AuthenticatedRequest, res: Response) {
   } catch (error: unknown) {
     const err = error as CustomError;
     const statusCode = err.statusCode ?? 500;
-    return res.status(statusCode).json({ success: false, message: err.message ?? 'Erro interno no servidor.' });
+    const message = statusCode === 500 ? 'Erro interno no servidor.' : (err.message ?? 'Erro interno no servidor.');
+    return res.status(statusCode).json({ success: false, message });
   }
 }
 
@@ -55,7 +58,8 @@ export async function remove(req: AuthenticatedRequest, res: Response) {
   } catch (error: unknown) {
     const err = error as CustomError;
     const statusCode = err.statusCode ?? 500;
-    return res.status(statusCode).json({ success: false, message: err.message ?? 'Erro interno no servidor.' });
+    const message = statusCode === 500 ? 'Erro interno no servidor.' : (err.message ?? 'Erro interno no servidor.');
+    return res.status(statusCode).json({ success: false, message });
   }
 }
 
@@ -70,6 +74,7 @@ export async function getStats(req: AuthenticatedRequest, res: Response) {
   } catch (error: unknown) {
     const err = error as CustomError;
     const statusCode = err.statusCode ?? 500;
-    return res.status(statusCode).json({ success: false, message: err.message ?? 'Erro interno no servidor.' });
+    const message = statusCode === 500 ? 'Erro interno no servidor.' : (err.message ?? 'Erro interno no servidor.');
+    return res.status(statusCode).json({ success: false, message });
   }
 }

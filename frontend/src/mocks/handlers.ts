@@ -34,31 +34,67 @@ export const handlers = [
   http.get(`${baseURL}/foods`, () => {
     return HttpResponse.json({
       success: true,
-      data: [
-        {
-          id: '1',
-          name: 'Arroz Branco',
-          calories: 130,
-          proteins: 2.5,
-          carbs: 28.1,
-          fats: 0.2,
-          base_unit: 'g'
-        },
-        {
-          id: '2',
-          name: 'Ovo de galinha',
-          calories: 143,
-          proteins: 13,
-          carbs: 1.6,
-          fats: 8.9,
-          base_unit: 'g',
-          unit_name: 'ovo médio',
-          unit_weight: 50
-        }
-      ]
+      data: {
+        foods: [
+          {
+            id: '1',
+            name: 'Arroz Branco',
+            calories: 130,
+            proteins: 2.5,
+            carbs: 28.1,
+            fats: 0.2,
+            base_unit: 'g',
+            serving_weight: 100,
+          },
+          {
+            id: '2',
+            name: 'Ovo de galinha',
+            calories: 143,
+            proteins: 13,
+            carbs: 1.6,
+            fats: 8.9,
+            base_unit: 'g',
+            serving_weight: 100,
+            unit_name: 'ovo médio',
+            unit_weight: 50,
+          },
+        ],
+        total: 2,
+      },
     });
   }),
   
+  http.get(`${baseURL}/meals/stats`, ({ request }) => {
+    const url = new URL(request.url);
+    const period = (url.searchParams.get('period') as 'week' | 'month') || 'week';
+    return HttpResponse.json({
+      success: true,
+      data: {
+        period,
+        daysLogged: 1,
+        totalDays: period === 'week' ? 7 : 30,
+        averages: {
+          consumed: { calories: 2000, proteins: 150, carbs: 200, fats: 60 },
+          goal: { calories: 2200, proteins: 160, carbs: 220, fats: 70 },
+        },
+        chartData: [
+          {
+            date: '2026-10-15',
+            dayName: 'Hoje',
+            consumed_calories: 2000,
+            consumed_proteins: 150,
+            consumed_carbs: 200,
+            consumed_fats: 60,
+            goal_calories: 2200,
+            goal_proteins: 160,
+            goal_carbs: 220,
+            goal_fats: 70,
+          },
+        ],
+      },
+    });
+  }),
+
   http.post(`${baseURL}/meals`, () => {
     return HttpResponse.json({
       success: true,
@@ -66,8 +102,8 @@ export const handlers = [
         id: '1',
         name: 'Refeição Nova',
         meal_time: new Date().toISOString(),
-        items: []
-      }
+        items: [],
+      },
     });
-  })
+  }),
 ];

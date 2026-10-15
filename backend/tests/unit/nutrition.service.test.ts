@@ -1,6 +1,33 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { calculateEnergyTargets, UserProfile } from '../../src/services/nutrition.service.js';
+import { calculateEnergyTargets, calculateAge, UserProfile } from '../../src/services/nutrition.service.js';
+
+describe('calculateAge (CA-09)', () => {
+  it('não deve adiantar a idade no dia anterior ao aniversário (fuso BRT)', () => {
+    // Nascido em 15 de maio de 1990
+    const birthDate = '1990-05-15';
+
+    // 14 de maio de 2026 (véspera do aniversário de 36 anos) -> deve ter 35 anos
+    const eve = new Date(2026, 4, 14); // Mês 4 é maio (0-indexed)
+    assert.strictEqual(calculateAge(birthDate, eve), 35);
+
+    // 15 de maio de 2026 (dia do aniversário) -> deve ter 36 anos
+    const birthday = new Date(2026, 4, 15);
+    assert.strictEqual(calculateAge(birthDate, birthday), 36);
+  });
+
+  it('deve calcular corretamente a idade para nascidos em 01 de janeiro', () => {
+    const birthDate = '1990-01-01';
+
+    // 31 de dezembro de 2025 (véspera) -> deve ter 35 anos
+    const eve = new Date(2025, 11, 31);
+    assert.strictEqual(calculateAge(birthDate, eve), 35);
+
+    // 01 de janeiro de 2026 (aniversário) -> deve ter 36 anos
+    const birthday = new Date(2026, 0, 1);
+    assert.strictEqual(calculateAge(birthDate, birthday), 36);
+  });
+});
 
 describe('Nutrition Service (Unit)', () => {
   const today = new Date();
@@ -124,4 +151,52 @@ describe('Nutrition Service (Unit)', () => {
     // Goal: 2136 * 1.15 = 2456.4 -> 2456
     assert.strictEqual(targets.suggestedCalories, 2456);
   });
+
+  it('não deve zerar carboidratos nem permitir que soma de macros exceda meta calórica para IMC alto (CA-16)', () => {
+    const profile: UserProfile = {
+      sex: 'feminino',
+      birthDate: '1986-05-15',
+      weight: 120,
+      height: 165,
+      activity_level: 'sedentario',
+      goal: 'perder_peso',
+    };
+
+    const targets = calculateEnergyTargets(profile);
+
+    // Deve alocar carboidratos adequadamente (não pode zerar)
+    assert.ok(targets.suggestedMacros.carbs > 0, `Carboidratos não devem ser 0g, recebido: ${targets.suggestedMacros.carbs}g`);
+
+    // A soma das calorias dos macronutrientes não pode ultrapassar as calorias sugeridas
+    const macroCalories = (targets.suggestedMacros.proteins * 4) +
+                          (targets.suggestedMacros.fats * 9) +
+                          (targets.suggestedMacros.carbs * 4);
+    assert.ok(Math.abs(macroCalories - targets.suggestedCalories) <= 2, `Soma dos macros (${macroCalories} kcal) deve coincidir com a meta (${targets.suggestedCalories} kcal) dentro da tolerância de arredondamento de gramas`);
+  });
+
+  it('deve calcular macros adequados com base na massa magra (LBM) quando houver percentual de gordura elevado (CA-16)', () => {
+    const profile: UserProfile = {
+      sex: 'masculino',
+      birthDate: '1990-01-01',
+      weight: 120,
+      height: 180,
+      body_fat: 35, // 35% de gordura -> LBM = 78 kg
+      activity_level: 'sedentario',
+      goal: 'perder_peso',
+    };
+
+    const targets = calculateEnergyTargets(profile);
+
+    // Carboidratos devem existir e ser saudáveis
+    assert.ok(targets.suggestedMacros.carbs > 0, `Carboidratos não devem ser 0g, recebido: ${targets.suggestedMacros.carbs}g`);
+
+    // Proteína não deve ser 240g (2.0 * 120kg), e sim calculada proporcional à massa magra (2.2 * 78kg = ~172g)
+    assert.ok(targets.suggestedMacros.proteins < 200, `Proteína deve ser calculada sobre a massa magra, recebido: ${targets.suggestedMacros.proteins}g`);
+
+    const macroCalories = (targets.suggestedMacros.proteins * 4) +
+                          (targets.suggestedMacros.fats * 9) +
+                          (targets.suggestedMacros.carbs * 4);
+    assert.ok(Math.abs(macroCalories - targets.suggestedCalories) <= 2, `Soma dos macros (${macroCalories} kcal) deve coincidir com a meta (${targets.suggestedCalories} kcal)`);
+  });
 });
+

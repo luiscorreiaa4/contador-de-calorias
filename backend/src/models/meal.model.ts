@@ -1,5 +1,6 @@
 import { pool } from '../database/pool.js';
 import { Meal, MealItem } from '../types/meal.types.js';
+import { getSaoPauloDateString } from '../utils/date.js';
 
 export async function createMealWithItems(
   userId: string,
@@ -198,11 +199,12 @@ export interface DailyStat {
   goal_fats: number | null;
 }
 
-export async function getPeriodStats(userId: string, days: number = 30): Promise<DailyStat[]> {
+export async function getPeriodStats(userId: string, days: number = 30, endDateStr?: string): Promise<DailyStat[]> {
+  const endDate = endDateStr || getSaoPauloDateString();
   const result = await pool.query(
     `WITH daily_consumption AS (
       SELECT 
-        DATE(m.meal_time) as date_val,
+        DATE(m.meal_time AT TIME ZONE 'America/Sao_Paulo') as date_val,
         SUM(mi.calories) as consumed_calories,
         SUM(mi.proteins) as consumed_proteins,
         SUM(mi.carbs) as consumed_carbs,
@@ -210,8 +212,9 @@ export async function getPeriodStats(userId: string, days: number = 30): Promise
       FROM meals m
       JOIN meal_items mi ON mi.meal_id = m.id
       WHERE m.user_id = $1
-        AND m.meal_time >= CURRENT_DATE - ($2 || ' days')::interval
-      GROUP BY DATE(m.meal_time)
+        AND m.meal_time AT TIME ZONE 'America/Sao_Paulo' >= ($3::date - ($2 || ' days')::interval)
+        AND m.meal_time AT TIME ZONE 'America/Sao_Paulo' < ($3::date + '1 day'::interval)
+      GROUP BY DATE(m.meal_time AT TIME ZONE 'America/Sao_Paulo')
     ),
     daily_goals AS (
       SELECT
@@ -245,7 +248,7 @@ export async function getPeriodStats(userId: string, days: number = 30): Promise
       goal_fats
     FROM daily_goals 
     ORDER BY date_val ASC`,
-    [userId, days]
+    [userId, days, endDate]
   );
 
   return result.rows.map(row => ({

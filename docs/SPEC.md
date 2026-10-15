@@ -66,13 +66,24 @@ Para evitar dietas restritivas extremas danosas à saúde:
 - Usuárias do sexo feminino ou não respondido: Mínimo inegociável de **1200 kcal**.
 Se o valor calculado for menor que o piso, o valor sugerido é elevado até o limite do piso.
 
-#### 6. Divisão de Macronutrientes
-A repartição é fixada por peso corporal:
-- **Proteínas:** $2.0 \text{ g por kg de peso corporal}$ ($4 \text{ kcal/g}$)
-- **Gorduras:** $1.0 \text{ g por kg de peso corporal}$ ($9 \text{ kcal/g}$)
-- **Carboidratos:** O saldo energético restante é convertido em carboidratos ($4 \text{ kcal/g}$):
-  $$\text{Carboidratos (g)} = \frac{\text{Calorias Totais} - (\text{Proteínas} \times 4) - (\text{Gorduras} \times 9)}{4}$$
-  *(Caso o saldo calórico resulte em valor negativo, carboidratos são ajustados para 0 g)*.
+#### 6. Divisão de Macronutrientes (D-15)
+A repartição é baseada em evidências científicas de nutrição esportiva e clínica (ISSN / Aragon / Wilkens):
+1. **Determinação do Peso de Referência:**
+   - **Com Percentual de Gordura Conhecido (`body_fat`):**
+     - Se adiposidade elevada ($\ge 25\%$ masculino ou $\ge 32\%$ feminino): baseia na **Massa Livre de Gordura (LBM)**, com **Proteínas** a $2.2 \text{ g/kg LBM}$ e **Gorduras** a $\max(0.8 \text{ g/kg LBM}, 25\% \text{ das calorias})$.
+     - Se composição corporal padrão/atlética: **Proteínas** a $2.0 \text{ g por kg de peso corporal}$ e **Gorduras** a $1.0 \text{ g por kg de peso corporal}$.
+   - **Sem Percentual de Gordura:**
+     - Se sobrepeso acentuado ou obesidade ($\text{IMC} \ge 28.0$): aplica o **Peso Ajustado de Wilkens**:
+       $$\text{Peso Ideal} = 24.0 \times \text{altura (m)}^2$$
+       $$\text{Peso Ajustado} = \text{Peso Ideal} + 0.25 \times (\text{Peso Real} - \text{Peso Ideal})$$
+       **Proteínas:** $2.0 \text{ g por kg de Peso Ajustado}$ | **Gorduras:** $0.8 \text{ g por kg de Peso Ajustado}$.
+     - Se $\text{IMC} < 28.0$: **Proteínas** a $2.0 \text{ g por kg de peso corporal}$ e **Gorduras** a $1.0 \text{ g por kg de peso corporal}$.
+2. **Garantia de Carboidratos (Trava de Segurança Metabólica):**
+   - Proteína e gordura somadas não podem ultrapassar 75% das calorias totais, assegurando no mínimo 25% de calorias destinadas a carboidratos para suporte glicolítico e função tireoidiana.
+3. **Reconciliação Aritmética de Carboidratos:**
+   - O saldo de calorias é convertido diretamente em carboidratos inteiros ($4 \text{ kcal/g}$):
+     $$\text{Carboidratos (g)} = \text{round}\left(\frac{\text{Calorias Sugeridas} - (\text{Proteínas} \times 4) - (\text{Gorduras} \times 9)}{4}\right)$$
+   - Evita divergências aritméticas entre a soma física dos macros e o valor de calorias totais exibido ao usuário.
 
 ---
 
@@ -95,7 +106,7 @@ A repartição é fixada por peso corporal:
 
 ### RF-004: Catálogo e Busca de Alimentos [CONFIRMADO]
 - **Endpoints:**
-  - `GET /api/foods?q=termo&limit=50&offset=0`: Busca de alimentos ativos no catálogo.
+  - `GET /api/foods?search=termo&limit=50&offset=0`: Busca de alimentos ativos no catálogo.
 - **Regras de Negócio:**
   - **Busca Tolerante:** Termos com ou sem acentos (ex: "feijao" vs "feijão") e diferenças de maiúsculas/minúsculas encontram os mesmos itens através de `f_unaccent(name) ILIKE f_unaccent($1)`.
   - **Ordenação por Similaridade:** O operador `<->` do `pg_trgm` classifica no topo os itens com maior proximidade ortográfica em relação ao que foi digitado.

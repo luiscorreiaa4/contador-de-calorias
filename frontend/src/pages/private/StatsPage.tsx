@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getMealStats } from '../../services/meal.service';
+import { getLocalDateString } from '../../utils/date';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from 'recharts';
 import { TrendingUp, Target, Info } from 'lucide-react';
 
 export const StatsPage: React.FC = () => {
   const [period, setPeriod] = useState<'week' | 'month'>('week');
+  const clientDate = getLocalDateString();
 
   const { data: stats, isLoading } = useQuery({
-    queryKey: ['mealStats', period],
-    queryFn: ({ signal }) => getMealStats(period, undefined, signal),
+    queryKey: ['mealStats', period, clientDate],
+    queryFn: ({ signal }) => getMealStats(period, clientDate, signal),
     staleTime: 1000 * 60 * 5,
   });
 

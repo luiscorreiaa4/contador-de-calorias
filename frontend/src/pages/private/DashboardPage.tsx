@@ -5,10 +5,13 @@ import { NewMealModal } from '../../components/meals/NewMealModal';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getTodayMeals, deleteMeal, type Meal } from '../../services/meal.service';
 import { getActiveGoal } from '../../services/goals.service';
+import { getLocalDateString } from '../../utils/date';
 
 export const DashboardPage: React.FC = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+
+  const clientDate = getLocalDateString();
 
   const [isNewMealModalOpen, setIsNewMealModalOpen] = React.useState(false);
   const [mealToEdit, setMealToEdit] = React.useState<Meal | null>(null);
@@ -17,15 +20,15 @@ export const DashboardPage: React.FC = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
 
   const { data: todayMeals = [], isLoading } = useQuery({
-    queryKey: ['todayMeals'],
-    queryFn: ({ signal }) => getTodayMeals(undefined, signal),
+    queryKey: ['todayMeals', clientDate],
+    queryFn: ({ signal }) => getTodayMeals(clientDate, signal),
     staleTime: 1000 * 60 * 5, // 5 minutos de cache (evita redundância)
   });
 
   // Buscar meta do dia
   const { data: activeGoal } = useQuery({
-    queryKey: ['active-goal'],
-    queryFn: () => getActiveGoal(),
+    queryKey: ['active-goal', clientDate],
+    queryFn: () => getActiveGoal(clientDate),
   });
 
   const deleteMealMutation = useMutation({

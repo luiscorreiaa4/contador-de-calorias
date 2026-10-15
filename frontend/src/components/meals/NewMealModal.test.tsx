@@ -25,7 +25,7 @@ describe('NewMealModal', () => {
     
     // Digita para buscar e seleciona 'Arroz Branco'
     await userEvent.type(searchInput, 'Arroz');
-    const option = await screen.findByText('Arroz Branco');
+    const option = await screen.findByText(/arroz branco/i);
     await userEvent.click(option);
 
     // Agora o painel de inserção de quantidade deve aparecer
@@ -40,15 +40,15 @@ describe('NewMealModal', () => {
     await userEvent.click(includeButton);
 
     // O item deve aparecer na lista
-    expect(await screen.findByText('Arroz Branco')).toBeInTheDocument();
-    expect(screen.getByText('150 g')).toBeInTheDocument();
+    expect(await screen.findByText(/arroz branco/i)).toBeInTheDocument();
+    expect(screen.getByText(/150\s*g/i)).toBeInTheDocument();
     
     // Preenche o nome da refeição (opcional mas bom testar)
-    const mealNameInput = screen.getByLabelText(/nome da refeição/i);
+    const mealNameInput = screen.getByLabelText(/^nome$/i);
     await userEvent.type(mealNameInput, 'Almoço');
 
     // Salvar refeição
-    const saveButton = screen.getByRole('button', { name: /salvar refeição/i });
+    const saveButton = screen.getByRole('button', { name: /criar refeição/i });
     await userEvent.click(saveButton);
 
     // Modal deve fechar no sucesso
@@ -60,7 +60,7 @@ describe('NewMealModal', () => {
   it('não deve salvar sem alimentos', async () => {
     render(<NewMealModal isOpen={true} onClose={onClose} />);
     
-    const saveButton = await screen.findByRole('button', { name: /salvar refeição/i });
+    const saveButton = await screen.findByRole('button', { name: /criar refeição/i });
     expect(saveButton).toBeDisabled();
   });
 });

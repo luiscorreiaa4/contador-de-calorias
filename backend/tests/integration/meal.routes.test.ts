@@ -59,5 +59,25 @@ describe('Meal Routes (Integration)', () => {
       .set('Authorization', `Bearer ${userToken}`);
       
     assert.strictEqual(tomorrowRes.body.data.length, 0);
+
+    // GET /api/meals/stats - refeição às 23:59 deve ser agrupada na data de Brasília (CA-14 / D-01)
+    const statsRes = await request(app)
+      .get('/api/meals/stats?period=week&date=2026-10-06')
+      .set('Authorization', `Bearer ${userToken}`);
+
+    assert.strictEqual(statsRes.status, 200);
+    const dayItem = statsRes.body.data.chartData.find((d: { date: string }) => d.date === '2026-10-06');
+    assert.ok(dayItem, 'Data 2026-10-06 deve constar no chartData');
+    assert.ok(dayItem.consumed_calories > 0, 'Consumo deve estar atribuído a 2026-10-06 e não ao dia seguinte');
+  });
+
+  it('DELETE /api/meals/:id - valida formato UUID via middleware validate (CA-15)', async () => {
+    const res = await request(app)
+      .delete('/api/meals/abc-nao-eh-uuid')
+      .set('Authorization', `Bearer ${userToken}`);
+
+    assert.strictEqual(res.status, 400);
+    assert.strictEqual(res.body.success, false);
+    assert.match(res.body.message, /ID inválido/);
   });
 });

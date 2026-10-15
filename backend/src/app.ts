@@ -15,7 +15,7 @@ app.use(cors({
   credentials: true,
 }));
 
-app.use(express.json());
+app.use(express.json({ limit: '50kb' }));
 
 import foodRoutes from './routes/food.routes.js';
 import mealRoutes from './routes/meal.routes.js';

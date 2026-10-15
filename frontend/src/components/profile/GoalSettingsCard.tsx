@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getActiveGoal, updateGoals, previewGoals } from '../../services/goals.service';
+import { getLocalDateString } from '../../utils/date';
 import { Target, Info, Save, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export function GoalSettingsCard() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const clientDate = getLocalDateString();
   const [mode, setMode] = useState<'auto' | 'manual'>('auto');
   
   // Local state for manual mode
@@ -16,8 +18,8 @@ export function GoalSettingsCard() {
   const [manualFats, setManualFats] = useState('');
   
   const { data: goal, isLoading } = useQuery({
-    queryKey: ['active-goal'],
-    queryFn: () => getActiveGoal(),
+    queryKey: ['active-goal', clientDate],
+    queryFn: () => getActiveGoal(clientDate),
   });
 
   const { data: previewData } = useQuery({

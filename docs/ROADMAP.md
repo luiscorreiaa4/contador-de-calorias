@@ -62,26 +62,26 @@ Este documento registra o planejamento estratégico e a evolução do **CalorieS
 Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/BACKLOG.md)):
 
 **CI verde (pré-requisito de todo o resto)**
-- [ ] **CA-02** Build: generics do `react-select` em `NewMealModal.tsx:455,461`.
-- [ ] **CA-08** Lint: `prefer-const` em `NewMealModal.tsx:298` e diretiva órfã na `:181`.
-- [ ] **CA-03** Suíte do frontend: 9/13 testes falhando em `LoginForm`, `RegisterForm` e `NewMealModal` + erro MSW em `StatsPage` (contrato `/foods` e handler `/meals/stats`).
+- [x] **CA-02** Build: generics do `react-select` em `NewMealModal.tsx:455,461`.
+- [x] **CA-08** Lint: `prefer-const` em `NewMealModal.tsx:298` e diretiva órfã na `:181`.
+- [x] **CA-03** Suíte do frontend: 9/13 testes falhando em `LoginForm`, `RegisterForm` e `NewMealModal` + erro MSW em `StatsPage` (contrato `/foods` e handler `/meals/stats`).
 
 **Segurança**
-- [ ] **CA-01** Remover fallback `'fallback_jwt_secret'` (`auth.ts:19`, `user.service.ts:235`).
+- [x] **CA-01** Remover fallback `'fallback_jwt_secret'` (`auth.ts:19`, `user.service.ts:235`).
 - [ ] **CA-06** Rotacionar segredos do commit `24d1ce65` *(expurgo do histórico depende de D-12)*.
-- [ ] **CA-07** Remover senha hardcoded do `db:reset:test`.
-- [ ] **CA-05** SSL estrito no pool de produção *(D-19)*.
-- [ ] **CA-10** Mascarar mensagens do PostgreSQL em respostas 500 *(D-10)*.
-- [ ] **CA-11** Tetos Zod/payload (itens, nomes, quantidade, busca + escape `ILIKE`, senha ≤ 72, `express.json` limit).
-- [ ] **CA-12** Trava de ambiente em `scripts/reset-db.js`.
-- [ ] **CA-13** Atualizar dependências vulneráveis (`proxy-addr`, `tar`, `shell-quote`, `brace-expansion`).
-- [ ] **CA-15** `validate()` para `query`/`params` + schemas de UUID, data, período e busca *(D-09)*.
+- [x] **CA-07** Remover senha hardcoded do `db:reset:test`.
+- [x] **CA-05** SSL estrito no pool de produção *(D-19)*.
+- [x] **CA-10** Mascarar mensagens do PostgreSQL em respostas 500 *(D-10)*.
+- [x] **CA-11** Tetos Zod/payload (itens, nomes, quantidade, busca + escape `ILIKE`, senha ≤ 72, `express.json` limit).
+- [x] **CA-12** Trava de ambiente em `scripts/reset-db.js`.
+- [x] **CA-13** Atualizar dependências vulneráveis (`proxy-addr`, `tar`, `shell-quote`, `brace-expansion`).
+- [x] **CA-15** `validate()` para `query`/`params` + schemas de UUID, data, período e busca *(D-09)*.
 
 **Bugs de cálculo e data**
-- [ ] **CA-04** Vigência de metas gravada no dia seguinte após 21h BRT *(D-01)*.
-- [ ] **CA-09** `calculateAge` com parse UTC.
-- [ ] **CA-14** Janela diária e agrupamento de estatísticas independentes do TZ do processo + `?date=` no frontend + testes com `TZ=UTC` *(D-01)*.
-- [ ] **CA-16** Macros para IMC alto (soma P+G > meta; carboidrato zerado) *(D-15)*.
+- [x] **CA-04** Vigência de metas gravada no dia seguinte após 21h BRT *(D-01)*.
+- [x] **CA-09** `calculateAge` com parse UTC.
+- [x] **CA-14** Janela diária e agrupamento de estatísticas independentes do TZ do processo + `?date=` no frontend + testes com `TZ=UTC` *(D-01)*.
+- [x] **CA-16** Macros para IMC alto (soma P+G > meta; carboidrato zerado) *(D-15)*.
 
 ---
 
