@@ -34,6 +34,7 @@ export const pool = new Pool({
   max: 20, // Limite de 20 conexões simultâneas no pool
   idleTimeoutMillis: 30000, // Fecha conexões ociosas após 30 segundos
   connectionTimeoutMillis: 2000, // Retorna erro se demorar mais de 2s para conectar
+  statement_timeout: 10000, // Aborta queries com mais de 10s (PERF-006)
 });
 
 pool.on('error', (err) => {

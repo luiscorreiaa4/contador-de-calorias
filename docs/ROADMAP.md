@@ -107,7 +107,7 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 - [ ] **PC-06** `apiFetch`: tratamento de respostas não-JSON (ex: 502) e 401 que limpa `localStorage` sincronizado com `AuthContext`.
 - [x] **PC-07** Bloquear reexecução indevida de onboarding se `onboarding_completed: true`.
 - [x] **PC-08** Política de senha forte + `bcrypt.compare` dummy no login para mitigação de timing attack.
-- [ ] **PC-11** Resiliência: `statement_timeout`, `/health` com probe ativo de banco, graceful shutdown.
+- [x] **PC-11** Resiliência: `statement_timeout`, `/health` com probe ativo de banco, graceful shutdown.
 - [ ] **PC-13** CI: integrar `npm audit --audit-level=high` + Gitleaks; `@vitest/coverage-v8`.
 - [ ] **PC-15** Edição de refeição preservando valores nutricionais base do alimento.
 - [x] **PC-17** Transações atômicas (`BEGIN`/`COMMIT`/`ROLLBACK`) em onboarding/perfil/metas + teste de rollback.

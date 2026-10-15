@@ -276,3 +276,30 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - `backend/src/services/user.service.ts`: operações multi-escrita em `completeOnboarding` (`updateUser` + `insertGoal` + `insertBodyMeasurement`), `updateProfile` (`updateUser` + `insertBodyMeasurement`) e `updateGoals` (`insertGoal` + `updateUser`) encapsuladas em transações atômicas estruturadas com `client = await pool.connect()`, `BEGIN`, `COMMIT` e `ROLLBACK` em bloco `try/catch/finally` garantindo `client.release()`.
   - `backend/tests/integration/transactions_rollback.test.ts`: testes de integração reproduzindo falhas forçadas via constraints nas tabelas do PostgreSQL comprovando que falhas intermediárias disparam rollback total sem deixar o usuário em estado inconsistente.
 - **Validação:** 100 testes de backend passando (23 suítes), 14 testes de frontend passando (5 suítes), lint 0 erros, build verde.
+
+---
+
+## 4. RETOMADA 15/10/2026
+
+- **Contexto:** Retomada autônoma de execução em lote após interrupção da sessão anterior. Árvore de trabalho limpa, tags e stashes verificados.
+- **Itens Concluídos:**
+  - **Sublote A (Rede de testes backend):** PC-01 (`c913dde`), PC-14 (`b19ae7b`), PC-18 (`d1c7f60`), PC-24 (`a3bc7c9`) — 100% concluído.
+  - **Sublote B (Backend robustez/performance):** PC-04 (`4dc33a7`), PC-07 (`08eacf9`), PC-08 (`741e8b3`), PC-17 (`44b63e1`).
+- **Itens Pulados/Falhos:** Nenhum item PC falhou ou foi pulado.
+- **Próximo Item Pendente:** **PC-11** (Sublote B: PC-11, PC-02, PC-03, PC-09, PC-10, PC-22, PC-23).
+- **Nova Linha de Base (100% Verde):**
+  - Backend Tests (`npm run test`): 100 testes passando, 23 suítes, 0 falhas.
+  - Frontend Tests (`npm --prefix frontend test -- --run`): 14 testes passando, 5 suítes, 0 falhas.
+  - Lint Monorepo (`npm run lint`): 0 erros, 0 avisos.
+  - Frontend Build (`npm run build`): compilação de produção com código 0 (`tsc -b && vite build`).
+
+### PC-11: Resiliência de infraestrutura (statement_timeout, health check com probe e graceful shutdown)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/database/pool.ts`: configurado `statement_timeout: 10000` (10 segundos) no `pg.Pool`, abortando queries demoradas e prevenindo exaustão de conexões (PERF-006).
+  - `backend/src/app.ts`: atualizado endpoint `GET /health` para realizar probe ativo de banco com `await pool.query('SELECT 1')` e seguir o contrato de API `{ success: true, data: { status: 'healthy', database: 'connected' } }`, retornando 503 com `{ success: false, message: 'Database disconnected' }` em caso de falha (ARCH-018).
+  - `backend/src/server.ts`: implementada rotina `gracefulShutdown` interceptando sinais do SO (`SIGTERM` e `SIGINT`), fechando o servidor HTTP e encerrando o pool de conexões do PostgreSQL antes do `process.exit(0)` (ARCH-019).
+  - `backend/tests/integration/health_and_resilience.test.ts`: criados testes de integração validando a configuração de `statement_timeout`, a resposta positiva de `GET /health` no padrão `{ success, data }` e o retorno de status 503 quando a sonda do banco falha.
+- **Validação:** 104 testes de backend passando (23 suítes), 14 testes de frontend passando (5 suítes), lint 0 erros, build verde.
+
+
