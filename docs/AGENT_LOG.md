@@ -229,6 +229,14 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - `backend/tests/integration/food.routes.test.ts`, `meal.routes.test.ts`, `user.routes.test.ts`: padronização de e-mails de teste com prefixo `tester-` e chamada determinística de `cleanupTestData` no hook `after()`.
 - **Validação:** 70 testes de backend passando (19 suítes), 13 testes de frontend passando, lint 0 erros, build verde.
 
+### PC-18: Testes de integração de autorização multiusuário (IDOR)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/models/meal.model.ts`: adicionado `statusCode = 404` explícito quando `updateMealWithItems` não encontra a refeição ou quando ela pertence a outro usuário, prevenindo status 500 indevido.
+  - `backend/tests/integration/authorization.test.ts`: criada suíte completa de isolamento multiusuário instanciando `Usuário A` e `Usuário B` com namespaces isolados, garantindo que `Usuário B` receba 404 ao tentar atualizar ou excluir refeição de `Usuário A`, não veja refeições de `A` em `/api/meals/today`, não receba calorias de `A` em `/api/meals/stats` e acesse unicamente seus próprios dados em `/api/users/me`.
+- **Validação:** 77 testes de backend passando (20 suítes), 13 testes de frontend passando, lint 0 erros, build verde.
+
+
 
 
 

@@ -147,7 +147,9 @@ export async function updateMealWithItems(
     );
 
     if (mealResult.rowCount === 0) {
-      throw new Error('Refeição não encontrada ou não pertence a este usuário.');
+      const error: Error & { statusCode?: number } = new Error('Refeição não encontrada ou não pertence a este usuário.');
+      error.statusCode = 404;
+      throw error;
     }
 
     const meal = mealResult.rows[0];
