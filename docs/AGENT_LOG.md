@@ -85,6 +85,15 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - `backend/package.json`: substituída a connection string com senha em texto puro por `node-pg-migrate --database-url-var DATABASE_URL_TEST up`.
   - `backend/.env.example`: documentada a variável `DATABASE_URL_TEST`.
 - **Validação:** Verificado cumprimento das regras de segurança; 46 testes de backend passando (14 suítes), lint limpo e build verde.
+- **Commit:** `d503412`
+
+### CA-09: Ajuste do cálculo de idade (calculateAge com parse local YYYY-MM-DD)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/services/nutrition.service.ts`: ajustada a função `calculateAge` para extrair diretamente os componentes de ano, mês e dia no padrão `YYYY-MM-DD`, prevenindo o recuo de 1 dia gerado pelo parse UTC padrão do JavaScript no fuso horário brasileiro.
+  - `backend/tests/unit/nutrition.service.test.ts`: criados testes unitários validando limites de aniversário, vésperas e virada de ano em 01 de janeiro.
+- **Validação:** 48 testes de backend passando (15 suítes), lint limpo e build verde.
+
 
 
 

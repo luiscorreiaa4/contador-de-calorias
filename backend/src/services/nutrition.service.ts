@@ -27,12 +27,36 @@ const ACTIVITY_MULTIPLIERS: Record<string, number> = {
   extremamente_ativo: 1.9,
 };
 
-export function calculateAge(birthDate: string | Date): number {
-  const today = new Date();
-  const birth = new Date(birthDate);
-  let age = today.getFullYear() - birth.getFullYear();
-  const m = today.getMonth() - birth.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+export function calculateAge(birthDate: string | Date, referenceDate: Date = new Date()): number {
+  let birthYear: number;
+  let birthMonth: number;
+  let birthDay: number;
+
+  if (typeof birthDate === 'string') {
+    const match = birthDate.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (match) {
+      birthYear = parseInt(match[1], 10);
+      birthMonth = parseInt(match[2], 10) - 1;
+      birthDay = parseInt(match[3], 10);
+    } else {
+      const birth = new Date(birthDate);
+      birthYear = birth.getFullYear();
+      birthMonth = birth.getMonth();
+      birthDay = birth.getDate();
+    }
+  } else {
+    birthYear = birthDate.getFullYear();
+    birthMonth = birthDate.getMonth();
+    birthDay = birthDate.getDate();
+  }
+
+  const refYear = referenceDate.getFullYear();
+  const refMonth = referenceDate.getMonth();
+  const refDay = referenceDate.getDate();
+
+  let age = refYear - birthYear;
+  const m = refMonth - birthMonth;
+  if (m < 0 || (m === 0 && refDay < birthDay)) {
     age--;
   }
   return age;

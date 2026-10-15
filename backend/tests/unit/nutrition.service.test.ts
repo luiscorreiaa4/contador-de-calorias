@@ -1,6 +1,33 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { calculateEnergyTargets, UserProfile } from '../../src/services/nutrition.service.js';
+import { calculateEnergyTargets, calculateAge, UserProfile } from '../../src/services/nutrition.service.js';
+
+describe('calculateAge (CA-09)', () => {
+  it('não deve adiantar a idade no dia anterior ao aniversário (fuso BRT)', () => {
+    // Nascido em 15 de maio de 1990
+    const birthDate = '1990-05-15';
+
+    // 14 de maio de 2026 (véspera do aniversário de 36 anos) -> deve ter 35 anos
+    const eve = new Date(2026, 4, 14); // Mês 4 é maio (0-indexed)
+    assert.strictEqual(calculateAge(birthDate, eve), 35);
+
+    // 15 de maio de 2026 (dia do aniversário) -> deve ter 36 anos
+    const birthday = new Date(2026, 4, 15);
+    assert.strictEqual(calculateAge(birthDate, birthday), 36);
+  });
+
+  it('deve calcular corretamente a idade para nascidos em 01 de janeiro', () => {
+    const birthDate = '1990-01-01';
+
+    // 31 de dezembro de 2025 (véspera) -> deve ter 35 anos
+    const eve = new Date(2025, 11, 31);
+    assert.strictEqual(calculateAge(birthDate, eve), 35);
+
+    // 01 de janeiro de 2026 (aniversário) -> deve ter 36 anos
+    const birthday = new Date(2026, 0, 1);
+    assert.strictEqual(calculateAge(birthDate, birthday), 36);
+  });
+});
 
 describe('Nutrition Service (Unit)', () => {
   const today = new Date();
