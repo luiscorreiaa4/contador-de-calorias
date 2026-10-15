@@ -37,7 +37,7 @@ Executar na **raiz** do monorepo:
 ---
 
 ## 4. O que NÃO Fazer (Regras Rígidas)
-- ❌ **PROIBIDO Comandos Destrutivos de Banco:** NUNCA execute `DROP TABLE`, `DROP DATABASE` ou `TRUNCATE` sem consentimento explícito prévio do usuário.
+- ❌ **PROIBIDO Comandos Destrutivos de Banco:** NUNCA execute `DROP TABLE`, `DROP DATABASE` ou `TRUNCATE` sem consentimento explícito prévio do usuário. *(Exceção D-11: no código de teste em hook `after`, é permitido `DELETE FROM users WHERE email LIKE 'tester-%'` com checagem em runtime de que `current_database()` termina em `_test`)*.
 - ❌ **PROIBIDO ORMs:** Não instale nem utilize Prisma, Sequelize, TypeORM ou Drizzle; utilize driver `pg` e SQL puro.
 - ❌ **PROIBIDO Fetch Manual no React:** Proibido `window.fetch()` nativo fora de `api.ts`, e proibido chamar serviços em `useEffect` para carregar dados de servidor.
 - ❌ **PROIBIDO Alert/Confirm Nativos:** Não use `alert()` ou `confirm()`. Use modais acessíveis com focus trap (Radix UI) e tecla `Esc`.

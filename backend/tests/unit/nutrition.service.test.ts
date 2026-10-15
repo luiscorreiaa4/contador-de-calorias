@@ -52,10 +52,10 @@ describe('Nutrition Service (Unit)', () => {
     assert.strictEqual(targets.tdee, 2136);
     // Suggested calories: 2136 (manter)
     assert.strictEqual(targets.suggestedCalories, 2136);
-    // Macros: 160g Prot, 80g Fat. Calories: 640 + 720 = 1360. Carbs: (2136 - 1360)/4 = 194
-    assert.strictEqual(targets.suggestedMacros.proteins, 160);
-    assert.strictEqual(targets.suggestedMacros.fats, 80);
-    assert.strictEqual(targets.suggestedMacros.carbs, 194);
+    // Macros conforme D-15: 1.6g/kg Prot (128g), 25% Fat (59g) e restante em Carbs (273g)
+    assert.strictEqual(targets.suggestedMacros.proteins, 128);
+    assert.strictEqual(targets.suggestedMacros.fats, 59);
+    assert.strictEqual(targets.suggestedMacros.carbs, 273);
   });
 
   it('deve calcular TMB via Mifflin-St Jeor (Feminino)', () => {

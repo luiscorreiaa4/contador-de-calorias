@@ -168,3 +168,37 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
 - **Validação:** 67 testes de backend passando (18 suítes), 13 testes de frontend passando (5 suítes), lint limpo e build de produção verde.
 - **Commit:** `7ede68f`
 
+---
+
+## Sessão: Formalização das Decisões D-01 a D-20 e Sincronização Geral
+- **Data:** 15/10/2026
+- **Branch:** `fase2`
+- **Ações Realizadas:**
+  - **Decisões D-01 a D-20:** Consolidada a tabela unificada na Seção 5 de `docs/BACKLOG.md` cobrindo todas as 20 decisões arquiteturais, de produto e de governança com regras de implementação estritas.
+  - **`docs/ROADMAP.md`:**
+    - Criada a **Fase 4.5: Diário Completo** (BL-02, BL-18, BL-19, BL-20) entre a Fase 4 e a Fase 5 (D-20).
+    - Criada a **Fase 5.5: Pacote Compartilhado de Tipos** (`shared/` via npm workspaces) após a Fase 5 e antes do mobile (D-17).
+    - Ajustada a Fase 4: `react-router` v7 (PC-21) executado antes do code-splitting (PC-20) (D-16); cache privado em foods (D-07); projeção SQL explícita (D-08); limpeza de teste (D-11); unificação de dívidas no BACKLOG.md (D-18).
+    - Ajustada a Fase 5: expurgo de código morto (PC-31) executado obrigatoriamente antes de correções visuais (PC-25) (D-06).
+    - Ajustada a Fase 6: ordem de autenticação BL-12 -> BL-05 -> BL-06 (D-03).
+    - Ajustada a Fase 7: LGPD (BL-10) com severidade Média/M e bloqueante para lançamento público (D-04).
+    - Ajustada a Fase 8: revogação de sessão (BL-04) com cookie HttpOnly + refresh token (D-02); SSL estrito e saltos em trust proxy (D-19).
+  - **`AGENTS.md` e `docs/TESTING.md`:** Registrada a exceção explícita de limpeza de banco de testes em `AGENTS.md` §4 e `TESTING.md` §3 (`DELETE FROM users WHERE email LIKE 'tester-%'` com runtime guard `current_database()` terminando em `_test`) conforme D-11.
+  - **`backend/src/utils/date.ts`:** Exportada constante `APP_TIMEZONE = 'America/Sao_Paulo'` e função `todayInAppTz` baseada em `Intl.DateTimeFormat('en-CA', { timeZone })` conforme D-01.
+  - **`backend/src/services/nutrition.service.ts` e `backend/tests/unit/nutrition.service.test.ts`:**
+    - Atualizados parâmetros do cálculo de macronutrientes da decisão D-15:
+      - Massa de referência: LBM se %gordura informado; senão peso ajustado ($PI + 0.25 \times (peso - PI)$ com $PI = 22.5 \times altura^2$) para IMC >= 30; senão peso atual.
+      - Proteína: 1,6 g/kg da massa de referência (limite de 35% das calorias).
+      - Gordura: 25% das calorias totais.
+      - Carboidrato: restante das calorias totais.
+      - Ordem de ajuste se carboidrato < 20%: reduzir gordura até 20% -> reduzir proteína até 1,2 g/kg da massa de referência.
+      - Invariantes: tolerância de ±1%, nenhum macro negativo, carboidrato nunca zerado, reconciliação de carboidrato inteiro.
+    - Testes unitários atualizados e validados com 100% de sucesso.
+  - **`docs/SPEC.md`:**
+    - Atualizada a especificação RF-002 (§6 Divisão de Macronutrientes) com a fórmula D-15.
+    - Atualizadas regras de RF-004 com busca por `search` (D-09), projeção explícita com `source` (D-08) e cache privado (D-07).
+    - Atualizadas regras de RF-005 e RF-006 com diretrizes de fuso horário `America/Sao_Paulo` e janelas SQL indexadas (D-01).
+    - Adicionada Seção 2 formalizando o tratamento centralizado de erros com `AppError`, `asyncHandler` e mascaramento de 500 (D-10).
+  - **`docs/BACKLOG.md`:** Coluna de fase alvo atualizada nas tabelas 3.1 e 3.2 (BL-02 e BL-18/19/20 na 4.5, BL-03 na 5.5, BL-25 em Futura).
+
+

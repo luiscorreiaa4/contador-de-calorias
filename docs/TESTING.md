@@ -69,7 +69,15 @@ Abaixo está o status real verificado através da execução direta dos comandos
   }
   ```
   Se qualquer desenvolvedor ou agente tentar rodar a suíte contra `contador_calorias` de desenvolvimento, o runner aborta instantaneamente.
-- **Limpeza Entre Testes:** O banco de testes executa limpeza controlada de tabelas dependentes antes/depois das suites para manter independência dos testes.
+- **Limpeza Determinística Entre Testes (D-11 / PC-14):**
+  - Conforme decisão D-11, vigora uma exceção explícita e restrita à proibição de deleções em massa do `AGENTS.md` §4:
+  - É permitido exclusivamente no código de testes (hook `after`):
+    ```sql
+    DELETE FROM users WHERE email LIKE 'tester-%';
+    ```
+    (O `ON DELETE CASCADE` do esquema cuida da remoção das tabelas filhas `meals`, `meal_items`, `user_goals`, `body_measurements`).
+  - **Trava de Runtime Obrigatória:** O teste deve checar ativamente se `current_database()` termina com `_test` antes de deletar (abortar caso contrário).
+  - É terminantemente proibido o uso de `TRUNCATE` ou `DROP TABLE/SCHEMA`.
 
 ### Frontend: Acessibilidade e MSW
 - **Seleção por Acessibilidade (RTL):** Elementos devem ser buscados via `getByRole`, `getByLabelText`, `getByPlaceholderText`, simulando como o usuário interage. **É terminantemente proibido** buscar elementos por classes CSS (`.btn`, `.bg-primary`) ou seletores hierárquicos genéricos (`div > span`).

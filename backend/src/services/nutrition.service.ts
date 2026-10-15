@@ -104,58 +104,55 @@ export function calculateEnergyTargets(profile: UserProfile): EnergyTargets {
     suggestedCalories = minCalories;
   }
 
-  // 4. Divisão de Macronutrientes (Ciência Nutricional & Fitness Moderno - D-15 / CA-16)
-  // Em sobrepeso ou obesidade, calcular sobre o peso bruto superestima proteínas e gorduras,
-  // zerando carboidratos (BUG-B03). Aplicamos a metodologia de referência (ISSN / Aragon / Wilkens):
-  let proteins: number;
-  let fats: number;
-
+  // 4. Divisão de Macronutrientes (Decisão D-15 / Regras de Projeto de Saúde)
+  // Massa de referência:
+  let massaReferencia: number;
   const heightInMeters = profile.height / 100;
   const bmi = heightInMeters > 0 ? profile.weight / (heightInMeters * heightInMeters) : 22;
 
   if (profile.body_fat && profile.body_fat > 0) {
-    const leanBodyMass = profile.weight * (1 - profile.body_fat / 100);
-    const isHighBodyFat = (profile.sex === 'masculino' && profile.body_fat >= 25) ||
-                          (profile.sex !== 'masculino' && profile.body_fat >= 32);
-
-    if (isHighBodyFat) {
-      // Baseado na massa magra para alta adiposidade (ISSN: 2.2g/kg LBM e gorduras a 25% das calorias ou 0.8g/kg LBM)
-      proteins = 2.2 * leanBodyMass;
-      fats = Math.max(0.8 * leanBodyMass, (suggestedCalories * 0.25) / 9);
-    } else {
-      // Atleta / composição corporal favorável
-      proteins = 2.0 * profile.weight;
-      fats = 1.0 * profile.weight;
-    }
-  } else if (bmi >= 28.0 && heightInMeters > 0) {
-    // IMC elevado sem bioimpedância: aplica Peso Ajustado de Wilkens
-    // Peso ideal baseado em IMC 24 (limite superior da faixa de eutrofia/fitness saudável)
-    const idealWeight = 24.0 * (heightInMeters * heightInMeters);
-    const adjustedWeight = idealWeight + 0.25 * (profile.weight - idealWeight);
-
-    proteins = 2.0 * adjustedWeight;
-    fats = 0.8 * adjustedWeight;
+    // Se houver % de gordura, usar massa magra (peso * (1 - %gordura/100))
+    massaReferencia = profile.weight * (1 - profile.body_fat / 100);
+  } else if (bmi >= 30 && heightInMeters > 0) {
+    // Se IMC >= 30, usar peso ajustado: PI + 0.25 * (peso - PI), com PI = 22.5 * altura^2
+    const idealWeight = 22.5 * (heightInMeters * heightInMeters);
+    massaReferencia = idealWeight + 0.25 * (profile.weight - idealWeight);
   } else {
-    // Padrão fitness para eutrofia (2.0g/kg proteína, 1.0g/kg gordura)
-    proteins = 2.0 * profile.weight;
-    fats = 1.0 * profile.weight;
+    // Senão, o peso atual
+    massaReferencia = profile.weight;
   }
 
-  // Trava de segurança metabólica: Proteína + Gordura não podem exceder 75% das calorias totais,
-  // garantindo no mínimo 25% das calorias para carboidratos (combustível glicolítico e função tireoidiana).
-  const maxProtFatCalories = suggestedCalories * 0.75;
-  if ((proteins * 4 + fats * 9) > maxProtFatCalories) {
-    fats = (suggestedCalories * 0.25) / 9;
-    if (proteins * 4 > (suggestedCalories * 0.50)) {
-      proteins = (suggestedCalories * 0.50) / 4;
+  // Proteína: 1.6 g/kg da massa de referência, limitada a 35% das kcal
+  let protGrams = 1.6 * massaReferencia;
+  if (protGrams * 4 > suggestedCalories * 0.35) {
+    protGrams = (suggestedCalories * 0.35) / 4;
+  }
+
+  // Gordura: 25% das kcal
+  let fatGrams = (suggestedCalories * 0.25) / 9;
+
+  // Carboidrato: o restante das kcal
+  let carbKcal = suggestedCalories - (protGrams * 4) - (fatGrams * 9);
+
+  // Ordem de ajuste se o carboidrato ficar abaixo de 20% das kcal:
+  if (carbKcal < suggestedCalories * 0.20) {
+    // 1. Reduzir gordura até 20% das kcal
+    fatGrams = (suggestedCalories * 0.20) / 9;
+    carbKcal = suggestedCalories - (protGrams * 4) - (fatGrams * 9);
+
+    // 2. Se ainda abaixo de 20%, depois reduzir proteína até 1.2 g/kg da massa de referência
+    if (carbKcal < suggestedCalories * 0.20) {
+      const minProtGrams = 1.2 * massaReferencia;
+      const targetProtKcal = suggestedCalories - (fatGrams * 9) - (suggestedCalories * 0.20);
+      protGrams = Math.max(minProtGrams, targetProtKcal / 4);
     }
   }
 
-  const roundedProt = Math.round(proteins);
-  const roundedFats = Math.round(fats);
+  const roundedProt = Math.round(protGrams);
+  const roundedFats = Math.round(fatGrams);
   const roundedCalories = Math.round(suggestedCalories);
 
-  // Reconciliação direta dos carboidratos (BUG-B04):
+  // Reconciliação direta dos carboidratos:
   const remainingCalories = Math.max(0, roundedCalories - (roundedProt * 4) - (roundedFats * 9));
   const roundedCarbs = Math.round(remainingCalories / 4);
 

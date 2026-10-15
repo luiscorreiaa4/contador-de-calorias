@@ -1,19 +1,18 @@
-/**
- * Utilitários de manipulação de data e fuso horário.
- * Conforme decisão D-01: O servidor fixa America/Sao_Paulo via Intl.
- */
+export const APP_TIMEZONE = 'America/Sao_Paulo';
 
 const saoPauloDateFormatter = new Intl.DateTimeFormat('en-CA', {
-  timeZone: 'America/Sao_Paulo',
+  timeZone: APP_TIMEZONE,
   year: 'numeric',
   month: '2-digit',
   day: '2-digit',
 });
 
 /**
- * Retorna a data no formato YYYY-MM-DD no fuso horário America/Sao_Paulo.
- * Evita o bug de virada de data às 21h BRT (00h UTC) gerado por toISOString().split('T')[0].
+ * Retorna a data no formato YYYY-MM-DD no fuso horário da aplicação (America/Sao_Paulo).
+ * Conforme decisão D-01: o servidor é a autoridade de fuso da aplicação.
  */
-export function getSaoPauloDateString(date: Date = new Date()): string {
-  return saoPauloDateFormatter.format(date);
+export function todayInAppTz(now: Date = new Date()): string {
+  return saoPauloDateFormatter.format(now);
 }
+
+export const getSaoPauloDateString = todayInAppTz;
