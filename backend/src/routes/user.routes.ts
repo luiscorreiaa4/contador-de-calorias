@@ -4,6 +4,7 @@ import * as UserController from '../controllers/user.controller.js';
 import { validate } from '../middlewares/validate.js';
 import { authenticate } from '../middlewares/auth.js';
 import { registerUserSchema, loginUserSchema, updateUserSchema, deleteUserSchema, completeOnboardingSchema, previewGoalsSchema, updateGoalsSchema } from '../schemas/user.schema.js';
+import { dateQuerySchema } from '../schemas/common.schema.js';
 
 const router = Router();
 
@@ -22,6 +23,6 @@ router.delete('/me', authenticate, validate(deleteUserSchema), UserController.de
 
 router.post('/me/preview-goals', authenticate, validate(previewGoalsSchema), UserController.previewGoals);
 router.put('/me/goals', authenticate, validate(updateGoalsSchema), UserController.updateGoals);
-router.get('/me/goals', authenticate, UserController.getActiveGoal);
+router.get('/me/goals', authenticate, validate({ query: dateQuerySchema }), UserController.getActiveGoal);
 
 export default router;

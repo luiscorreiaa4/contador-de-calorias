@@ -48,7 +48,7 @@ describe('Food Routes (Integration)', () => {
       .set('Authorization', `Bearer ${userToken}`);
     
     assert.strictEqual(res.status, 400); // Porque o validador limit max é 50
-    assert.match(res.body.message, /Number must be less than or equal to 50/);
+    assert.match(res.body.message, /(Number must be less than or equal to 50|O limite deve ser no máximo 50)/);
   });
 
   it('GET /api/foods - rejeita busca com mais de 100 caracteres (CA-11)', async () => {

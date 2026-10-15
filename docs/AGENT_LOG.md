@@ -140,4 +140,16 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - `frontend/src/pages/private/DashboardPage.tsx`, `StatsPage.tsx`, `GoalSettingsCard.tsx`: injetado `clientDate` nas queries `getTodayMeals`, `getActiveGoal` e `getMealStats` (enviando `?date=` ao backend).
   - `backend/tests/integration/meal.routes.test.ts`: testes executados e validados com `cross-env TZ=UTC`, comprovando que refeições às 23:59 BRT são exibidas e agrupadas no dia correto mesmo quando o processo Node roda em UTC.
 - **Validação:** 62 testes de backend passando (17 suítes, inclusive sob TZ=UTC), 13 testes de frontend passando (5 suítes), lint limpo e build de produção verde.
-- **Commit:** `025f220`
+
+### CA-15: Validação centralizada de req.query e req.params via middleware validate (D-09)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/middlewares/validate.ts`: estendido para suportar objetos de validação compostos `{ body?, query?, params? }` mantendo compatibilidade retroativa com schemas diretos de body `validate(schema)`. Todos os erros de validação retornam status 400 padronizado.
+  - `backend/src/schemas/common.schema.ts`: criados schemas padronizados e reutilizáveis `uuidParamSchema` (validação de UUID v4 em parâmetros `:id`), `dateQuerySchema` (validação de query `?date=YYYY-MM-DD`) e `statsQuerySchema` (validação de `period` 7d/30d/90d e `date`).
+  - `backend/src/schemas/food.schema.ts`: criado `listFoodsQuerySchema` para validação da query de busca (`search` com máx 100 caracteres, `page` e `limit` com máx 50).
+  - `backend/src/controllers/food.controller.ts`: removida validação manual imperativa `.parse()`, deixando a camada de rotas responsável exclusiva pela validação conforme arquitetura do projeto.
+  - `backend/src/routes/food.routes.ts`, `meal.routes.ts`, `user.routes.ts`: associados middlewares `validate(...)` nas rotas com query ou params (`GET /api/foods`, `GET /api/meals/today`, `GET /api/meals/stats`, `DELETE /api/meals/:id`, `GET /api/users/goals/active`).
+  - `docs/SPEC.md`: corrigido parâmetro de busca do catálogo para usar estritamente `search` conforme D-09.
+  - `backend/tests/unit/validate.middleware.test.ts` e `backend/tests/integration/meal.routes.test.ts`: testes unitários e de integração validando rejeição com 400 em params/query inválidos e formato UUID.
+- **Validação:** 65 testes de backend passando (18 suítes), 13 testes de frontend passando (5 suítes), lint limpo e build de produção verde.
+- **Commit:** `b32a2bc`

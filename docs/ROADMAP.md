@@ -75,7 +75,7 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 - [x] **CA-11** Tetos Zod/payload (itens, nomes, quantidade, busca + escape `ILIKE`, senha ≤ 72, `express.json` limit).
 - [x] **CA-12** Trava de ambiente em `scripts/reset-db.js`.
 - [x] **CA-13** Atualizar dependências vulneráveis (`proxy-addr`, `tar`, `shell-quote`, `brace-expansion`).
-- [ ] **CA-15** `validate()` para `query`/`params` + schemas de UUID, data, período e busca *(D-09)*.
+- [x] **CA-15** `validate()` para `query`/`params` + schemas de UUID, data, período e busca *(D-09)*.
 
 **Bugs de cálculo e data**
 - [x] **CA-04** Vigência de metas gravada no dia seguinte após 21h BRT *(D-01)*.

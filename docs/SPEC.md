@@ -95,7 +95,7 @@ A repartição é fixada por peso corporal:
 
 ### RF-004: Catálogo e Busca de Alimentos [CONFIRMADO]
 - **Endpoints:**
-  - `GET /api/foods?q=termo&limit=50&offset=0`: Busca de alimentos ativos no catálogo.
+  - `GET /api/foods?search=termo&limit=50&offset=0`: Busca de alimentos ativos no catálogo.
 - **Regras de Negócio:**
   - **Busca Tolerante:** Termos com ou sem acentos (ex: "feijao" vs "feijão") e diferenças de maiúsculas/minúsculas encontram os mesmos itens através de `f_unaccent(name) ILIKE f_unaccent($1)`.
   - **Ordenação por Similaridade:** O operador `<->` do `pg_trgm` classifica no topo os itens com maior proximidade ortográfica em relação ao que foi digitado.

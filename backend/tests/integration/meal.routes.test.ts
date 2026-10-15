@@ -71,13 +71,13 @@ describe('Meal Routes (Integration)', () => {
     assert.ok(dayItem.consumed_calories > 0, 'Consumo deve estar atribuído a 2026-10-06 e não ao dia seguinte');
   });
 
-  it('DELETE /api/meals/:id - erro 500 não deve vazar mensagens internas do PostgreSQL (CA-10 / D-10)', async () => {
+  it('DELETE /api/meals/:id - valida formato UUID via middleware validate (CA-15)', async () => {
     const res = await request(app)
       .delete('/api/meals/abc-nao-eh-uuid')
       .set('Authorization', `Bearer ${userToken}`);
 
-    assert.strictEqual(res.status, 500);
+    assert.strictEqual(res.status, 400);
     assert.strictEqual(res.body.success, false);
-    assert.strictEqual(res.body.message, 'Erro interno no servidor.');
+    assert.match(res.body.message, /ID inválido/);
   });
 });
