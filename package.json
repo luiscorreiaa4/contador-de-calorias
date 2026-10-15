@@ -10,7 +10,9 @@
     "dev:all": "concurrently -n \"BACKEND,FRONTEND\" -c \"cyan,magenta\" \"npm run server\" \"npm run dev\"",
     "build": "npm --prefix frontend run build",
     "lint": "eslint .",
-    "test": "npm --prefix backend test"
+    "test": "npm --prefix backend test",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -178,7 +178,6 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
 
         setMealItems(initialItems);
       } else {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMealName(`REFEIÇÃO ${nextMealNumber}`);
         const now = new Date();
         setMealTimeStr(
@@ -295,7 +294,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
     if (mealItems.length === 0) return;
 
     const mealLabel = mealName.trim() || `REFEIÇÃO ${(queryClient.getQueryData<Meal[]>(['todayMeals']) || []).length + 1}`;
-    let timeToUse = mealToEdit ? new Date(mealToEdit.meal_time) : new Date();
+    const timeToUse = mealToEdit ? new Date(mealToEdit.meal_time) : new Date();
 
     if (mealTimeStr.trim()) {
       if (mealTimeStr.length !== 5) {

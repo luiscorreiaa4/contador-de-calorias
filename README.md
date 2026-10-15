@@ -32,7 +32,7 @@ O **CalorieSync** é uma aplicação web full-stack para acompanhamento nutricio
 Antes de iniciar, certifique-se de possuir instalado em sua máquina:
 - **Node.js:** Versão 20 ou superior (versão utilizada e verificada no ambiente: `v24.14.0`).
 - **npm:** Versão 10 ou superior (versão verificada: `11.9.0`).
-- **PostgreSQL:** Versão 14 ou superior em execução local (porta padrão `5432`).
+- **PostgreSQL:** Versão 14 ou superior em execução local (porta padrão `5432`) **ou** **Docker / Docker Desktop** com Docker Compose.
 
 ---
 
@@ -84,8 +84,20 @@ CORS_ORIGIN=http://localhost:5173
 
 > **Atenção:** A variável `JWT_SECRET` é validada pelo Zod no início da API e **deve** conter pelo menos 32 caracteres.
 
-### 3. Criar os Bancos de Dados no PostgreSQL
-Acesse seu cliente PostgreSQL (`psql` ou pgAdmin/DBeaver) e crie o banco de dados principal e o de testes:
+### 3. Iniciar o Banco de Dados
+
+Você pode utilizar o **Docker** (recomendado para agilidade) ou uma instalação **nativa** do PostgreSQL:
+
+#### Opção A: Via Docker Compose (Recomendado)
+Com o Docker Desktop em execução:
+```bash
+# Sobe o container PostgreSQL em segundo plano (com volume persistente e banco de testes automático)
+npm run docker:up
+```
+> **Nota:** Caso já possua um serviço nativo do PostgreSQL ativo no Windows na porta `5432`, pause-o antes (`Stop-Service postgresql-x64-18` no PowerShell como Admin) para evitar conflitos de porta. Para desligar o container posteriormente, use `npm run docker:down`.
+
+#### Opção B: Via PostgreSQL Nativo
+Acesse seu cliente PostgreSQL (`psql` ou pgAdmin/DBeaver) e crie manualmente o banco de dados principal e o de testes:
 
 ```sql
 CREATE DATABASE contador_calorias;
@@ -141,6 +153,8 @@ Comandos disponíveis a partir da **raiz**:
 | `npm run server` | Roda somente o backend em modo watch (`tsx watch src/server.ts`) |
 | `npm run dev` | Roda somente o servidor de desenvolvimento do Vite |
 | `npm run setup` | Aplica todas as migrações SQL no banco (`node-pg-migrate up`) |
+| `npm run docker:up` | Sobe o container PostgreSQL de desenvolvimento via Docker Compose (`-d`) |
+| `npm run docker:down` | Encerra o container PostgreSQL do Docker Compose |
 | `npm run test` | Roda os 37 testes automatizados do backend em banco isolado (`_test`) |
 | `npm --prefix frontend test` | Roda a suíte de testes de componentes do frontend via Vitest |
 | `npm run lint` | Valida as regras de ESLint em todo o repositório |
@@ -151,7 +165,7 @@ Comandos disponíveis a partir da **raiz**:
 ## 📚 Mais Informações
 
 Para aprofundamento na arquitetura do sistema e decisões técnicas:
-- [docs/ARCHITECTURE.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/ARCHITECTURE.md) — Camadas, diagrama ER completo e decisões de banco.
-- [docs/SPEC.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/SPEC.md) — Requisitos funcionais e regras matemáticas de cálculo de TMB e metas.
-- [docs/TESTING.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/TESTING.md) — Guia detalhado de testes automatizados e suítes existentes.
-- [docs/ROADMAP.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/ROADMAP.md) — Registro de fases concluídas e planejadas.
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — Camadas, diagrama ER completo e decisões de banco.
+- [docs/SPEC.md](docs/SPEC.md) — Requisitos funcionais e regras matemáticas de cálculo de TMB e metas.
+- [docs/TESTING.md](docs/TESTING.md) — Guia detalhado de testes automatizados e suítes existentes.
+- [docs/ROADMAP.md](docs/ROADMAP.md) — Registro de fases concluídas e planejadas.
