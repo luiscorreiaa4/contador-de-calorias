@@ -317,6 +317,16 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - `backend/tests/integration/food.routes.test.ts`: teste de integração validando a presença de `Cache-Control: private, max-age=300`, `Vary: Authorization`, emissão de `ETag` e resposta 304 Not Modified sob envio de `If-None-Match`.
 - **Validação:** 107 testes de backend passando (23 suítes), 14 testes de frontend passando (5 suítes), lint 0 erros, build verde.
 
+### PC-09: Otimização SQL (subqueries do dashboard, count OVER e projeção explícita) (D-08, D-14)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/models/meal.model.ts`: removidas subqueries correlacionadas redundantes em `findMealsByUserAndDate` (`SELECT SUM(calories)` e `SELECT SUM(proteins)` por refeição), calculando os totais diretamente em memória via `.reduce()` sobre os itens já carregados (PERF-001).
+  - `backend/src/models/food.model.ts`: substituídas as chamadas com queries separadas por consulta única com window function `count(*) OVER() AS total_count`, eliminando 50% dos round-trips ao banco em buscas de alimentos (PERF-003). Substituído `SELECT *` por projeção explícita de colunas (`id, name, calories, proteins, carbs, fats, base_unit, serving_weight, unit_name, unit_weight, source`) tanto em `searchFoods` quanto em `findById` e `findByIds`, ocultando metadados internos (`external_id`, `active`) conforme D-08 (PERF-007).
+  - `backend/src/types/food.types.ts` e `frontend/src/services/food.service.ts`: sincronizadas interfaces `Food` com a projeção real, incluindo o campo `source?: string | null` e omitindo colunas internas.
+  - `backend/tests/integration/food.routes.test.ts`: adicionado teste de integração garantindo que `GET /api/foods` projeta `source` e nunca expõe `external_id` nem `active`.
+- **Validação:** 108 testes de backend passando (23 suítes), 14 testes de frontend passando (5 suítes), lint 0 erros, build verde.
+
+
 
 
 

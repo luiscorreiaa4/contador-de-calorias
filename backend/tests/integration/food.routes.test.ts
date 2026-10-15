@@ -89,4 +89,17 @@ describe('Food Routes (Integration)', () => {
 
     assert.strictEqual(res304.status, 304);
   });
+
+  it('GET /api/foods - projeção explícita: deve expor source e não expor external_id ou active (PC-09 / D-08)', async () => {
+    const res = await request(app)
+      .get('/api/foods?limit=1')
+      .set('Authorization', `Bearer ${userToken}`);
+
+    assert.strictEqual(res.status, 200);
+    assert.ok(res.body.data.foods.length > 0);
+    const food = res.body.data.foods[0];
+    assert.ok('source' in food, 'Esperado campo source na projeção');
+    assert.strictEqual('external_id' in food, false, 'external_id não deve ser exposto');
+    assert.strictEqual('active' in food, false, 'active não deve ser exposto');
+  });
 });

@@ -11,6 +11,7 @@ export interface Food {
   serving_weight: number;
   unit_name?: string | null;
   unit_weight?: number | null;
+  source?: string | null;
 }
 
 export interface GetFoodsResponse {

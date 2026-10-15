@@ -9,7 +9,6 @@ export interface Food {
   serving_weight: number;
   unit_name: string | null;
   unit_weight: number | null;
-  created_at: Date;
-  updated_at: Date;
+  source?: string | null;
 }
 
