@@ -129,4 +129,15 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - `package.json`: adicionado bloco `overrides` para `shell-quote` (`^1.12.0`) e `brace-expansion` (`^5.0.12`). Executado `npm install` na raiz, eliminando todas as vulnerabilidades críticas e altas de injeção de comando e negação de serviço (`found 0 vulnerabilities`).
   - `backend/package.json`: adicionado bloco `overrides` para `proxy-addr` (`^2.0.8`), `tar` (`^7.5.22`) e `braces` (`^3.0.3`). Executado `npm --prefix backend install`, eliminando as vulnerabilidades críticas de IP spoofing em subredes IPv4-mapped IPv6 e Directory Traversal do `node-tar`.
 - **Validação:** 62 testes de backend passando (17 suítes), 13 testes de frontend passando (5 suítes), lint limpo e build de produção verde.
-- **Commit:** `d91e1be`
+- **Commit:** `d02a025`
+
+### CA-14: Desacoplamento de fuso horário do processo e envio de ?date= pelo cliente (D-01)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/services/meal.service.ts`: refatorado `getTodayMeals` para calcular limites do dia em ISO com offset explícito `-03:00` e aritmética de data ancorada em UTC/Intl de `America/Sao_Paulo`, tornando a janela diária imune ao `TZ` do ambiente hospedeiro. Refatorado `getMealStats` para passar `dateStr` para o model e computar o padding de dias do gráfico sem desvios de timezone.
+  - `backend/src/models/meal.model.ts`: query de `getPeriodStats` atualizada para converter `m.meal_time AT TIME ZONE 'America/Sao_Paulo'` tanto no filtro de intervalo de datas quanto no agrupamento `GROUP BY DATE(...)`, aceitando `endDateStr` customizado.
+  - `frontend/src/utils/date.ts`: criado utilitário `getLocalDateString()` retornando `YYYY-MM-DD` civil local do navegador.
+  - `frontend/src/pages/private/DashboardPage.tsx`, `StatsPage.tsx`, `GoalSettingsCard.tsx`: injetado `clientDate` nas queries `getTodayMeals`, `getActiveGoal` e `getMealStats` (enviando `?date=` ao backend).
+  - `backend/tests/integration/meal.routes.test.ts`: testes executados e validados com `cross-env TZ=UTC`, comprovando que refeições às 23:59 BRT são exibidas e agrupadas no dia correto mesmo quando o processo Node roda em UTC.
+- **Validação:** 62 testes de backend passando (17 suítes, inclusive sob TZ=UTC), 13 testes de frontend passando (5 suítes), lint limpo e build de produção verde.
+- **Commit:** `025f220`

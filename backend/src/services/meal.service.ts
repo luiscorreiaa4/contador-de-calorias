@@ -65,19 +65,21 @@ export async function createMeal(userId: string, data: CreateMealDTO) {
 }
 
 export async function getTodayMeals(userId: string, dateStr?: string) {
-  let today: Date;
+  let targetDate: string;
   if (dateStr && dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
-    const [year, month, day] = dateStr.split('T')[0].split('-');
-    today = new Date(Number(year), Number(month) - 1, Number(day));
+    targetDate = dateStr.split('T')[0];
   } else {
-    today = new Date();
-    today.setHours(0, 0, 0, 0);
+    targetDate = getSaoPauloDateString();
   }
-  
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
 
-  return MealModel.findMealsByUserAndDate(userId, today.toISOString(), tomorrow.toISOString());
+  const [year, month, day] = targetDate.split('-').map(Number);
+  const nextDay = new Date(Date.UTC(year, month - 1, day + 1, 12, 0, 0));
+  const nextDateStr = getSaoPauloDateString(nextDay);
+
+  const startIso = `${targetDate}T00:00:00-03:00`;
+  const endIso = `${nextDateStr}T00:00:00-03:00`;
+
+  return MealModel.findMealsByUserAndDate(userId, startIso, endIso);
 }
 
 export async function updateMeal(userId: string, mealId: string, data: CreateMealDTO) {
@@ -114,7 +116,7 @@ export async function deleteMeal(userId: string, mealId: string) {
 
 export async function getMealStats(userId: string, period: 'week' | 'month' = 'month', dateStr?: string) {
   const days = period === 'week' ? 7 : 30;
-  const stats = await MealModel.getPeriodStats(userId, days);
+  const stats = await MealModel.getPeriodStats(userId, days, dateStr);
   
   // Calculate averages (only days with logs)
   let sumCals = 0;
@@ -160,26 +162,27 @@ export async function getMealStats(userId: string, period: 'week' | 'month' = 'm
   };
 
   // Build the chart data padding missing days with 0s
-  let today: Date;
+  let targetDate: string;
   if (dateStr && dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
-    const [year, month, day] = dateStr.split('T')[0].split('-');
-    today = new Date(Number(year), Number(month) - 1, Number(day));
+    targetDate = dateStr.split('T')[0];
   } else {
-    today = new Date();
-    today.setHours(0, 0, 0, 0);
+    targetDate = getSaoPauloDateString();
   }
-  
+
+  const [tYear, tMonth, tDay] = targetDate.split('-').map(Number);
+  const baseDate = new Date(Date.UTC(tYear, tMonth - 1, tDay, 12, 0, 0));
+
   const chartData = [];
   for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
+    const d = new Date(baseDate);
+    d.setUTCDate(d.getUTCDate() - i);
     const dStr = getSaoPauloDateString(d);
     
     const dayStat = stats.find(s => s.date === dStr);
     
     chartData.push({
       date: dStr,
-      dayName: d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', ''),
+      dayName: d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', weekday: 'short' }).replace('.', ''),
       consumed_calories: dayStat ? dayStat.consumed_calories : 0,
       consumed_proteins: dayStat ? dayStat.consumed_proteins : 0,
       consumed_carbs: dayStat ? dayStat.consumed_carbs : 0,
