@@ -114,4 +114,12 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - `backend/src/models/food.model.ts`: sanitização e escape de caracteres curingas `%`, `_` e `\` na montagem da query `ILIKE`.
   - `backend/tests/unit/input.limits.test.ts` e `backend/tests/integration/food.routes.test.ts`: testes cobrindo todos os limites de entrada, sanitização e rejeição de payloads > 50kb com status 413.
 - **Validação:** 58 testes de backend passando (16 suítes), 13 testes de frontend passando (5 suítes), lint limpo e build de produção verde.
-- **Commit:** `61bd7bc`
+- **Commit:** `0d3ec25`
+
+### CA-12: Trava de ambiente seguro em scripts destrutivos (reset-db.js)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/scripts/reset-db.js`: implementada função guard `validateEnvironment()` que aborta imediatamente a execução lançando exceção caso `NODE_ENV !== 'test'` ou `DB_NAME` não termine com o sufixo `_test`. Além disso, a execução automática no carregamento do módulo foi protegida para executar apenas quando o script for chamado diretamente via CLI (`isDirectCall`).
+  - `backend/tests/unit/reset_db_guard.test.ts`: testes unitários garantindo que a execução seja impedida em produção, desenvolvimento ou bases sem sufixo `_test`.
+- **Validação:** 62 testes de backend passando (17 suítes), 13 testes de frontend passando (5 suítes), lint limpo e build de produção verde.
+- **Commit:** `ebe726f`

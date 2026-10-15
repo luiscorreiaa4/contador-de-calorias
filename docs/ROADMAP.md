@@ -73,7 +73,7 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 - [x] **CA-05** SSL estrito no pool de produção *(D-19)*.
 - [x] **CA-10** Mascarar mensagens do PostgreSQL em respostas 500 *(D-10)*.
 - [x] **CA-11** Tetos Zod/payload (itens, nomes, quantidade, busca + escape `ILIKE`, senha ≤ 72, `express.json` limit).
-- [ ] **CA-12** Trava de ambiente em `scripts/reset-db.js`.
+- [x] **CA-12** Trava de ambiente em `scripts/reset-db.js`.
 - [ ] **CA-13** Atualizar dependências vulneráveis (`proxy-addr`, `tar`, `shell-quote`, `brace-expansion`).
 - [ ] **CA-15** `validate()` para `query`/`params` + schemas de UUID, data, período e busca *(D-09)*.
 

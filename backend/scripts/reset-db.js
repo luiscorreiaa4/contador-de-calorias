@@ -1,6 +1,16 @@
+import { fileURLToPath } from 'node:url';
 import { pool } from '../src/database/pool.js';
 
-async function resetDb() {
+export function validateEnvironment(env = process.env) {
+  if (env.NODE_ENV !== 'test' || !env.DB_NAME?.endsWith('_test')) {
+    const errorMsg = '❌ Proibido rodar reset-db fora do ambiente isolado de testes (_test com NODE_ENV=test)!';
+    console.error(errorMsg);
+    throw new Error(errorMsg);
+  }
+}
+
+export async function resetDb() {
+  validateEnvironment();
   try {
     console.log('⚠️ Resetando o schema public do banco de dados...');
     await pool.query('DROP SCHEMA public CASCADE;');
@@ -15,4 +25,7 @@ async function resetDb() {
   }
 }
 
-resetDb();
+const isDirectCall = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
+if (isDirectCall) {
+  resetDb();
+}
