@@ -37,9 +37,10 @@ describe('Food Routes (Integration)', () => {
       .set('Authorization', `Bearer ${userToken}`);
     
     assert.strictEqual(res.status, 200);
-    // Deve ignorar acentos. Apenas testamos se a busca não quebrou. 
-    // Como a base pode ter ou não Maçã, checamos pelo menos sucesso.
     assert.strictEqual(res.body.success, true);
+    assert.ok(Array.isArray(res.body.data.foods));
+    assert.ok(res.body.data.foods.length > 0);
+    assert.ok(res.body.data.foods.some((f: { name: string }) => f.name.includes('Maçã')));
   });
 
   it('GET /api/foods - limite trava em 50 (se passar mais)', async () => {

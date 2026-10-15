@@ -114,7 +114,7 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 - [ ] **PC-19** Remover perfil biométrico do `localStorage` (`user_session`), mantendo dados sensíveis apenas em memória *(D-02)*.
 
 **Rede de Testes**
-- [ ] **PC-01** Substituir testes falso-positivos por asserções reais.
+- [x] **PC-01** Substituir testes falso-positivos por asserções reais.
 - [ ] **PC-14** Limpeza determinística do banco de testes em hook `after` (`DELETE FROM users WHERE email LIKE 'tester-%'` com trava de runtime `_test`) *(D-11)*.
 - [ ] **PC-18** Testes de integração de autorização multiusuário (IDOR) em todas as rotas *(D-14)*.
 - [ ] **PC-24** Cobertura de integração: perfil, onboarding, metas com vigência, PUT/DELETE refeições e stats *(D-14)*.

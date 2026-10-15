@@ -201,4 +201,27 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
     - Adicionada Seção 2 formalizando o tratamento centralizado de erros com `AppError`, `asyncHandler` e mascaramento de 500 (D-10).
   - **`docs/BACKLOG.md`:** Coluna de fase alvo atualizada nas tabelas 3.1 e 3.2 (BL-02 e BL-18/19/20 na 4.5, BL-03 na 5.5, BL-25 em Futura).
 
+---
+
+## 2. Linha de Base do Próximo Ciclo (PC) - 15/10/2026
+
+- **Backend Tests (`npm run test`):** PASSOU (67 testes, 18 suítes, 0 falhas).
+- **Backend Build (`npm --prefix backend run build`):** PASSOU (`tsc` código 0).
+- **Lint Monorepo (`npm run lint`):** PASSOU (código 0).
+- **Frontend Build (`npm run build`):** PASSOU (`tsc -b && vite build` código 0).
+- **Frontend Tests (`npm --prefix frontend test -- --run`):** PASSOU (13 testes, 5 suítes, 0 falhas).
+
+---
+
+## 3. Execução dos Itens do Próximo Ciclo (PC)
+
+### PC-01: Eliminar testes falso-positivos (cálculo nutricional e busca com acentos)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/services/meal.service.ts`: exportada função `calculateItemNutrients` para permitir testes unitários diretos.
+  - `backend/tests/meal.test.ts`: suíte `Nutritional Factor Calculations` refatorada para importar e chamar `calculateItemNutrients` com cenários reais (gramas, ml, unidades), eliminando variáveis locais e contas tautológicas isoladas.
+  - `backend/tests/integration/food.routes.test.ts`: substituída a asserção no-op por verificação real de que o resultado da busca insensível a acentuação (`search=maca`) retorna alimentos contendo "Maçã".
+- **Validação:** 67 testes de backend passando (18 suítes), lint 0 erros, build verde.
+
+
 

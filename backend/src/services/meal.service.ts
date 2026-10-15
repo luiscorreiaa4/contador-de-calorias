@@ -7,7 +7,7 @@ interface CustomError extends Error {
   statusCode?: number;
 }
 
-function calculateItemNutrients(
+export function calculateItemNutrients(
   item: { foodId: string; quantity: number; unit?: 'g' | 'ml' | 'un'; displayAmount?: number },
   food: { id: string; base_unit: string; unit_weight?: number | string | null; serving_weight: number | string; calories: number | string; proteins: number | string; carbs: number | string; fats: number | string; }
 ) {
