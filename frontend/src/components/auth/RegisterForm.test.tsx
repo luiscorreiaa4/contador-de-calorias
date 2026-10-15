@@ -11,7 +11,7 @@ describe('RegisterForm', () => {
     await userEvent.click(screen.getByRole('button', { name: /criar conta/i }));
     
     expect(await screen.findByText(/o nome é obrigatório/i)).toBeInTheDocument();
-    expect(await screen.findByText(/o e-mail é obrigatório/i)).toBeInTheDocument();
+    expect(await screen.findByText(/o email é obrigatório/i)).toBeInTheDocument();
     expect(await screen.findByText(/a senha é obrigatória/i)).toBeInTheDocument();
     expect(await screen.findByText(/confirme sua senha/i)).toBeInTheDocument();
   });
@@ -30,7 +30,7 @@ describe('RegisterForm', () => {
     render(<RegisterForm />);
     
     await userEvent.type(screen.getByLabelText(/nome/i), 'Test');
-    await userEvent.type(screen.getByLabelText(/e-mail/i), 'test@example.com');
+    await userEvent.type(screen.getByLabelText(/email/i), 'test@example.com');
     await userEvent.type(screen.getByLabelText(/senha/i, { selector: 'input#register-password' }), '123456');
     await userEvent.type(screen.getByLabelText(/confirmar senha/i), '123456');
     await userEvent.click(screen.getByRole('button', { name: /criar conta/i }));
@@ -43,7 +43,7 @@ describe('RegisterForm', () => {
     render(<RegisterForm onSuccess={onSuccess} />);
     
     await userEvent.type(screen.getByLabelText(/nome/i), 'Novo Usuário');
-    await userEvent.type(screen.getByLabelText(/e-mail/i), 'novo@example.com');
+    await userEvent.type(screen.getByLabelText(/email/i), 'novo@example.com');
     await userEvent.type(screen.getByLabelText(/senha/i, { selector: 'input#register-password' }), '123456');
     await userEvent.type(screen.getByLabelText(/confirmar senha/i), '123456');
     await userEvent.click(screen.getByRole('button', { name: /criar conta/i }));

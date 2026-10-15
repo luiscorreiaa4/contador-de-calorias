@@ -35,5 +35,15 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
 - **Status:** CORRIGIDO
 - **Ação:** Variável `timeToUse` confirmada como `const`, diretiva órfã na `:181` removida e escopo de lint mantido limpo com 0 erros e 0 warnings.
 - **Validação:** `npm run lint` passou com código 0 em todo o repositório.
+- **Commit:** `fc7416c`
+
+### CA-03: Restaurar suíte do frontend (MSW + RTL)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/mocks/handlers.ts`: corrigido contrato de `/foods` para retornar `{ foods: [...], total: 2 }` e adicionado handler para `GET /meals/stats`.
+  - `frontend/src/components/auth/LoginForm.test.tsx`: alinhadas consultas por acessibilidade com texto do botão (`Acessar Dashboard`), label (`Email`) e mensagens de validação.
+  - `frontend/src/components/auth/RegisterForm.test.tsx`: alinhada consulta da label `Email` e mensagem de validação correspondente.
+  - `frontend/src/components/meals/NewMealModal.test.tsx`: alinhadas buscas case-insensitive para alimento (`ARROZ BRANCO`), label `NOME`, unidade `150 G` e botão `CRIAR REFEIÇÃO`.
+- **Validação:** `npm --prefix frontend test` com 13/13 testes passando (5 arquivos, 0 erros). `npm run test`, `npm run lint` e `npm run build` 100% verdes.
 
 

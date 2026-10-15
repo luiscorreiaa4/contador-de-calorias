@@ -7,25 +7,25 @@ import { LoginForm } from './LoginForm';
 describe('LoginForm', () => {
   it('deve renderizar os campos corretamente', () => {
     render(<LoginForm />);
-    expect(screen.getByLabelText(/e-mail/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/senha/i, { selector: 'input' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /entrar/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /acessar dashboard/i })).toBeInTheDocument();
   });
 
   it('deve exibir erro se enviar vazio', async () => {
     render(<LoginForm />);
-    await userEvent.click(screen.getByRole('button', { name: /entrar/i }));
+    await userEvent.click(screen.getByRole('button', { name: /acessar dashboard/i }));
     
-    expect(await screen.findByText(/o e-mail é obrigatório/i)).toBeInTheDocument();
+    expect(await screen.findByText(/o email é obrigatório/i)).toBeInTheDocument();
     expect(await screen.findByText(/a senha é obrigatória/i)).toBeInTheDocument();
   });
 
   it('deve exibir erro da API para credenciais inválidas', async () => {
     render(<LoginForm />);
     
-    await userEvent.type(screen.getByLabelText(/e-mail/i), 'wrong@example.com');
+    await userEvent.type(screen.getByLabelText(/email/i), 'wrong@example.com');
     await userEvent.type(screen.getByLabelText(/senha/i, { selector: 'input' }), '123456');
-    await userEvent.click(screen.getByRole('button', { name: /entrar/i }));
+    await userEvent.click(screen.getByRole('button', { name: /acessar dashboard/i }));
 
     expect(await screen.findByText(/credenciais inválidas/i)).toBeInTheDocument();
   });
@@ -34,9 +34,9 @@ describe('LoginForm', () => {
     const onSuccess = vi.fn();
     render(<LoginForm onSuccess={onSuccess} />);
     
-    await userEvent.type(screen.getByLabelText(/e-mail/i), 'test@example.com');
+    await userEvent.type(screen.getByLabelText(/email/i), 'test@example.com');
     await userEvent.type(screen.getByLabelText(/senha/i, { selector: 'input' }), '123456');
-    await userEvent.click(screen.getByRole('button', { name: /entrar/i }));
+    await userEvent.click(screen.getByRole('button', { name: /acessar dashboard/i }));
 
     await waitFor(() => {
       expect(onSuccess).toHaveBeenCalled();

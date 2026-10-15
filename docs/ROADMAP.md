@@ -64,7 +64,7 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 **CI verde (pré-requisito de todo o resto)**
 - [x] **CA-02** Build: generics do `react-select` em `NewMealModal.tsx:455,461`.
 - [x] **CA-08** Lint: `prefer-const` em `NewMealModal.tsx:298` e diretiva órfã na `:181`.
-- [ ] **CA-03** Suíte do frontend: 9/13 testes falhando em `LoginForm`, `RegisterForm` e `NewMealModal` + erro MSW em `StatsPage` (contrato `/foods` e handler `/meals/stats`).
+- [x] **CA-03** Suíte do frontend: 9/13 testes falhando em `LoginForm`, `RegisterForm` e `NewMealModal` + erro MSW em `StatsPage` (contrato `/foods` e handler `/meals/stats`).
 
 **Segurança**
 - [ ] **CA-01** Remover fallback `'fallback_jwt_secret'` (`auth.ts:19`, `user.service.ts:235`).
