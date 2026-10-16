@@ -711,3 +711,19 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - Testes do backend (`npm run test:strict`): 110 testes passando em 27 suítes (0 falhas).
   - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
   - Frontend Build (`npm run build`): compilação de produção com código 0.
+
+### PC-29: Substituição de formulários complexos manuais por react-hook-form e Zod
+- **Status:** CORRIGIDO
+- **Ação:**
+  - Instaladas as dependências permitidas compatíveis com o stack existente: `react-hook-form@^7.54.2` e `@hookform/resolvers@^3.10.0` no `frontend/package.json`.
+  - `RegisterForm.tsx`: migrado para `useForm` com `zodResolver(registerSchema)`, eliminando múltiplos estados de `useState` e substituindo por registro de formulário, validação de regras de senha e confirmação, e exibição acessível de erros.
+  - `OnboardingFlow.tsx`: migrado para `useForm` com `zodResolver(onboardingFormSchema)`, integrando validação modular por etapa com `trigger`, eliminando `useState`s imperativos de campos e preservando dados entre os 3 passos.
+  - `EditProfilePage.tsx`: migrado para `useForm` com `zodResolver(editProfileSchema)`, centralizando validação de dados pessoais, medidas, metas, segurança (senha atual obrigatória na alteração de email/senha nova) e sincronização com `useQuery`/`useMutation`.
+  - Mantida padronização de largura rigorosamente simétrica entre a caixa de senha atual e de nova senha no desktop (`grid grid-cols-1 sm:grid-cols-2 gap-6`).
+- **Validação:**
+  - Testes unitários e de integração de frontend (`RegisterForm.test.tsx`, `OnboardingFlow.test.tsx`, `EditProfilePage.test.tsx`): 100% passando.
+  - Testes do frontend (`npm --prefix frontend test`): 47 testes passando em 14 suítes (0 falhas).
+  - Testes do backend (`npm run test:strict`): 110 testes passando em 27 suítes (0 falhas).
+  - Lint Monorepo (`npm run lint`): 0 erros.
+  - Frontend Build (`npm run build`): compilação de produção bem-sucedida em 1.45s.
+

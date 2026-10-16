@@ -1,14 +1,76 @@
 import React, { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useAuth } from '../../context/AuthContext';
 import { completeUserOnboarding } from '../../services/auth.service';
 import { Flame, Target, TrendingUp, ArrowRight, ArrowLeft, CheckCircle2, Weight, Ruler, ActivitySquare, AlertCircle } from 'lucide-react';
 import { DatePickerInput } from '../common/DatePickerInput';
 
+const validateBirthDateString = (val: string): boolean => {
+  if (!val || val.length < 10) return false;
+  const parts = val.split('/');
+  if (parts.length !== 3) return false;
+  const day = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10);
+  const year = parseInt(parts[2], 10);
+  if (isNaN(day) || isNaN(month) || isNaN(year)) return false;
+  if (month < 1 || month > 12) return false;
+  if (year < 1900 || year > new Date().getFullYear()) return false;
+  const daysInMonth = new Date(year, month, 0).getDate();
+  if (day < 1 || day > daysInMonth) return false;
+  const birthObj = new Date(year, month - 1, day);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (birthObj > today) return false;
+  const age = today.getFullYear() - year;
+  return age >= 1 && age <= 120;
+};
+
+const onboardingFormSchema = z.object({
+  sex: z.string().min(1, 'SELECIONE O SEXO BIOLÓGICO.'),
+  birthDate: z
+    .string()
+    .min(1, 'A DATA DE NASCIMENTO É OBRIGATÓRIA.')
+    .refine((val) => val.length >= 10, 'INFORME A DATA COMPLETA (DD/MM/AAAA).')
+    .refine(validateBirthDateString, 'DATA DE NASCIMENTO INVÁLIDA.'),
+  goal: z.string().min(1, 'SELECIONE UM OBJETIVO PARA CONTINUAR.'),
+  weight: z.string().min(1, 'INFORME SEU PESO.'),
+  height: z.string().min(1, 'INFORME SUA ALTURA.'),
+  bodyFat: z.string().optional().default(''),
+  activityLevel: z.string().min(1, 'SELECIONE SEU NÍVEL DE ATIVIDADE.'),
+});
+
+type OnboardingFormInputs = z.infer<typeof onboardingFormSchema>;
+
 export const OnboardingFlow: React.FC = () => {
   const { user, setAuthSession } = useAuth();
   const [step, setStep] = useState(1);
   const [serverError, setServerError] = useState<string | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    trigger,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<OnboardingFormInputs>({
+    resolver: zodResolver(onboardingFormSchema),
+    mode: 'onTouched',
+    defaultValues: {
+      sex: '',
+      birthDate: '',
+      goal: '',
+      weight: '',
+      height: '',
+      bodyFat: '',
+      activityLevel: '',
+    },
+  });
+
+  const formValues = watch();
 
   const onboardingMutation = useMutation({
     mutationFn: completeUserOnboarding,
@@ -21,79 +83,36 @@ export const OnboardingFlow: React.FC = () => {
     },
   });
 
-  const [formData, setFormData] = useState({
-    sex: '',
-    birthDate: '',
-    goal: '',
-    weight: '',
-    height: '',
-    bodyFat: '',
-    activityLevel: '',
-  });
-
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const validateBirthDate = (val: string): string | null => {
-    if (!val || !val.trim()) return 'A DATA DE NASCIMENTO É OBRIGATÓRIA.';
-    if (val.length < 10) return 'INFORME A DATA COMPLETA (DD/MM/AAAA).';
-    const parts = val.split('/');
-    if (parts.length !== 3) return 'DATA INVÁLIDA (DD/MM/AAAA).';
-    const day = parseInt(parts[0], 10);
-    const month = parseInt(parts[1], 10);
-    const year = parseInt(parts[2], 10);
-    if (isNaN(day) || isNaN(month) || isNaN(year)) return 'DATA DE NASCIMENTO INVÁLIDA.';
-    if (month < 1 || month > 12) return 'MÊS INVÁLIDO.';
-    if (year < 1900 || year > new Date().getFullYear()) return 'ANO INVÁLIDO.';
-    const daysInMonth = new Date(year, month, 0).getDate();
-    if (day < 1 || day > daysInMonth) return 'DATA DE NASCIMENTO INVÁLIDA.';
-    const birthObj = new Date(year, month - 1, day);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (birthObj > today) return 'A DATA NÃO PODE SER NO FUTURO.';
-    const age = today.getFullYear() - year;
-    if (age < 1 || age > 120) return 'INFORME UMA DATA VÁLIDA.';
-    return null;
-  };
-
-  const nextStep = () => {
-    const currentErrors: Record<string, string> = {};
+  const nextStep = async () => {
+    let isValid = false;
     if (step === 1) {
-      if (!formData.sex) currentErrors.sex = 'SELECIONE O SEXO BIOLÓGICO.';
-      const birthErr = validateBirthDate(formData.birthDate);
-      if (birthErr) currentErrors.birthDate = birthErr;
+      isValid = await trigger(['sex', 'birthDate']);
     } else if (step === 2) {
-      if (!formData.goal) currentErrors.goal = 'SELECIONE UM OBJETIVO PARA CONTINUAR.';
+      isValid = await trigger('goal');
     } else if (step === 3) {
-      if (!formData.weight) currentErrors.weight = 'INFORME SEU PESO.';
-      if (!formData.height) currentErrors.height = 'INFORME SUA ALTURA.';
+      isValid = await trigger(['weight', 'height']);
     } else if (step === 4) {
-      if (!formData.activityLevel) currentErrors.activityLevel = 'SELECIONE SEU NÍVEL DE ATIVIDADE.';
+      isValid = await trigger('activityLevel');
     }
-
-    if (Object.keys(currentErrors).length > 0) {
-      setErrors(currentErrors);
-      return;
+    if (isValid) {
+      setStep((prev) => prev + 1);
     }
-
-    setErrors({});
-    setStep((prev) => prev + 1);
   };
 
   const prevStep = () => {
-    setErrors({});
     setStep((prev) => prev - 1);
   };
 
-  const handleSubmit = () => {
+  const onSubmit = (data: OnboardingFormInputs) => {
     setServerError(null);
     onboardingMutation.mutate({
-      sex: formData.sex,
-      birthDate: formData.birthDate,
-      goal: formData.goal,
-      weight: parseFloat(formData.weight.replace(',', '.')),
-      height: parseFloat(formData.height.replace(',', '.')),
-      body_fat: formData.bodyFat ? parseFloat(formData.bodyFat.replace(',', '.')) : undefined,
-      activity_level: formData.activityLevel,
+      sex: data.sex,
+      birthDate: data.birthDate,
+      goal: data.goal,
+      weight: parseFloat(data.weight.replace(',', '.')),
+      height: parseFloat(data.height.replace(',', '.')),
+      body_fat: data.bodyFat ? parseFloat(data.bodyFat.replace(',', '.')) : undefined,
+      activity_level: data.activityLevel,
     });
   };
 
@@ -120,7 +139,7 @@ export const OnboardingFlow: React.FC = () => {
         if (step < 5) {
           nextStep();
         } else {
-          handleSubmit();
+          handleSubmit(onSubmit)();
         }
       }}
       className="w-full max-w-md mx-auto p-6 sm:p-8 bg-card border-2 border-border shadow-hard flex flex-col gap-6"
@@ -151,11 +170,7 @@ export const OnboardingFlow: React.FC = () => {
           <div>
             <label className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">SEXO BIOLÓGICO</label>
             <select
-              value={formData.sex}
-              onChange={(e) => {
-                setFormData({ ...formData, sex: e.target.value });
-                if (errors.sex) setErrors({ ...errors, sex: '' });
-              }}
+              {...register('sex')}
               className={`${inputBase} !pl-4 cursor-pointer ${errors.sex ? '!border-destructive bg-destructive/10' : ''}`}
             >
               <option value="" disabled>- SELECIONE -</option>
@@ -163,19 +178,20 @@ export const OnboardingFlow: React.FC = () => {
               <option value="feminino">FEMININO</option>
               <option value="prefiro_nao_responder">PREFIRO NÃO RESPONDER</option>
             </select>
-            {errors.sex && <p className="text-destructive font-bold text-[10px] mt-2 uppercase tracking-widest">{errors.sex}</p>}
+            {errors.sex && <p className="text-destructive font-bold text-[10px] mt-2 uppercase tracking-widest">{errors.sex.message}</p>}
           </div>
 
           <div>
             <label className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">DATA DE NASCIMENTO</label>
             <DatePickerInput
               id="onboarding-birth-date"
-              value={formData.birthDate}
-              onChange={(val) => setFormData({ ...formData, birthDate: val })}
-              onFocus={() => { if (errors.birthDate) setErrors({ ...errors, birthDate: '' }); }}
-              error={errors.birthDate}
+              value={formValues.birthDate}
+              onChange={(val) => {
+                setValue('birthDate', val, { shouldValidate: true });
+              }}
+              error={errors.birthDate?.message}
             />
-            {errors.birthDate && <p className="text-destructive font-bold text-[10px] mt-2 uppercase tracking-widest">{errors.birthDate}</p>}
+            {errors.birthDate && <p className="text-destructive font-bold text-[10px] mt-2 uppercase tracking-widest">{errors.birthDate.message}</p>}
           </div>
         </div>
       )}
@@ -188,23 +204,25 @@ export const OnboardingFlow: React.FC = () => {
               <button
                 key={g.key}
                 type="button"
-                onClick={() => { setFormData({ ...formData, goal: g.key }); setErrors({}); }}
+                onClick={() => {
+                  setValue('goal', g.key, { shouldValidate: true });
+                }}
                 className={`p-4 border-2 flex items-center gap-4 transition-all focus:outline-none uppercase ${
-                  formData.goal === g.key 
+                  formValues.goal === g.key 
                     ? 'border-primary bg-secondary shadow-hard translate-y-0.5' 
                     : 'border-border bg-background hover:-translate-y-0.5 hover:shadow-hard-hover hover:border-primary'
                 }`}
               >
-                <div className={`p-2 border-2 ${formData.goal === g.key ? 'bg-background border-primary' : 'bg-secondary border-transparent'}`}>
+                <div className={`p-2 border-2 ${formValues.goal === g.key ? 'bg-background border-primary' : 'bg-secondary border-transparent'}`}>
                   {g.icon}
                 </div>
-                <span className={`font-black tracking-widest text-xs ${formData.goal === g.key ? 'text-primary' : 'text-foreground'}`}>
+                <span className={`font-black tracking-widest text-xs ${formValues.goal === g.key ? 'text-primary' : 'text-foreground'}`}>
                   {g.label}
                 </span>
               </button>
             ))}
           </div>
-          {errors.goal && <p className="text-destructive font-bold text-[10px] mt-2 uppercase tracking-widest">{errors.goal}</p>}
+          {errors.goal && <p className="text-destructive font-bold text-[10px] mt-2 uppercase tracking-widest">{errors.goal.message}</p>}
         </div>
       )}
 
@@ -219,13 +237,12 @@ export const OnboardingFlow: React.FC = () => {
               <input 
                 type="number" 
                 step="0.1" 
-                value={formData.weight} 
-                onChange={(e) => setFormData({...formData, weight: e.target.value})} 
+                {...register('weight')}
                 placeholder="EX: 75.5" 
                 className={`${inputBase} ${errors.weight ? '!border-destructive bg-destructive/10' : ''}`} 
               />
             </div>
-            {errors.weight && <p className="text-destructive font-bold text-[10px] mt-2 uppercase tracking-widest">{errors.weight}</p>}
+            {errors.weight && <p className="text-destructive font-bold text-[10px] mt-2 uppercase tracking-widest">{errors.weight.message}</p>}
           </div>
 
           <div>
@@ -234,13 +251,12 @@ export const OnboardingFlow: React.FC = () => {
               <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input 
                 type="number" 
-                value={formData.height} 
-                onChange={(e) => setFormData({...formData, height: e.target.value})} 
+                {...register('height')}
                 placeholder="EX: 175" 
                 className={`${inputBase} ${errors.height ? '!border-destructive bg-destructive/10' : ''}`} 
               />
             </div>
-            {errors.height && <p className="text-destructive font-bold text-[10px] mt-2 uppercase tracking-widest">{errors.height}</p>}
+            {errors.height && <p className="text-destructive font-bold text-[10px] mt-2 uppercase tracking-widest">{errors.height.message}</p>}
           </div>
 
           <div>
@@ -252,8 +268,7 @@ export const OnboardingFlow: React.FC = () => {
               <input 
                 type="number" 
                 step="0.1" 
-                value={formData.bodyFat} 
-                onChange={(e) => setFormData({...formData, bodyFat: e.target.value})} 
+                {...register('bodyFat')}
                 placeholder="EX: 18.5" 
                 className={inputBase} 
               />
@@ -270,21 +285,23 @@ export const OnboardingFlow: React.FC = () => {
               <button
                 key={a.key}
                 type="button"
-                onClick={() => { setFormData({ ...formData, activityLevel: a.key }); setErrors({}); }}
+                onClick={() => {
+                  setValue('activityLevel', a.key, { shouldValidate: true });
+                }}
                 className={`p-4 border-2 flex flex-col text-left transition-all focus:outline-none uppercase ${
-                  formData.activityLevel === a.key 
+                  formValues.activityLevel === a.key 
                     ? 'border-primary bg-secondary shadow-hard translate-y-0.5' 
                     : 'border-border bg-background hover:-translate-y-0.5 hover:shadow-hard-hover hover:border-primary'
                 }`}
               >
-                <span className={`font-black tracking-widest text-xs mb-1 ${formData.activityLevel === a.key ? 'text-primary' : 'text-foreground'}`}>
+                <span className={`font-black tracking-widest text-xs mb-1 ${formValues.activityLevel === a.key ? 'text-primary' : 'text-foreground'}`}>
                   {a.label}
                 </span>
                 <span className="text-[10px] font-bold text-muted-foreground">{a.desc}</span>
               </button>
             ))}
           </div>
-          {errors.activityLevel && <p className="text-destructive font-bold text-[10px] mt-2 uppercase tracking-widest">{errors.activityLevel}</p>}
+          {errors.activityLevel && <p className="text-destructive font-bold text-[10px] mt-2 uppercase tracking-widest">{errors.activityLevel.message}</p>}
         </div>
       )}
 
@@ -296,7 +313,7 @@ export const OnboardingFlow: React.FC = () => {
           <div className="px-6">
             <h3 className="text-lg font-heading font-black text-foreground uppercase tracking-tight mb-3">TUDO PRONTO, {user?.name.split(' ')[0].toUpperCase()}!</h3>
             <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase leading-relaxed">
-              VAMOS CALCULAR SUAS NECESSIDADES E DEFINIR METAS PARA O OBJETIVO DE <strong className="text-foreground">{goals.find(g => g.key === formData.goal)?.label}</strong>.
+              VAMOS CALCULAR SUAS NECESSIDADES E DEFINIR METAS PARA O OBJETIVO DE <strong className="text-foreground">{goals.find(g => g.key === formValues.goal)?.label}</strong>.
             </p>
           </div>
         </div>

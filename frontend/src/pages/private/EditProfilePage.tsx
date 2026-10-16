@@ -1,6 +1,9 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useAuth } from '../../context/AuthContext';
 import { updateUserProfile, deleteUserAccount, getCurrentUserProfile } from '../../services/auth.service';
 import { DatePickerInput } from '../../components/common/DatePickerInput';
@@ -26,6 +29,81 @@ import {
   ActivitySquare,
 } from 'lucide-react';
 
+const formatInitialBirthDate = (val?: string): string => {
+  if (!val) return '';
+  if (val.includes('-')) {
+    const [y, m, d] = val.split('T')[0].split('-');
+    return `${d.padStart(2, '0')}/${m.padStart(2, '0')}/${y}`;
+  }
+  return val;
+};
+
+const editProfileSchema = z
+  .object({
+    name: z.string().trim().min(1, 'O NOME É OBRIGATÓRIO.'),
+    email: z.string().trim().min(1, 'O E-MAIL É OBRIGATÓRIO.').email('DIGITE UM E-MAIL VÁLIDO.'),
+    goal: z.string().min(1, 'SELECIONE O OBJETIVO.'),
+    sex: z.enum(['masculino', 'feminino', 'prefiro_nao_responder']),
+    birthDate: z.string().optional().refine((val) => {
+      if (!val || !val.trim()) return true;
+      if (val.length < 10) return false;
+      const parts = val.split('/');
+      if (parts.length !== 3) return false;
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10);
+      const year = parseInt(parts[2], 10);
+      if (isNaN(day) || isNaN(month) || isNaN(year)) return false;
+      if (month < 1 || month > 12) return false;
+      if (year < 1900 || year > new Date().getFullYear()) return false;
+      return true;
+    }, 'DATA DE NASCIMENTO INVÁLIDA.'),
+    weight: z.string().min(1, 'INFORME SEU PESO.'),
+    height: z.string().min(1, 'INFORME SUA ALTURA.'),
+    bodyFat: z.string().optional().default(''),
+    activityLevel: z.string().min(1, 'SELECIONE SEU NÍVEL DE ATIVIDADE.'),
+    currentPassword: z.string().optional().default(''),
+    newPassword: z.string().optional().default(''),
+    confirmNewPassword: z.string().optional().default(''),
+  })
+  .refine(
+    (data) => {
+      if (data.newPassword && data.newPassword.length > 0) {
+        return data.newPassword.length >= 8 && /(?=.*[a-zA-Z])(?=.*[0-9])/.test(data.newPassword);
+      }
+      return true;
+    },
+    {
+      message: 'A NOVA SENHA DEVE TER NO MÍNIMO 8 CARACTERES COM LETRA E NÚMERO.',
+      path: ['newPassword'],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.newPassword && data.newPassword.length > 0) {
+        return data.newPassword === data.confirmNewPassword;
+      }
+      return true;
+    },
+    {
+      message: 'AS SENHAS NÃO COINCIDEM.',
+      path: ['confirmNewPassword'],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.newPassword && data.newPassword.length > 0) {
+        return !!data.currentPassword && data.currentPassword.trim().length > 0;
+      }
+      return true;
+    },
+    {
+      message: 'INFORME SUA SENHA ATUAL PARA ALTERAR A SENHA.',
+      path: ['currentPassword'],
+    }
+  );
+
+type EditProfileFormInputs = z.infer<typeof editProfileSchema>;
+
 interface EditProfilePageProps {
   onBack?: () => void;
 }
@@ -40,44 +118,6 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
     else navigate('/');
   };
 
-  const formatInitialBirthDate = (val?: string): string => {
-    if (!val) return '';
-    if (val.includes('-')) {
-      const [y, m, d] = val.split('T')[0].split('-');
-      return `${d.padStart(2, '0')}/${m.padStart(2, '0')}/${y}`;
-    }
-    return val;
-  };
-
-  const [initialData, setInitialData] = useState(() => {
-    const rawBirthDate = user?.birth_date || (user as unknown as { birthDate?: string })?.birthDate || '';
-    return {
-      name: user?.name || '',
-      email: user?.email || '',
-      goal: user?.goal || 'perder_peso',
-      sex: user?.sex || 'masculino',
-      birthDate: formatInitialBirthDate(rawBirthDate),
-      weight: user?.weight?.toString() || '',
-      height: user?.height?.toString() || '',
-      bodyFat: user?.body_fat?.toString() || '',
-      activityLevel: user?.activity_level || 'sedentario',
-    };
-  });
-
-  const [name, setName] = useState(initialData.name);
-  const [email, setEmail] = useState(initialData.email);
-  const [goal, setGoal] = useState(initialData.goal);
-  const [sex, setSex] = useState(initialData.sex);
-  const [birthDate, setBirthDate] = useState(initialData.birthDate);
-  const [weight, setWeight] = useState(initialData.weight);
-  const [height, setHeight] = useState(initialData.height);
-  const [bodyFat, setBodyFat] = useState(initialData.bodyFat);
-  const [activityLevel, setActivityLevel] = useState(initialData.activityLevel);
-
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmNewPassword, setConfirmNewPassword] = useState('');
-
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
@@ -87,7 +127,41 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
 
   const [serverError, setServerError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const initialBaseline = useMemo(() => {
+    const rawBirthDate = user?.birth_date || (user as unknown as { birthDate?: string })?.birthDate || '';
+    return {
+      name: user?.name || '',
+      email: user?.email || '',
+      goal: user?.goal || 'perder_peso',
+      sex: (user?.sex as 'masculino' | 'feminino' | 'prefiro_nao_responder') || 'masculino',
+      birthDate: formatInitialBirthDate(rawBirthDate),
+      weight: user?.weight?.toString() || '',
+      height: user?.height?.toString() || '',
+      bodyFat: user?.body_fat?.toString() || '',
+      activityLevel: user?.activity_level || 'sedentario',
+      currentPassword: '',
+      newPassword: '',
+      confirmNewPassword: '',
+    };
+  }, [user]);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    setValue,
+    getValues,
+    setError,
+    formState: { errors, isDirty },
+  } = useForm<EditProfileFormInputs>({
+    resolver: zodResolver(editProfileSchema),
+    mode: 'all',
+    defaultValues: initialBaseline,
+  });
+
+  const formValues = watch();
 
   const { data: freshUser } = useQuery({
     queryKey: ['currentUserProfile'],
@@ -103,25 +177,15 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
       const formattedBirth = formatInitialBirthDate(
         freshUser.birth_date || (freshUser as unknown as { birthDate?: string })?.birthDate
       );
-      setInitialData((prev) => ({
-        ...prev,
-        goal: freshUser.goal || prev.goal,
-        sex: freshUser.sex || prev.sex,
-        birthDate: formattedBirth || prev.birthDate,
-        weight: freshUser.weight?.toString() || prev.weight,
-        height: freshUser.height?.toString() || prev.height,
-        bodyFat: freshUser.body_fat?.toString() || prev.bodyFat,
-        activityLevel: freshUser.activity_level || prev.activityLevel,
-      }));
-      setGoal((prev) => (prev ? prev : (freshUser.goal || 'perder_peso')));
-      setSex((prev) => (prev ? prev : (freshUser.sex || 'masculino')));
-      setBirthDate((prev) => (prev ? prev : formattedBirth));
-      setWeight((prev) => (prev ? prev : (freshUser.weight?.toString() || '')));
-      setHeight((prev) => (prev ? prev : (freshUser.height?.toString() || '')));
-      setBodyFat((prev) => (prev ? prev : (freshUser.body_fat?.toString() || '')));
-      setActivityLevel((prev) => (prev ? prev : (freshUser.activity_level || 'sedentario')));
+      if (freshUser.weight != null && !getValues('weight')) setValue('weight', freshUser.weight.toString(), { shouldDirty: false });
+      if (freshUser.height != null && !getValues('height')) setValue('height', freshUser.height.toString(), { shouldDirty: false });
+      if (freshUser.body_fat != null && !getValues('bodyFat')) setValue('bodyFat', freshUser.body_fat.toString(), { shouldDirty: false });
+      if (freshUser.goal && !getValues('goal')) setValue('goal', freshUser.goal, { shouldDirty: false });
+      if (freshUser.sex && !getValues('sex')) setValue('sex', freshUser.sex as 'masculino' | 'feminino' | 'prefiro_nao_responder', { shouldDirty: false });
+      if (formattedBirth && !getValues('birthDate')) setValue('birthDate', formattedBirth, { shouldDirty: false });
+      if (freshUser.activity_level && !getValues('activityLevel')) setValue('activityLevel', freshUser.activity_level, { shouldDirty: false });
     }
-  }, [freshUser, updateUserSession]);
+  }, [freshUser, updateUserSession, setValue, getValues]);
 
   const updateProfileMutation = useMutation({
     mutationFn: (payload: Record<string, unknown>) => updateUserProfile(payload),
@@ -135,33 +199,22 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
       const formattedBirth = formatInitialBirthDate(
         updatedUser.birth_date || (updatedUser as unknown as { birthDate?: string })?.birthDate
       );
-      const updatedBaseline = {
-        name: updatedUser.name || name.trim(),
-        email: updatedUser.email || email.trim(),
-        goal: updatedUser.goal || goal,
-        sex: updatedUser.sex || sex,
-        birthDate: formattedBirth || birthDate,
-        weight: updatedUser.weight?.toString() || weight,
-        height: updatedUser.height?.toString() || height,
-        bodyFat: updatedUser.body_fat?.toString() || bodyFat,
-        activityLevel: updatedUser.activity_level || activityLevel,
-      };
-
-      setInitialData(updatedBaseline);
-      setName(updatedBaseline.name);
-      setEmail(updatedBaseline.email);
-      setGoal(updatedBaseline.goal);
-      setSex(updatedBaseline.sex);
-      setBirthDate(updatedBaseline.birthDate);
-      setWeight(updatedBaseline.weight);
-      setHeight(updatedBaseline.height);
-      setBodyFat(updatedBaseline.bodyFat);
-      setActivityLevel(updatedBaseline.activityLevel);
+      reset({
+        name: updatedUser.name || '',
+        email: updatedUser.email || '',
+        goal: updatedUser.goal || 'perder_peso',
+        sex: (updatedUser.sex as 'masculino' | 'feminino' | 'prefiro_nao_responder') || 'masculino',
+        birthDate: formattedBirth || '',
+        weight: updatedUser.weight?.toString() || '',
+        height: updatedUser.height?.toString() || '',
+        bodyFat: updatedUser.body_fat?.toString() || '',
+        activityLevel: updatedUser.activity_level || 'sedentario',
+        currentPassword: '',
+        newPassword: '',
+        confirmNewPassword: '',
+      });
 
       setSuccessMessage('PERFIL ATUALIZADO COM SUCESSO!');
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmNewPassword('');
     },
     onError: (err: unknown) => {
       const errorMsg = err instanceof Error ? err.message : String(err);
@@ -187,231 +240,40 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
     },
   });
 
+  const currentEmailBaseline = (freshUser?.email || user?.email || '').trim().toLowerCase();
   const isEmailChanged = useMemo(() => {
-    return email.trim().toLowerCase() !== initialData.email.trim().toLowerCase();
-  }, [email, initialData.email]);
+    return (formValues.email || '').trim().toLowerCase() !== currentEmailBaseline;
+  }, [formValues.email, currentEmailBaseline]);
 
-  const isDirty = useMemo(() => {
-    const nameChanged = name.trim() !== initialData.name.trim();
-    const emailChanged = isEmailChanged;
-    const goalChanged = goal !== initialData.goal;
-    const sexChanged = sex !== initialData.sex;
-    const birthDateChanged = birthDate.trim() !== initialData.birthDate.trim();
-    const weightChanged = weight !== initialData.weight;
-    const heightChanged = height !== initialData.height;
-    const bodyFatChanged = bodyFat !== initialData.bodyFat;
-    const activityLevelChanged = activityLevel !== initialData.activityLevel;
-    const passwordChanged = newPassword.trim().length > 0;
-
-    return nameChanged || emailChanged || goalChanged || sexChanged || birthDateChanged || weightChanged || heightChanged || bodyFatChanged || activityLevelChanged || passwordChanged;
-  }, [name, goal, sex, birthDate, weight, height, bodyFat, activityLevel, newPassword, initialData, isEmailChanged]);
-
-  const validateBirthDate = (val: string): string | null => {
-    if (!val || !val.trim()) return null;
-    if (val.length < 10) return 'INFORME A DATA COMPLETA (DD/MM/AAAA).';
-    const parts = val.split('/');
-    if (parts.length !== 3) return 'DATA INVÁLIDA (DD/MM/AAAA).';
-    const day = parseInt(parts[0], 10);
-    const month = parseInt(parts[1], 10);
-    const year = parseInt(parts[2], 10);
-
-    if (isNaN(day) || isNaN(month) || isNaN(year)) return 'DATA DE NASCIMENTO INVÁLIDA.';
-    if (month < 1 || month > 12) return 'MÊS INVÁLIDO.';
-    if (year < 1900 || year > new Date().getFullYear()) return 'ANO INVÁLIDO.';
-    return null;
-  };
-
-  const handleNameChange = (val: string) => {
-    setName(val);
-    if (errors.name && val.trim()) {
-      setErrors((prev) => {
-        const next = { ...prev };
-        delete next.name;
-        return next;
-      });
-    }
-  };
-
-  const handleEmailChange = (val: string) => {
-    setEmail(val);
-    setErrors((prev) => {
-      const next = { ...prev };
-      if (!val.trim()) {
-        next.email = 'O E-MAIL É OBRIGATÓRIO.';
-      } else if (!/\S+@\S+\.\S+/.test(val)) {
-        next.email = 'DIGITE UM E-MAIL VÁLIDO.';
-      } else {
-        delete next.email;
-      }
-      return next;
-    });
-  };
-
-  const handleCurrentPasswordChange = (val: string) => {
-    setCurrentPassword(val);
-    setErrors((prev) => {
-      const next = { ...prev };
-      if (val.trim()) {
-        delete next.currentPassword;
-      } else {
-        if (isEmailChanged) {
-          next.currentPassword = 'DIGITE SUA SENHA ATUAL PARA CONFIRMAR A ALTERAÇÃO DO E-MAIL.';
-        } else if (newPassword.length > 0) {
-          next.currentPassword = 'INFORME SUA SENHA ATUAL PARA ALTERAR A SENHA.';
-        }
-      }
-      return next;
-    });
-  };
-
-  const handleNewPasswordChange = (val: string) => {
-    setNewPassword(val);
-    setErrors((prev) => {
-      const next = { ...prev };
-
-      if (val.length > 0 && (val.length < 8 || !/(?=.*[a-zA-Z])(?=.*[0-9])/.test(val))) {
-        next.newPassword = 'A NOVA SENHA DEVE TER NO MÍNIMO 8 CARACTERES COM LETRA E NÚMERO.';
-      } else {
-        delete next.newPassword;
-      }
-
-      if (val.length > 0 && !currentPassword.trim()) {
-        next.currentPassword = 'INFORME SUA SENHA ATUAL PARA ALTERAR A SENHA.';
-      } else if (!isEmailChanged && !val.length) {
-        delete next.currentPassword;
-      }
-
-      if (confirmNewPassword.length > 0) {
-        if (val !== confirmNewPassword) {
-          next.confirmNewPassword = 'AS SENHAS NÃO COINCIDEM.';
-        } else {
-          delete next.confirmNewPassword;
-        }
-      }
-
-      return next;
-    });
-  };
-
-  const handleConfirmNewPasswordChange = (val: string) => {
-    setConfirmNewPassword(val);
-    setErrors((prev) => {
-      const next = { ...prev };
-
-      if (!val) {
-        if (newPassword.length > 0) {
-          next.confirmNewPassword = 'CONFIRME SUA NOVA SENHA.';
-        } else {
-          delete next.confirmNewPassword;
-        }
-      } else if (newPassword !== val) {
-        next.confirmNewPassword = 'AS SENHAS NÃO COINCIDEM.';
-      } else {
-        delete next.confirmNewPassword;
-      }
-
-      return next;
-    });
-  };
-
-  const handleBlur = (field: string) => {
-    if (field === 'name' && !name.trim()) {
-      setErrors((prev) => ({ ...prev, name: 'O NOME É OBRIGATÓRIO.' }));
-    } else if (field === 'email') {
-      if (!email.trim()) {
-        setErrors((prev) => ({ ...prev, email: 'O E-MAIL É OBRIGATÓRIO.' }));
-      } else if (!/\S+@\S+\.\S+/.test(email)) {
-        setErrors((prev) => ({ ...prev, email: 'DIGITE UM E-MAIL VÁLIDO.' }));
-      }
-    } else if (field === 'birthDate') {
-      const err = validateBirthDate(birthDate);
-      if (err) setErrors((prev) => ({ ...prev, birthDate: err }));
-    } else if (field === 'newPassword' && newPassword) {
-      if (newPassword.length < 8 || !/(?=.*[a-zA-Z])(?=.*[0-9])/.test(newPassword)) {
-        setErrors((prev) => ({ ...prev, newPassword: 'A NOVA SENHA DEVE TER NO MÍNIMO 8 CARACTERES COM LETRA E NÚMERO.' }));
-      }
-    } else if (field === 'confirmNewPassword' && newPassword) {
-      if (!confirmNewPassword) {
-        setErrors((prev) => ({ ...prev, confirmNewPassword: 'CONFIRME SUA NOVA SENHA.' }));
-      } else if (newPassword !== confirmNewPassword) {
-        setErrors((prev) => ({ ...prev, confirmNewPassword: 'AS SENHAS NÃO COINCIDEM.' }));
-      }
-    } else if (field === 'currentPassword') {
-      if ((isEmailChanged || newPassword) && !currentPassword.trim()) {
-        setErrors((prev) => ({ ...prev, currentPassword: 'INFORME SUA SENHA ATUAL.' }));
-      }
-    }
-  };
-
-  const handleFocus = (field: string) => {
-    if (errors[field]) {
-      setErrors((prev) => {
-        const next = { ...prev };
-        delete next[field];
-        return next;
-      });
-    }
-  };
-
-  const validate = (): boolean => {
-    const newErrors: Record<string, string> = {};
-
-    if (!name.trim()) newErrors.name = 'O NOME É OBRIGATÓRIO.';
-    if (!email.trim()) newErrors.email = 'O E-MAIL É OBRIGATÓRIO.';
-    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'DIGITE UM E-MAIL VÁLIDO.';
-
-    const birthErr = validateBirthDate(birthDate);
-    if (birthErr) newErrors.birthDate = birthErr;
-
-    if (!sex) newErrors.sex = 'SELECIONE O SEXO.';
-    if (!weight) newErrors.weight = 'INFORME SEU PESO.';
-    if (!height) newErrors.height = 'INFORME SUA ALTURA.';
-    if (!activityLevel) newErrors.activityLevel = 'SELECIONE SEU NÍVEL DE ATIVIDADE.';
-
-    if (isEmailChanged && !currentPassword.trim()) {
-      newErrors.currentPassword = 'DIGITE SUA SENHA ATUAL PARA CONFIRMAR A ALTERAÇÃO DO E-MAIL.';
-    }
-
-    if (newPassword) {
-      if (!currentPassword.trim()) {
-        newErrors.currentPassword = 'INFORME SUA SENHA ATUAL PARA ALTERAR A SENHA.';
-      }
-      if (newPassword.length < 8 || !/(?=.*[a-zA-Z])(?=.*[0-9])/.test(newPassword)) {
-        newErrors.newPassword = 'A NOVA SENHA DEVE TER NO MÍNIMO 8 CARACTERES COM LETRA E NÚMERO.';
-      }
-      if (newPassword !== confirmNewPassword) {
-        newErrors.confirmNewPassword = 'AS SENHAS NÃO COINCIDEM.';
-      }
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = (data: EditProfileFormInputs) => {
     setServerError(null);
     setSuccessMessage(null);
 
-    if (!isDirty) return;
-    if (!validate()) return;
+    const emailChanged = data.email.trim().toLowerCase() !== currentEmailBaseline;
+    if (emailChanged && !data.currentPassword?.trim()) {
+      setError('currentPassword', {
+        type: 'manual',
+        message: 'DIGITE SUA SENHA ATUAL PARA CONFIRMAR A ALTERAÇÃO DO E-MAIL.',
+      });
+      return;
+    }
 
     const payload: Record<string, unknown> = {};
-
-    if (name.trim() !== initialData.name) payload.name = name.trim();
-    if (isEmailChanged) payload.email = email.trim();
-    if (goal !== initialData.goal) payload.goal = goal;
-    if (sex !== initialData.sex) payload.sex = sex;
-    if (birthDate !== initialData.birthDate) payload.birthDate = birthDate;
-    if (weight !== initialData.weight) payload.weight = parseFloat(weight.replace(',', '.'));
-    if (height !== initialData.height) payload.height = parseFloat(height.replace(',', '.'));
-    if (bodyFat !== initialData.bodyFat) {
-      payload.body_fat = bodyFat ? parseFloat(bodyFat.replace(',', '.')) : null;
+    payload.name = data.name.trim();
+    if (emailChanged) payload.email = data.email.trim();
+    payload.goal = data.goal;
+    payload.sex = data.sex;
+    if (data.birthDate) payload.birthDate = data.birthDate;
+    payload.weight = parseFloat(data.weight.replace(',', '.'));
+    payload.height = parseFloat(data.height.replace(',', '.'));
+    if (data.bodyFat) {
+      payload.body_fat = parseFloat(data.bodyFat.replace(',', '.'));
+    } else {
+      payload.body_fat = null;
     }
-    if (activityLevel !== initialData.activityLevel) payload.activity_level = activityLevel;
-
-    if (currentPassword) payload.currentPassword = currentPassword;
-    if (newPassword) payload.newPassword = newPassword;
+    payload.activity_level = data.activityLevel;
+    if (data.currentPassword) payload.currentPassword = data.currentPassword;
+    if (data.newPassword) payload.newPassword = data.newPassword;
 
     updateProfileMutation.mutate(payload);
   };
@@ -487,7 +349,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
       )}
 
       {/* Main Form */}
-      <form onSubmit={handleSubmit} className="bg-card border-2 border-border shadow-hard p-6 sm:p-8 space-y-10" noValidate>
+      <form onSubmit={handleSubmit(onSubmit)} className="bg-card border-2 border-border shadow-hard p-6 sm:p-8 space-y-10" noValidate>
         
         {/* Informações Pessoais */}
         <div className="space-y-6">
@@ -508,16 +370,17 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
                 <input
                   id="edit-name"
                   type="text"
-                  value={name}
-                  onChange={(e) => handleNameChange(e.target.value)}
-                  onBlur={() => handleBlur('name')}
-                  onFocus={() => handleFocus('name')}
                   placeholder="SEU NOME"
                   className={`${inputBase} ${errors.name ? inputError : inputNormal}`}
                   aria-invalid={!!errors.name}
+                  {...register('name')}
                 />
               </div>
-              {errors.name && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.name}</p>}
+              {errors.name && (
+                <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">
+                  {errors.name.message}
+                </p>
+              )}
             </div>
 
             {/* E-mail */}
@@ -539,16 +402,13 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
                 <input
                   id="edit-email"
                   type="email"
-                  value={email}
-                  onChange={(e) => handleEmailChange(e.target.value)}
-                  onBlur={() => handleBlur('email')}
-                  onFocus={() => handleFocus('email')}
                   placeholder="SEU@EMAIL.COM"
                   className={`${inputBase} ${errors.email ? inputError : inputNormal}`}
                   aria-invalid={!!errors.email}
+                  {...register('email')}
                 />
               </div>
-              {errors.email && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.email}</p>}
+              {errors.email && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.email.message}</p>}
             </div>
 
             {/* Sexo biológico */}
@@ -558,18 +418,17 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
               </label>
               <select
                 id="edit-sex"
-                value={sex}
-                onChange={(e) => setSex(e.target.value as 'masculino' | 'feminino' | 'prefiro_nao_responder')}
                 className={`w-full pl-4 pr-10 py-2.5 bg-background border-2 rounded-none text-sm font-medium text-foreground uppercase outline-none transition-colors min-h-[48px] appearance-none cursor-pointer ${
                   errors.sex ? inputError : inputNormal
                 }`}
                 aria-invalid={!!errors.sex}
+                {...register('sex')}
               >
                 <option value="masculino">MASCULINO</option>
                 <option value="feminino">FEMININO</option>
                 <option value="prefiro_nao_responder">NÃO RESPONDER</option>
               </select>
-              {errors.sex && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.sex}</p>}
+              {errors.sex && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.sex.message}</p>}
             </div>
 
             {/* Data de Nascimento */}
@@ -579,11 +438,11 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
               </label>
               <DatePickerInput
                 id="edit-birth-date"
-                value={birthDate}
-                onChange={(val) => setBirthDate(val)}
-                error={errors.birthDate}
+                value={formValues.birthDate || ''}
+                onChange={(val) => setValue('birthDate', val, { shouldValidate: true, shouldDirty: true })}
+                error={errors.birthDate?.message}
               />
-              {errors.birthDate && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.birthDate}</p>}
+              {errors.birthDate && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.birthDate.message}</p>}
             </div>
           </div>
         </div>
@@ -607,14 +466,13 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
                   id="edit-weight"
                   type="number"
                   step="0.1"
-                  value={weight}
-                  onChange={(e) => setWeight(e.target.value)}
                   placeholder="EX: 75.5"
                   className={`${inputBase} ${errors.weight ? inputError : inputNormal}`}
                   aria-invalid={!!errors.weight}
+                  {...register('weight')}
                 />
               </div>
-              {errors.weight && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.weight}</p>}
+              {errors.weight && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.weight.message}</p>}
             </div>
 
             <div>
@@ -628,14 +486,13 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
                 <input
                   id="edit-height"
                   type="number"
-                  value={height}
-                  onChange={(e) => setHeight(e.target.value)}
                   placeholder="EX: 175"
                   className={`${inputBase} ${errors.height ? inputError : inputNormal}`}
                   aria-invalid={!!errors.height}
+                  {...register('height')}
                 />
               </div>
-              {errors.height && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.height}</p>}
+              {errors.height && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.height.message}</p>}
             </div>
 
             <div>
@@ -650,10 +507,9 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
                   id="edit-bodyfat"
                   type="number"
                   step="0.1"
-                  value={bodyFat}
-                  onChange={(e) => setBodyFat(e.target.value)}
                   placeholder="EX: 18.5"
                   className={`${inputBase} ${inputNormal}`}
+                  {...register('bodyFat')}
                 />
               </div>
             </div>
@@ -678,15 +534,15 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
                     key={key}
                     type="button"
                     role="radio"
-                    aria-checked={goal === key}
-                    onClick={() => setGoal(key)}
+                    aria-checked={formValues.goal === key}
+                    onClick={() => setValue('goal', key, { shouldValidate: true, shouldDirty: true })}
                     className={`p-4 border-2 flex items-center gap-4 transition-all focus:outline-none ${
-                      goal === key
+                      formValues.goal === key
                         ? 'border-primary bg-primary text-primary-foreground shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff]'
                         : 'border-border bg-background text-foreground hover:border-primary/50 hover:bg-secondary'
                     }`}
                   >
-                    <div className={goal === key ? 'text-primary-foreground' : 'text-primary'}>
+                    <div className={formValues.goal === key ? 'text-primary-foreground' : 'text-primary'}>
                       {icon}
                     </div>
                     <span className="font-black uppercase tracking-widest text-sm">{label}</span>
@@ -705,9 +561,9 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
                   <button
                     key={a.key}
                     type="button"
-                    onClick={() => setActivityLevel(a.key)}
+                    onClick={() => setValue('activityLevel', a.key, { shouldValidate: true, shouldDirty: true })}
                     className={`p-3 border-2 flex flex-col text-left transition-all focus:outline-none ${
-                      activityLevel === a.key
+                      formValues.activityLevel === a.key
                         ? 'border-primary bg-primary text-primary-foreground'
                         : 'border-border bg-background hover:border-primary/50 text-foreground'
                     }`}
@@ -715,13 +571,13 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
                     <span className="text-xs font-black uppercase tracking-widest">
                       {a.label}
                     </span>
-                    <span className={`text-[10px] font-bold tracking-widest uppercase mt-1 ${activityLevel === a.key ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                    <span className={`text-[10px] font-bold tracking-widest uppercase mt-1 ${formValues.activityLevel === a.key ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
                       {a.desc}
                     </span>
                   </button>
                 ))}
               </div>
-              {errors.activityLevel && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.activityLevel}</p>}
+              {errors.activityLevel && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.activityLevel.message}</p>}
             </div>
           </div>
         </div>
@@ -738,7 +594,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label htmlFor="edit-current-password" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
-                SENHA ATUAL {isEmailChanged || newPassword ? <span className="text-primary">*</span> : <span className="opacity-50">(OPCIONAL)</span>}
+                SENHA ATUAL {isEmailChanged || (formValues.newPassword && formValues.newPassword.length > 0) ? <span className="text-primary">*</span> : <span className="opacity-50">(OPCIONAL)</span>}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
@@ -747,13 +603,10 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
                 <input
                   id="edit-current-password"
                   type={showCurrentPassword ? 'text' : 'password'}
-                  value={currentPassword}
-                  onChange={(e) => handleCurrentPasswordChange(e.target.value)}
-                  onBlur={() => handleBlur('currentPassword')}
-                  onFocus={() => handleFocus('currentPassword')}
                   placeholder="DIGITE A SENHA ATUAL"
                   className={`${inputBase} pr-12 ${errors.currentPassword ? inputError : inputNormal}`}
                   aria-invalid={!!errors.currentPassword}
+                  {...register('currentPassword')}
                 />
                 <button
                   type="button"
@@ -764,7 +617,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
                   {showCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-              {errors.currentPassword && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.currentPassword}</p>}
+              {errors.currentPassword && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.currentPassword.message}</p>}
             </div>
 
             <div>
@@ -778,13 +631,10 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
                 <input
                   id="edit-new-password"
                   type={showNewPassword ? 'text' : 'password'}
-                  value={newPassword}
-                  onChange={(e) => handleNewPasswordChange(e.target.value)}
-                  onBlur={() => handleBlur('newPassword')}
-                  onFocus={() => handleFocus('newPassword')}
                   placeholder="NOVA SENHA"
                   className={`${inputBase} pr-12 ${errors.newPassword ? inputError : inputNormal}`}
                   aria-invalid={!!errors.newPassword}
+                  {...register('newPassword')}
                 />
                 <button
                   type="button"
@@ -794,10 +644,10 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
                   {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-              {errors.newPassword && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.newPassword}</p>}
+              {errors.newPassword && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.newPassword.message}</p>}
             </div>
 
-            {newPassword.length > 0 && (
+            {formValues.newPassword && formValues.newPassword.length > 0 && (
               <div>
                 <label htmlFor="edit-confirm-new-password" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
                   CONFIRMAR NOVA SENHA
@@ -809,13 +659,10 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
                   <input
                     id="edit-confirm-new-password"
                     type={showConfirmNewPassword ? 'text' : 'password'}
-                    value={confirmNewPassword}
-                    onChange={(e) => handleConfirmNewPasswordChange(e.target.value)}
-                    onBlur={() => handleBlur('confirmNewPassword')}
-                    onFocus={() => handleFocus('confirmNewPassword')}
                     placeholder="REPITA A SENHA"
                     className={`${inputBase} pr-12 ${errors.confirmNewPassword ? inputError : inputNormal}`}
                     aria-invalid={!!errors.confirmNewPassword}
+                    {...register('confirmNewPassword')}
                   />
                   <button
                     type="button"
@@ -825,7 +672,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
                     {showConfirmNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
-                {errors.confirmNewPassword && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.confirmNewPassword}</p>}
+                {errors.confirmNewPassword && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.confirmNewPassword.message}</p>}
               </div>
             )}
           </div>

@@ -1,12 +1,39 @@
 import React, { useState } from 'react';
 import { User, Mail, Lock, Eye, EyeOff, AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
-import type { RegisterFormData, FormErrors } from '../../types/auth';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import type { RegisterFormData } from '../../types/auth';
 import { useAuth } from '../../context/AuthContext';
 import { registerUser } from '../../services/auth.service';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Button } from '../ui/button';
+
+const registerSchema = z
+  .object({
+    name: z.string().trim().min(1, 'O nome é obrigatório.'),
+    email: z
+      .string()
+      .trim()
+      .min(1, 'O email é obrigatório.')
+      .email('Digite um email válido.'),
+    password: z
+      .string()
+      .min(1, 'A senha é obrigatória.')
+      .refine(
+        (val) => val.length >= 8 && /(?=.*[a-zA-Z])(?=.*[0-9])/.test(val),
+        { message: 'Mínimo 8 caracteres com letra e número.' }
+      ),
+    confirmPassword: z.string().min(1, 'Confirme sua senha.'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'As senhas não coincidem.',
+    path: ['confirmPassword'],
+  });
+
+type RegisterFormInputs = z.infer<typeof registerSchema>;
 
 interface RegisterFormProps {
   onSuccess?: () => void;
@@ -14,16 +41,24 @@ interface RegisterFormProps {
 
 export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
   const { setAuthSession } = useAuth();
-  const [formData, setFormData] = useState<RegisterFormData>({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [errors, setErrors] = useState<FormErrors>({});
   const [serverError, setServerError] = useState<string | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterFormInputs>({
+    resolver: zodResolver(registerSchema),
+    mode: 'onTouched',
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
+  });
 
   const registerMutation = useMutation({
     mutationFn: (data: RegisterFormData) => registerUser(data),
@@ -41,66 +76,18 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
     },
   });
 
-  const handleFocus = (field: keyof FormErrors) => {
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
-  };
-
-  const handleBlur = (field: keyof RegisterFormData) => {
-    if (field === 'name') {
-      if (!formData.name.trim()) {
-        setErrors((prev) => ({ ...prev, name: 'O nome é obrigatório.' }));
-      }
-    } else if (field === 'email') {
-      if (!formData.email.trim()) {
-        setErrors((prev) => ({ ...prev, email: 'O email é obrigatório.' }));
-      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-        setErrors((prev) => ({ ...prev, email: 'Digite um email válido.' }));
-      }
-    } else if (field === 'password') {
-      if (!formData.password) {
-        setErrors((prev) => ({ ...prev, password: 'A senha é obrigatória.' }));
-      } else if (formData.password.length < 8 || !/(?=.*[a-zA-Z])(?=.*[0-9])/.test(formData.password)) {
-        setErrors((prev) => ({ ...prev, password: 'Mínimo 8 caracteres com letra e número.' }));
-      }
-      if (formData.confirmPassword && formData.password !== formData.confirmPassword) {
-        setErrors((prev) => ({ ...prev, confirmPassword: 'As senhas não coincidem.' }));
-      }
-    } else if (field === 'confirmPassword') {
-      if (!formData.confirmPassword) {
-        setErrors((prev) => ({ ...prev, confirmPassword: 'Confirme sua senha.' }));
-      } else if (formData.password !== formData.confirmPassword) {
-        setErrors((prev) => ({ ...prev, confirmPassword: 'As senhas não coincidem.' }));
-      }
-    }
-  };
-
-  const validate = (): boolean => {
-    const newErrors: FormErrors = {};
-    if (!formData.name.trim()) newErrors.name = 'O nome é obrigatório.';
-    if (!formData.email.trim()) newErrors.email = 'O email é obrigatório.';
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Digite um email válido.';
-
-    if (!formData.password) newErrors.password = 'A senha é obrigatória.';
-    else if (formData.password.length < 8 || !/(?=.*[a-zA-Z])(?=.*[0-9])/.test(formData.password)) {
-      newErrors.password = 'Mínimo 8 caracteres com letra e número.';
-    }
-    if (!formData.confirmPassword) newErrors.confirmPassword = 'Confirme sua senha.';
-    else if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'As senhas não coincidem.';
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = (data: RegisterFormInputs) => {
     setServerError(null);
-    if (!validate()) return;
-    registerMutation.mutate(formData);
+    registerMutation.mutate({
+      name: data.name,
+      email: data.email,
+      password: data.password,
+      confirmPassword: data.confirmPassword,
+    });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
       {serverError && (
         <div className="p-4 bg-destructive text-destructive-foreground text-xs font-bold uppercase tracking-widest flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
@@ -118,18 +105,15 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
           <Input
             id="register-name"
             type="text"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            onFocus={() => handleFocus('name')}
-            onBlur={() => handleBlur('name')}
             placeholder="NOME COMPLETO"
             aria-invalid={!!errors.name}
             aria-describedby={errors.name ? 'register-name-error' : undefined}
             className={`pl-10 ${errors.name ? 'border-destructive focus-visible:border-destructive' : ''}`}
+            {...register('name')}
           />
         </div>
         {errors.name && (
-          <p id="register-name-error" className="text-xs font-bold text-red-500 dark:text-red-400 uppercase">{errors.name}</p>
+          <p id="register-name-error" className="text-xs font-bold text-red-500 dark:text-red-400 uppercase">{errors.name.message}</p>
         )}
       </div>
 
@@ -143,18 +127,15 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
           <Input
             id="register-email"
             type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            onFocus={() => handleFocus('email')}
-            onBlur={() => handleBlur('email')}
             placeholder="SEU@EMAIL.COM"
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? 'register-email-error' : undefined}
             className={`pl-10 ${errors.email ? 'border-destructive focus-visible:border-destructive' : ''}`}
+            {...register('email')}
           />
         </div>
         {errors.email && (
-          <p id="register-email-error" className="text-xs font-bold text-red-500 dark:text-red-400 uppercase">{errors.email}</p>
+          <p id="register-email-error" className="text-xs font-bold text-red-500 dark:text-red-400 uppercase">{errors.email.message}</p>
         )}
       </div>
 
@@ -168,14 +149,11 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
           <Input
             id="register-password"
             type={showPassword ? 'text' : 'password'}
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            onFocus={() => handleFocus('password')}
-            onBlur={() => handleBlur('password')}
             placeholder="MÍNIMO 6 CARACTERES"
             aria-invalid={!!errors.password}
             aria-describedby={errors.password ? 'register-password-error' : undefined}
             className={`pl-10 pr-10 font-mono tracking-widest ${errors.password ? 'border-destructive focus-visible:border-destructive' : ''}`}
+            {...register('password')}
           />
           <button
             type="button"
@@ -187,7 +165,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
           </button>
         </div>
         {errors.password && (
-          <p id="register-password-error" className="text-xs font-bold text-red-500 dark:text-red-400 uppercase">{errors.password}</p>
+          <p id="register-password-error" className="text-xs font-bold text-red-500 dark:text-red-400 uppercase">{errors.password.message}</p>
         )}
       </div>
 
@@ -201,14 +179,11 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
           <Input
             id="register-confirm-password"
             type={showConfirmPassword ? 'text' : 'password'}
-            value={formData.confirmPassword}
-            onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-            onFocus={() => handleFocus('confirmPassword')}
-            onBlur={() => handleBlur('confirmPassword')}
             placeholder="REPITA SUA SENHA"
             aria-invalid={!!errors.confirmPassword}
             aria-describedby={errors.confirmPassword ? 'register-confirm-password-error' : undefined}
             className={`pl-10 pr-10 font-mono tracking-widest ${errors.confirmPassword ? 'border-destructive focus-visible:border-destructive' : ''}`}
+            {...register('confirmPassword')}
           />
           <button
             type="button"
@@ -220,7 +195,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
           </button>
         </div>
         {errors.confirmPassword && (
-          <p id="register-confirm-password-error" className="text-xs font-bold text-red-500 dark:text-red-400 uppercase">{errors.confirmPassword}</p>
+          <p id="register-confirm-password-error" className="text-xs font-bold text-red-500 dark:text-red-400 uppercase">{errors.confirmPassword.message}</p>
         )}
       </div>
 
