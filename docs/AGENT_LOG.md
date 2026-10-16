@@ -613,3 +613,15 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
   - Frontend Build (`npm run build`): compilação de produção com código 0.
 
+### PC-33: Fontes self-hosted Montserrat e Inter com carregamento local (PERF-017)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - Instaladas dependências `@fontsource/montserrat` e `@fontsource/inter` no frontend.
+  - `frontend/src/styles/index.css`: substituído o `@import url(...)` externo do Google Fonts pelos arquivos de estilo locais de `@fontsource/inter` (pesos 300, 400, 500, 600, 700) e `@fontsource/montserrat` (pesos 700, 900).
+  - `frontend/index.html`: removidas as tags `<link rel="preconnect" ...>` e `<link href="https://fonts.googleapis.com/..." rel="stylesheet">`, eliminando o render-blocking externo e conexões de rede de terceiros.
+- **Validação:**
+  - Build do Vite (`npm run build`): fontes empacotadas como assets estáticos locais (`.woff2`) em `dist/assets/` em 675ms.
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+  - Testes do frontend (`npm --prefix frontend test`): 33 testes passando (10 suítes, 0 falhas).
+  - Auditoria de segurança (`npm audit --audit-level=high`): 0 vulnerabilidades.
+  - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.

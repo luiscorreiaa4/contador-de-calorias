@@ -145,7 +145,7 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 - [x] **PC-25** Conformidade visual: eliminar cores hex hardcoded (`#0a0a0a`), `dark:` ad-hoc, `rounded-*` e sombras suaves nos componentes ativos *(D-06)*.
 - [x] **PC-26** Acessibilidade: label associada em `food-amount`, `aria-label` no `react-select`, `DatePickerInput` com Esc e foco acessível.
 - [x] **PC-27** Tratamento visual explícito de estados `isError` e `empty` no Dashboard e Estatísticas.
-- [ ] **PC-33** Fontes self-hosted com carregamento local; carregar `Montserrat` efetivamente ou remover declaração órfã.
+- [x] **PC-33** Fontes self-hosted com carregamento local; carregar `Montserrat` efetivamente ou remover declaração órfã.
 
 **Refatoração Estrutural e Arquitetura React**
 - [ ] **PC-34** Criar rede de testes de componentes para telas principais: Dashboard, Onboarding, EditProfile e AuthContext (rede de proteção para PC-28/29/30).
