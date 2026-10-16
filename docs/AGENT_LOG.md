@@ -339,6 +339,23 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - `backend/migrations/1792099463766_add-food-and-meal-indexes.js`
 - **Validação:** 111 testes de backend passando (23 suítes), 14 testes de frontend passando (5 suítes), lint 0 erros, build verde.
 
+### PC-22: Inserção multi-row em lote para meal_items (PERF-004, D-14)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/models/meal.model.ts`: implementada a função auxiliar `insertMealItemsBatch` que gera dinamicamente uma cláusula `VALUES ($1, $2, ...), ($10, ...)` contendo todos os itens da refeição e executa um único comando SQL `INSERT INTO meal_items (...) VALUES (...) RETURNING *`.
+  - Integrada a inserção em lote tanto em `createMealWithItems` quanto em `updateMealWithItems`, eliminando o loop de N inserts sequenciais por refeição e reduzindo a latência de round-trips ao banco (PERF-004).
+  - `backend/src/config/env.ts` e `backend/src/database/pool.ts`: corrigida a resolução do arquivo `.env` para caminho absoluto via `fileURLToPath(import.meta.url)`, prevenindo falhas de autenticação (`28P01`) quando comandos são disparados com prefixo da raiz do repositório.
+  - `package.json` e `backend/package.json`: adicionados os scripts oficiais `test:backend:file` e `test:frontend:file` para execução isolada e síncrona de arquivos de teste individuais sem necessidade de rodar a suíte inteira do projeto.
+  - `backend/tests/integration/meal_items_batch.test.ts`: criada suíte de integração com `describe`, `it` e hook `after` com `try / finally` garantindo `pool.end()` mesmo diante de erros, validando tanto a criação quanto a atualização em lote multi-row.
+  - Suítes de integração do backend padronizadas com encerramento seguro de sockets (`pool.end()`) em bloco `finally`, eliminando deadlocks no Event Loop do Node Native Test Runner.
+- **Validação:**
+  - Teste de arquivo único (`npm run test:backend:file tests/integration/meal_items_batch.test.ts`): passou em 356ms (2/2).
+  - Testes do backend (`npm run test`): 113 testes passando, 24 suítes, 0 falhas.
+  - Testes do frontend (`npm --prefix frontend test -- --run`): 14 testes passando, 5 suítes, 0 falhas.
+  - Lint Monorepo (`npm run lint`): 0 erros.
+  - Frontend Build (`npm run build`): compilação de produção com código 0.
+
+
 
 
 

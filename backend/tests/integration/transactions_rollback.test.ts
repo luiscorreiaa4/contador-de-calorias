@@ -7,10 +7,14 @@ import { cleanupTestData } from '../helpers/db.js';
 
 describe('Atomic Transactions & Rollback on Failure (PC-17 / ARCH-002 / TST-012)', () => {
   after(async () => {
-    await pool.query('ALTER TABLE body_measurements DROP CONSTRAINT IF EXISTS check_test_onboarding_fail');
-    await pool.query('ALTER TABLE body_measurements DROP CONSTRAINT IF EXISTS check_test_profile_fail');
-    await pool.query('ALTER TABLE users DROP CONSTRAINT IF EXISTS check_test_goals_fail');
-    await cleanupTestData('tester-tx-%');
+    try {
+      await pool.query('ALTER TABLE body_measurements DROP CONSTRAINT IF EXISTS check_test_onboarding_fail');
+      await pool.query('ALTER TABLE body_measurements DROP CONSTRAINT IF EXISTS check_test_profile_fail');
+      await pool.query('ALTER TABLE users DROP CONSTRAINT IF EXISTS check_test_goals_fail');
+      await cleanupTestData('tester-tx-%');
+    } finally {
+      await pool.end();
+    }
   });
 
   it('completeOnboarding: deve fazer rollback total se falhar ao salvar body_measurement', async () => {

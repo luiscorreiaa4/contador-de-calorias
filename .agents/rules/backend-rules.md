@@ -50,3 +50,7 @@ description: Regras obrigatórias e verificáveis para desenvolvimento de backen
 ## 7. Isolamento de Testes
 - **Banco Exclusivo de Testes:** Testes automatizados do backend devem rodar exclusivamente contra o banco `contador_calorias_test`.
 - **Trava de Segurança:** O pool de banco de dados (`backend/src/database/pool.ts`) aborta a execução (`process.exit(1)`) se `NODE_ENV === 'test'` e o nome do banco não terminar com o sufixo `_test`.
+- **Fechamento Mandatório de Conexões (`pool.end`):** Toda suíte de teste de integração que importe `pool` DEVE conter um hook `after()` estruturado com bloco `try { ... } finally { await pool.end(); }`. O Node Native Test Runner não encerra se houver conexões persistentes abertas no Event Loop.
+- **Estrutura Obrigatória com `describe` e `it`:** Nunca use `test()` com subtestes (`t.test`) e `t.after()`, pois se uma asserção falhar em um subteste, `t.after()` não é executado e o processo trava. Utilize sempre `describe(...)`, `it(...)` e `after(...)` no topo do bloco.
+- **Execução Isolada de Testes:** Para executar um único arquivo de teste no backend, use sempre `npm run test:backend:file <caminho>` a partir da raiz.
+

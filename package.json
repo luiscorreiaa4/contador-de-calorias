@@ -11,6 +11,8 @@
     "build": "npm --prefix frontend run build",
     "lint": "eslint .",
     "test": "npm --prefix backend test",
+    "test:backend:file": "npm --prefix backend run test:file --",
+    "test:frontend:file": "npm --prefix frontend test -- --run",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down"
   },

@@ -99,7 +99,7 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 - [x] **PC-10** Índices `foods(name) WHERE active` e `meal_items(food_id)` via nova migração imutável *(D-13, D-14)*.
 - [ ] **PC-05** Cache do React Query: `staleTime`/`gcTime` + invalidação cruzada de `mealStats`, `todayMeals` e `active-goal`.
 - [ ] **PC-12** Otimizações frontend: import dinâmico de `NewMealModal`, `useMemo` no `AuthContext`, `AbortSignal` no autocomplete.
-- [ ] **PC-22** Inserção multi-row em lote para `meal_items` *(D-14)*.
+- [x] **PC-22** Inserção multi-row em lote para `meal_items` *(D-14)*.
 - [ ] **PC-23** `EXPLAIN ANALYZE` em `/api/meals/stats` sob volume (seed de 10k itens).
 
 **Robustez e Hardening**

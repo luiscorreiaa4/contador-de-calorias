@@ -7,8 +7,11 @@ import { cleanupTestData } from '../helpers/db.js';
 
 describe('Multi-user Authorization & IDOR Protection (PC-18 / TST-003)', () => {
   after(async () => {
-    await cleanupTestData('tester-auth-%');
-    await pool.end();
+    try {
+      await cleanupTestData('tester-auth-%');
+    } finally {
+      await pool.end();
+    }
   });
 
   let tokenA: string;

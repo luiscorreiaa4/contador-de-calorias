@@ -80,4 +80,26 @@ describe('Example Service (Unitário)', () => {
 - [ ] Imports padronizados com `from 'node:test'` e `from 'node:assert'`.
 - [ ] Cobertura mínima: caminho feliz + validação 400 + 401 se houver autenticação.
 - [ ] Testes não tocam no banco de desenvolvimento — apontam exclusivamente para `_test`.
-- [ ] Execução validada via `npm run test` na raiz.
+- [ ] Todo teste que toca no banco DEVE ter `describe(...)` com `after` chamando `await pool.end()` em bloco `try / finally`.
+- [ ] Execução validada via `npm run test` (suíte completa) ou `npm run test:backend:file <caminho>` (arquivo isolado).
+
+## 7. Isolamento de Processos e Encerramento de Sockets (REGRA CRÍTICA)
+- **Fechamento Obrigatório de Conexões:** O Node Native Test Runner (`node:test`) mantém o processo rodando enquanto houver sockets TCP ativos no Event Loop. Se o pool do PostgreSQL (`pool`) for importado no teste, o bloco `describe` DEVE conter um hook `after()` encapsulado em `try / finally` chamando `await pool.end()`:
+  ```typescript
+  describe('Minha Suíte', () => {
+    after(async () => {
+      try {
+        await cleanupTestData('tester-...%');
+      } finally {
+        await pool.end(); // OBRIGATÓRIO: impede que o processo do Node fique travado no Event Loop
+      }
+    });
+    // it(...)
+  });
+  ```
+- **Proibição de `t.after` com subtestes (`t.test`):** Se um subteste falhar com `AssertionError` antes de alcançar `t.after()`, o hook nunca é registrado e o pool nunca fecha, congelando o processo indefinidamente. Utilize SEMPRE `describe(...)`, `it(...)` e `after(...)` no escopo do `describe`.
+- **Execução de Testes Isolados (Arquivo Único):**
+  - **Backend:** `npm run test:backend:file tests/integration/[nome].test.ts`
+  - **Frontend:** `npm run test:frontend:file src/[modulo]/[nome].test.tsx`
+  - O script oficial `npm run test:backend:file` garante o carregamento absoluto do arquivo `.env` e define `NODE_ENV=test`, `DB_NAME=contador_calorias_test` e `TZ=America/Sao_Paulo`.
+

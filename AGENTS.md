@@ -21,7 +21,9 @@ Executar na **raiz** do monorepo:
 - `npm run dev` — Inicia apenas o frontend Vite.
 - `npm run setup` — Executa as migrações do banco (`npm --prefix backend run migrate up`).
 - `npm run test` — Executa testes do backend em banco isolado (`contador_calorias_test`).
+- `npm run test:backend:file <caminho>` — Executa um único arquivo de teste no backend (ex: `tests/integration/meal_items_batch.test.ts`).
 - `npm --prefix frontend test` — Executa testes do frontend via Vitest.
+- `npm run test:frontend:file <caminho>` — Executa um único arquivo de teste no frontend (ex: `src/components/meals/NewMealModal.test.tsx`).
 - `npm run lint` — Valida ESLint em todo o repositório.
 - `npm run build` — Compila bundle de produção do frontend (`tsc -b && vite build`).
 
@@ -43,6 +45,8 @@ Executar na **raiz** do monorepo:
 - ❌ **PROIBIDO Alert/Confirm Nativos:** Não use `alert()` ou `confirm()`. Use modais acessíveis com focus trap (Radix UI) e tecla `Esc`.
 - ❌ **PROIBIDO Modificar Código quando a Tarefa for de Documentação:** Obedeça estritamente o escopo solicitado.
 - ❌ **PROIBIDO Banco de Produção/Dev em Testes:** Testes que tocam o banco só podem rodar se o nome terminar em `_test`.
+- ❌ **PROIBIDO Testes de Integração com Pool Aberto:** Toda suíte que importar `pool` DEVE conter `after(async () => { try { ... } finally { await pool.end(); } })`. O Node Native Test Runner não encerra se houver sockets abertos no Event Loop.
+- ❌ **PROIBIDO `t.after` com Subtestes (`t.test`):** Se um subteste falhar com `AssertionError`, `t.after` é ignorado e o pool nunca encerra. Use SEMPRE `describe`, `it` e `after` no escopo da suíte.
 
 ---
 

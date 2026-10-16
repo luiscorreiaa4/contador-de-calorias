@@ -7,8 +7,11 @@ import { cleanupTestData } from '../helpers/db.js';
 
 describe('Meal Routes (Integration)', () => {
   after(async () => {
-    await cleanupTestData('tester-tz-%');
-    await pool.end();
+    try {
+      await cleanupTestData('tester-tz-%');
+    } finally {
+      await pool.end();
+    }
   });
 
   it('GET /api/meals/today - deve retornar 401 sem token (Não Autorizado)', async () => {

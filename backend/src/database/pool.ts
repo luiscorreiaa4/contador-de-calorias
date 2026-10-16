@@ -1,6 +1,13 @@
 import pg from 'pg';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Garante que o .env do backend seja carregado independentemente do CWD
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 dotenv.config();
 
 const { Pool } = pg;

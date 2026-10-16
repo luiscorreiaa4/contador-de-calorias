@@ -1,11 +1,15 @@
-import test from 'node:test';
+import { describe, it, after } from 'node:test';
 import assert from 'node:assert';
 import request from 'supertest';
 import { app } from '../../src/app.js';
 import { pool } from '../../src/database/pool.js';
 
-test('Resiliência de Infraestrutura (PC-11)', async (t) => {
-  await t.test('pool deve ter statement_timeout configurado para 10000ms', () => {
+describe('Resiliência de Infraestrutura (PC-11)', () => {
+  after(async () => {
+    await pool.end();
+  });
+
+  it('pool deve ter statement_timeout configurado para 10000ms', () => {
     // In node-postgres, options are stored in pool.options
     const options = (pool as unknown as { options?: { statement_timeout?: number } }).options;
     assert.strictEqual(
@@ -15,7 +19,7 @@ test('Resiliência de Infraestrutura (PC-11)', async (t) => {
     );
   });
 
-  await t.test('GET /health deve retornar { success: true, data: { status: "healthy", database: "connected" } }', async () => {
+  it('GET /health deve retornar { success: true, data: { status: "healthy", database: "connected" } }', async () => {
     const res = await request(app).get('/health');
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.success, true);
@@ -23,7 +27,7 @@ test('Resiliência de Infraestrutura (PC-11)', async (t) => {
     assert.strictEqual(res.body.data.database, 'connected');
   });
 
-  await t.test('GET /health deve retornar status 503 quando a sonda do banco falhar', async () => {
+  it('GET /health deve retornar status 503 quando a sonda do banco falhar', async () => {
     const originalQuery = pool.query;
     try {
       (pool as unknown as { query: () => Promise<never> }).query = () => Promise.reject(new Error('Connection failure'));

@@ -1,6 +1,53 @@
+import type { PoolClient } from 'pg';
 import { pool } from '../database/pool.js';
 import { Meal, MealItem } from '../types/meal.types.js';
 import { getSaoPauloDateString } from '../utils/date.js';
+
+async function insertMealItemsBatch(
+  client: PoolClient,
+  mealId: string,
+  itemsData: {
+    foodId: string;
+    quantity: number;
+    unit?: string;
+    displayAmount?: number | null;
+    calories: number;
+    proteins: number;
+    carbs: number;
+    fats: number;
+  }[]
+): Promise<MealItem[]> {
+  if (itemsData.length === 0) return [];
+
+  const values: unknown[] = [];
+  const valuePlaceholders: string[] = [];
+
+  itemsData.forEach((item, index) => {
+    const base = index * 9;
+    valuePlaceholders.push(
+      `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5}, $${base + 6}, $${base + 7}, $${base + 8}, $${base + 9})`
+    );
+    values.push(
+      mealId,
+      item.foodId,
+      item.quantity,
+      item.unit || 'g',
+      item.displayAmount ?? null,
+      item.calories,
+      item.proteins,
+      item.carbs,
+      item.fats
+    );
+  });
+
+  const result = await client.query<MealItem>(
+    `INSERT INTO meal_items (meal_id, food_id, quantity, unit, display_amount, calories, proteins, carbs, fats)
+     VALUES ${valuePlaceholders.join(', ')} RETURNING *`,
+    values
+  );
+
+  return result.rows;
+}
 
 export async function createMealWithItems(
   userId: string,
@@ -29,26 +76,8 @@ export async function createMealWithItems(
     );
     const meal = mealResult.rows[0];
 
-    // 2. Insert items
-    const insertedItems: MealItem[] = [];
-    for (const item of itemsData) {
-      const itemResult = await client.query<MealItem>(
-        `INSERT INTO meal_items (meal_id, food_id, quantity, unit, display_amount, calories, proteins, carbs, fats)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-        [
-          meal.id,
-          item.foodId,
-          item.quantity,
-          item.unit || 'g',
-          item.displayAmount ?? null,
-          item.calories,
-          item.proteins,
-          item.carbs,
-          item.fats,
-        ]
-      );
-      insertedItems.push(itemResult.rows[0]);
-    }
+    // 2. Insert items in batch multi-row (PERF-004)
+    const insertedItems = await insertMealItemsBatch(client, meal.id, itemsData);
 
     await client.query('COMMIT');
     
@@ -157,26 +186,8 @@ export async function updateMealWithItems(
     // 2. Delete old items
     await client.query('DELETE FROM meal_items WHERE meal_id = $1', [meal.id]);
 
-    // 3. Insert new items
-    const insertedItems: MealItem[] = [];
-    for (const item of itemsData) {
-      const itemResult = await client.query<MealItem>(
-        `INSERT INTO meal_items (meal_id, food_id, quantity, unit, display_amount, calories, proteins, carbs, fats)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-        [
-          meal.id,
-          item.foodId,
-          item.quantity,
-          item.unit || 'g',
-          item.displayAmount ?? null,
-          item.calories,
-          item.proteins,
-          item.carbs,
-          item.fats,
-        ]
-      );
-      insertedItems.push(itemResult.rows[0]);
-    }
+    // 3. Insert new items in batch multi-row (PERF-004)
+    const insertedItems = await insertMealItemsBatch(client, meal.id, itemsData);
 
     await client.query('COMMIT');
     

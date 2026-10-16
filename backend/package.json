@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "cross-env TZ=America/Sao_Paulo tsx watch src/server.ts",
     "test": "cross-env NODE_ENV=test DB_NAME=contador_calorias_test TZ=America/Sao_Paulo tsx --test tests/**/*.test.ts",
+    "test:file": "cross-env NODE_ENV=test DB_NAME=contador_calorias_test TZ=America/Sao_Paulo tsx --test",
     "migrate": "node-pg-migrate",
     "migrate:create": "node-pg-migrate create",
     "db:reset": "tsx scripts/reset-db.js && npm run migrate up",

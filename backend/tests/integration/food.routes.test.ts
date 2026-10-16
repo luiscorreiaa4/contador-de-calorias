@@ -7,8 +7,11 @@ import { cleanupTestData } from '../helpers/db.js';
 
 describe('Food Routes (Integration)', () => {
   after(async () => {
-    await cleanupTestData('tester-food-%');
-    await pool.end();
+    try {
+      await cleanupTestData('tester-food-%');
+    } finally {
+      await pool.end();
+    }
   });
 
   let userToken: string;

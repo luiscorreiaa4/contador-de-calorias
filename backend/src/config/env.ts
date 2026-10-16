@@ -1,9 +1,14 @@
 import { z } from 'zod';
 import dotenv from 'dotenv';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Carrega as variáveis de ambiente antes da validação
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Carrega as variáveis de ambiente antes da validação garantindo localização correta
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+dotenv.config();
 
 const envSchema = z.object({
   PORT: z.string().default('3001'),

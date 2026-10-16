@@ -7,8 +7,11 @@ import { cleanupTestData } from '../helpers/db.js';
 
 describe('User Routes (Integration - E2E)', () => {
   after(async () => {
-    await cleanupTestData('tester-user-%');
-    await pool.end();
+    try {
+      await cleanupTestData('tester-user-%');
+    } finally {
+      await pool.end();
+    }
   });
 
   const testEmail = `tester-user-${Date.now()}@example.com`;
