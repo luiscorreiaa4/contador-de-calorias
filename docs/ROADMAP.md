@@ -111,7 +111,7 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 - [ ] **PC-13** CI: integrar `npm audit --audit-level=high` + Gitleaks; `@vitest/coverage-v8`.
 - [x] **PC-15** Edição de refeição preservando valores nutricionais base do alimento.
 - [x] **PC-17** Transações atômicas (`BEGIN`/`COMMIT`/`ROLLBACK`) em onboarding/perfil/metas + teste de rollback.
-- [ ] **PC-19** Remover perfil biométrico do `localStorage` (`user_session`), mantendo dados sensíveis apenas em memória *(D-02)*.
+- [x] **PC-19** Remover perfil biométrico do `localStorage` (`user_session`), mantendo dados sensíveis apenas em memória *(D-02)*.
 
 **Rede de Testes**
 - [x] **PC-01** Substituir testes falso-positivos por asserções reais.

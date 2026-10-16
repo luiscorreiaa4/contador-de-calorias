@@ -106,4 +106,27 @@ export const handlers = [
       },
     });
   }),
+
+  http.get(`${baseURL}/users/me`, () => {
+    return HttpResponse.json({
+      success: true,
+      data: {
+        id: '1',
+        name: 'Test User',
+        email: 'test@example.com',
+        goal: 'manter_peso',
+        sex: 'masculino',
+        birth_date: '1990-01-01',
+        weight: 75,
+        height: 175,
+        body_fat: 15,
+        activity_level: 'moderadamente_ativo',
+        daily_calories_goal: 2200,
+        daily_proteins_goal: 150,
+        onboarding_completed: true,
+        created_at: '2026-01-01T00:00:00Z',
+        updated_at: '2026-01-01T00:00:00Z',
+      },
+    });
+  }),
 ];

@@ -484,8 +484,22 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
 - **Validação:**
   - Testes do frontend (`npm --prefix frontend test`): 22 testes passando (7 suítes, 0 falhas).
   - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+- **Commit:** `eb3cf27`
+
+### PC-19: Proteção e isolamento de dados de saúde/biometria em memória (SEC-018)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/context/AuthContext.tsx`: sanitizado o armazenamento local `user_session`, restringindo-o unicamente a metadados de sessão não sensíveis (`id`, `name`, `email`, `onboarding_completed`). Dados de biometria e saúde (peso, altura, percentual de gordura, sexo, data de nascimento e metas nutricionais) foram completamente expurgados do `localStorage`.
+  - `frontend/src/context/AuthContext.tsx`: implementada hidratação automática do perfil completo diretamente em memória via `getCurrentUserProfile()` sob presença do token de autenticação, mantendo conformidade integral com a LGPD e prevenindo vazamentos por scripts de terceiros ou ataques XSS.
+  - `frontend/src/mocks/handlers.ts`: adicionado mock handler para `GET /users/me` no MSW para suporte à suíte de testes de sessão.
+  - `frontend/src/tests/auth_storage.test.tsx`: testes criados comprovando que `setAuthSession` e `updateUserSession` não persistem propriedades biométricas em `localStorage`.
+  - `docs/SPEC.md`: atualizado requisito RF-001 documentando as diretrizes de privacidade de dados de saúde no armazenamento local do cliente.
+- **Validação:**
+  - Testes do frontend (`npm --prefix frontend test`): 24 testes passando (8 suítes, 0 falhas).
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
   - Lint Monorepo (`npm run lint`): 0 erros.
   - Frontend Build (`npm run build`): compilação de produção com código 0.
+
 
 
 

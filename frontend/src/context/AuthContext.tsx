@@ -1,5 +1,19 @@
 import React, { createContext, useContext, useState, useMemo, useCallback, useEffect } from 'react';
-import type { UserProfile } from '../services/auth.service';
+import { getCurrentUserProfile, type UserProfile } from '../services/auth.service';
+
+interface SafeUserSession {
+  id: string;
+  name: string;
+  email: string;
+  onboarding_completed: boolean;
+}
+
+const sanitizeUserSession = (userData: UserProfile): SafeUserSession => ({
+  id: userData.id,
+  name: userData.name,
+  email: userData.email,
+  onboarding_completed: userData.onboarding_completed,
+});
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -22,13 +36,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const setAuthSession = useCallback((userData: UserProfile, authToken: string) => {
     setUser(userData);
     setToken(authToken);
-    localStorage.setItem('user_session', JSON.stringify(userData));
+    localStorage.setItem('user_session', JSON.stringify(sanitizeUserSession(userData)));
     localStorage.setItem('auth_token', authToken);
   }, []);
 
   const updateUserSession = useCallback((userData: UserProfile) => {
     setUser(userData);
-    localStorage.setItem('user_session', JSON.stringify(userData));
+    localStorage.setItem('user_session', JSON.stringify(sanitizeUserSession(userData)));
   }, []);
 
   const logout = useCallback(() => {
@@ -37,6 +51,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('user_session');
     localStorage.removeItem('auth_token');
   }, []);
+
+  useEffect(() => {
+    if (token) {
+      getCurrentUserProfile()
+        .then((fullProfile) => {
+          setUser(fullProfile);
+        })
+        .catch(() => {
+          // Em caso de erro 401, o apiFetch já remove os tokens e dispara auth:unauthorized
+        });
+    }
+  }, [token]);
 
   useEffect(() => {
     const handleUnauthorized = () => {
