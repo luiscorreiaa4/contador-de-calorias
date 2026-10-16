@@ -1,20 +1,45 @@
 import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router';
 import { Flame } from 'lucide-react';
 import type { AuthMode } from '../../types/auth';
 
 import { LoginForm } from './LoginForm';
 import { RegisterForm } from './RegisterForm';
 
-export const AuthCard: React.FC = () => {
-  const [mode, setMode] = useState<AuthMode>('login');
+interface AuthCardProps {
+  initialMode?: AuthMode;
+}
+
+export const AuthCard: React.FC<AuthCardProps> = ({ initialMode }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const defaultMode: AuthMode =
+    initialMode ||
+    (location.pathname === '/cadastro' ? 'register' : 'login');
+
+  const [mode, setMode] = useState<AuthMode>(defaultMode);
   const [isSuccessMessage, setIsSuccessMessage] = useState<string | null>(null);
+
+  const switchMode = (newMode: AuthMode) => {
+    setMode(newMode);
+    if (navigate) {
+      navigate(newMode === 'register' ? '/cadastro' : '/login');
+    }
+  };
 
   const handleAuthSuccess = () => {
     if (mode === 'login') {
       setIsSuccessMessage('Login efetuado com sucesso! Redirecionando...');
+      if (navigate) {
+        navigate('/');
+      }
     } else {
       setIsSuccessMessage('Conta criada! Faça login para continuar.');
       setMode('login');
+      if (navigate) {
+        navigate('/login');
+      }
     }
     setTimeout(() => setIsSuccessMessage(null), 4000);
   };
@@ -47,7 +72,7 @@ export const AuthCard: React.FC = () => {
             type="button"
             aria-selected={mode === 'login'}
             aria-controls="panel-auth"
-            onClick={() => setMode('login')}
+            onClick={() => switchMode('login')}
             className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-all duration-200 border-r-2 border-border ${
               mode === 'login'
                 ? 'bg-primary text-primary-foreground'
@@ -63,7 +88,7 @@ export const AuthCard: React.FC = () => {
             type="button"
             aria-selected={mode === 'register'}
             aria-controls="panel-auth"
-            onClick={() => setMode('register')}
+            onClick={() => switchMode('register')}
             className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-all duration-200 ${
               mode === 'register'
                 ? 'bg-primary text-primary-foreground'

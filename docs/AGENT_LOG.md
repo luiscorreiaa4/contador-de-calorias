@@ -402,11 +402,33 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - `npm run lint`: verificação estática de higiene + ESLint com 0 erros.
   - `npm run build`: compilação de produção com código 0.
 
+---
 
+## 7. RETOMADA 16/10/2026
 
-
-
-
-
+- **Contexto:** Retomada autônoma de execução em lote após verificação de estado. Árvore de trabalho limpa, tags e stashes verificados.
+- **Itens Concluídos:**
+  - **Sublote A (Rede de testes backend):** PC-01 (`c913dde`), PC-14 (`b19ae7b`), PC-18 (`d1c7f60`), PC-24 (`a3bc7c9`) — 100% concluído.
+  - **Sublote B (Backend robustez/performance):** PC-04 (`4dc33a7`), PC-07 (`08eacf9`), PC-08 (`741e8b3`), PC-17 (`44b63e1`), PC-11 (`bdf7135`), PC-02 (`c41e720`), PC-03 (`097244d`), PC-09 (`1ad29a3`), PC-10 (`ccb3b45`), PC-22 (`f2d8b58`), PC-23 (`6cdaf4b`) — 100% concluído (tag `checkpoint/B`).
+  - **Auditoria de Higiene de Testes:** Suíte unificada com `closeTestPool`, timeout global de 300s, modo estrito e verificação AST no lint (`d136737`).
+- **Itens Pulados/Falhos:** Nenhum item PC falhou ou foi pulado (CA-06 permanece pulado bloqueado por D-12 pós-merge).
+- **Sublote Alvo Desta Janela:** **Sublote C — Frontend (Fase 4) e CI/docs**
+### PC-21: Roteamento SPA real com URLs declarativas, histórico e botões Voltar/F5 (D-16)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/package.json`: adicionada a dependência estável `react-router` (`^7.18.4`).
+  - `frontend/src/router.tsx`: configurado data router declarativo com `createBrowserRouter` (e helper `createTestRouter` com `createMemoryRouter`), mapeando rotas `/login`, `/cadastro`, `/onboarding`, `/`, `/estatisticas`, `/perfil` e reservando `/diario/:date` conforme D-16 e D-20.
+  - `frontend/src/components/layout/RootLayout.tsx`: criado layout mestre contendo `AppHeader`, área principal de rotas com `Suspense` e `Outlet`, e `Footer`.
+  - `frontend/src/components/ProtectedRoute.tsx`: proteção declarativa com redirecionamento para `/login` de usuários não autenticados e para `/onboarding` para quem ainda não concluiu o onboarding.
+  - `frontend/src/components/PublicRoute.tsx`: proteção reversa redirecionando usuários autenticados para `/` (ou `/onboarding`).
+  - `frontend/src/App.tsx`: simplificado para prover `AuthProvider` e `RouterProvider router={router}`.
+  - `frontend/src/components/auth/AuthCard.tsx`, `AppHeader.tsx`, `EditProfilePage.tsx`: navegação integrada nativamente via hook `useNavigate()` e `useLocation()`.
+  - `frontend/src/tests/router.test.tsx`: criada suíte cobrindo redirecionamento de não autenticado para `/login`, aba `/cadastro`, bloqueio/redirecionamento de onboarding e acesso às rotas `/estatisticas` e `/perfil`.
+  - `frontend/src/tests/LoginPage.test.tsx`: atualizado para prover contexto de `MemoryRouter`.
+- **Validação:**
+  - Testes do frontend (`npm --prefix frontend test`): 19 testes passando (6 suítes, 0 falhas).
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+  - Lint Monorepo (`npm run lint`): 0 erros.
+  - Frontend Build (`npm run build`): compilação de produção com código 0.
 
 

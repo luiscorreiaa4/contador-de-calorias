@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
 import { updateUserProfile, deleteUserAccount, getCurrentUserProfile } from '../../services/auth.service';
 import { DatePickerInput } from '../../components/common/DatePickerInput';
@@ -25,11 +26,17 @@ import {
 } from 'lucide-react';
 
 interface EditProfilePageProps {
-  onBack: () => void;
+  onBack?: () => void;
 }
 
 export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
   const { user, updateUserSession, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleBack = () => {
+    if (onBack) onBack();
+    else navigate('/');
+  };
 
   const formatInitialBirthDate = (val?: string): string => {
     if (!val) return '';
@@ -449,7 +456,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
         </div>
         <button
           type="button"
-          onClick={onBack}
+          onClick={handleBack}
           className="self-start sm:self-auto flex items-center justify-center w-12 h-12 border-2 border-border bg-background hover:bg-primary hover:text-primary-foreground transition-colors text-foreground focus:outline-none focus:border-primary group"
         >
           <ArrowLeft className="w-5 h-5" aria-hidden="true" />
@@ -841,7 +848,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
           <div className="w-full sm:w-auto flex flex-col sm:flex-row items-center gap-4">
             <button
               type="button"
-              onClick={onBack}
+              onClick={handleBack}
               className="w-full sm:w-auto px-6 py-3 border-2 border-border bg-background text-foreground font-black uppercase tracking-widest text-xs hover:bg-secondary transition-colors focus:outline-none focus:border-primary"
             >
               CANCELAR

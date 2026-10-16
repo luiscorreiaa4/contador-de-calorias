@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
 import {
   Flame,
@@ -29,6 +30,25 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   const { user, isAuthenticated, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+
+  const handleDashboard = () => {
+    if (onNavigateToDashboard) onNavigateToDashboard();
+    else navigate('/');
+    setMenuOpen(false);
+  };
+
+  const handleStats = () => {
+    if (onNavigateToStats) onNavigateToStats();
+    else navigate('/estatisticas');
+    setMenuOpen(false);
+  };
+
+  const handleEditProfile = () => {
+    if (onNavigateToEditProfile) onNavigateToEditProfile();
+    else navigate('/perfil');
+    setMenuOpen(false);
+  };
 
   // Close on click outside
   useEffect(() => {
@@ -69,7 +89,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
         {/* Logo */}
-        <div className="flex items-center gap-3 shrink-0 cursor-pointer group" onClick={onNavigateToDashboard}>
+        <div className="flex items-center gap-3 shrink-0 cursor-pointer group" onClick={handleDashboard}>
           <div className="w-10 h-10 bg-primary text-primary-foreground flex items-center justify-center shadow-hard transition-transform group-hover:-translate-y-0.5 group-hover:shadow-hard-hover">
             <Flame className="w-6 h-6 fill-current" aria-hidden="true" />
           </div>
@@ -162,42 +182,27 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                   </div>
 
                   <div className="p-2 flex flex-col gap-1">
-                    {onNavigateToDashboard && (
-                      <button
-                        onClick={() => {
-                          onNavigateToDashboard();
-                          setMenuOpen(false);
-                        }}
-                        className="flex items-center w-full px-3 py-3 text-xs font-bold uppercase tracking-widest text-foreground hover:bg-secondary hover:text-secondary-foreground transition-colors"
-                      >
-                        <LayoutDashboard className="w-4 h-4 mr-3" />
-                        Dashboard
-                      </button>
-                    )}
-                    {onNavigateToStats && (
-                      <button
-                        onClick={() => {
-                          onNavigateToStats();
-                          setMenuOpen(false);
-                        }}
-                        className="flex items-center w-full px-3 py-3 text-xs font-bold uppercase tracking-widest text-foreground hover:bg-secondary hover:text-secondary-foreground transition-colors"
-                      >
-                        <Target className="w-4 h-4 mr-3" />
-                        Estatísticas
-                      </button>
-                    )}
-                    {onNavigateToEditProfile && (
-                      <button
-                        onClick={() => {
-                          onNavigateToEditProfile();
-                          setMenuOpen(false);
-                        }}
-                        className="flex items-center w-full px-3 py-3 text-xs font-bold uppercase tracking-widest text-foreground hover:bg-secondary hover:text-secondary-foreground transition-colors"
-                      >
-                        <UserCog className="w-4 h-4 mr-3" />
-                        Configurações
-                      </button>
-                    )}
+                    <button
+                      onClick={handleDashboard}
+                      className="flex items-center w-full px-3 py-3 text-xs font-bold uppercase tracking-widest text-foreground hover:bg-secondary hover:text-secondary-foreground transition-colors"
+                    >
+                      <LayoutDashboard className="w-4 h-4 mr-3" />
+                      Dashboard
+                    </button>
+                    <button
+                      onClick={handleStats}
+                      className="flex items-center w-full px-3 py-3 text-xs font-bold uppercase tracking-widest text-foreground hover:bg-secondary hover:text-secondary-foreground transition-colors"
+                    >
+                      <Target className="w-4 h-4 mr-3" />
+                      Estatísticas
+                    </button>
+                    <button
+                      onClick={handleEditProfile}
+                      className="flex items-center w-full px-3 py-3 text-xs font-bold uppercase tracking-widest text-foreground hover:bg-secondary hover:text-secondary-foreground transition-colors"
+                    >
+                      <UserCog className="w-4 h-4 mr-3" />
+                      Configurações
+                    </button>
                   </div>
 
                   <div className="p-2 border-t-2 border-border bg-background">

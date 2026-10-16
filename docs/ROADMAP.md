@@ -91,7 +91,7 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 *Objetivo: Medir com precisão e otimizar gargalos reais no frontend e backend, fechar lacunas de robustez do backend e criar a rede de testes necessária para as refatorações da Fase 5. Pré-requisito: Fase 3.5 concluída.*
 
 **Roteamento e Performance (D-16: PC-21 antes de PC-20)**
-- [ ] **PC-21** Roteamento SPA real com `react-router` v7 (`createBrowserRouter`), URLs declarativas, histórico, botão Voltar e F5 funcionando *(D-16)*.
+- [x] **PC-21** Roteamento SPA real com `react-router` v7 (`createBrowserRouter`), URLs declarativas, histórico, botão Voltar e F5 funcionando *(D-16)*.
 - [ ] **PC-20** Code-splitting por rota com `lazy` nativo do roteador + `manualChunks` de vendor no Vite *(D-16)*.
 - [x] **PC-02** Compressão HTTP (`compression`).
 - [x] **PC-03** Cache do catálogo de alimentos com `Cache-Control: private, max-age=300` + ETag + `Vary: Authorization` *(D-07)*.
