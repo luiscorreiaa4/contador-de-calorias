@@ -1,8 +1,10 @@
+import { closeTestPool } from '../helpers/lifecycle.js';
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { validateEnvironment } from '../../scripts/reset-db.js';
 
 describe('reset-db.js Environment Guard (CA-12 / SEC-010)', () => {
+  closeTestPool();
   it('deve permitir execução apenas quando NODE_ENV=test e DB_NAME termina com _test', () => {
     assert.doesNotThrow(() => {
       validateEnvironment({ NODE_ENV: 'test', DB_NAME: 'contador_calorias_test' });

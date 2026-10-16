@@ -8,13 +8,12 @@ const __dirname = path.dirname(__filename);
 
 // Carrega as variáveis de ambiente antes da validação garantindo localização correta
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
-dotenv.config();
 
 const envSchema = z.object({
   PORT: z.string().default('3001'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   DB_HOST: z.string().min(1, 'DB_HOST é obrigatório'),
-  DB_PORT: z.string().default('5432'),
+  DB_PORT: z.string().regex(/^\d+$/, 'DB_PORT deve ser numérica').refine(v => Number(v) > 0 && Number(v) <= 65535, 'DB_PORT fora do intervalo'),
   DB_USER: z.string().min(1, 'DB_USER é obrigatório'),
   DB_PASSWORD: z.string().min(1, 'DB_PASSWORD é obrigatória'),
   DB_NAME: z.string().min(1, 'DB_NAME é obrigatório'),

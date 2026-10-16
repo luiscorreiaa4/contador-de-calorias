@@ -50,7 +50,8 @@ description: Regras obrigatórias e verificáveis para desenvolvimento de backen
 ## 7. Isolamento de Testes
 - **Banco Exclusivo de Testes:** Testes automatizados do backend devem rodar exclusivamente contra o banco `contador_calorias_test`.
 - **Trava de Segurança:** O pool de banco de dados (`backend/src/database/pool.ts`) aborta a execução (`process.exit(1)`) se `NODE_ENV === 'test'` e o nome do banco não terminar com o sufixo `_test`.
-- **Fechamento Mandatório de Conexões (`pool.end`):** Toda suíte de teste de integração que importe `pool` DEVE conter um hook `after()` estruturado com bloco `try { ... } finally { await pool.end(); }`. O Node Native Test Runner não encerra se houver conexões persistentes abertas no Event Loop.
-- **Estrutura Obrigatória com `describe` e `it`:** Nunca use `test()` com subtestes (`t.test`) e `t.after()`, pois se uma asserção falhar em um subteste, `t.after()` não é executado e o processo trava. Utilize sempre `describe(...)`, `it(...)` e `after(...)` no topo do bloco.
+- **Fechamento Mandatório de Conexões (`pool.end`):** Todo arquivo que importe pool/app ou os alcance por imports transitivos registra `closeTestPool()` de `backend/tests/helpers/lifecycle.ts` antes dos testes. Passe a limpeza como callback; o helper fecha o pool em `finally`. A guarda AST integrada ao lint verifica o registro.
+- **Estrutura Obrigatória com `describe` e `it`:** Use `describe`/`it` e registre o encerramento antes de qualquer asserção. AssertionError não ignora automaticamente hooks registrados; código após uma falha pode não registrar o hook.
+- **Execução Limitada:** Use `npm test`, `npm run test:strict` e `npm run test:file -- tests/...test.ts`. Proibido `tsx --test`/`npx` avulsos. O teto global de 300 s (`TEST_PROCESS_TIMEOUT_MS`) encerra a árvore; strict sem force-exit é obrigatório na verificação final e no CI.
 - **Execução Isolada de Testes:** Para executar um único arquivo de teste no backend, use sempre `npm run test:backend:file <caminho>` a partir da raiz.
 

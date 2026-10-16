@@ -1,9 +1,11 @@
+import { closeTestPool } from './helpers/lifecycle.js';
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { createMealSchema } from '../src/schemas/meal.schema.js';
 import { calculateItemNutrients } from '../src/services/meal.service.js';
 
 describe('Meal Schema Validation (createMealSchema)', () => {
+  closeTestPool();
   it('deve validar refeição com alimentos em gramas', () => {
     const data = {
       name: 'Almoço',

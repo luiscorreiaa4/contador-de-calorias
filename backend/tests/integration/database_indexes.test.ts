@@ -1,11 +1,10 @@
-import { describe, it, after } from 'node:test';
+import { closeTestPool } from '../helpers/lifecycle.js';
+import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { pool } from '../../src/database/pool.js';
 
 describe('Índices de Performance no Banco (PC-10 / PERF-002, PERF-005, ARCH-016)', () => {
-  after(async () => {
-    await pool.end();
-  });
+  closeTestPool();
 
   it('deve existir o índice parcial idx_foods_active_name em foods', async () => {
     const res = await pool.query(

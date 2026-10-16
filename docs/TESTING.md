@@ -6,6 +6,16 @@ Este documento estabelece as diretrizes, comandos, suítes existentes, convenç�
 
 ## 1. Como Rodar [CONFIRMADO]
 
+Os comandos oficiais atuais são `npm test`, `npm run test:strict`, `npm run test:file -- tests/integration/meal_items_batch.test.ts` e `npm run test:frontend` (ou `npm --prefix frontend test`). Os aliases `test:backend:file` e `test:frontend:file` permanecem disponíveis. Não invoque `tsx --test`, `npx` ou Vitest avulsos. Todos os comandos de teste usam o wrapper de processos com teto global de 300 s, ajustável por `TEST_PROCESS_TIMEOUT_MS` (1..3600000 ms). Comandos longos adicionais usam `node scripts/bounded-command.mjs <comando> <argumentos>`.
+
+O runner resolve os caminhos a partir do script, fixa o CWD, `NODE_ENV=test`, `DB_NAME=contador_calorias_test` e o fuso. O `.env` vem exclusivamente do caminho absoluto do backend; variáveis já definidas no processo prevalecem. Variáveis obrigatórias vazias/ausentes falham via Zod sem imprimir seus valores. Não altere o `.env` para testes negativos: passe a variável vazia no ambiente do processo filho.
+
+Toda suíte que alcance pool/app, inclusive por services, models ou helpers, registra `closeTestPool()` de `backend/tests/helpers/lifecycle.ts` antes dos testes; passe a limpeza como callback. O helper executa a limpeza em `try` e `await pool.end()` em `finally`. Não combine encerramentos próprios com o helper. A guarda AST `node scripts/check-test-hygiene.mjs`, integrada ao lint, verifica imports transitivos locais.
+
+`test` usa `--test-force-exit` como proteção extra. `test:strict` e `test:file` não usam essa flag e desabilitam `allowExitOnIdle` para expor sockets esquecidos. Execute strict na verificação final e no CI. O timeout de 30 s do Node é herdado pelos subtestes e não substitui o teto global: handles após o fim dos testes ainda podem manter o processo vivo. Frontend: `vitest run`, teste/hook 10 s e teardown 5 s; MSW fecha em `afterAll`.
+
+Os resultados históricos abaixo não representam a validação desta mudança; os resultados atuais e a tabela completa estão em [TEST_HYGIENE_REPORT.md](TEST_HYGIENE_REPORT.md).
+
 Comandos executados a partir da **raiz** do monorepo:
 
 ```bash

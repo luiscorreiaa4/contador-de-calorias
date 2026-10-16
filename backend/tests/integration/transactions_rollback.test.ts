@@ -1,4 +1,5 @@
-import { describe, it, after } from 'node:test';
+import { closeTestPool } from '../helpers/lifecycle.js';
+import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { pool } from '../../src/database/pool.js';
 import * as UserService from '../../src/services/user.service.js';
@@ -6,15 +7,11 @@ import * as UserModel from '../../src/models/user.model.js';
 import { cleanupTestData } from '../helpers/db.js';
 
 describe('Atomic Transactions & Rollback on Failure (PC-17 / ARCH-002 / TST-012)', () => {
-  after(async () => {
-    try {
+  closeTestPool(async () => {
       await pool.query('ALTER TABLE body_measurements DROP CONSTRAINT IF EXISTS check_test_onboarding_fail');
       await pool.query('ALTER TABLE body_measurements DROP CONSTRAINT IF EXISTS check_test_profile_fail');
       await pool.query('ALTER TABLE users DROP CONSTRAINT IF EXISTS check_test_goals_fail');
       await cleanupTestData('tester-tx-%');
-    } finally {
-      await pool.end();
-    }
   });
 
   it('completeOnboarding: deve fazer rollback total se falhar ao salvar body_measurement', async () => {

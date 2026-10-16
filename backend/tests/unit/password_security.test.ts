@@ -1,9 +1,11 @@
+import { closeTestPool } from '../helpers/lifecycle.js';
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { registerUserSchema, updateUserSchema } from '../../src/schemas/user.schema.js';
 import * as UserService from '../../src/services/user.service.js';
 
 describe('Password Security Policy & Dummy Bcrypt Timing Attack Mitigation (PC-08 / SEC-004 / SEC-005)', () => {
+  closeTestPool();
   it('registerUserSchema: deve rejeitar senhas com menos de 8 caracteres', () => {
     const res = registerUserSchema.safeParse({
       name: 'Tester',

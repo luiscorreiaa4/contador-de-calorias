@@ -1,3 +1,4 @@
+import { closeTestPool } from '../helpers/lifecycle.js';
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import request from 'supertest';
@@ -6,6 +7,7 @@ import { registerUserSchema, updateUserSchema } from '../../src/schemas/user.sch
 import { app } from '../../src/app.js';
 
 describe('Input Limits & Sanitization (CA-11)', () => {
+  closeTestPool();
   it('createMealSchema: deve rejeitar nome de refeição com mais de 100 caracteres', () => {
     const data = {
       name: 'A'.repeat(101),

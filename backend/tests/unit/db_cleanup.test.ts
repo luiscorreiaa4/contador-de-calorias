@@ -1,9 +1,11 @@
+import { closeTestPool } from '../helpers/lifecycle.js';
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { cleanupTestData, assertIsTestDatabase } from '../helpers/db.js';
 import { pool } from '../../src/database/pool.js';
 
 describe('Database Test Cleanup Helper (PC-14 / D-11)', () => {
+  closeTestPool();
   it('trava de segurança em runtime: deve rejeitar qualquer banco que não termine em _test', () => {
     assert.throws(
       () => assertIsTestDatabase('contador_calorias'),

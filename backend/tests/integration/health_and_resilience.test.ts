@@ -1,13 +1,12 @@
-import { describe, it, after } from 'node:test';
+import { closeTestPool } from '../helpers/lifecycle.js';
+import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import request from 'supertest';
 import { app } from '../../src/app.js';
 import { pool } from '../../src/database/pool.js';
 
 describe('Resiliência de Infraestrutura (PC-11)', () => {
-  after(async () => {
-    await pool.end();
-  });
+  closeTestPool();
 
   it('pool deve ter statement_timeout configurado para 10000ms', () => {
     // In node-postgres, options are stored in pool.options

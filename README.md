@@ -1,5 +1,11 @@
 # 🍏 CalorieSync
 
+## Testes com encerramento limitado
+
+Use `npm test`, `npm run test:strict`, `npm run test:file -- tests/integration/meal_items_batch.test.ts` e `npm run test:frontend`. Todos fixam CWD e ambiente e encerram a árvore do runner após 300 s. `TEST_PROCESS_TIMEOUT_MS` permite ajustar o teto entre 1 e 3600000 ms. Não execute runners avulsos.
+
+Configure `backend/.env` a partir de `backend/.env.example`: `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` e `JWT_SECRET` (mínimo 32 caracteres) são obrigatórios. O runner fixa `NODE_ENV=test`, `DB_NAME=contador_calorias_test` e `TZ=America/Sao_Paulo`; credenciais não têm fallback. Nesta auditoria, o usuário autorizou o banco de testes no Docker em `127.0.0.1:5432`. Nunca aponte testes para outro banco nem use scripts de reset. Veja [TESTING.md](docs/TESTING.md) e [relatório de higiene](docs/TEST_HYGIENE_REPORT.md).
+
 O **CalorieSync** é uma aplicação web full-stack para acompanhamento nutricional diário. Permite aos usuários registrar refeições, pesquisar alimentos por similaridade fonética/ortográfica, calcular automaticamente metas calóricas e de macronutrientes com base na Taxa Metabólica Basal (TMB), e visualizar a evolução do consumo através de gráficos e estatísticas.
 
 ---

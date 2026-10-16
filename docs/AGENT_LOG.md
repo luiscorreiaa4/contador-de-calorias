@@ -382,7 +382,26 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - Backend Tests (`npm run test`): 111 testes passando, 26 suítes, 0 falhas.
   - Frontend Tests (`npm --prefix frontend test -- --run`): 14 testes passando, 5 suítes, 0 falhas.
   - Lint Monorepo (`npm run lint`): 0 erros.
-  - Frontend Build (`npm run build`): compilação com código 0.
+---
+
+## 6. AUDITORIA E SUPER-CORREÇÃO DE HIGIENE DE TESTES (16/10/2026)
+
+- **Contexto:** Auditoria profunda e padronização da infraestrutura de testes automatizados e encerramento de processos em todo o monorepo (Codex GPT 6.1 SOL).
+- **Ações Implementadas:**
+  - `backend/tests/helpers/lifecycle.ts`: criado helper centralizado `closeTestPool(cleanupCallback?)` que registra `after()` e fecha o pool do PostgreSQL em bloco `finally`, suportando callback de limpeza assíncrono.
+  - Migração de todas as suítes de teste de integração e unitárias que acessam direta ou indiretamente o banco ou a aplicação para registrar `closeTestPool()`.
+  - `scripts/check-test-hygiene.mjs`: guarda estática via AST integrada ao `npm run lint` validando que qualquer arquivo de teste que importe `pool`, `app` ou módulos dependentes registre obrigatoriamente `closeTestPool()`.
+  - `scripts/run-tests.mjs` e `scripts/run-bounded.mjs`: execução delimitada com timeout rígido de 300s (`TEST_PROCESS_TIMEOUT_MS`) e encerramento determinístico de árvore de processos em Windows e Unix.
+  - Adição do modo estrito sem force-exit (`npm run test:strict`) e padronização dos scripts de execução isolada `npm run test:backend:file` e `npm run test:frontend:file`.
+  - Documentação atualizada em `AGENTS.md`, `.agents/rules/backend-rules.md`, `.agents/skills/backend-testing-guide/SKILL.md`, `README.md` e `docs/TESTING.md`.
+  - Relatório completo e evidências determinísticas consolidadas em `docs/TEST_HYGIENE_REPORT.md` e `docs/test-hygiene-verification.json`.
+- **Validação:**
+  - `npm run test`: 110 testes passando (27 suítes), código 0.
+  - `npm run test:strict`: 110 testes passando (27 suítes), sem force-exit, código 0.
+  - `npm --prefix frontend test`: 14 testes passando (5 suítes), código 0.
+  - `npm run lint`: verificação estática de higiene + ESLint com 0 erros.
+  - `npm run build`: compilação de produção com código 0.
+
 
 
 

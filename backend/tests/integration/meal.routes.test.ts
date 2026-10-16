@@ -1,17 +1,13 @@
-import { describe, it, after } from 'node:test';
+import { closeTestPool } from '../helpers/lifecycle.js';
+import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import request from 'supertest';
 import { app } from '../../src/app.js';
-import { pool } from '../../src/database/pool.js';
 import { cleanupTestData } from '../helpers/db.js';
 
 describe('Meal Routes (Integration)', () => {
-  after(async () => {
-    try {
+  closeTestPool(async () => {
       await cleanupTestData('tester-tz-%');
-    } finally {
-      await pool.end();
-    }
   });
 
   it('GET /api/meals/today - deve retornar 401 sem token (Não Autorizado)', async () => {

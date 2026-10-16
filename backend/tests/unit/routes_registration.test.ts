@@ -1,8 +1,10 @@
+import { closeTestPool } from '../helpers/lifecycle.js';
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { app } from '../../src/app.js';
 
 describe('Route Registration (PC-04 / ARCH-004)', () => {
+  closeTestPool();
   it('deve registrar cada sub-roteador (/api/users, /api/foods, /api/meals) exatamente 1 vez', () => {
     const stack = (app as unknown as { _router: { stack: Array<{ name: string; regexp: RegExp }> } })._router.stack;
 

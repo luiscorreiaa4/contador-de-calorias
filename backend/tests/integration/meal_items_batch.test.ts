@@ -1,4 +1,5 @@
-import { describe, it, before, after } from 'node:test';
+import { closeTestPool } from '../helpers/lifecycle.js';
+import { describe, it, before } from 'node:test';
 import assert from 'node:assert';
 import { pool } from '../../src/database/pool.js';
 import { createMealWithItems, updateMealWithItems } from '../../src/models/meal.model.js';
@@ -18,12 +19,8 @@ describe('Inserção Multi-row em Lote de meal_items (PC-22 / PERF-004)', () => 
     foodId = foodRes.rows[0].id;
   });
 
-  after(async () => {
-    try {
+  closeTestPool(async () => {
       await cleanupTestData('tester-batch-%');
-    } finally {
-      await pool.end();
-    }
   });
 
   it('createMealWithItems: deve inserir múltiplos itens com sucesso em lote', async () => {

@@ -5,6 +5,16 @@ description: "Instruções para criação de testes automatizados no backend Nod
 
 # Guia de Testes Automatizados no Backend
 
+## Regra atual de execução e encerramento
+
+Use exclusivamente `npm test`, `npm run test:strict` e `npm run test:file -- tests/...test.ts` (aliases oficiais também passam pelo wrapper). Nunca execute `tsx --test`/`npx` avulsos. O wrapper fixa CWD/ambiente e encerra a árvore após 300 s (`TEST_PROCESS_TIMEOUT_MS`). Comandos longos adicionais exigem `scripts/bounded-command.mjs`.
+
+Todo arquivo que alcance pool/app diretamente ou por imports transitivos registra `closeTestPool()` de `tests/helpers/lifecycle.ts` antes dos testes. Para limpeza: `closeTestPool(async () => { await cleanupTestData('tester-recurso-%'); });`. O helper registra `after` com `try/finally` e fecha o pool mesmo se a limpeza falhar. Não registre outro `pool.end()`. Esta regra substitui os exemplos antigos de encerramento manual abaixo. A guarda AST integrada ao lint exige o helper.
+
+Valide sempre com `test:strict`, sem force-exit e sem allowExitOnIdle, além do comando padrão. O timeout herdado de 30 s do Node não cobre todos os handles restantes; o teto global é obrigatório. Banco exclusivamente `contador_calorias_test`, nunca reset/DROP/TRUNCATE.
+
+Precisão sobre hooks: AssertionError não ignora automaticamente hooks já registrados. Um hook colocado depois de uma operação que lança nunca chega a ser registrado. Use describe/it e registre o encerramento antes de qualquer asserção.
+
 Sempre que criar ou alterar um service, model ou controller no backend, proponha ou crie os testes correspondentes.
 
 ## 1. Ferramentas e Localização
@@ -32,7 +42,10 @@ Sempre que criar ou alterar um service, model ou controller no backend, proponha
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import request from 'supertest';
-import app from '../../src/app.js';
+import { app } from '../../src/app.js';
+import { closeTestPool } from '../helpers/lifecycle.js';
+
+closeTestPool();
 
 describe('POST /api/recursos (Integração)', () => {
   it('deve retornar 401 quando o token JWT não é fornecido', async () => {
@@ -80,24 +93,20 @@ describe('Example Service (Unitário)', () => {
 - [ ] Imports padronizados com `from 'node:test'` e `from 'node:assert'`.
 - [ ] Cobertura mínima: caminho feliz + validação 400 + 401 se houver autenticação.
 - [ ] Testes não tocam no banco de desenvolvimento — apontam exclusivamente para `_test`.
-- [ ] Todo teste que toca no banco DEVE ter `describe(...)` com `after` chamando `await pool.end()` em bloco `try / finally`.
+- [ ] Todo teste que alcance pool/app, inclusive por imports transitivos, registra `closeTestPool()` antes dos testes e passa a limpeza como callback.
 - [ ] Execução validada via `npm run test` (suíte completa) ou `npm run test:backend:file <caminho>` (arquivo isolado).
 
 ## 7. Isolamento de Processos e Encerramento de Sockets (REGRA CRÍTICA)
-- **Fechamento Obrigatório de Conexões:** O Node Native Test Runner (`node:test`) mantém o processo rodando enquanto houver sockets TCP ativos no Event Loop. Se o pool do PostgreSQL (`pool`) for importado no teste, o bloco `describe` DEVE conter um hook `after()` encapsulado em `try / finally` chamando `await pool.end()`:
+- **Fechamento Obrigatório de Conexões:** O helper central registra `after` e fecha o pool em `finally`, mesmo se a limpeza falhar. Não duplique `pool.end()` no arquivo:
   ```typescript
   describe('Minha Suíte', () => {
-    after(async () => {
-      try {
-        await cleanupTestData('tester-...%');
-      } finally {
-        await pool.end(); // OBRIGATÓRIO: impede que o processo do Node fique travado no Event Loop
-      }
+    closeTestPool(async () => {
+      await cleanupTestData('tester-recurso-%');
     });
     // it(...)
   });
   ```
-- **Proibição de `t.after` com subtestes (`t.test`):** Se um subteste falhar com `AssertionError` antes de alcançar `t.after()`, o hook nunca é registrado e o pool nunca fecha, congelando o processo indefinidamente. Utilize SEMPRE `describe(...)`, `it(...)` e `after(...)` no escopo do `describe`.
+- **Registro anterior às asserções:** Uma falha antes de alcançar o registro impede que o hook exista; hooks já registrados não são automaticamente ignorados por AssertionError. Use describe/it e registre o helper antes dos testes. Clientes obtidos por `pool.connect()` precisam de `client.release()` em `finally`; servidores próprios, timers e listeners também exigem teardown.
 - **Execução de Testes Isolados (Arquivo Único):**
   - **Backend:** `npm run test:backend:file tests/integration/[nome].test.ts`
   - **Frontend:** `npm run test:frontend:file src/[modulo]/[nome].test.tsx`

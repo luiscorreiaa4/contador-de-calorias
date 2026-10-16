@@ -1,17 +1,13 @@
-import { describe, it, after } from 'node:test';
+import { closeTestPool } from '../helpers/lifecycle.js';
+import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import request from 'supertest';
 import { app } from '../../src/app.js';
-import { pool } from '../../src/database/pool.js';
 import { cleanupTestData } from '../helpers/db.js';
 
 describe('User Routes (Integration - E2E)', () => {
-  after(async () => {
-    try {
+  closeTestPool(async () => {
       await cleanupTestData('tester-user-%');
-    } finally {
-      await pool.end();
-    }
   });
 
   const testEmail = `tester-user-${Date.now()}@example.com`;
