@@ -639,3 +639,24 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - Testes do frontend (`npm --prefix frontend test`): 44 testes passando (13 suítes, 0 falhas).
   - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
   - Frontend Build (`npm run build`): compilação de produção com código 0.
+
+---
+
+## Checkpoint D — Fase 5, base (Concluído)
+
+- **Escopo do Sublote:** `PC-31, PC-25, PC-26, PC-27, PC-33, PC-34`
+- **Commits:**
+  - `87217d3`: `refactor: remover codigo morto e componentes ui orfaos (PC-31 1/2)`
+  - `2d2b989`: `chore: desinstalar dependencias orfas no frontend e backend (PC-31 2/2)`
+  - `d389446`: `fix: conformidade de tokens, cores semanticas e geometria brutalista (PC-25)`
+  - `ab52099`: `fix: acessibilidade no DatePickerInput e modal de refeicoes (PC-26)`
+  - `12cca61`: `feat: tratamento visual de isError e empty no dashboard e estatisticas (PC-27)`
+  - `54fdb2a`: `perf: fontes self-hosted montserrat e inter sem render-blocking (PC-33)`
+  - `5d41df1`: `test: expansao da suite de testes de componentes frontend (PC-34)`
+- **Validação Integrada Final:**
+  - `npm run test:strict`: 110 testes passando em 27 suítes no backend (código 0).
+  - `npm --prefix frontend test`: 44 testes passando em 13 suítes no frontend (código 0).
+  - `npm run lint`: conformidade estrita de ESLint e higiene de testes (código 0).
+  - `npm run build`: bundle de produção compilado com assets self-hosted woff2 em 871ms (código 0).
+  - `npm audit --audit-level=high`: 0 vulnerabilidades.
+- **Tag do Git:** `checkpoint/D`
