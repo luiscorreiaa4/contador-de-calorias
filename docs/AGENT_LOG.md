@@ -725,5 +725,26 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - Testes do frontend (`npm --prefix frontend test`): 47 testes passando em 14 suítes (0 falhas).
   - Testes do backend (`npm run test:strict`): 110 testes passando em 27 suítes (0 falhas).
   - Lint Monorepo (`npm run lint`): 0 erros.
-  - Frontend Build (`npm run build`): compilação de produção bem-sucedida em 1.45s.
+### PC-30: Decomposição de componentes monolíticos (EditProfilePage e NewMealModal)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/types/profile.ts`: isolados `editProfileSchema` e tipos `EditProfileFormInputs`.
+  - `frontend/src/components/profile/PersonalInfoSection.tsx`: extraído subcomponente coeso de informações pessoais (nome, e-mail com aviso de confirmação por senha, sexo biológico e data de nascimento via `DatePickerInput`).
+  - `frontend/src/components/profile/BiometricsSection.tsx`: extraído subcomponente de medidas corporais (peso, altura e gordura corporal opcional).
+  - `frontend/src/components/profile/RoutineGoalsSection.tsx`: extraído subcomponente de foco principal e nível de atividade física.
+  - `frontend/src/components/profile/SecuritySection.tsx`: extraído subcomponente de segurança e alteração de senha com larguras de inputs rigorosamente idênticas no desktop (`grid grid-cols-1 sm:grid-cols-2 gap-6`).
+  - `frontend/src/pages/private/EditProfilePage.tsx`: orquestrador enxuto reduzido de 737 para 276 linhas.
+  - `frontend/src/types/meal-modal.ts`: isolados tipos `MealItem`, `FoodOption` e função pura `calculateNutrients`.
+  - `frontend/src/components/meals/FoodSearchSelect.tsx`: extraído subcomponente de busca de alimentos via React-Select assíncrono com `CustomMenuList` e estilo brutalista.
+  - `frontend/src/components/meals/FoodQuantityForm.tsx`: extraído subcomponente de inserção de quantidade (unidades vs peso em gramas/ml, preview de macros e botão de inclusão).
+  - `frontend/src/components/meals/MealItemList.tsx`: extraído subcomponente de listagem de itens da refeição com contadores de macros e ação de remoção.
+  - `frontend/src/components/meals/MealModalFooter.tsx`: extraído subcomponente de rodapé com soma calórica e botões cancelar/salvar.
+  - `frontend/src/components/meals/NewMealModal.tsx`: orquestrador reduzido de 771 para 335 linhas.
+- **Validação:**
+  - Testes de componentes frontend (`EditProfilePage.test.tsx`, `NewMealModal.test.tsx`): 100% passando.
+  - Testes do frontend (`npm --prefix frontend test`): 47 testes passando em 14 suítes (0 falhas).
+  - Testes do backend (`npm run test:strict`): 110 testes passando em 27 suítes (0 falhas).
+  - Lint Monorepo (`npm run lint`): 0 erros.
+  - Frontend Build (`npm run build`): compilação de produção com código 0 em 800ms.
+
 

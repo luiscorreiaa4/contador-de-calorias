@@ -3,30 +3,22 @@ import { useNavigate } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { useAuth } from '../../context/AuthContext';
 import { updateUserProfile, deleteUserAccount, getCurrentUserProfile } from '../../services/auth.service';
-import { DatePickerInput } from '../../components/common/DatePickerInput';
 import { DeleteAccountModal } from '../../components/common/DeleteAccountModal';
 import { GoalSettingsCard } from '../../components/profile/GoalSettingsCard';
+import { PersonalInfoSection } from '../../components/profile/PersonalInfoSection';
+import { BiometricsSection } from '../../components/profile/BiometricsSection';
+import { RoutineGoalsSection } from '../../components/profile/RoutineGoalsSection';
+import { SecuritySection } from '../../components/profile/SecuritySection';
+import { editProfileSchema, type EditProfileFormInputs } from '../../types/profile';
 import {
-  User,
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
   Save,
   ArrowLeft,
   Trash2,
   AlertTriangle,
   CheckCircle2,
-  Flame,
-  Target,
-  TrendingUp,
   Loader2,
-  Weight,
-  Ruler,
-  ActivitySquare,
 } from 'lucide-react';
 
 const formatInitialBirthDate = (val?: string): string => {
@@ -37,72 +29,6 @@ const formatInitialBirthDate = (val?: string): string => {
   }
   return val;
 };
-
-const editProfileSchema = z
-  .object({
-    name: z.string().trim().min(1, 'O NOME É OBRIGATÓRIO.'),
-    email: z.string().trim().min(1, 'O E-MAIL É OBRIGATÓRIO.').email('DIGITE UM E-MAIL VÁLIDO.'),
-    goal: z.string().min(1, 'SELECIONE O OBJETIVO.'),
-    sex: z.enum(['masculino', 'feminino', 'prefiro_nao_responder']),
-    birthDate: z.string().optional().refine((val) => {
-      if (!val || !val.trim()) return true;
-      if (val.length < 10) return false;
-      const parts = val.split('/');
-      if (parts.length !== 3) return false;
-      const day = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10);
-      const year = parseInt(parts[2], 10);
-      if (isNaN(day) || isNaN(month) || isNaN(year)) return false;
-      if (month < 1 || month > 12) return false;
-      if (year < 1900 || year > new Date().getFullYear()) return false;
-      return true;
-    }, 'DATA DE NASCIMENTO INVÁLIDA.'),
-    weight: z.string().min(1, 'INFORME SEU PESO.'),
-    height: z.string().min(1, 'INFORME SUA ALTURA.'),
-    bodyFat: z.string().optional().default(''),
-    activityLevel: z.string().min(1, 'SELECIONE SEU NÍVEL DE ATIVIDADE.'),
-    currentPassword: z.string().optional().default(''),
-    newPassword: z.string().optional().default(''),
-    confirmNewPassword: z.string().optional().default(''),
-  })
-  .refine(
-    (data) => {
-      if (data.newPassword && data.newPassword.length > 0) {
-        return data.newPassword.length >= 8 && /(?=.*[a-zA-Z])(?=.*[0-9])/.test(data.newPassword);
-      }
-      return true;
-    },
-    {
-      message: 'A NOVA SENHA DEVE TER NO MÍNIMO 8 CARACTERES COM LETRA E NÚMERO.',
-      path: ['newPassword'],
-    }
-  )
-  .refine(
-    (data) => {
-      if (data.newPassword && data.newPassword.length > 0) {
-        return data.newPassword === data.confirmNewPassword;
-      }
-      return true;
-    },
-    {
-      message: 'AS SENHAS NÃO COINCIDEM.',
-      path: ['confirmNewPassword'],
-    }
-  )
-  .refine(
-    (data) => {
-      if (data.newPassword && data.newPassword.length > 0) {
-        return !!data.currentPassword && data.currentPassword.trim().length > 0;
-      }
-      return true;
-    },
-    {
-      message: 'INFORME SUA SENHA ATUAL PARA ALTERAR A SENHA.',
-      path: ['currentPassword'],
-    }
-  );
-
-type EditProfileFormInputs = z.infer<typeof editProfileSchema>;
 
 interface EditProfilePageProps {
   onBack?: () => void;
@@ -117,10 +43,6 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
     if (onBack) onBack();
     else navigate('/');
   };
-
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteModalError, setDeleteModalError] = useState<string | null>(null);
@@ -283,27 +205,6 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
     await deleteAccountMutation.mutateAsync(password);
   };
 
-  const goals = [
-    { key: 'perder_peso', label: 'EMAGRECER', icon: <Flame className="w-5 h-5" aria-hidden="true" /> },
-    { key: 'manter_peso', label: 'MANTER', icon: <Target className="w-5 h-5" aria-hidden="true" /> },
-    { key: 'ganhar_massa', label: 'GANHAR MASSA', icon: <TrendingUp className="w-5 h-5" aria-hidden="true" /> },
-  ] as const;
-
-  const activityLevels = [
-    { key: 'sedentario', label: 'SEDENTÁRIO', desc: 'POUCO OU NENHUM EXERCÍCIO' },
-    { key: 'pouco_ativo', label: 'POUCO ATIVO', desc: 'EXERCÍCIO LEVE 1-3 DIAS/SEM' },
-    { key: 'moderadamente_ativo', label: 'MODERADAMENTE ATIVO', desc: 'EXERCÍCIO MODERADO 3-5 DIAS/SEM' },
-    { key: 'muito_ativo', label: 'MUITO ATIVO', desc: 'EXERCÍCIO PESADO 6-7 DIAS/SEM' },
-    { key: 'extremamente_ativo', label: 'EXTREMAMENTE ATIVO', desc: 'TRABALHO FÍSICO / TREINO 2X AO DIA' },
-  ];
-
-  const inputBase =
-    'w-full pl-10 pr-4 py-2.5 bg-background border-2 rounded-none text-sm font-medium text-foreground outline-none transition-colors min-h-[48px]';
-  const inputNormal =
-    'border-border hover:border-primary/50 focus:border-primary focus:ring-0';
-  const inputError =
-    'border-destructive bg-destructive/10 text-destructive focus:border-destructive';
-
   return (
     <div className="w-full max-w-3xl mx-auto px-4 py-8 space-y-10">
       {/* Top Bar / Navigation */}
@@ -350,337 +251,43 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
 
       {/* Main Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="bg-card border-2 border-border shadow-hard p-6 sm:p-8 space-y-10" noValidate>
-        
-        {/* Informações Pessoais */}
-        <div className="space-y-6">
-          <h2 className="text-xl font-heading font-black uppercase tracking-tight text-foreground border-b-2 border-border pb-2">
-            INFORMAÇÕES PESSOAIS
-          </h2>
+        {/* Seção de Informações Pessoais */}
+        <PersonalInfoSection
+          register={register}
+          errors={errors}
+          setValue={setValue}
+          birthDateValue={formValues.birthDate || ''}
+          isEmailChanged={isEmailChanged}
+        />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {/* Nome */}
-            <div>
-              <label htmlFor="edit-name" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
-                NOME COMPLETO
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
-                  <User className="w-4 h-4" aria-hidden="true" />
-                </div>
-                <input
-                  id="edit-name"
-                  type="text"
-                  placeholder="SEU NOME"
-                  className={`${inputBase} ${errors.name ? inputError : inputNormal}`}
-                  aria-invalid={!!errors.name}
-                  {...register('name')}
-                />
-              </div>
-              {errors.name && (
-                <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">
-                  {errors.name.message}
-                </p>
-              )}
-            </div>
+        {/* Seção de Medidas Corporais */}
+        <BiometricsSection
+          register={register}
+          errors={errors}
+        />
 
-            {/* E-mail */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label htmlFor="edit-email" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                  E-MAIL
-                </label>
-                {isEmailChanged && (
-                  <span className="text-[10px] font-bold tracking-widest text-primary uppercase">
-                    *EXIGE SENHA
-                  </span>
-                )}
-              </div>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
-                  <Mail className="w-4 h-4" aria-hidden="true" />
-                </div>
-                <input
-                  id="edit-email"
-                  type="email"
-                  placeholder="SEU@EMAIL.COM"
-                  className={`${inputBase} ${errors.email ? inputError : inputNormal}`}
-                  aria-invalid={!!errors.email}
-                  {...register('email')}
-                />
-              </div>
-              {errors.email && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.email.message}</p>}
-            </div>
-
-            {/* Sexo biológico */}
-            <div>
-              <label htmlFor="edit-sex" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
-                SEXO BIOLÓGICO
-              </label>
-              <select
-                id="edit-sex"
-                className={`w-full pl-4 pr-10 py-2.5 bg-background border-2 rounded-none text-sm font-medium text-foreground uppercase outline-none transition-colors min-h-[48px] appearance-none cursor-pointer ${
-                  errors.sex ? inputError : inputNormal
-                }`}
-                aria-invalid={!!errors.sex}
-                {...register('sex')}
-              >
-                <option value="masculino">MASCULINO</option>
-                <option value="feminino">FEMININO</option>
-                <option value="prefiro_nao_responder">NÃO RESPONDER</option>
-              </select>
-              {errors.sex && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.sex.message}</p>}
-            </div>
-
-            {/* Data de Nascimento */}
-            <div>
-              <label htmlFor="edit-birth-date" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
-                NASCIMENTO (DD/MM/AAAA)
-              </label>
-              <DatePickerInput
-                id="edit-birth-date"
-                value={formValues.birthDate || ''}
-                onChange={(val) => setValue('birthDate', val, { shouldValidate: true, shouldDirty: true })}
-                error={errors.birthDate?.message}
-              />
-              {errors.birthDate && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.birthDate.message}</p>}
-            </div>
-          </div>
-        </div>
-
-        {/* Medidas Corporais */}
-        <div className="space-y-6">
-          <h2 className="text-xl font-heading font-black uppercase tracking-tight text-foreground border-b-2 border-border pb-2">
-            MEDIDAS CORPORAIS
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div>
-              <label htmlFor="edit-weight" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
-                PESO ATUAL (KG)
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
-                  <Weight className="w-4 h-4" aria-hidden="true" />
-                </div>
-                <input
-                  id="edit-weight"
-                  type="number"
-                  step="0.1"
-                  placeholder="EX: 75.5"
-                  className={`${inputBase} ${errors.weight ? inputError : inputNormal}`}
-                  aria-invalid={!!errors.weight}
-                  {...register('weight')}
-                />
-              </div>
-              {errors.weight && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.weight.message}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="edit-height" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
-                ALTURA (CM)
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
-                  <Ruler className="w-4 h-4" aria-hidden="true" />
-                </div>
-                <input
-                  id="edit-height"
-                  type="number"
-                  placeholder="EX: 175"
-                  className={`${inputBase} ${errors.height ? inputError : inputNormal}`}
-                  aria-invalid={!!errors.height}
-                  {...register('height')}
-                />
-              </div>
-              {errors.height && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.height.message}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="edit-bodyfat" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
-                GORDURA (%) <span className="opacity-50">(OPCIONAL)</span>
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
-                  <ActivitySquare className="w-4 h-4" aria-hidden="true" />
-                </div>
-                <input
-                  id="edit-bodyfat"
-                  type="number"
-                  step="0.1"
-                  placeholder="EX: 18.5"
-                  className={`${inputBase} ${inputNormal}`}
-                  {...register('bodyFat')}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Rotina e Objetivo */}
-        <div className="space-y-6">
-          <h2 className="text-xl font-heading font-black uppercase tracking-tight text-foreground border-b-2 border-border pb-2">
-            OBJETIVO E ROTINA
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-            {/* Objetivo */}
-            <div>
-              <label id="goal-group-label" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3">
-                SEU FOCO PRINCIPAL
-              </label>
-              <div role="radiogroup" aria-labelledby="goal-group-label" className="flex flex-col gap-3">
-                {goals.map(({ key, label, icon }) => (
-                  <button
-                    key={key}
-                    type="button"
-                    role="radio"
-                    aria-checked={formValues.goal === key}
-                    onClick={() => setValue('goal', key, { shouldValidate: true, shouldDirty: true })}
-                    className={`p-4 border-2 flex items-center gap-4 transition-all focus:outline-none ${
-                      formValues.goal === key
-                        ? 'border-primary bg-primary text-primary-foreground shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff]'
-                        : 'border-border bg-background text-foreground hover:border-primary/50 hover:bg-secondary'
-                    }`}
-                  >
-                    <div className={formValues.goal === key ? 'text-primary-foreground' : 'text-primary'}>
-                      {icon}
-                    </div>
-                    <span className="font-black uppercase tracking-widest text-sm">{label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Nível de Atividade */}
-            <div>
-              <label className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3">
-                NÍVEL DE ATIVIDADE FÍSICA
-              </label>
-              <div className="grid gap-3">
-                {activityLevels.map((a) => (
-                  <button
-                    key={a.key}
-                    type="button"
-                    onClick={() => setValue('activityLevel', a.key, { shouldValidate: true, shouldDirty: true })}
-                    className={`p-3 border-2 flex flex-col text-left transition-all focus:outline-none ${
-                      formValues.activityLevel === a.key
-                        ? 'border-primary bg-primary text-primary-foreground'
-                        : 'border-border bg-background hover:border-primary/50 text-foreground'
-                    }`}
-                  >
-                    <span className="text-xs font-black uppercase tracking-widest">
-                      {a.label}
-                    </span>
-                    <span className={`text-[10px] font-bold tracking-widest uppercase mt-1 ${formValues.activityLevel === a.key ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
-                      {a.desc}
-                    </span>
-                  </button>
-                ))}
-              </div>
-              {errors.activityLevel && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.activityLevel.message}</p>}
-            </div>
-          </div>
-        </div>
+        {/* Seção de Objetivo e Rotina */}
+        <RoutineGoalsSection
+          goalValue={formValues.goal || 'perder_peso'}
+          activityLevelValue={formValues.activityLevel || 'sedentario'}
+          onSelectGoal={(key) => setValue('goal', key, { shouldValidate: true, shouldDirty: true })}
+          onSelectActivityLevel={(key) => setValue('activityLevel', key, { shouldValidate: true, shouldDirty: true })}
+          errors={errors}
+        />
 
         {/* Metas Diárias - Componente Separado */}
         <GoalSettingsCard />
 
-        {/* Segurança e Senha */}
-        <div className="space-y-6">
-          <h2 className="text-xl font-heading font-black uppercase tracking-tight text-foreground border-b-2 border-border pb-2">
-            SEGURANÇA
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="edit-current-password" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
-                SENHA ATUAL {isEmailChanged || (formValues.newPassword && formValues.newPassword.length > 0) ? <span className="text-primary">*</span> : <span className="opacity-50">(OPCIONAL)</span>}
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
-                  <Lock className="w-4 h-4" aria-hidden="true" />
-                </div>
-                <input
-                  id="edit-current-password"
-                  type={showCurrentPassword ? 'text' : 'password'}
-                  placeholder="DIGITE A SENHA ATUAL"
-                  className={`${inputBase} pr-12 ${errors.currentPassword ? inputError : inputNormal}`}
-                  aria-invalid={!!errors.currentPassword}
-                  {...register('currentPassword')}
-                />
-                <button
-                  type="button"
-                  aria-label={showCurrentPassword ? 'Ocultar' : 'Mostrar'}
-                  onClick={() => setShowCurrentPassword((prev) => !prev)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground focus:outline-none"
-                >
-                  {showCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-              {errors.currentPassword && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.currentPassword.message}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="edit-new-password" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
-                NOVA SENHA <span className="opacity-50">(OPCIONAL)</span>
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
-                  <Lock className="w-4 h-4" aria-hidden="true" />
-                </div>
-                <input
-                  id="edit-new-password"
-                  type={showNewPassword ? 'text' : 'password'}
-                  placeholder="NOVA SENHA"
-                  className={`${inputBase} pr-12 ${errors.newPassword ? inputError : inputNormal}`}
-                  aria-invalid={!!errors.newPassword}
-                  {...register('newPassword')}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowNewPassword((prev) => !prev)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground focus:outline-none"
-                >
-                  {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-              {errors.newPassword && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.newPassword.message}</p>}
-            </div>
-
-            {formValues.newPassword && formValues.newPassword.length > 0 && (
-              <div>
-                <label htmlFor="edit-confirm-new-password" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
-                  CONFIRMAR NOVA SENHA
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
-                    <Lock className="w-4 h-4" aria-hidden="true" />
-                  </div>
-                  <input
-                    id="edit-confirm-new-password"
-                    type={showConfirmNewPassword ? 'text' : 'password'}
-                    placeholder="REPITA A SENHA"
-                    className={`${inputBase} pr-12 ${errors.confirmNewPassword ? inputError : inputNormal}`}
-                    aria-invalid={!!errors.confirmNewPassword}
-                    {...register('confirmNewPassword')}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmNewPassword((prev) => !prev)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground focus:outline-none"
-                  >
-                    {showConfirmNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-                {errors.confirmNewPassword && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.confirmNewPassword.message}</p>}
-              </div>
-            )}
-          </div>
-        </div>
+        {/* Seção de Segurança e Senha */}
+        <SecuritySection
+          register={register}
+          errors={errors}
+          isEmailChanged={isEmailChanged}
+          hasNewPassword={Boolean(formValues.newPassword && formValues.newPassword.length > 0)}
+        />
 
         {/* Action Buttons */}
         <div className="pt-8 border-t-2 border-border flex flex-col-reverse sm:flex-row items-center justify-between gap-6">
-          
           <button
             type="button"
             onClick={() => setShowDeleteModal(true)}

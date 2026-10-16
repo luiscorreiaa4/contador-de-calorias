@@ -151,7 +151,7 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 - [x] **PC-34** Criar rede de testes de componentes para telas principais: Dashboard, Onboarding, EditProfile e AuthContext (rede de proteção para PC-28/29/30).
 - [x] **PC-28** Migrar `useEffect` + fetch manual para `useQuery` e mutações para `useMutation`.
 - [x] **PC-29** Substituir formulários complexos manuais por `react-hook-form` integrado com resolvers Zod.
-- [ ] **PC-30** Decompor componentes monolíticos (`EditProfilePage` e `NewMealModal`) em subcomponentes coesos.
+- [x] **PC-30** Decompor componentes monolíticos (`EditProfilePage` e `NewMealModal`) em subcomponentes coesos.
 
 ---
 

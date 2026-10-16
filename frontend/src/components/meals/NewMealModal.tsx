@@ -1,18 +1,13 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import {
-  X,
-  Utensils,
-  Plus,
-  Loader2,
-  Trash2,
-  Flame,
-  Scale,
-  Info,
-} from 'lucide-react';
-import Select, { components, type MenuListProps } from 'react-select';
+import { X, Utensils } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getFoods, type Food } from '../../services/food.service';
 import { createMeal, updateMeal, type Meal, type CreateMealDTO } from '../../services/meal.service';
+import { FoodSearchSelect } from './FoodSearchSelect';
+import { FoodQuantityForm } from './FoodQuantityForm';
+import { MealItemList } from './MealItemList';
+import { MealModalFooter } from './MealModalFooter';
+import { calculateNutrients, type MealItem, type FoodOption } from '../../types/meal-modal';
 
 interface NewMealModalProps {
   isOpen: boolean;
@@ -20,55 +15,10 @@ interface NewMealModalProps {
   mealToEdit?: Meal | null;
 }
 
-interface MealItem {
-  uid: string;
-  food: Food;
-  quantity: number;
-  unit: 'g' | 'ml' | 'un';
-  displayAmount: number;
-  calories: number;
-  proteins: number;
-  carbs: number;
-  fats: number;
-}
-
-function calculateNutrients(food: Food, quantityInBaseUnit: number) {
-  const serving = Number(food.serving_weight) || 100;
-  const factor = quantityInBaseUnit / serving;
-  return {
-    calories: Math.round(Number(food.calories) * factor * 10) / 10,
-    proteins: Math.round(Number(food.proteins) * factor * 10) / 10,
-    carbs: Math.round(Number(food.carbs) * factor * 10) / 10,
-    fats: Math.round(Number(food.fats) * factor * 10) / 10,
-  };
-}
-
-interface FoodOption {
-  value: string;
-  label: string;
-  food: Food;
-}
-
-const CustomMenuList = (props: MenuListProps<FoodOption, false>) => {
-  const children = React.Children.toArray(props.children);
-  const MAX_ITEMS = 50;
-
-  return (
-    <components.MenuList {...props}>
-      {children.length > MAX_ITEMS ? children.slice(0, MAX_ITEMS) : children}
-      {children.length > MAX_ITEMS && (
-        <div className="text-[10px] font-bold uppercase tracking-widest text-center py-3 text-muted-foreground bg-secondary border-t-2 border-border">
-          + {children.length - MAX_ITEMS} ALIMENTOS... DIGITE PARA BUSCAR.
-        </div>
-      )}
-    </components.MenuList>
-  );
-};
-
 export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mealToEdit }) => {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   const [debouncedSearch, setDebouncedSearch] = useState('');
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -298,7 +248,6 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
   };
 
   const totalCalories = mealItems.reduce((acc, item) => acc + item.calories, 0);
-  const totalProteins = mealItems.reduce((acc, item) => acc + item.proteins, 0);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -456,313 +405,47 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
               </div>
 
               {!selectedFood ? (
-                <>
-                  <label htmlFor="food-select-input" className="sr-only">
-                    PESQUISAR ALIMENTO
-                  </label>
-                  <Select<FoodOption, false>
-                    inputId="food-select-input"
-                    aria-label="Pesquisar alimento no catálogo"
-                    options={foodOptions}
-                    isLoading={isLoadingFoods}
-                    onInputChange={(newValue, { action }) => {
-                      if (action === 'input-change') setSearchTerm(newValue);
-                    }}
-                    onChange={(option) => {
-                      if (option) handleSelectFood(option.food);
-                    }}
-                    placeholder="PESQUISAR ALIMENTO..."
-                    menuPortalTarget={document.body}
-                    noOptionsMessage={() => 'NENHUM ALIMENTO ENCONTRADO'}
-                    components={{ MenuList: CustomMenuList }}
-                    styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
-                  classNames={{
-                    control: (state) =>
-                      `bg-background border-2 border-border rounded-none text-xs font-black shadow-none transition-colors min-h-[48px] uppercase ${
-                        state.isFocused
-                          ? 'border-primary'
-                          : 'hover:border-primary/50'
-                      }`,
-                    input: () => 'text-foreground py-0.5 uppercase',
-                    singleValue: () => 'text-foreground uppercase',
-                    menu: () => 'bg-card border-2 border-border rounded-none shadow-hard mt-2 overflow-hidden',
-                    option: (state) =>
-                      `px-4 py-3 cursor-pointer transition-colors text-[10px] font-bold uppercase tracking-widest ${
-                        state.isFocused
-                          ? 'bg-primary text-primary-foreground'
-                          : 'text-foreground hover:bg-secondary'
-                      }`,
-                    noOptionsMessage: () => 'text-muted-foreground p-4 text-[10px] font-bold uppercase tracking-widest text-center',
-                    placeholder: () => 'text-muted-foreground px-1 uppercase',
-                    menuList: () => 'p-0',
-                    valueContainer: () => 'px-4',
-                    dropdownIndicator: () => 'p-2 text-muted-foreground hover:text-foreground',
-                    indicatorSeparator: () => 'hidden',
-                    clearIndicator: () => 'p-2 text-muted-foreground hover:text-foreground',
-                  }}
-                  unstyled
+                <FoodSearchSelect
+                  options={foodOptions}
+                  isLoading={isLoadingFoods}
+                  onSearchChange={setSearchTerm}
+                  onSelectFood={handleSelectFood}
                 />
-              </>
-            ) : (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-card border-2 border-border shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff]">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary text-primary-foreground border-2 border-transparent">
-                        <Utensils className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h4 className="font-heading font-black text-sm text-foreground uppercase tracking-tight">
-                          {selectedFood.name}
-                        </h4>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">
-                          BASE: {selectedFood.calories} KCAL / 100{selectedFood.base_unit.toUpperCase()}
-                          {selectedFood.unit_name && selectedFood.unit_weight && (
-                            <span className="ml-1 text-primary font-bold">
-                              (1 {selectedFood.unit_name.toUpperCase()} ≈ {Number(selectedFood.unit_weight)}G)
-                            </span>
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedFood(null);
-                        setAmount('');
-                      }}
-                      className="p-1 border-2 border-transparent text-muted-foreground hover:border-border hover:text-foreground transition-colors"
-                      title="Trocar alimento"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-
-                  {selectedFood.unit_name && selectedFood.unit_weight && (
-                    <div className="flex gap-2 border-2 border-border p-1 bg-background">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setAmountMode('un');
-                          setAmount(1);
-                        }}
-                        className={`flex-1 py-2 px-3 text-[10px] font-black uppercase tracking-widest transition-all focus:outline-none flex items-center justify-center gap-2 ${
-                          amountMode === 'un'
-                            ? 'bg-primary text-primary-foreground border-2 border-transparent'
-                            : 'bg-background text-foreground border-2 border-transparent hover:border-border'
-                        }`}
-                      >
-                        POR {selectedFood.unit_name.toUpperCase()}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setAmountMode('weight');
-                          setAmount(Number(selectedFood.unit_weight));
-                        }}
-                        className={`flex-1 py-2 px-3 text-[10px] font-black uppercase tracking-widest transition-all focus:outline-none flex items-center justify-center gap-2 ${
-                          amountMode === 'weight'
-                            ? 'bg-primary text-primary-foreground border-2 border-transparent'
-                            : 'bg-background text-foreground border-2 border-transparent hover:border-border'
-                        }`}
-                      >
-                        <Scale className="w-3.5 h-3.5" /> PESAR EM GRAMAS
-                      </button>
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label htmlFor="food-amount" className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
-                        {amountMode === 'un'
-                          ? `QUANTIDADE DE ${selectedFood.unit_name?.toUpperCase() || 'UNIDADES'}`
-                          : selectedFood.base_unit === 'ml'
-                          ? 'QUANTIDADE EM MILILITROS (ML)'
-                          : 'QUANTIDADE EM GRAMAS (G)'}
-                      </label>
-                      {amountMode === 'un' && selectedFood.unit_weight && amount && Number(amount) > 0 && (
-                        <span className="text-[10px] font-bold text-primary uppercase tracking-widest flex items-center gap-1">
-                          <Info className="w-3 h-3" />
-                          EQUIVALE A {Number(amount) * Number(selectedFood.unit_weight)}G
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <div className="relative flex-1">
-                        <input
-                          id="food-amount"
-                          ref={amountInputRef}
-                          type="number"
-                          min="0.1"
-                          step={amountMode === 'un' ? '0.5' : '1'}
-                          value={amount}
-                          onChange={(e) => setAmount(e.target.value ? Number(e.target.value) : '')}
-                          placeholder={amountMode === 'un' ? 'EX: 2' : selectedFood.base_unit === 'ml' ? 'EX: 200' : 'EX: 150'}
-                          aria-label="Quantidade do alimento"
-                          className="w-full px-4 py-3 bg-background border-2 border-border text-sm font-black text-foreground uppercase placeholder:text-muted-foreground focus:border-primary outline-none transition-colors"
-                        />
-                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted-foreground uppercase pointer-events-none">
-                          {amountMode === 'un' ? selectedFood.unit_name || 'UN' : selectedFood.base_unit}
-                        </span>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={handleAddItem}
-                        disabled={!amount || Number(amount) <= 0 || isSubmitting}
-                        className="px-6 py-3 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-transparent disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:border-foreground"
-                      >
-                        <Plus className="w-4 h-4" />
-                        <span>INCLUIR</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {currentItemCalculations && (
-                    <div className="grid grid-cols-4 gap-3 pt-4 border-t-2 border-border">
-                      <div className="p-3 border-2 border-border bg-background text-center">
-                        <span className="block text-[10px] uppercase font-bold text-muted-foreground mb-1">CALORIAS</span>
-                        <span className="text-sm font-heading font-black text-foreground">{currentItemCalculations.calories}</span>
-                      </div>
-                      <div className="p-3 border-2 border-border bg-background text-center">
-                        <span className="block text-[10px] uppercase font-bold text-muted-foreground mb-1">PROT</span>
-                        <span className="text-sm font-heading font-black text-foreground">{currentItemCalculations.proteins}G</span>
-                      </div>
-                      <div className="p-3 border-2 border-border bg-background text-center">
-                        <span className="block text-[10px] uppercase font-bold text-muted-foreground mb-1">CARBS</span>
-                        <span className="text-sm font-heading font-black text-foreground">{currentItemCalculations.carbs}G</span>
-                      </div>
-                      <div className="p-3 border-2 border-border bg-background text-center">
-                        <span className="block text-[10px] uppercase font-bold text-muted-foreground mb-1">GORD</span>
-                        <span className="text-sm font-heading font-black text-foreground">{currentItemCalculations.fats}G</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
+              ) : (
+                <FoodQuantityForm
+                  selectedFood={selectedFood}
+                  amountMode={amountMode}
+                  amount={amount}
+                  currentItemCalculations={currentItemCalculations}
+                  amountInputRef={amountInputRef}
+                  isSubmitting={isSubmitting}
+                  onSetAmountMode={setAmountMode}
+                  onSetAmount={setAmount}
+                  onCancelSelection={() => {
+                    setSelectedFood(null);
+                    setAmount('');
+                  }}
+                  onAddItem={handleAddItem}
+                />
               )}
             </div>
 
             {/* Items List */}
-            {mealItems.length > 0 && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between pb-2 border-b-2 border-border">
-                  <span className="text-[11px] font-bold text-foreground uppercase tracking-widest flex items-center gap-2">
-                    ITENS ADICIONADOS
-                    <span className="px-2 py-0.5 bg-primary text-primary-foreground text-[10px] font-black">
-                      {mealItems.length}
-                    </span>
-                  </span>
-                  <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest">
-                    <span className="text-foreground flex items-center gap-1">
-                      <Flame className="w-3.5 h-3.5" aria-hidden="true" />
-                      {Math.round(totalCalories)} KCAL
-                    </span>
-                    <span className="text-primary">
-                      • {Math.round(totalProteins * 10) / 10}G PROT
-                    </span>
-                  </div>
-                </div>
-
-                <ul className="space-y-3 max-h-48 overflow-y-auto">
-                  {mealItems.map((item) => (
-                    <li
-                      key={item.uid}
-                      className="flex items-center justify-between gap-4 bg-card border-2 border-border p-4"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-heading font-black text-foreground uppercase tracking-tight truncate">
-                          {item.food.name}
-                        </p>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
-                          {item.unit === 'un' ? (
-                            <>
-                              <strong className="text-foreground">
-                                {item.displayAmount}{' '}
-                                {item.displayAmount === 1
-                                  ? item.food.unit_name || 'UN'
-                                  : `${item.food.unit_name || 'UN'}S`}
-                              </strong>{' '}
-                              ({Math.round(item.quantity)}G)
-                            </>
-                          ) : (
-                            <strong className="text-foreground">
-                              {Math.round(item.quantity)} {item.unit.toUpperCase()}
-                            </strong>
-                          )}{' '}
-                          • P: {item.proteins}G • C: {item.carbs}G • G: {item.fats}G
-                        </p>
-                      </div>
-                      <span className="shrink-0 text-[10px] font-black text-foreground flex items-center gap-1 uppercase tracking-widest bg-secondary px-2 py-1 border-2 border-border">
-                        <Flame className="w-3 h-3 text-primary" aria-hidden="true" />
-                        {Math.round(item.calories)} KCAL
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveItem(item.uid)}
-                        disabled={isSubmitting}
-                        className="shrink-0 p-2 border-2 border-transparent text-muted-foreground hover:border-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors focus:outline-none disabled:opacity-50"
-                        aria-label={`Remover ${item.food.name}`}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Empty state */}
-            {mealItems.length === 0 && (
-              <div className="text-center p-6 text-[10px] font-bold uppercase tracking-widest text-muted-foreground border-2 border-dashed border-border bg-secondary">
-                NENHUM ALIMENTO INCLUÍDO AINDA. BUSQUE E ADICIONE ACIMA.
-              </div>
-            )}
+            <MealItemList
+              items={mealItems}
+              isSubmitting={isSubmitting}
+              onRemoveItem={handleRemoveItem}
+            />
           </div>
 
           {/* Footer Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-between p-6 border-t-2 border-border bg-background gap-4 shrink-0">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              {mealItems.length > 0 ? (
-                <span>
-                  TOTAL DA REFEIÇÃO:{' '}
-                  <strong className="text-foreground text-sm font-black">
-                    {Math.round(totalCalories)} KCAL
-                  </strong>
-                </span>
-              ) : (
-                <span>ADICIONE AO MENOS 1 ALIMENTO</span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-4 w-full sm:w-auto">
-              <button
-                type="button"
-                onClick={onClose}
-                disabled={isSubmitting}
-                className="flex-1 sm:flex-none px-6 py-3 font-black uppercase tracking-widest text-xs text-foreground bg-background border-2 border-border hover:bg-secondary transition-colors focus:outline-none focus:border-primary disabled:opacity-50"
-              >
-                CANCELAR
-              </button>
-
-              <button
-                type="submit"
-                disabled={mealItems.length === 0 || isSubmitting}
-                className="flex-1 sm:flex-none px-8 py-3 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-transparent disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:border-foreground shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff] disabled:shadow-none"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
-                    <span>SALVANDO...</span>
-                  </>
-                ) : (
-                  <>
-                    <Utensils className="w-4 h-4" aria-hidden="true" />
-                    <span>{mealToEdit ? 'SALVAR' : 'CRIAR REFEIÇÃO'}</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
+          <MealModalFooter
+            itemsCount={mealItems.length}
+            totalCalories={totalCalories}
+            isSubmitting={isSubmitting}
+            isEditing={Boolean(mealToEdit)}
+            onClose={onClose}
+          />
         </form>
       </div>
     </div>
