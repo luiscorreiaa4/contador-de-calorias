@@ -154,8 +154,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
               {/* Dropdown panel */}
               {menuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-[#0a0a0a] border-2 border-border shadow-hard overflow-hidden z-[100] opacity-100">
-                  <div className="p-4 border-b-2 border-border bg-zinc-100 dark:bg-[#1a1a1a] flex justify-between items-start gap-2">
+                <div className="absolute right-0 top-full mt-2 w-64 bg-card border-2 border-border shadow-hard overflow-hidden z-[100] opacity-100">
+                  <div className="p-4 border-b-2 border-border bg-secondary flex justify-between items-start gap-2">
                     <div className="min-w-0">
                       <p className="text-sm font-black font-heading uppercase text-foreground truncate">
                         {user.name}
@@ -171,7 +171,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                         onToggleTheme();
                       }}
                       aria-label={darkMode ? 'Modo claro' : 'Modo escuro'}
-                      className="shrink-0 flex items-center justify-center w-8 h-8 border-2 border-border bg-zinc-100 dark:bg-[#1a1a1a] hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors text-foreground focus:outline-none focus:border-primary group"
+                      className="shrink-0 flex items-center justify-center w-8 h-8 border-2 border-border bg-card hover:bg-secondary transition-colors text-foreground focus:outline-none focus:border-primary group"
                     >
                       {darkMode ? (
                         <Sun className="w-4 h-4 group-hover:text-primary transition-colors" />

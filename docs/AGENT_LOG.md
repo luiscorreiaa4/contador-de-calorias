@@ -563,5 +563,20 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
   - Testes do frontend (`npm --prefix frontend test`): 24 testes passando (8 suítes, 0 falhas).
   - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
+- **Commit:** `2d2b989`
+
+### PC-25: Conformidade de tokens, cores semânticas e geometria brutalista (V-07, V-08, V-09)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/components/layout/RootLayout.tsx`: substituído o spinner que violava a geometria com `rounded-full` e cor fixa `border-emerald-500` por elemento brutalista geométrico com `rounded-none border-2 border-border border-b-primary`.
+  - `frontend/src/components/layout/AppHeader.tsx`: substituídas as cores fixas `bg-white dark:bg-[#0a0a0a]` e a paleta `zinc` com hexadecimais (`#1a1a1a`) no painel dropdown pelos tokens semânticos `bg-card` e `bg-secondary`.
+  - `frontend/src/components/ui/input.tsx`: eliminadas as classes ad-hoc `dark:bg-[#0a0a0a]` e `dark:text-white`, unificando a estilização exclusivamente sob `bg-background text-foreground` sincronizados pelas CSS Variables.
+  - `frontend/src/pages/private/DashboardPage.tsx`: removidas as sombras difusas com difusão `shadow-sm` do badge de refeições e dos cartões de refeição, mantendo contornos nítidos e hover brutalista rígido.
+- **Validação:**
+  - `git grep` comprovando zero ocorrências de `#0a0a0a`, `rounded-full`, `border-emerald-500`, `bg-white`, `text-white`, `shadow-sm`, `shadow-md`.
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+  - Testes do frontend (`npm --prefix frontend test`): 24 testes passando (8 suítes, 0 falhas).
+  - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
   - Frontend Build (`npm run build`): compilação de produção com código 0.
+
 

@@ -157,7 +157,7 @@ export const DashboardPage: React.FC = () => {
         </div>
         
         <div className="flex items-center gap-4 relative z-10">
-          <div className="p-3 bg-primary text-primary-foreground shadow-sm">
+          <div className="p-3 bg-primary text-primary-foreground">
             <Utensils className="w-6 h-6" aria-hidden="true" />
           </div>
           <div>
@@ -195,7 +195,7 @@ export const DashboardPage: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {todayMeals.map((meal) => (
-              <div key={meal.id} className="bg-card border-2 border-border p-5 shadow-sm hover:shadow-hard transition-shadow flex flex-col justify-between group">
+              <div key={meal.id} className="bg-card border-2 border-border p-5 hover:shadow-hard transition-shadow flex flex-col justify-between group">
                 <div>
                   <div className="flex items-start justify-between mb-4 border-b-2 border-border pb-4">
                     <div>
