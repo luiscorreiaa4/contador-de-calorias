@@ -474,8 +474,19 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
 - **Validação:**
   - Testes do frontend (`npm --prefix frontend test`): 21 testes passando (7 suítes, 0 falhas).
   - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+- **Commit:** `dd14e0e`
+
+### PC-15: Preservação de macros base do alimento ao editar refeição (BUG-B09)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/components/meals/NewMealModal.tsx`: corrigida a rotina de mapeamento de itens ao inicializar o modal em modo de edição (`mealToEdit`). Em vez de gerar um `mockFood` com nutrientes zerados (`calories: 0, proteins: 0, carbs: 0, fats: 0`), o código agora pesquisa o alimento existente no catálogo em cache ou deriva proporcionalmente os valores por 100g/ml com base na porção registrada (`(item.calories / quantity) * 100`).
+  - `frontend/src/components/meals/NewMealModal.test.tsx`: adicionado teste de unidade e renderização com `mealToEdit` garantindo que os nutrientes e totais nutricionais por item e da refeição sejam preservados integralmente.
+- **Validação:**
+  - Testes do frontend (`npm --prefix frontend test`): 22 testes passando (7 suítes, 0 falhas).
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
   - Lint Monorepo (`npm run lint`): 0 erros.
   - Frontend Build (`npm run build`): compilação de produção com código 0.
+
 
 
 

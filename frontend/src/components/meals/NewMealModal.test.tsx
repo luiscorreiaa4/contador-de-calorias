@@ -63,4 +63,41 @@ describe('NewMealModal', () => {
     const saveButton = await screen.findByRole('button', { name: /criar refeição/i });
     expect(saveButton).toBeDisabled();
   });
+
+  it('deve preservar e calcular os macros base do alimento ao carregar refeição para edição (PC-15 / BUG-B09)', async () => {
+    const mealToEdit = {
+      id: 'meal-1',
+      user_id: 'user-1',
+      name: 'Almoço Fit',
+      meal_time: '2026-10-16T12:00:00.000Z',
+      created_at: '2026-10-16T12:00:00.000Z',
+      total_calories: 330,
+      total_proteins: 62,
+      total_carbs: 0,
+      total_fats: 6,
+      items: [
+        {
+          id: 'item-1',
+          meal_id: 'meal-1',
+          food_id: 'food-chicken',
+          food_name: 'Peito de Frango',
+          food_base_unit: 'g' as const,
+          quantity: 200,
+          unit: 'g' as const,
+          display_amount: 200,
+          calories: 330,
+          proteins: 62,
+          carbs: 0,
+          fats: 6,
+        },
+      ],
+    };
+
+    render(<NewMealModal isOpen={true} onClose={onClose} mealToEdit={mealToEdit} />);
+
+    expect(await screen.findByText(/peito de frango/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/330\s*kcal/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/62g\s*prot/i).length).toBeGreaterThan(0);
+  });
 });
+

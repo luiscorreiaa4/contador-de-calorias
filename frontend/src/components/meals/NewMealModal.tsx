@@ -153,22 +153,25 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
 
         const initialItems = mealToEdit.items
           .map((item) => {
-            const mockFood: Food = {
+            const quantity = Number(item.quantity);
+            const factor = quantity > 0 ? quantity / 100 : 1;
+            const existingFood = foods.find((f) => f.id === item.food_id);
+
+            const mockFood: Food = existingFood || {
               id: item.food_id,
               name: item.food_name || 'ALIMENTO',
               base_unit: (item.food_base_unit as 'g' | 'ml') || 'g',
               serving_weight: 100,
-              calories: 0,
-              proteins: 0,
-              carbs: 0,
-              fats: 0,
+              calories: factor > 0 ? Number(item.calories) / factor : 0,
+              proteins: factor > 0 ? Number(item.proteins) / factor : 0,
+              carbs: factor > 0 ? Number(item.carbs) / factor : 0,
+              fats: factor > 0 ? Number(item.fats) / factor : 0,
               unit_name: item.food_unit_name,
               unit_weight: item.food_unit_weight,
             };
 
             const unit = (item.unit as 'g' | 'ml' | 'un') || mockFood.base_unit;
             const displayAmount = Number(item.display_amount ?? item.quantity);
-            const quantity = Number(item.quantity);
 
             return {
               uid: `${item.food_id}-${Date.now()}-${Math.random()}`,
@@ -195,7 +198,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
       }
       hasInitializedRef.current = true;
     }
-  }, [isOpen, mealToEdit, queryClient]);
+  }, [isOpen, mealToEdit, queryClient, foods]);
 
   useEffect(() => {
     if (isOpen) {

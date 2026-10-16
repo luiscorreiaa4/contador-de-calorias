@@ -109,7 +109,7 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 - [x] **PC-08** Política de senha forte + `bcrypt.compare` dummy no login para mitigação de timing attack.
 - [x] **PC-11** Resiliência: `statement_timeout`, `/health` com probe ativo de banco, graceful shutdown.
 - [ ] **PC-13** CI: integrar `npm audit --audit-level=high` + Gitleaks; `@vitest/coverage-v8`.
-- [ ] **PC-15** Edição de refeição preservando valores nutricionais base do alimento.
+- [x] **PC-15** Edição de refeição preservando valores nutricionais base do alimento.
 - [x] **PC-17** Transações atômicas (`BEGIN`/`COMMIT`/`ROLLBACK`) em onboarding/perfil/metas + teste de rollback.
 - [ ] **PC-19** Remover perfil biométrico do `localStorage` (`user_session`), mantendo dados sensíveis apenas em memória *(D-02)*.
 
