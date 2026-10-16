@@ -451,8 +451,20 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
 - **Validação:**
   - Testes do frontend (`npm --prefix frontend test`): 19 testes passando (6 suítes, 0 falhas).
   - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+- **Commit:** `d59b600`
+
+### PC-05: Invalidação cruzada de cache e consistência entre telas (PERF-016, BUG-B07)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/pages/private/DashboardPage.tsx`: adicionada invalidação explícita de `['mealStats']` no callback `onSuccess` de `deleteMealMutation`, assegurando que a exclusão de uma refeição atualize imediatamente as médias e gráficos históricos sem depender do `staleTime` de 5 minutos.
+  - `frontend/src/components/meals/NewMealModal.tsx`: adicionada invalidação de `['mealStats']` no callback `onSuccess` de `createMealMutation` e `updateMealMutation`, garantindo que adições e edições de pratos reflitam de pronto na tela de Estatísticas.
+  - `frontend/src/components/profile/GoalSettingsCard.tsx`: adicionada invalidação de `['mealStats']` e `['todayMeals']` no callback `onSuccess` da mutação de metas nutricionais (`updateGoals`), sincronizando imediatamente o Dashboard e as linhas de meta dos gráficos analíticos.
+- **Validação:**
+  - Testes do frontend (`npm --prefix frontend test`): 19 testes passando (6 suítes, 0 falhas).
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
   - Lint Monorepo (`npm run lint`): 0 erros.
   - Frontend Build (`npm run build`): compilação de produção com código 0.
+
 
 
 

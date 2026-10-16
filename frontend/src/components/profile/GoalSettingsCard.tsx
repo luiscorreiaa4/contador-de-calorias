@@ -40,6 +40,8 @@ export function GoalSettingsCard() {
     mutationFn: updateGoals,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['active-goal'] });
+      queryClient.invalidateQueries({ queryKey: ['mealStats'] });
+      queryClient.invalidateQueries({ queryKey: ['todayMeals'] });
     }
   });
 

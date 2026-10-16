@@ -40,6 +40,7 @@ export const DashboardPage: React.FC = () => {
     mutationFn: deleteMeal,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todayMeals'] });
+      queryClient.invalidateQueries({ queryKey: ['mealStats'] });
       setIsDeleteModalOpen(false);
       setMealToDelete(null);
     }

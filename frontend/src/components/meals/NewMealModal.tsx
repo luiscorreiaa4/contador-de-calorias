@@ -106,6 +106,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
     mutationFn: (data: CreateMealDTO) => createMeal(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todayMeals'] });
+      queryClient.invalidateQueries({ queryKey: ['mealStats'] });
       onClose();
     },
     onError: (error: Error) => {
@@ -117,6 +118,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
     mutationFn: ({ id, data }: { id: string; data: CreateMealDTO }) => updateMeal(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todayMeals'] });
+      queryClient.invalidateQueries({ queryKey: ['mealStats'] });
       onClose();
     },
     onError: (error: Error) => {
