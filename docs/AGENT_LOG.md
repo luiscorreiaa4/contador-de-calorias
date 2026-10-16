@@ -352,8 +352,38 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - Teste de arquivo único (`npm run test:backend:file tests/integration/meal_items_batch.test.ts`): passou em 356ms (2/2).
   - Testes do backend (`npm run test`): 113 testes passando, 24 suítes, 0 falhas.
   - Testes do frontend (`npm --prefix frontend test -- --run`): 14 testes passando, 5 suítes, 0 falhas.
+### PC-23: Medição de EXPLAIN ANALYZE em /api/meals/stats sob volume real (10k meal_items)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - Criado banco isolado de performance `contador_calorias_perf` e executadas as migrações estruturais do projeto.
+  - Desenvolvido e executado script de seed volumétrico (`backend/scripts/seed-perf.js`), populando a base com 10.000 `meal_items`, 2.500 `meals` (distribuídas ao longo de 365 dias) e histórico de `user_goals` com diferentes janelas vigentes.
+  - Desenvolvido e executado script de medição (`backend/scripts/run-stats-explain.js`) rodando `EXPLAIN (ANALYZE, BUFFERS)` na query de `/api/meals/stats` (`getPeriodStats`) para 7, 30, 90 e 365 dias.
+  - Resultados empíricos registrados em `docs/PERFORMANCE_BASELINE.md`: tempo de execução de 1.05ms (7d), 3.968ms (30d), 8.086ms (90d) e 20.740ms (365d completo sobre 10k itens) — todos ordens de magnitude abaixo do teto de tolerância de 150ms.
+- **Validação:**
+  - `docs/PERFORMANCE_BASELINE.md` atualizado com a tabela comparativa e diagnóstico de planos de execução.
+  - Testes do backend (`npm run test`): 111 testes passando, 26 suítes, 0 falhas.
+  - Testes do frontend (`npm --prefix frontend test -- --run`): 14 testes passando, 5 suítes, 0 falhas.
   - Lint Monorepo (`npm run lint`): 0 erros.
   - Frontend Build (`npm run build`): compilação de produção com código 0.
+
+---
+
+## 5. CONCLUSÃO DO SUBLOTE B (CHECKPOINT B)
+
+- **Sublote B Concluído (100%):**
+  - **PC-11:** Resiliência de infraestrutura (`statement_timeout`, `/health` com probe e graceful shutdown) (`bdf7135`)
+  - **PC-02:** Middleware de compressão HTTP (`compression`) (`c41e720`)
+  - **PC-03:** Cache HTTP do catálogo de alimentos (`Cache-Control`, `Vary` e ETag) (`097244d`)
+  - **PC-09:** Otimização SQL no dashboard e food search (sem subqueries correlacionadas, `count(*) OVER()`, projeção explícita de `source`) (`1ad29a3`)
+  - **PC-10:** Índices parciais e de chave estrangeira via migração versionada (`idx_foods_active_name`, `idx_meal_items_food_id`) (`ccb3b45`)
+  - **PC-22:** Inserção multi-row em lote para `meal_items` e isolamento determinístico de testes (`f2d8b58`)
+  - **PC-23:** Execução e documentação de `EXPLAIN ANALYZE` sob 10k itens no `PERFORMANCE_BASELINE.md`
+- **Linha de Base Final (100% Verde):**
+  - Backend Tests (`npm run test`): 111 testes passando, 26 suítes, 0 falhas.
+  - Frontend Tests (`npm --prefix frontend test -- --run`): 14 testes passando, 5 suítes, 0 falhas.
+  - Lint Monorepo (`npm run lint`): 0 erros.
+  - Frontend Build (`npm run build`): compilação com código 0.
+
 
 
 
