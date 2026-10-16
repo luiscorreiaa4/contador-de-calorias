@@ -625,3 +625,17 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - Testes do frontend (`npm --prefix frontend test`): 33 testes passando (10 suítes, 0 falhas).
   - Auditoria de segurança (`npm audit --audit-level=high`): 0 vulnerabilidades.
   - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
+
+### PC-34: Rede de testes de componentes para telas críticas (TST-011)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/pages/private/__tests__/DashboardPage.test.tsx`: criada suíte cobrindo carregamento, estado vazio, erro da API com botão de retry e renderização de refeições (4 testes).
+  - `frontend/src/components/onboarding/OnboardingFlow.test.tsx`: criada suíte cobrindo renderização inicial, validações de campos obrigatórios no passo 1, avanço de etapas e tratamento de erro de submissão da API (4 testes).
+  - `frontend/src/pages/private/__tests__/EditProfilePage.test.tsx`: criada suíte com sessão autenticada cobrindo renderização dos dados do perfil, validação de nome obrigatório no blur e submissão com feedback de sucesso (3 testes).
+  - `frontend/src/context/AuthContext.test.tsx`: criada suíte cobrindo estado desautenticado inicial, login via `setAuthSession`, logout via `logout`, e expiração/desautenticação sob evento `auth:unauthorized` (4 testes).
+  - `frontend/src/mocks/handlers.ts`: adicionados handlers para `PUT /users/me/onboarding`, `PUT /users/me` e `POST /users/me/preview-goals`.
+- **Validação:**
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+  - Testes do frontend (`npm --prefix frontend test`): 44 testes passando (13 suítes, 0 falhas).
+  - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
+  - Frontend Build (`npm run build`): compilação de produção com código 0.

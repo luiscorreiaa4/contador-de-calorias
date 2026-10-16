@@ -153,4 +153,45 @@ export const handlers = [
       },
     });
   }),
+
+  http.post(`${baseURL}/users/me/preview-goals`, () => {
+    return HttpResponse.json({
+      success: true,
+      data: {
+        tmb: 1800,
+        tdee: 2400,
+        suggestedCalories: 2100,
+        suggestedMacros: {
+          proteins: 150,
+          fats: 65,
+          carbs: 230,
+        },
+      },
+    });
+  }),
+
+  http.put(`${baseURL}/users/me/onboarding`, () => {
+    return HttpResponse.json({
+      success: true,
+      data: {
+        id: '1',
+        name: 'Test User',
+        email: 'test@example.com',
+        onboarding_completed: true,
+      },
+    });
+  }),
+
+  http.put(`${baseURL}/users/me`, async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    return HttpResponse.json({
+      success: true,
+      data: {
+        id: '1',
+        name: body.name || 'Test User',
+        email: 'test@example.com',
+        goal: 'perder_peso',
+      },
+    });
+  }),
 ];

@@ -148,7 +148,7 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 - [x] **PC-33** Fontes self-hosted com carregamento local; carregar `Montserrat` efetivamente ou remover declaração órfã.
 
 **Refatoração Estrutural e Arquitetura React**
-- [ ] **PC-34** Criar rede de testes de componentes para telas principais: Dashboard, Onboarding, EditProfile e AuthContext (rede de proteção para PC-28/29/30).
+- [x] **PC-34** Criar rede de testes de componentes para telas principais: Dashboard, Onboarding, EditProfile e AuthContext (rede de proteção para PC-28/29/30).
 - [ ] **PC-28** Migrar `useEffect` + fetch manual para `useQuery` e mutações para `useMutation`.
 - [ ] **PC-29** Substituir formulários complexos manuais por `react-hook-form` integrado com resolvers Zod.
 - [ ] **PC-30** Decompor componentes monolíticos (`EditProfilePage` e `NewMealModal`) em subcomponentes coesos.
