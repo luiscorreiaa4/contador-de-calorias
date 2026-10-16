@@ -43,6 +43,8 @@
     --ring: 72 100% 50%;
 
     --radius: 0rem;
+    --border-width: 2px;
+    --shadow-offset: 4px;
   }
 
   .dark, :root.dark {
@@ -66,6 +68,31 @@
     --border: 0 0% 15%;
     --input: 0 0% 15%;
     --ring: 72 100% 50%;
+    --border-width: 2px;
+    --shadow-offset: 4px;
+  }
+}
+
+@layer components {
+  .brutalist-card {
+    border-width: var(--border-width, 2px);
+    border-color: hsl(var(--border));
+    background-color: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+    border-radius: 0;
+  }
+
+  .brutalist-border {
+    border-width: var(--border-width, 2px);
+    border-color: hsl(var(--border));
+  }
+
+  .brutalist-shadow {
+    box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 1);
+  }
+
+  .dark .brutalist-shadow {
+    box-shadow: 4px 4px 0px 0px rgba(255, 255, 255, 0.2);
   }
 }
 

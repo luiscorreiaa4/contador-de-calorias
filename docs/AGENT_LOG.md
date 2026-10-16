@@ -660,3 +660,38 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - `npm run build`: bundle de produção compilado com assets self-hosted woff2 em 871ms (código 0).
   - `npm audit --audit-level=high`: 0 vulnerabilidades.
 - **Tag do Git:** `checkpoint/D`
+
+---
+
+## 8. RETOMADA 16/10/2026 (Sublote E)
+
+- **Contexto:** Retomada autônoma de execução em lote após conclusão dos Sublotes A, B, C e D. Árvore de trabalho limpa, tags e stashes verificados.
+- **Itens Concluídos:**
+  - **Sublote A (Rede de testes backend):** PC-01 (`c913dde`), PC-14 (`b19ae7b`), PC-18 (`d1c7f60`), PC-24 (`a3bc7c9`) — 100% concluído.
+  - **Sublote B (Backend robustez/performance):** PC-04 (`4dc33a7`), PC-07 (`08eacf9`), PC-08 (`741e8b3`), PC-17 (`44b63e1`), PC-11 (`bdf7135`), PC-02 (`c41e720`), PC-03 (`097244d`), PC-09 (`1ad29a3`), PC-10 (`ccb3b45`), PC-22 (`f2d8b58`), PC-23 (`6cdaf4b`) — 100% concluído (tag `checkpoint/B`).
+  - **Auditoria de Higiene de Testes:** Suíte unificada com `closeTestPool`, timeout global de 300s, modo estrito e verificação AST no lint (`d136737`).
+  - **Sublote C (Frontend Fase 4 e CI/docs):** PC-21 (`5ea6077`), PC-20 (`85c3261`), PC-12 (`d59b600`), PC-05 (`0119730`), PC-06 (`dd14e0e`), PC-15 (`eb3cf27`), PC-19 (`1829406`), PC-13 (`f6f70ff`), PC-16 (`c295ce6`) — 100% concluído (tag `checkpoint/C`).
+  - **Sublote D (Fase 5 base):** PC-31 (`87217d3`, `2d2b989`), PC-25 (`d389446`), PC-26 (`ab52099`), PC-27 (`12cca61`), PC-33 (`54fdb2a`), PC-34 (`5d41df1`) — 100% concluído (tag `checkpoint/D`).
+- **Itens Pulados/Falhos:** Nenhum item PC falhou ou foi pulado (CA-06 permanece pulado bloqueado por D-12 pós-merge).
+- **Sublote Alvo Desta Janela:** **Sublote E — Fase 5, estrutural (PC-32, PC-28, PC-29, PC-30)**
+- **Próximo Item Pendente:** **PC-32**
+- **Nova Linha de Base (100% Verde):**
+  - Backend Tests (`npm run test:strict`): 110 testes passando (27 suítes), 0 falhas, código 0.
+  - Frontend Tests (`npm --prefix frontend test`): 44 testes passando (13 suítes), 0 falhas, código 0.
+  - Lint Monorepo (`npm run lint`): Higiene de testes verificada + ESLint com 0 erros e 0 warnings, código 0.
+  - Frontend Build (`npm run build`): compilação de produção com código 0 (`tsc -b && vite build` em 8.98s).
+
+### PC-32: Escopo estrutural de tokens e componentes primitivos base reutilizáveis
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/styles/index.css`: centralizadas variáveis CSS `--border-width: 2px` e `--shadow-offset: 4px` no `:root` e `.dark`, e criadas classes componentes brutalistas padronizadas (`.brutalist-card`, `.brutalist-border`, `.brutalist-shadow`).
+  - `frontend/src/components/ui/card.tsx`: criado componente primitivo brutalista coeso com `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent` e `CardFooter` (geometria `rounded-none`, `border-2 border-border bg-card text-card-foreground`).
+  - `frontend/src/components/ui/badge.tsx`: criado componente primitivo brutalista `Badge` com CVA e variantes semânticas (`default`, `secondary`, `destructive`, `outline`) com estilo `rounded-none uppercase font-bold text-xs`.
+  - `frontend/src/components/ui/alert.tsx`: criado componente primitivo brutalista `Alert`, `AlertTitle` e `AlertDescription` com `role="alert"`, variantes semânticas e contorno geométrico.
+  - `frontend/src/components/ui/__tests__/primitives.test.tsx`: testes unitários criados cobrindo atributos ARIA, variantes e conformidade com geometria e tipografia brutalista.
+- **Validação:**
+  - Testes do frontend (`npm --prefix frontend test`): 47 testes passando (14 suítes, 0 falhas).
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+  - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
+  - Frontend Build (`npm run build`): compilação de produção com código 0.
+

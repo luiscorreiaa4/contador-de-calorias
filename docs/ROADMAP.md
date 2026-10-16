@@ -141,7 +141,7 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 - [x] **PC-31** Excluir código morto e dependências órfãs (`ThemeToggle`, `ui/card`, `switch`, `textarea`, `tooltip`, `App.css`, `clean-foods.ts`, `ts-node-dev`) antes de qualquer ajuste de estilo *(D-06)*.
 
 **Tokens, Estilo e Acessibilidade**
-- [ ] **PC-32** Centralização de variáveis CSS brutalistas (cores, contornos, espaçamentos) e criação de componentes primitivos base reutilizáveis.
+- [x] **PC-32** Centralização de variáveis CSS brutalistas (cores, contornos, espaçamentos) e criação de componentes primitivos base reutilizáveis.
 - [x] **PC-25** Conformidade visual: eliminar cores hex hardcoded (`#0a0a0a`), `dark:` ad-hoc, `rounded-*` e sombras suaves nos componentes ativos *(D-06)*.
 - [x] **PC-26** Acessibilidade: label associada em `food-amount`, `aria-label` no `react-select`, `DatePickerInput` com Esc e foco acessível.
 - [x] **PC-27** Tratamento visual explícito de estados `isError` e `empty` no Dashboard e Estatísticas.

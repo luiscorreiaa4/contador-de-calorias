@@ -1,0 +1,100 @@
+MODO AUTÔNOMO EM LOTE — RETOMADA (Fase 4 + Fase 5, itens PC)
+Branch: a atual. Não troque de branch.
+Esta é uma RETOMADA: uma sessão anterior foi interrompida por erro do IDE. A árvore de
+trabalho está limpa. Você não tem memória do que foi feito; reconstrua pelos arquivos.
+
+Este prompt SUBSTITUI o passo "propor plano e aguardar aprovação" do ROADMAP §1.
+Não peça aprovação. Não pule nenhum outro passo.
+
+DECISÕES: leia docs/DECISOES.md (fonte única; não pergunte de novo). D-12 está ADIADA.
+Se a coluna Dec. de um item citar decisão que não esteja resolvida lá, PULE o item e
+registre "bloqueado por D-xx" no AGENT_LOG.md.
+
+PASSO 0 — RECONSTRUIR O ESTADO (não refaça nada já feito)
+a) Leia docs/AGENT_LOG.md inteiro.
+b) Rode: git log --oneline -40 ; git tag --list "checkpoint/*" ; git stash list
+c) Em docs/BACKLOG.md, liste o status de cada PC-xx. Um item está CONCLUÍDO se o status
+   for [CORRIGIDO] ou se existir commit com o ID dele.
+d) Itens com stash "falha <ID>" ou registrados como falhos/pulados no AGENT_LOG.md: NÃO
+   reaplique stashes e NÃO tente de novo; trate como pulados e liste no resumo final.
+e) Escreva em docs/AGENT_LOG.md uma seção "RETOMADA <data>" com: itens concluídos, itens
+   pulados/falhos e o PRÓXIMO item pendente na ordem abaixo.
+f) Rode a VALIDAÇÃO COMPLETA e registre como nova linha de base. Se NÃO estiver 100% verde,
+   PARE e reporte (a árvore está limpa; o problema estaria em commits anteriores).
+
+SUBLOTES E ORDEM (não reordene; é por dependência)
+A — Rede de testes do backend:    PC-01, PC-14, PC-18, PC-24
+B — Backend robustez/performance: PC-04, PC-07, PC-08, PC-17, PC-11, PC-02, PC-03,
+                                  PC-09, PC-10, PC-22, PC-23
+C — Frontend (Fase 4) e CI/docs:  PC-21, PC-20, PC-12, PC-05, PC-06, PC-15, PC-19,
+                                  PC-13, PC-16
+D — Fase 5, base:                 PC-31, PC-25, PC-26, PC-27, PC-33, PC-34
+E — Fase 5, estrutural:           PC-32, PC-28, PC-29, PC-30
+
+ESCOPO DESTA JANELA: execute SOMENTE o primeiro sublote que ainda tenha itens pendentes
+(comece pelo próximo item pendente dele). Ao terminar esse sublote, PARE.
+
+Dependências: se um item falhar ou for pulado, pule também os que dependem dele:
+PC-21→PC-20 · PC-31→PC-25 · PC-34→PC-28, PC-29, PC-30 · PC-09, PC-10, PC-22→PC-23.
+
+VALIDAÇÃO COMPLETA
+leia a saída completa apenas se algo falhar. Nunca abra logs gigantes inteiros.
+
+PARA CADA ITEM, EM ORDEM
+1. Leitura: abra a linha do item em docs/BACKLOG.md (arquivos/linhas, evidência, Dec.) e a
+   decisão correspondente em docs/DECISOES.md.
+2. Regras: siga AGENTS.md, .agents/rules/ e as skills relevantes em .agents/skills/.
+3. Reprodução antes de corrigir:
+   - lógica testável: crie um teste que falhe e confirme a falha;
+   - UI/estilo/docs/CI/performance: registre no AGENT_LOG.md o comando ou a busca (grep,
+     build, audit, EXPLAIN) que evidencia o problema e confirme que fica limpo depois.
+4. Correção mínima e cirúrgica. Sem refatorar fora do escopo do item.
+5. Validação: o teste novo passa + VALIDAÇÃO COMPLETA verde. Se a mudança quebrar teste do
+   outro lado, ajuste o mínimo necessário no mesmo commit.
+6. Se tudo estiver verde: em docs/BACKLOG.md troque [CONFIRMADO] por [CORRIGIDO]; em
+   docs/ROADMAP.md marque a caixa [x]; acrescente uma linha "ID | concluído" no
+   AGENT_LOG.md; faça UM commit semântico atômico ("fix:", "perf:", "test:", "refactor:",
+   "docs:" ou "chore:" + descrição + (ID)) com código, teste e docs juntos. Itens grandes
+   (PC-24, PC-34, PC-28, PC-29, PC-30, PC-21) podem ter vários commits "(ID 1/n)"; status e
+   docs só mudam no último.
+7. Se a validação falhar após 2 tentativas: NÃO commite. Rode
+   git stash push -u -m "falha <ID>", registre o motivo no AGENT_LOG.md e siga adiante.
+8. Fim do sublote: rode a VALIDAÇÃO COMPLETA, registre "CHECKPOINT <sublote>" no
+   AGENT_LOG.md (commit "docs: checkpoint <sublote>") e crie a tag
+   git tag checkpoint/<sublote> (se a tag já existir, não recrie).
+
+REGRAS ESPECÍFICAS
+- Fase 5 (sublotes D e E) NÃO altera contratos de API nem regras de negócio. Só frontend,
+  estilo, acessibilidade e estrutura de código. Estados novos de UI (PC-27) são permitidos.
+- PC-31: excluir com git rm (nunca rm), provando antes que cada arquivo não é importado.
+  Dependências órfãs com npm uninstall, em commit separado. Se o IDE bloquear git rm,
+  registre no AGENT_LOG.md e siga adiante.
+- PC-14: a exceção da D-11 vale só para o código de teste, só no banco _test.
+- PC-16: pode editar AGENTS.md, TESTING.md, README.md, ARCHITECTURE.md, SPEC.md e as
+  skills em .agents/skills/ para sincronizar com o código real. TECH_DEBT.md e os .txt vão
+  para docs/archive/ com git mv (D-05, D-18). No README, documente também a opção
+  docker-compose.yml (porta 5433).
+- PC-23: crie um banco separado (CREATE DATABASE contador_calorias_perf) no Postgres do
+  Docker, aplique as migrações e o seed de docs/reviews/performance.md §4 SOMENTE nele
+  (via DATABASE_URL temporária) e registre o EXPLAIN ANALYZE em docs/PERFORMANCE_BASELINE.md.
+  Nunca rode o seed no banco principal.
+- Mudou comportamento do usuário (PC-07, PC-08, PC-19, PC-21)? Atualize os testes e o
+  docs/SPEC.md no mesmo commit.
+
+LIMITES INEGOCIÁVEIS
+- Nunca: git push, merge, rebase, reset --hard, clean, branch -D, stash drop/clear.
+- Nunca: rm/rmdir/del/Remove-Item, npm install -g, DROP/TRUNCATE/DELETE em massa.
+- Nunca rodar scripts de reset de banco (reset-db.js, db:reset*). Pode EDITAR, nunca EXECUTAR.
+- Banco: apenas o Postgres do Docker (porta 5433).
+- Migrações (PC-10): só criar arquivos NOVOS (nunca editar existentes). Pode aplicar com
+  npm run setup no banco de dev. O "down" pode conter DROP INDEX, mas nunca execute
+  migrate down. Liste cada migração no AGENT_LOG.md para minha revisão.
+- Dependências novas permitidas (só as que o item exige, versão estável): compression
+  (PC-02), react-router v7 (PC-21), @vitest/coverage-v8 (PC-13), react-hook-form e
+  @hookform/resolvers (PC-29), fonte self-hosted da Montserrat (PC-33). Qualquer outra:
+  pule o item e registre.
+- Não altere nada fora dos itens desta lista.
+
+AO TERMINAR O SUBLOTE, PARE e entregue um resumo: tabela item → hash do commit, ou
+pulado/falhou + motivo; migrações para revisar; qual é o próximo sublote pendente; e o que
+precisa de decisão minha.
