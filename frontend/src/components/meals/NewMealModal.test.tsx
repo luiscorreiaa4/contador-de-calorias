@@ -13,7 +13,7 @@ describe('NewMealModal', () => {
     
     // Aguarda carregar as opções da API
     await waitFor(() => {
-      expect(screen.getByText(/pesquisar alimento/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/pesquisar alimento/i)[0]).toBeInTheDocument();
     });
   });
 

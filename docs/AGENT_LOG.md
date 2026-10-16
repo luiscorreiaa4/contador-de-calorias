@@ -579,4 +579,14 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
   - Frontend Build (`npm run build`): compilação de produção com código 0.
 
-
+### PC-26: Acessibilidade em componentes interativos (V-10, ARCH-021, ARCH-022)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/components/common/DatePickerInput.tsx`: adicionado listener de teclado para a tecla `Escape` (fechando o popover do calendário), e atributos semânticos ARIA nos elementos interativos (`aria-haspopup="dialog"`, `aria-expanded`, `role="dialog"`, `aria-modal="false"`, `aria-label="Seletor de data"`).
+  - `frontend/src/components/common/DatePickerInput.test.tsx`: criada suíte de testes unitários validando a presença dos atributos ARIA e o comportamento de fechamento com a tecla Escape (100% verde).
+  - `frontend/src/components/meals/NewMealModal.tsx`: adicionado `label` acessível com texto e `htmlFor="food-select-input"` com classe `sr-only`, `aria-label="Pesquisar alimento no catálogo"` e `inputId="food-select-input"` no `Select` (react-select), e adicionado `aria-label="Quantidade do alimento"` no input numérico de quantidade.
+- **Validação:**
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+  - Testes do frontend (`npm --prefix frontend test`): 26 testes passando (9 suítes, 0 falhas).
+  - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
+  - Frontend Build (`npm run build`): compilação de produção com código 0.

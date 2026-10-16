@@ -456,20 +456,26 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
               </div>
 
               {!selectedFood ? (
-                <Select<FoodOption, false>
-                  options={foodOptions}
-                  isLoading={isLoadingFoods}
-                  onInputChange={(newValue, { action }) => {
-                    if (action === 'input-change') setSearchTerm(newValue);
-                  }}
-                  onChange={(option) => {
-                    if (option) handleSelectFood(option.food);
-                  }}
-                  placeholder="PESQUISAR ALIMENTO..."
-                  menuPortalTarget={document.body}
-                  noOptionsMessage={() => 'NENHUM ALIMENTO ENCONTRADO'}
-                  components={{ MenuList: CustomMenuList }}
-                  styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+                <>
+                  <label htmlFor="food-select-input" className="sr-only">
+                    PESQUISAR ALIMENTO
+                  </label>
+                  <Select<FoodOption, false>
+                    inputId="food-select-input"
+                    aria-label="Pesquisar alimento no catálogo"
+                    options={foodOptions}
+                    isLoading={isLoadingFoods}
+                    onInputChange={(newValue, { action }) => {
+                      if (action === 'input-change') setSearchTerm(newValue);
+                    }}
+                    onChange={(option) => {
+                      if (option) handleSelectFood(option.food);
+                    }}
+                    placeholder="PESQUISAR ALIMENTO..."
+                    menuPortalTarget={document.body}
+                    noOptionsMessage={() => 'NENHUM ALIMENTO ENCONTRADO'}
+                    components={{ MenuList: CustomMenuList }}
+                    styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
                   classNames={{
                     control: (state) =>
                       `bg-background border-2 border-border rounded-none text-xs font-black shadow-none transition-colors min-h-[48px] uppercase ${
@@ -496,7 +502,8 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                   }}
                   unstyled
                 />
-              ) : (
+              </>
+            ) : (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-4 bg-card border-2 border-border shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff]">
                     <div className="flex items-center gap-3">
@@ -591,6 +598,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                           value={amount}
                           onChange={(e) => setAmount(e.target.value ? Number(e.target.value) : '')}
                           placeholder={amountMode === 'un' ? 'EX: 2' : selectedFood.base_unit === 'ml' ? 'EX: 200' : 'EX: 150'}
+                          aria-label="Quantidade do alimento"
                           className="w-full px-4 py-3 bg-background border-2 border-border text-sm font-black text-foreground uppercase placeholder:text-muted-foreground focus:border-primary outline-none transition-colors"
                         />
                         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted-foreground uppercase pointer-events-none">

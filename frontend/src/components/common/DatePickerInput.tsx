@@ -44,8 +44,17 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
         setIsOpen(false);
       }
     };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -169,6 +178,8 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
           type="button"
           onClick={handleCalendarToggle}
           aria-label="Abrir calendário"
+          aria-haspopup="dialog"
+          aria-expanded={isOpen}
           className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground transition-colors focus:outline-none"
         >
           <CalendarIcon className="w-4 h-4" aria-hidden="true" />
@@ -186,7 +197,12 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
       </div>
 
       {isOpen && (
-        <div className="absolute z-50 mt-2 right-0 sm:left-0 bg-card border-2 border-border shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff] p-4 w-72 rounded-none animate-in fade-in zoom-in-95 duration-150">
+        <div
+          role="dialog"
+          aria-modal="false"
+          aria-label="Seletor de data"
+          className="absolute z-50 mt-2 right-0 sm:left-0 bg-card border-2 border-border shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff] p-4 w-72 rounded-none animate-in fade-in zoom-in-95 duration-150"
+        >
           <div className="flex items-center justify-between mb-4 border-b-2 border-border pb-2">
             <button
               type="button"
