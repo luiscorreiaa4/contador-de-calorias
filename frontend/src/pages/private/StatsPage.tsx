@@ -3,13 +3,19 @@ import { useQuery } from '@tanstack/react-query';
 import { getMealStats } from '../../services/meal.service';
 import { getLocalDateString } from '../../utils/date';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from 'recharts';
-import { TrendingUp, Target, Info } from 'lucide-react';
+import { TrendingUp, Target, Info, AlertTriangle } from 'lucide-react';
 
 export const StatsPage: React.FC = () => {
   const [period, setPeriod] = useState<'week' | 'month'>('week');
   const clientDate = getLocalDateString();
 
-  const { data: stats, isLoading } = useQuery({
+  const {
+    data: stats,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ['mealStats', period, clientDate],
     queryFn: ({ signal }) => getMealStats(period, clientDate, signal),
     staleTime: 1000 * 60 * 5,
@@ -54,6 +60,38 @@ export const StatsPage: React.FC = () => {
       {isLoading ? (
         <div className="flex items-center justify-center h-64 border-2 border-border border-dashed bg-card opacity-50">
           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground animate-pulse">CARREGANDO ESTATÍSTICAS...</p>
+        </div>
+      ) : isError ? (
+        <div
+          role="alert"
+          className="bg-destructive/10 border-2 border-destructive p-8 shadow-hard flex flex-col items-center justify-center text-center gap-4"
+        >
+          <AlertTriangle className="w-8 h-8 text-destructive" aria-hidden="true" />
+          <div>
+            <h3 className="text-base font-heading font-black text-destructive uppercase tracking-wide">
+              FALHA AO CARREGAR ESTATÍSTICAS
+            </h3>
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">
+              {error instanceof Error ? error.message : 'NÃO FOI POSSÍVEL CONSULTAR SEU HISTÓRICO NO MOMENTO.'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="mt-2 py-3 px-6 bg-destructive text-destructive-foreground font-black uppercase tracking-widest text-xs border-2 border-destructive hover:opacity-90 focus:outline-none"
+          >
+            TENTAR NOVAMENTE
+          </button>
+        </div>
+      ) : stats && stats.daysLogged === 0 ? (
+        <div className="bg-card border-2 border-border border-dashed p-12 text-center flex flex-col items-center justify-center">
+          <TrendingUp className="w-10 h-10 text-muted-foreground mb-4 opacity-50" aria-hidden="true" />
+          <p className="text-base font-heading font-black uppercase tracking-tight text-foreground mb-1">
+            NENHUM HISTÓRICO REGISTRADO NESTE PERÍODO
+          </p>
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground max-w-md">
+            VOCÊ AINDA NÃO REGISTROU NENHUMA REFEIÇÃO NOS {period === 'week' ? 'ÚLTIMOS 7 DIAS' : 'ÚLTIMOS 30 DIAS'}. REGISTRE SUAS REFEIÇÕES NO DASHBOARD PARA VER SUAS TENDÊNCIAS.
+          </p>
         </div>
       ) : stats ? (
         <div className="space-y-10">
@@ -203,7 +241,7 @@ export const StatsPage: React.FC = () => {
                       label={{ position: 'top', value: 'MÉDIA DA META', fill: 'hsl(var(--foreground))', fontSize: 10, fontWeight: 'bold', letterSpacing: '0.1em' }}
                     />
                   )}
-                  <Bar dataKey="consumed_calories" fill="#ccff00" radius={[0, 0, 0, 0]} maxBarSize={60} />
+                  <Bar dataKey="consumed_calories" fill="hsl(var(--primary))" radius={[0, 0, 0, 0]} maxBarSize={60} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

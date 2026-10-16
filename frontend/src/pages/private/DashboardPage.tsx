@@ -24,11 +24,19 @@ export const DashboardPage: React.FC = () => {
   const [mealToDelete, setMealToDelete] = React.useState<Meal | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
 
-  const { data: todayMeals = [], isLoading } = useQuery({
+  const {
+    data: todayMeals,
+    isLoading,
+    isError,
+    error,
+    refetch: refetchMeals,
+  } = useQuery({
     queryKey: ['todayMeals', clientDate],
     queryFn: ({ signal }) => getTodayMeals(clientDate, signal),
     staleTime: 1000 * 60 * 5, // 5 minutos de cache (evita redundância)
   });
+
+  const meals = todayMeals || [];
 
   // Buscar meta do dia
   const { data: activeGoal } = useQuery({
@@ -53,10 +61,10 @@ export const DashboardPage: React.FC = () => {
   const dailyCarbsGoal = Number(activeGoal?.carbs) || 250;
   const dailyFatsGoal = Number(activeGoal?.fats) || 65;
 
-  const consumedCalories = todayMeals.reduce((acc, meal) => acc + Number(meal.total_calories || 0), 0);
-  const consumedProteins = todayMeals.reduce((acc, meal) => acc + Number(meal.total_proteins || 0), 0);
-  const consumedCarbs = todayMeals.reduce((acc, meal) => acc + meal.items.reduce((sum, item) => sum + Number(item.carbs || 0), 0), 0);
-  const consumedFats = todayMeals.reduce((acc, meal) => acc + meal.items.reduce((sum, item) => sum + Number(item.fats || 0), 0), 0);
+  const consumedCalories = meals.reduce((acc, meal) => acc + Number(meal.total_calories || 0), 0);
+  const consumedProteins = meals.reduce((acc, meal) => acc + Number(meal.total_proteins || 0), 0);
+  const consumedCarbs = meals.reduce((acc, meal) => acc + meal.items.reduce((sum, item) => sum + Number(item.carbs || 0), 0), 0);
+  const consumedFats = meals.reduce((acc, meal) => acc + meal.items.reduce((sum, item) => sum + Number(item.fats || 0), 0), 0);
 
   const caloriesPercent = Math.min((consumedCalories / dailyCaloriesGoal) * 100, 100);
   const proteinsPercent = Math.min((consumedProteins / dailyProteinsGoal) * 100, 100);
@@ -182,19 +190,63 @@ export const DashboardPage: React.FC = () => {
       <div className="space-y-6 pt-4">
         <h3 className="text-xl font-heading font-black text-foreground uppercase tracking-tight flex items-center gap-2">
           Refeições de Hoje
-          <span className="text-xs font-bold bg-primary text-primary-foreground px-2 py-0.5">{todayMeals.length}</span>
+          <span className="text-xs font-bold bg-primary text-primary-foreground px-2 py-0.5">{meals.length}</span>
         </h3>
 
         {isLoading ? (
-          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">CARREGANDO REFEIÇÕES...</p>
-        ) : todayMeals.length === 0 ? (
+          <div className="bg-card border-2 border-border border-dashed p-8 text-center flex items-center justify-center">
+            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground animate-pulse">
+              CARREGANDO REFEIÇÕES...
+            </p>
+          </div>
+        ) : isError ? (
+          <div
+            role="alert"
+            className="bg-destructive/10 border-2 border-destructive p-6 shadow-hard flex flex-col sm:flex-row items-center justify-between gap-4"
+          >
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="w-6 h-6 text-destructive shrink-0" aria-hidden="true" />
+              <div>
+                <h4 className="text-sm font-heading font-black text-destructive uppercase tracking-wide">
+                  ERRO AO CARREGAR REFEIÇÕES
+                </h4>
+                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">
+                  {error instanceof Error ? error.message : 'NÃO FOI POSSÍVEL CARREGAR SUAS REFEIÇÕES HOJE.'}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => refetchMeals()}
+              className="px-4 py-2 border-2 border-destructive bg-destructive text-destructive-foreground font-black uppercase text-xs tracking-widest hover:opacity-90 focus:outline-none"
+            >
+              TENTAR NOVAMENTE
+            </button>
+          </div>
+        ) : meals.length === 0 ? (
           <div className="bg-card border-2 border-border border-dashed p-12 text-center flex flex-col items-center justify-center">
-            <Utensils className="w-10 h-10 text-muted-foreground mb-4 opacity-50" />
-            <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">NENHUMA REFEIÇÃO REGISTRADA HOJE.</p>
+            <Utensils className="w-10 h-10 text-muted-foreground mb-4 opacity-50" aria-hidden="true" />
+            <p className="text-sm font-heading font-black uppercase tracking-tight text-foreground mb-1">
+              NENHUMA REFEIÇÃO REGISTRADA HOJE
+            </p>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-4">
+              ADICIONE SUA PRIMEIRA REFEIÇÃO ACIMA PARA ACOMPANHAR SEUS MACROS.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setMealToEdit(null);
+                setIsNewMealModalOpen(true);
+              }}
+              className="py-2.5 px-5 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-transparent focus:outline-none"
+            >
+              <Plus className="w-4 h-4" aria-hidden="true" />
+              <span>REGISTRAR REFEIÇÃO</span>
+            </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {todayMeals.map((meal) => (
+            {meals.map((meal) => (
               <div key={meal.id} className="bg-card border-2 border-border p-5 hover:shadow-hard transition-shadow flex flex-col justify-between group">
                 <div>
                   <div className="flex items-start justify-between mb-4 border-b-2 border-border pb-4">

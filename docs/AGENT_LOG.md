@@ -590,3 +590,26 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - Testes do frontend (`npm --prefix frontend test`): 26 testes passando (9 suítes, 0 falhas).
   - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
   - Frontend Build (`npm run build`): compilação de produção com código 0.
+
+### PC-27: Tratamento visual explícito de estados isError e empty no Dashboard e Estatísticas (GAP-A06)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/pages/private/DashboardPage.tsx`:
+    - Desestruturados estados `isLoading`, `isError`, `error` e função `refetch` da query `todayMeals`.
+    - Implementado tratamento visual de erro via banner brutalista com `role="alert"`, ícone `AlertTriangle`, mensagem de erro amigável e botão acessível "TENTAR NOVAMENTE".
+    - Implementado tratamento visual de empty state contextual quando não há refeições registradas (`meals.length === 0`), com botão de ação rápida para registrar refeição.
+    - Indicador visual de carregamento brutalista padronizado em caixa destacada com texto em caixa alta.
+  - `frontend/src/pages/private/StatsPage.tsx`:
+    - Desestruturados estados `isLoading`, `isError`, `error` e `refetch` da query `mealStats`.
+    - Implementado tratamento de erro brutalista com `role="alert"` e botão de retry.
+    - Implementado empty state para períodos sem registros de refeição (`stats.daysLogged === 0`).
+    - Substituída a cor hex `#ccff00` por token semântico `hsl(var(--primary))` no gráfico de barras do Recharts.
+  - `frontend/src/mocks/handlers.ts`: adicionados handlers MSW para `GET /meals/today` e `GET /users/me/goals`.
+  - `frontend/src/pages/private/__tests__/StatsPage.test.tsx` e `frontend/src/pages/private/__tests__/DashboardPage.test.tsx`:
+    - Criadas/expandidas suítes unitárias cobrindo todos os estados assíncronos (`isLoading`, `isError`, `empty`, e sucesso com dados).
+- **Validação:**
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+  - Testes do frontend (`npm --prefix frontend test`): 33 testes passando (10 suítes, 0 falhas).
+  - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
+  - Frontend Build (`npm run build`): compilação de produção com código 0.
+

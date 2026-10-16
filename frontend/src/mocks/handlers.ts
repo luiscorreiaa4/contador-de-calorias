@@ -129,4 +129,28 @@ export const handlers = [
       },
     });
   }),
+
+  http.get(`${baseURL}/meals/today`, () => {
+    return HttpResponse.json({
+      success: true,
+      data: [],
+    });
+  }),
+
+  http.get(`${baseURL}/users/me/goals`, () => {
+    return HttpResponse.json({
+      success: true,
+      data: {
+        id: 'goal-1',
+        user_id: '1',
+        effective_from: '2026-01-01',
+        calories: 2200,
+        proteins: 150,
+        carbs: 220,
+        fats: 70,
+        mode: 'auto',
+        created_at: '2026-01-01T00:00:00Z',
+      },
+    });
+  }),
 ];
