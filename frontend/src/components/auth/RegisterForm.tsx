@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { User, Mail, Lock, Eye, EyeOff, AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
 import type { RegisterFormData, FormErrors } from '../../types/auth';
 import { useAuth } from '../../context/AuthContext';
 import { registerUser } from '../../services/auth.service';
@@ -22,8 +23,23 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+
+  const registerMutation = useMutation({
+    mutationFn: (data: RegisterFormData) => registerUser(data),
+    onSuccess: (response) => {
+      setAuthSession(response.user, response.token);
+      if (onSuccess) onSuccess();
+    },
+    onError: (err: unknown) => {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      if (errorMsg.includes('Failed to fetch') || errorMsg.includes('fetch')) {
+        setServerError('Não foi possível conectar ao servidor.');
+      } else {
+        setServerError(errorMsg || 'Erro ao realizar cadastro. Tente novamente.');
+      }
+    },
+  });
 
   const handleFocus = (field: keyof FormErrors) => {
     if (errors[field]) {
@@ -76,25 +92,11 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setServerError(null);
     if (!validate()) return;
-    setIsLoading(true);
-    try {
-      const response = await registerUser(formData);
-      setAuthSession(response.user, response.token);
-      if (onSuccess) onSuccess();
-    } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : String(err);
-      if (errorMsg.includes('Failed to fetch') || errorMsg.includes('fetch')) {
-        setServerError('Não foi possível conectar ao servidor.');
-      } else {
-        setServerError(errorMsg || 'Erro ao realizar cadastro. Tente novamente.');
-      }
-    } finally {
-      setIsLoading(false);
-    }
+    registerMutation.mutate(formData);
   };
 
   return (
@@ -223,8 +225,8 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
       </div>
 
       {/* Submit */}
-      <Button type="submit" disabled={isLoading} className="w-full mt-4 group">
-        {isLoading ? (
+      <Button type="submit" disabled={registerMutation.isPending} className="w-full mt-4 group">
+        {registerMutation.isPending ? (
           <Loader2 className="w-5 h-5 animate-spin" />
         ) : (
           <>

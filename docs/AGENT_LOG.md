@@ -694,4 +694,20 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
   - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
   - Frontend Build (`npm run build`): compilação de produção com código 0.
-
+### PC-28: Migração de useEffect e fetch manual para useQuery e useMutation
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/components/auth/LoginForm.tsx`: migrado para `useMutation` com TanStack Query v5 (`loginMutation`), com desativação e estado visual brutalista (`CARREGANDO...`) no botão durante `isPending`.
+  - `frontend/src/components/auth/RegisterForm.tsx`: migrado para `useMutation` (`registerMutation`) com tratamento de erro e feedback visual durante `isPending`.
+  - `frontend/src/components/onboarding/OnboardingFlow.tsx`: migrado para `useMutation` (`onboardingMutation`) integrando `completeUserOnboarding` com controle reativo de loading e erro.
+  - `frontend/src/pages/private/EditProfilePage.tsx`:
+    - Eliminado `useEffect` imperativo de fetch e chamadas manuais.
+    - Implementado `useQuery` com `getCurrentUserProfile` (`queryKey: ['currentUserProfile']`) e hidratação controlada de baseline.
+    - Implementado `useMutation` para `updateUserProfile` com invalidação de queries (`currentUserProfile`, `activeGoal`, `todayMeals`, `mealStats`).
+    - Implementado `useMutation` para `deleteUserAccount` (`deleteAccountMutation`).
+    - Padronizada a largura das caixas de senha nova e senha atual no desktop (`grid grid-cols-1 sm:grid-cols-2 gap-6`), equalizando o layout.
+- **Validação:**
+  - Testes do frontend (`npm --prefix frontend test`): 47 testes passando em 14 suítes (0 falhas).
+  - Testes do backend (`npm run test:strict`): 110 testes passando em 27 suítes (0 falhas).
+  - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
+  - Frontend Build (`npm run build`): compilação de produção com código 0.

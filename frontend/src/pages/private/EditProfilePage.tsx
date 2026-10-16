@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import { updateUserProfile, deleteUserAccount, getCurrentUserProfile } from '../../services/auth.service';
 import { DatePickerInput } from '../../components/common/DatePickerInput';
@@ -32,6 +33,7 @@ interface EditProfilePageProps {
 export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
   const { user, updateUserSession, logout } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const handleBack = () => {
     if (onBack) onBack();
@@ -80,57 +82,110 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteModalError, setDeleteModalError] = useState<string | null>(null);
 
   const [serverError, setServerError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const isFetchedRef = useRef(false);
+  const { data: freshUser } = useQuery({
+    queryKey: ['currentUserProfile'],
+    queryFn: getCurrentUserProfile,
+    staleTime: 1000 * 60 * 5,
+  });
 
+  const isProfilePopulatedRef = useRef(false);
   useEffect(() => {
-    if (isFetchedRef.current) return;
-    isFetchedRef.current = true;
+    if (freshUser && !isProfilePopulatedRef.current) {
+      isProfilePopulatedRef.current = true;
+      updateUserSession(freshUser);
+      const formattedBirth = formatInitialBirthDate(
+        freshUser.birth_date || (freshUser as unknown as { birthDate?: string })?.birthDate
+      );
+      setInitialData((prev) => ({
+        ...prev,
+        goal: freshUser.goal || prev.goal,
+        sex: freshUser.sex || prev.sex,
+        birthDate: formattedBirth || prev.birthDate,
+        weight: freshUser.weight?.toString() || prev.weight,
+        height: freshUser.height?.toString() || prev.height,
+        bodyFat: freshUser.body_fat?.toString() || prev.bodyFat,
+        activityLevel: freshUser.activity_level || prev.activityLevel,
+      }));
+      setGoal((prev) => (prev ? prev : (freshUser.goal || 'perder_peso')));
+      setSex((prev) => (prev ? prev : (freshUser.sex || 'masculino')));
+      setBirthDate((prev) => (prev ? prev : formattedBirth));
+      setWeight((prev) => (prev ? prev : (freshUser.weight?.toString() || '')));
+      setHeight((prev) => (prev ? prev : (freshUser.height?.toString() || '')));
+      setBodyFat((prev) => (prev ? prev : (freshUser.body_fat?.toString() || '')));
+      setActivityLevel((prev) => (prev ? prev : (freshUser.activity_level || 'sedentario')));
+    }
+  }, [freshUser, updateUserSession]);
 
-    getCurrentUserProfile()
-      .then((freshUser) => {
-        updateUserSession(freshUser);
-        const formattedBirth = formatInitialBirthDate(freshUser.birth_date || (freshUser as unknown as { birthDate?: string })?.birthDate);
-        const newBaseline = {
-          name: freshUser.name || '',
-          email: freshUser.email || '',
-          goal: freshUser.goal || 'perder_peso',
-          sex: freshUser.sex || 'masculino',
-          birthDate: formattedBirth,
-          weight: freshUser.weight?.toString() || '',
-          height: freshUser.height?.toString() || '',
-          bodyFat: freshUser.body_fat?.toString() || '',
-          activityLevel: freshUser.activity_level || 'sedentario',
-        };
-        setInitialData(newBaseline);
-        setName(newBaseline.name);
-        setEmail(newBaseline.email);
-        setGoal(newBaseline.goal);
-        setSex(newBaseline.sex);
-        setBirthDate(newBaseline.birthDate);
-        setWeight(newBaseline.weight);
-        setHeight(newBaseline.height);
-        setBodyFat(newBaseline.bodyFat);
-        setActivityLevel(newBaseline.activityLevel);
-      })
-      .catch((err: unknown) => {
-        const errorMsg = err instanceof Error ? err.message : String(err);
-        if (
-          errorMsg === 'Usuário não encontrado.' ||
-          errorMsg.includes('Token') ||
-          errorMsg.includes('autenticad')
-        ) {
+  const updateProfileMutation = useMutation({
+    mutationFn: (payload: Record<string, unknown>) => updateUserProfile(payload),
+    onSuccess: (updatedUser) => {
+      updateUserSession(updatedUser);
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['activeGoal'] });
+      queryClient.invalidateQueries({ queryKey: ['todayMeals'] });
+      queryClient.invalidateQueries({ queryKey: ['mealStats'] });
+
+      const formattedBirth = formatInitialBirthDate(
+        updatedUser.birth_date || (updatedUser as unknown as { birthDate?: string })?.birthDate
+      );
+      const updatedBaseline = {
+        name: updatedUser.name || name.trim(),
+        email: updatedUser.email || email.trim(),
+        goal: updatedUser.goal || goal,
+        sex: updatedUser.sex || sex,
+        birthDate: formattedBirth || birthDate,
+        weight: updatedUser.weight?.toString() || weight,
+        height: updatedUser.height?.toString() || height,
+        bodyFat: updatedUser.body_fat?.toString() || bodyFat,
+        activityLevel: updatedUser.activity_level || activityLevel,
+      };
+
+      setInitialData(updatedBaseline);
+      setName(updatedBaseline.name);
+      setEmail(updatedBaseline.email);
+      setGoal(updatedBaseline.goal);
+      setSex(updatedBaseline.sex);
+      setBirthDate(updatedBaseline.birthDate);
+      setWeight(updatedBaseline.weight);
+      setHeight(updatedBaseline.height);
+      setBodyFat(updatedBaseline.bodyFat);
+      setActivityLevel(updatedBaseline.activityLevel);
+
+      setSuccessMessage('PERFIL ATUALIZADO COM SUCESSO!');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+    },
+    onError: (err: unknown) => {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      if (errorMsg === 'Usuário não encontrado.') {
+        setServerError('SESSÃO EXPIRADA. REDIRECIONANDO...');
+        setTimeout(() => {
           logout();
-        }
-      });
-  }, [logout, updateUserSession]);
+        }, 2000);
+      } else {
+        setServerError(errorMsg || 'ERRO AO ATUALIZAR PERFIL.');
+      }
+    },
+  });
+
+  const deleteAccountMutation = useMutation({
+    mutationFn: (pwd: string) => deleteUserAccount(pwd),
+    onSuccess: () => {
+      logout();
+    },
+    onError: (err: unknown) => {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      setDeleteModalError(errorMsg || 'SENHA INCORRETA. TENTE NOVAMENTE.');
+    },
+  });
 
   const isEmailChanged = useMemo(() => {
     return email.trim().toLowerCase() !== initialData.email.trim().toLowerCase();
@@ -341,84 +396,29 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
     if (!isDirty) return;
     if (!validate()) return;
 
-    setIsLoading(true);
-    try {
-      const payload: Record<string, unknown> = {};
+    const payload: Record<string, unknown> = {};
 
-      if (name.trim() !== initialData.name) payload.name = name.trim();
-      if (isEmailChanged) payload.email = email.trim();
-      if (goal !== initialData.goal) payload.goal = goal;
-      if (sex !== initialData.sex) payload.sex = sex;
-      if (birthDate !== initialData.birthDate) payload.birthDate = birthDate;
-      if (weight !== initialData.weight) payload.weight = parseFloat(weight.replace(',', '.'));
-      if (height !== initialData.height) payload.height = parseFloat(height.replace(',', '.'));
-      if (bodyFat !== initialData.bodyFat) {
-        payload.body_fat = bodyFat ? parseFloat(bodyFat.replace(',', '.')) : null;
-      }
-      if (activityLevel !== initialData.activityLevel) payload.activity_level = activityLevel;
-
-      if (currentPassword) payload.currentPassword = currentPassword;
-      if (newPassword) payload.newPassword = newPassword;
-
-      const updatedUser = await updateUserProfile(payload);
-      updateUserSession(updatedUser);
-
-      const formattedBirth = formatInitialBirthDate(updatedUser.birth_date || (updatedUser as unknown as { birthDate?: string })?.birthDate);
-      const updatedBaseline = {
-        name: updatedUser.name || name.trim(),
-        email: updatedUser.email || email.trim(),
-        goal: updatedUser.goal || goal,
-        sex: updatedUser.sex || sex,
-        birthDate: formattedBirth || birthDate,
-        weight: updatedUser.weight?.toString() || weight,
-        height: updatedUser.height?.toString() || height,
-        bodyFat: updatedUser.body_fat?.toString() || bodyFat,
-        activityLevel: updatedUser.activity_level || activityLevel,
-      };
-
-      setInitialData(updatedBaseline);
-      setName(updatedBaseline.name);
-      setEmail(updatedBaseline.email);
-      setGoal(updatedBaseline.goal);
-      setSex(updatedBaseline.sex);
-      setBirthDate(updatedBaseline.birthDate);
-      setWeight(updatedBaseline.weight);
-      setHeight(updatedBaseline.height);
-      setBodyFat(updatedBaseline.bodyFat);
-      setActivityLevel(updatedBaseline.activityLevel);
-
-      setSuccessMessage('PERFIL ATUALIZADO COM SUCESSO!');
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmNewPassword('');
-    } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : String(err);
-      if (errorMsg === 'Usuário não encontrado.') {
-        setServerError('SESSÃO EXPIRADA. REDIRECIONANDO...');
-        setTimeout(() => {
-          logout();
-        }, 2000);
-      } else {
-        setServerError(errorMsg || 'ERRO AO ATUALIZAR PERFIL.');
-      }
-    } finally {
-      setIsLoading(false);
+    if (name.trim() !== initialData.name) payload.name = name.trim();
+    if (isEmailChanged) payload.email = email.trim();
+    if (goal !== initialData.goal) payload.goal = goal;
+    if (sex !== initialData.sex) payload.sex = sex;
+    if (birthDate !== initialData.birthDate) payload.birthDate = birthDate;
+    if (weight !== initialData.weight) payload.weight = parseFloat(weight.replace(',', '.'));
+    if (height !== initialData.height) payload.height = parseFloat(height.replace(',', '.'));
+    if (bodyFat !== initialData.bodyFat) {
+      payload.body_fat = bodyFat ? parseFloat(bodyFat.replace(',', '.')) : null;
     }
+    if (activityLevel !== initialData.activityLevel) payload.activity_level = activityLevel;
+
+    if (currentPassword) payload.currentPassword = currentPassword;
+    if (newPassword) payload.newPassword = newPassword;
+
+    updateProfileMutation.mutate(payload);
   };
 
-  const [deleteModalError, setDeleteModalError] = useState<string | null>(null);
-
   const handleDeleteAccount = async (password: string) => {
-    setIsDeleting(true);
     setDeleteModalError(null);
-    try {
-      await deleteUserAccount(password);
-      logout();
-    } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : String(err);
-      setDeleteModalError(errorMsg || 'SENHA INCORRETA. TENTE NOVAMENTE.');
-      setIsDeleting(false);
-    }
+    await deleteAccountMutation.mutateAsync(password);
   };
 
   const goals = [
@@ -735,7 +735,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
             SEGURANÇA
           </h2>
 
-          <div className="grid grid-cols-1 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label htmlFor="edit-current-password" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
                 SENHA ATUAL {isEmailChanged || newPassword ? <span className="text-primary">*</span> : <span className="opacity-50">(OPCIONAL)</span>}
@@ -767,69 +767,67 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
               {errors.currentPassword && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.currentPassword}</p>}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label htmlFor="edit-new-password" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                NOVA SENHA <span className="opacity-50">(OPCIONAL)</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
+                  <Lock className="w-4 h-4" aria-hidden="true" />
+                </div>
+                <input
+                  id="edit-new-password"
+                  type={showNewPassword ? 'text' : 'password'}
+                  value={newPassword}
+                  onChange={(e) => handleNewPasswordChange(e.target.value)}
+                  onBlur={() => handleBlur('newPassword')}
+                  onFocus={() => handleFocus('newPassword')}
+                  placeholder="NOVA SENHA"
+                  className={`${inputBase} pr-12 ${errors.newPassword ? inputError : inputNormal}`}
+                  aria-invalid={!!errors.newPassword}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground focus:outline-none"
+                >
+                  {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+              {errors.newPassword && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.newPassword}</p>}
+            </div>
+
+            {newPassword.length > 0 && (
               <div>
-                <label htmlFor="edit-new-password" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
-                  NOVA SENHA <span className="opacity-50">(OPCIONAL)</span>
+                <label htmlFor="edit-confirm-new-password" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                  CONFIRMAR NOVA SENHA
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
                     <Lock className="w-4 h-4" aria-hidden="true" />
                   </div>
                   <input
-                    id="edit-new-password"
-                    type={showNewPassword ? 'text' : 'password'}
-                    value={newPassword}
-                    onChange={(e) => handleNewPasswordChange(e.target.value)}
-                    onBlur={() => handleBlur('newPassword')}
-                    onFocus={() => handleFocus('newPassword')}
-                    placeholder="NOVA SENHA"
-                    className={`${inputBase} pr-12 ${errors.newPassword ? inputError : inputNormal}`}
-                    aria-invalid={!!errors.newPassword}
+                    id="edit-confirm-new-password"
+                    type={showConfirmNewPassword ? 'text' : 'password'}
+                    value={confirmNewPassword}
+                    onChange={(e) => handleConfirmNewPasswordChange(e.target.value)}
+                    onBlur={() => handleBlur('confirmNewPassword')}
+                    onFocus={() => handleFocus('confirmNewPassword')}
+                    placeholder="REPITA A SENHA"
+                    className={`${inputBase} pr-12 ${errors.confirmNewPassword ? inputError : inputNormal}`}
+                    aria-invalid={!!errors.confirmNewPassword}
                   />
                   <button
                     type="button"
-                    onClick={() => setShowNewPassword((prev) => !prev)}
+                    onClick={() => setShowConfirmNewPassword((prev) => !prev)}
                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground focus:outline-none"
                   >
-                    {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showConfirmNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
-                {errors.newPassword && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.newPassword}</p>}
+                {errors.confirmNewPassword && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.confirmNewPassword}</p>}
               </div>
-
-              {newPassword.length > 0 && (
-                <div>
-                  <label htmlFor="edit-confirm-new-password" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
-                    CONFIRMAR NOVA SENHA
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
-                      <Lock className="w-4 h-4" aria-hidden="true" />
-                    </div>
-                    <input
-                      id="edit-confirm-new-password"
-                      type={showConfirmNewPassword ? 'text' : 'password'}
-                      value={confirmNewPassword}
-                      onChange={(e) => handleConfirmNewPasswordChange(e.target.value)}
-                      onBlur={() => handleBlur('confirmNewPassword')}
-                      onFocus={() => handleFocus('confirmNewPassword')}
-                      placeholder="REPITA A SENHA"
-                      className={`${inputBase} pr-12 ${errors.confirmNewPassword ? inputError : inputNormal}`}
-                      aria-invalid={!!errors.confirmNewPassword}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmNewPassword((prev) => !prev)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground focus:outline-none"
-                    >
-                      {showConfirmNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
-                  </div>
-                  {errors.confirmNewPassword && <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">{errors.confirmNewPassword}</p>}
-                </div>
-              )}
-            </div>
+            )}
           </div>
         </div>
 
@@ -856,10 +854,10 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
 
             <button
               type="submit"
-              disabled={!isDirty || isLoading}
+              disabled={!isDirty || updateProfileMutation.isPending}
               className="w-full sm:w-auto px-8 py-3 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-transparent disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:border-foreground shadow-hard disabled:shadow-none"
             >
-              {isLoading ? (
+              {updateProfileMutation.isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
                   <span>SALVANDO...</span>
@@ -883,7 +881,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
           setDeleteModalError(null);
         }}
         onConfirm={handleDeleteAccount}
-        isLoading={isDeleting}
+        isLoading={deleteAccountMutation.isPending}
         error={deleteModalError}
       />
     </div>

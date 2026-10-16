@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
 import type { LoginFormData, FormErrors } from '../../types/auth';
 import { useAuth } from '../../context/AuthContext';
 import { loginUser } from '../../services/auth.service';
@@ -20,8 +21,24 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+
+  const loginMutation = useMutation({
+    mutationFn: (data: LoginFormData) => loginUser(data),
+    onSuccess: (response) => {
+      setAuthSession(response.user, response.token);
+      if (onSuccess) onSuccess();
+    },
+    onError: (err: unknown) => {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      if (errorMsg.includes('Failed to fetch') || errorMsg.includes('fetch')) {
+        setServerError('Não foi possível conectar ao servidor.');
+      } else {
+        setServerError(errorMsg || 'Erro ao realizar login. Tente novamente.');
+      }
+      setFormData((prev) => ({ ...prev, password: '' }));
+    },
+  });
 
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
@@ -31,26 +48,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setServerError(null);
     if (!validate()) return;
-    setIsLoading(true);
-    try {
-      const response = await loginUser(formData);
-      setAuthSession(response.user, response.token);
-      if (onSuccess) onSuccess();
-    } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : String(err);
-      if (errorMsg.includes('Failed to fetch') || errorMsg.includes('fetch')) {
-        setServerError('Não foi possível conectar ao servidor.');
-      } else {
-        setServerError(errorMsg || 'Erro ao realizar login. Tente novamente.');
-      }
-      setFormData(prev => ({ ...prev, password: '' }));
-    } finally {
-      setIsLoading(false);
-    }
+    loginMutation.mutate(formData);
   };
 
   return (
@@ -150,8 +152,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       </div>
 
       {/* Submit */}
-      <Button type="submit" disabled={isLoading} className="w-full mt-4 group">
-        {isLoading ? (
+      <Button type="submit" disabled={loginMutation.isPending} className="w-full mt-4 group">
+        {loginMutation.isPending ? (
           <Loader2 className="w-5 h-5 animate-spin" />
         ) : (
           <>

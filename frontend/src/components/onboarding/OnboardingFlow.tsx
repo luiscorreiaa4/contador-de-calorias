@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import { completeUserOnboarding } from '../../services/auth.service';
 import { Flame, Target, TrendingUp, ArrowRight, ArrowLeft, CheckCircle2, Weight, Ruler, ActivitySquare, AlertCircle } from 'lucide-react';
@@ -7,8 +8,18 @@ import { DatePickerInput } from '../common/DatePickerInput';
 export const OnboardingFlow: React.FC = () => {
   const { user, setAuthSession } = useAuth();
   const [step, setStep] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+
+  const onboardingMutation = useMutation({
+    mutationFn: completeUserOnboarding,
+    onSuccess: (response) => {
+      setAuthSession(response.user, response.token);
+    },
+    onError: (err: unknown) => {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      setServerError(errorMsg || 'ERRO AO SALVAR O PERFIL. TENTE NOVAMENTE.');
+    },
+  });
 
   const [formData, setFormData] = useState({
     sex: '',
@@ -73,25 +84,17 @@ export const OnboardingFlow: React.FC = () => {
     setStep((prev) => prev - 1);
   };
 
-  const handleSubmit = async () => {
-    setIsLoading(true);
+  const handleSubmit = () => {
     setServerError(null);
-    try {
-      const response = await completeUserOnboarding({
-        sex: formData.sex,
-        birthDate: formData.birthDate,
-        goal: formData.goal,
-        weight: parseFloat(formData.weight.replace(',', '.')),
-        height: parseFloat(formData.height.replace(',', '.')),
-        body_fat: formData.bodyFat ? parseFloat(formData.bodyFat.replace(',', '.')) : undefined,
-        activity_level: formData.activityLevel,
-      });
-      setAuthSession(response.user, response.token);
-    } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : String(err);
-      setServerError(errorMsg || 'ERRO AO SALVAR O PERFIL. TENTE NOVAMENTE.');
-      setIsLoading(false);
-    }
+    onboardingMutation.mutate({
+      sex: formData.sex,
+      birthDate: formData.birthDate,
+      goal: formData.goal,
+      weight: parseFloat(formData.weight.replace(',', '.')),
+      height: parseFloat(formData.height.replace(',', '.')),
+      body_fat: formData.bodyFat ? parseFloat(formData.bodyFat.replace(',', '.')) : undefined,
+      activity_level: formData.activityLevel,
+    });
   };
 
   const goals = [
@@ -304,7 +307,7 @@ export const OnboardingFlow: React.FC = () => {
           <button
             type="button"
             onClick={prevStep}
-            disabled={isLoading}
+            disabled={onboardingMutation.isPending}
             className="flex-1 py-3 px-4 border-2 border-border bg-background text-foreground font-black uppercase tracking-widest text-xs hover:bg-secondary focus:outline-none transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -323,10 +326,10 @@ export const OnboardingFlow: React.FC = () => {
         ) : (
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={onboardingMutation.isPending}
             className="w-full py-3 px-4 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs border-2 border-transparent hover:bg-primary/90 focus:outline-none shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff] disabled:shadow-none hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? (
+            {onboardingMutation.isPending ? (
               <span>CARREGANDO...</span>
             ) : (
               <>
