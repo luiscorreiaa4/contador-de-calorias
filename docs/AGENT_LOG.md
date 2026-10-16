@@ -526,5 +526,26 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
 - **Validação:**
   - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
   - Testes do frontend (`npm --prefix frontend test`): 24 testes passando (8 suítes, 0 falhas).
-  - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
-  - Frontend Build (`npm run build`): compilação de produção com código 0.
+- **Commit:** `c295ce6`
+
+---
+
+## CHECKPOINT C — Finalização do Sublote C (Frontend Fase 4 e CI/Docs)
+- **Data:** 16/10/2026
+- **Status:** CONCLUÍDO (100% verde)
+- **Itens do Sublote C Executados:**
+  - `PC-21` (Commit `5ea6077`): Roteamento SPA declarativo via `react-router` v7 (`createBrowserRouter`), URLs declarativas, histórico, botão Voltar e F5 funcionando (D-16).
+  - `PC-20` (Commit `85c3261`): Code-splitting por rota com `React.lazy()` e vendor chunks no Vite (`react-vendor`, `tanstack-vendor`, `ui-vendor`, `chart-vendor`), reduzindo bundle inicial de 392 kB para 20.5 kB.
+  - `PC-12` (Commit `d59b600`): Import dinâmico sob demanda de `NewMealModal` no Dashboard (reduzindo chunk de 116 kB para 13.8 kB), memoização do `AuthContext` e cancelamento de busca com `AbortSignal`.
+  - `PC-05` (Commit `0119730`): Invalidação cruzada de cache (`mealStats` em criação/edição/deleção de refeições e `todayMeals`/`mealStats` em atualização de metas).
+  - `PC-06` (Commit `dd14e0e`): Resiliência no `apiFetch` para respostas não-JSON (502 HTML) e evento global `auth:unauthorized` sincronizando desautenticação imediata no `AuthContext` sob HTTP 401.
+  - `PC-15` (Commit `eb3cf27`): Preservação dos valores nutricionais base do alimento ao abrir modal de edição de refeição (`mealToEdit`).
+  - `PC-19` (Commit `1829406`): Sanitização do `localStorage` (`user_session`), expurgando dados sensíveis de biometria e saúde para conformidade com a LGPD e mantendo-os exclusivamente em memória via `getCurrentUserProfile()`.
+  - `PC-13` (Commit `f6f70ff`): Pipeline CI atualizado com auditoria de vulnerabilidades `high`, detecção de credenciais expostas via Gitleaks e medição de cobertura no frontend via `@vitest/coverage-v8`.
+  - `PC-16` (Commit `c295ce6`): Sincronização geral de documentação (`AGENTS.md`, `README.md` com porta `5433` do Docker, `TESTING.md`, `ARCHITECTURE.md`), skills em `.agents/skills/` e arquivamento definitivo de `TECH_DEBT.md` e arquivos de prompt em `docs/archive/` (D-05, D-18).
+- **Validação Final:**
+  - `npm run test:strict`: 110 testes passando (27 suítes), código 0.
+  - `npm --prefix frontend test`: 24 testes passando (8 suítes), código 0.
+  - `npm run lint`: 0 erros, 0 warnings.
+  - `npm run build`: compilação de produção com código 0.
+- **Tag do Git:** `checkpoint/C`
