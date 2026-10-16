@@ -138,7 +138,7 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 *Objetivo: Elevar a consistência visual, eliminar código morto e alinhar o frontend às regras brutais de `react-rules.md` e `style-rules.md` sem alterar comportamentos de negócio. Pré-requisito: Fase 4.5 concluída.*
 
 **Limpeza Inicial Obrigatória (D-06: PC-31 executado primeiro)**
-- [ ] **PC-31** Excluir código morto e dependências órfãs (`ThemeToggle`, `ui/card`, `switch`, `textarea`, `tooltip`, `App.css`, `clean-foods.ts`, `ts-node-dev`) antes de qualquer ajuste de estilo *(D-06)*.
+- [x] **PC-31** Excluir código morto e dependências órfãs (`ThemeToggle`, `ui/card`, `switch`, `textarea`, `tooltip`, `App.css`, `clean-foods.ts`, `ts-node-dev`) antes de qualquer ajuste de estilo *(D-06)*.
 
 **Tokens, Estilo e Acessibilidade**
 - [ ] **PC-32** Centralização de variáveis CSS brutalistas (cores, contornos, espaçamentos) e criação de componentes primitivos base reutilizáveis.

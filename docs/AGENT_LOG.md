@@ -549,3 +549,19 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - `npm run lint`: 0 erros, 0 warnings.
   - `npm run build`: compilação de produção com código 0.
 - **Tag do Git:** `checkpoint/C`
+
+---
+
+## 4. Sublote D — Fase 5, base (PC-31, PC-25, PC-26, PC-27, PC-33, PC-34)
+
+### PC-31: Expurgo de código morto e desinstalação de dependências órfãs (D-06, ARCH-013, ARCH-014)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `git rm` (Commit 1 / `87217d3`): comprovado o desuso completo e removidos 6 arquivos órfãos sem imports: `frontend/src/components/ThemeToggle.tsx`, `frontend/src/components/ui/card.tsx`, `frontend/src/components/ui/switch.tsx`, `frontend/src/components/ui/textarea.tsx`, `frontend/src/components/ui/tooltip.tsx` e `backend/clean-foods.ts`.
+  - `npm uninstall` (Commit 2): desinstaladas as dependências órfãs do frontend (`@radix-ui/react-switch`, `@radix-ui/react-tooltip`) e do backend (`ts-node-dev`), limpando vulnerabilidades residuais.
+- **Validação:**
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+  - Testes do frontend (`npm --prefix frontend test`): 24 testes passando (8 suítes, 0 falhas).
+  - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
+  - Frontend Build (`npm run build`): compilação de produção com código 0.
+
