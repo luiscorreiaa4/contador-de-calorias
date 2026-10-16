@@ -1,0 +1,8 @@
+"Aja como um Engenheiro Sênior Mobile. Chegou o momento de expandirmos nosso sistema web para um aplicativo celular. Quero que você crie a versão Mobile do nosso 'Contador de Calorias' adotando as seguintes diretrizes:
+
+Setup: Inicialize um novo projeto usando Expo (React Native) com TypeScript dentro de uma nova pasta chamada mobile/ na raiz do nosso monorepo.
+Estilização: Instale e configure o NativeWind para que possamos aproveitar nossa experiência com Tailwind CSS diretamente no app.
+Integração no Monorepo: Adicione o script de inicialização do mobile no nosso package.json da raiz. O comando npm run dev:all atual deve ser modificado (ou crie um novo) para que ele rode o Backend, o Frontend Web e também o servidor do Expo simultaneamente.
+Aproveitamento de Código: Como já usamos Zod e tipagens TypeScript no nosso backend, estruture a pasta mobile/ de forma que ela consuma os mesmos tipos e validações, garantindo que o Web e o App sejam fiéis ao banco de dados.
+Testes no Celular: Verifique se as portas estão configuradas corretamente para que a API local possa ser acessada pelo celular através da rede Wi-Fi usando o Expo Go (substitua chamadas para 'localhost' pelo IP da máquina no client HTTP do mobile).
+Após concluir o setup básico, gere o primeiro componente de Tela de Login do mobile replicando o visual do nosso LoginForm.tsx da Web. Pare e aguarde o meu feedback para eu testar no meu celular físico."

@@ -28,20 +28,22 @@ O projeto é estruturado em um monorepo com separação estrita entre o cliente 
 ```
 
 ### Camadas do Backend (`/backend/src/`) [CONFIRMADO]
-1. **`routes/`**: Declaração dos endpoints e associação com middlewares específicos (`authMiddleware`, `validate(schema)`).
-2. **`controllers/`**: Extração de dados da requisição (`req.body`, `req.params`, `req.query`, `req.userId`), invocação do service correspondente e devolução de resposta formatada no padrão `{ success, data, message }`. Não contém lógica de negócio.
-3. **`services/`**: Lógica de aplicação, cálculos matemáticos (TMB/TDEE), coordenação de persistência e validações de integridade de regras.
-4. **`models/`**: Consultas diretas ao PostgreSQL via driver nativo `pg.Pool`, com parametrização estrita de valores contra SQL Injection.
+1. **`routes/`**: Declaração dos endpoints e associação com middlewares específicos (`authenticate`, `validate(schema)`), incluindo probe de integridade do banco `/health`.
+2. **`controllers/`**: Extração de dados da requisição (`req.body`, `req.params`, `req.query`, `req.userId`), invocação do service correspondente e devolução de resposta formatada no padrão `{ success, data, message }`, com headers de cache privado (`Cache-Control`, `Vary: Authorization`) no catálogo de alimentos.
+3. **`services/`**: Lógica de aplicação, cálculos matemáticos (TMB/TDEE, divisão proporcional de macros), coordenação de persistência, transações atômicas (`BEGIN`/`COMMIT`/`ROLLBACK`) e validações de regras de negócio.
+4. **`models/`**: Consultas diretas ao PostgreSQL via driver nativo `pg.Pool`, com parametrização estrita de valores contra SQL Injection, projeções explícitas de colunas e inserções multi-row em lote.
 5. **`middlewares/`**:
+   - `compression`: Compressão HTTP ativa de respostas no topo da cadeia.
    - `auth.ts`: Validação de tokens JWT e extração de `userId`.
-   - `validate.ts`: Middleware genérico para validação de esquemas Zod (body, params, query) retornando 400 em caso de falha.
-   - `errorHandler.ts`: Captura global de exceções não tratadas com resposta 500 sem vazamento de stack traces.
+   - `validate.ts`: Middleware genérico para validação particionada de esquemas Zod (body, params, query) retornando 400 em caso de falha.
+   - `errorHandler.ts`: Captura global de exceções não tratadas com resposta 500 mascarada sem vazamento de detalhes internos.
 
 ### Camadas do Frontend (`/frontend/src/`) [CONFIRMADO]
-1. **`services/api.ts` (`apiFetch`)**: Wrapper centralizado de `fetch` que injeta o token Bearer do `localStorage` e limpa a sessão em caso de 401.
-2. **TanStack Query (React Query v5)**: Gerencia chamadas assíncronas, estado de cache, revalidação e flags de loading/error.
-3. **`context/AuthContext.tsx`**: Estado global da sessão do usuário autenticado.
-4. **`components/` & `pages/`**: Componentes estilizados com Tailwind CSS em estética brutalista (`rounded-none`, bordas contrastantes) e modais acessíveis via Radix UI com focus trap.
+1. **`router.tsx` (`react-router` v7)**: Roteamento SPA declarativo via `createBrowserRouter`, suporte a URLs amigáveis, rotas públicas/protegidas e code-splitting por rota com `React.lazy()`.
+2. **`services/api.ts` (`apiFetch`)**: Wrapper centralizado de `fetch` que injeta o token Bearer, trata respostas não-JSON (502 HTML) defensivamente e sincroniza o evento global `auth:unauthorized` sob 401.
+3. **TanStack Query (React Query v5)**: Gerencia chamadas assíncronas, estado de cache, revalidação e invalidação cruzada de dados (`mealStats`, `todayMeals`, `active-goal`).
+4. **`context/AuthContext.tsx`**: Gerencia autenticação global, sincronização do token e perfil em memória, mantendo o `localStorage` sanitizado sem dados biométricos.
+5. **`components/` & `pages/`**: Componentes estilizados com Tailwind CSS em estética brutalista (`rounded-none`, bordas contrastantes) e modais acessíveis via Radix UI com focus trap.
 
 ---
 
@@ -143,10 +145,12 @@ erDiagram
 - `foods`:
   - `foods_source_external_id_key`: Constraint de unicidade composta `UNIQUE (source, external_id)`.
   - `idx_foods_name_trgm`: Índice GIN de similaridade trigram: `CREATE INDEX idx_foods_name_trgm ON foods USING GIN (f_unaccent(name) gin_trgm_ops)`.
+  - `idx_foods_active_name`: Índice parcial B-tree: `CREATE INDEX idx_foods_active_name ON foods (name) WHERE active` (migração `1792099463766_add-food-and-meal-indexes.js` / PC-10).
 - `meals`:
   - `idx_meals_user_id_meal_time`: Índice composto `ON meals(user_id, meal_time DESC)` para aceleração de buscas no dashboard diário.
 - `meal_items`:
   - `idx_meal_items_meal_id`: Índice simples `ON meal_items(meal_id)`.
+  - `idx_meal_items_food_id`: Índice de foreign key: `CREATE INDEX idx_meal_items_food_id ON meal_items (food_id)` (migração `1792099463766_add-food-and-meal-indexes.js` / PC-10).
 - `body_measurements`:
   - Índice composto `ON body_measurements(user_id, measured_at)`.
 - `user_goals`:

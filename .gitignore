@@ -26,8 +26,8 @@ coverage
 
 # Prompts
 prompts/
-*prompt*
 *.prompt
+!docs/archive/**
 
 # Environment
 .env

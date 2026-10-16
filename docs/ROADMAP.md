@@ -120,7 +120,7 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 - [x] **PC-24** Cobertura de integração: perfil, onboarding, metas com vigência, PUT/DELETE refeições e stats *(D-14)*.
 
 **Documentação**
-- [ ] **PC-16** Sincronizar documentação com o código; consolidar `docs/BACKLOG.md` como fonte única; arquivar `docs/TECH_DEBT.md` e mover arquivos `.txt` para `docs/archive/` *(D-18, D-05)*.
+- [x] **PC-16** Sincronizar documentação com o código; consolidar `docs/BACKLOG.md` como fonte única; arquivar `docs/TECH_DEBT.md` e mover arquivos `.txt` para `docs/archive/` *(D-18, D-05)*.
 
 ---
 

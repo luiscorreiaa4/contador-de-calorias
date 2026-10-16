@@ -1,0 +1,1 @@
+Vi que no opencode tem como configurar um mcp para documentar o projeto em pdf e word utilizando o document-generator-mcp@latest, essa é a melhor maneira para eu documentar esse projeto aqui pelo antigravity também?

@@ -1,6 +1,9 @@
-# Dívida Técnica (TECH_DEBT.md)
+# [ARQUIVADO — ver docs/BACKLOG.md] Dívida Técnica (TECH_DEBT.md)
 
-Este documento registra débitos técnicos, pontos de atenção de segurança e itens de melhoria identificados no **CalorieSync**.
+> [!WARNING]
+> **DOCUMENTO ARQUIVADO**: Este documento foi consolidado e arquivado conforme decisão D-18. A única fonte viva e atualizada de débitos técnicos, correções e backlog é o [docs/BACKLOG.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/BACKLOG.md).
+
+Este documento registra débitos técnicos históricos identificados originalmente no **CalorieSync**.
 
 ---
 

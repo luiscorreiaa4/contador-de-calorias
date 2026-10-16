@@ -13,22 +13,68 @@ Use estes middlewares em toda rota nova. Eles centralizam validação de input e
 - `/backend/src/middlewares/errorHandler.ts`
 
 ## 2. Middleware de Validação (zod)
+Suporta tanto esquemas diretos de body quanto esquemas particionados (`body`, `query`, `params`):
 ```typescript
 // /backend/src/middlewares/validate.ts
 import { Request, Response, NextFunction } from 'express';
 import { ZodSchema } from 'zod';
 
-export function validate(schema: ZodSchema) {
+export type ValidationSchemas =
+  | ZodSchema
+  | {
+      body?: ZodSchema;
+      query?: ZodSchema;
+      params?: ZodSchema;
+    };
+
+export function validate(schemas: ValidationSchemas) {
   return (req: Request, res: Response, next: NextFunction) => {
-    const result = schema.safeParse(req.body);
-    if (!result.success) {
-      return res.status(400).json({
-        success: false,
-        message: result.error.issues.map(i => i.message).join(', '),
-      });
+    if ('safeParse' in schemas) {
+      const result = schemas.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({
+          success: false,
+          message: result.error.issues.map((i) => i.message).join(', '),
+        });
+      }
+      req.body = result.data;
+      return next();
     }
-    req.body = result.data;
-    next();
+
+    if (schemas.params) {
+      const result = schemas.params.safeParse(req.params);
+      if (!result.success) {
+        return res.status(400).json({
+          success: false,
+          message: result.error.issues.map((i) => i.message).join(', '),
+        });
+      }
+      req.params = result.data as Record<string, string>;
+    }
+
+    if (schemas.query) {
+      const result = schemas.query.safeParse(req.query);
+      if (!result.success) {
+        return res.status(400).json({
+          success: false,
+          message: result.error.issues.map((i) => i.message).join(', '),
+        });
+      }
+      req.query = result.data;
+    }
+
+    if (schemas.body) {
+      const result = schemas.body.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({
+          success: false,
+          message: result.error.issues.map((i) => i.message).join(', '),
+        });
+      }
+      req.body = result.data;
+    }
+
+    return next();
   };
 }
 ```

@@ -6,11 +6,11 @@ Instruções e diretrizes operacionais de IA para o projeto **CalorieSync**.
 
 ## 1. Stack e Versões [CONFIRMADO]
 - **Runtime:** Node.js v24.14.0 (mínimo v20+), npm 11.9.0.
-- **Frontend:** React 19.0.0, Vite 6.0.5, TypeScript 5.6.3, Tailwind CSS 3.4.17, Radix UI, TanStack Query v5.62.8, Zod 3.24.1.
-- **Backend:** Node.js com Express 4.21.2, TypeScript 5.7.2 (`tsx` 4.19.2), Zod 3.24.1, JWT (`jsonwebtoken` 9.0.2), `bcrypt` 5.1.1, PostgreSQL (driver `pg` 8.13.1, sem ORMs).
-- **Banco de Dados:** PostgreSQL 14+, migrações puras via `node-pg-migrate` 7.8.0 em `backend/migrations/`.
-- **Testes Backend:** Node Native Test Runner (`node:test` + `node:assert` + `supertest` 7.0.0 via `tsx --test`).
-- **Testes Frontend:** Vitest 3.0.0 + React Testing Library (RTL) + MSW 2.7.0.
+- **Frontend:** React 19.2.8, Vite 8.2.1, TypeScript 6.0.2, Tailwind CSS 3.4.19, Radix UI, TanStack Query v5.101.4, Zod 3.24.2, React Router 7.18.4.
+- **Backend:** Node.js com Express 4.21.2, TypeScript 5.7.3 (`tsx` 4.23.9), Zod 3.24.2, JWT (`jsonwebtoken` 9.0.2), `bcrypt` 5.1.1, PostgreSQL (driver `pg` 8.13.1, sem ORMs), `compression` 1.8.2.
+- **Banco de Dados:** PostgreSQL 14+, migrações puras via `node-pg-migrate` 9.0.0 em `backend/migrations/`.
+- **Testes Backend:** Node Native Test Runner (`node:test` + `node:assert` + `supertest` 7.3.0 via `tsx --test`).
+- **Testes Frontend:** Vitest 5.0.3 + React Testing Library (RTL) + MSW 2.15.0 + `@vitest/coverage-v8` 5.0.5.
 
 ---
 
@@ -63,4 +63,4 @@ Executar na **raiz** do monorepo:
   - Especificação e Fórmulas de Negócio: [docs/SPEC.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/SPEC.md)
   - Estratégia de Testes: [docs/TESTING.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/TESTING.md)
   - Planejamento de Fases: [docs/ROADMAP.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/ROADMAP.md)
-  - Débitos Técnicos: [docs/TECH_DEBT.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/TECH_DEBT.md)
+  - Débitos Técnicos e Backlog: [docs/BACKLOG.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/BACKLOG.md) (histórico em [docs/archive/TECH_DEBT.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/archive/TECH_DEBT.md))

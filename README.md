@@ -13,23 +13,25 @@ O **CalorieSync** é uma aplicação web full-stack para acompanhamento nutricio
 ## 🛠️ Stack Tecnológica [CONFIRMADO]
 
 ### Frontend
-- **Framework:** React 19.0.0 com Vite 6.0.5
-- **Linguagem:** TypeScript 5.6.3
-- **Estilização:** Tailwind CSS 3.4.17 (identidade brutalista com suporte a temas claro/escuro via CSS Variables)
-- **Componentes & Acessibilidade:** Radix UI (`@radix-ui/react-dialog`, `@radix-ui/react-slider`, `@radix-ui/react-label`, etc.)
-- **Gerenciamento de Estado de Servidor:** TanStack Query (React Query) v5.62.8
-- **Gráficos:** Recharts 2.15.0
-- **Ícones:** Lucide React 0.468.0
-- **Validação de Formulários:** Zod 3.24.1
+- **Framework:** React 19.2.8 com Vite 8.2.1
+- **Roteamento:** React Router 7.18.4 (declarativo com suporte a code-splitting por rota)
+- **Linguagem:** TypeScript 6.0.2
+- **Estilização:** Tailwind CSS 3.4.19 (identidade brutalista com suporte a temas claro/escuro via CSS Variables)
+- **Componentes & Acessibilidade:** Radix UI (`@radix-ui/react-dialog`, `@radix-ui/react-label`, etc.)
+- **Gerenciamento de Estado de Servidor:** TanStack Query (React Query) v5.101.4
+- **Gráficos:** Recharts 3.10.1
+- **Ícones:** Lucide React 1.31.0
+- **Validação de Formulários:** Zod 3.24.2
 
 ### Backend
 - **Ambiente:** Node.js v24.14.0 (mínimo v20+ suportado) com Express 4.21.2
-- **Linguagem:** TypeScript 5.7.2 (executado diretamente via `tsx` 4.19.2 em desenvolvimento)
+- **Linguagem:** TypeScript 5.7.3 (executado diretamente via `tsx` 4.23.9 em desenvolvimento)
 - **Autenticação:** JSON Web Tokens (`jsonwebtoken` 9.0.2) e hashing com `bcrypt` 5.1.1
-- **Validação de Entrada:** Zod 3.24.1 em 100% das rotas e DTOs
-- **Segurança Web:** `helmet` 8.0.0, `cors` 2.8.5 e `express-rate-limit` 7.5.0
+- **Performance:** Compressão HTTP (`compression` 1.8.2) e cache privado HTTP (ETag, Cache-Control)
+- **Validação de Entrada:** Zod 3.24.2 em 100% das rotas e DTOs (body, query, params)
+- **Segurança Web:** `helmet` 8.3.0, `cors` 2.8.5 e `express-rate-limit` 8.7.0
 - **Banco de Dados:** Driver PostgreSQL nativo `pg` 8.13.1 (sem ORMs)
-- **Migrações:** `node-pg-migrate` 7.8.0
+- **Migrações:** `node-pg-migrate` 9.0.0
 
 ---
 
@@ -100,7 +102,7 @@ Com o Docker Desktop em execução:
 # Sobe o container PostgreSQL em segundo plano (com volume persistente e banco de testes automático)
 npm run docker:up
 ```
-> **Nota:** Caso já possua um serviço nativo do PostgreSQL ativo no Windows na porta `5432`, pause-o antes (`Stop-Service postgresql-x64-18` no PowerShell como Admin) para evitar conflitos de porta. Para desligar o container posteriormente, use `npm run docker:down`.
+> **Nota de Porta e Conflitos:** Caso já possua um serviço nativo do PostgreSQL ativo no Windows na porta `5432`, você pode definir `DB_PORT=5433` no seu `backend/.env` (o `docker-compose.yml` mapeia `${DB_PORT:-5432}:5432`, expondo o container na porta 5433 e evitando qualquer colisão). Para desligar o container posteriormente, use `npm run docker:down`.
 
 #### Opção B: Via PostgreSQL Nativo
 Acesse seu cliente PostgreSQL (`psql` ou pgAdmin/DBeaver) e crie manualmente o banco de dados principal e o de testes:
@@ -138,7 +140,7 @@ As variáveis de ambiente do backend residem em `backend/.env`:
 | `PORT` | `3001` | Não | Porta TCP em que o Express escuta as requisições HTTP |
 | `NODE_ENV` | `development` | Não | Ambiente de execução (`development`, `production`, `test`) |
 | `DB_HOST` | `localhost` | Sim | Endereço do host do servidor PostgreSQL |
-| `DB_PORT` | `5432` | Não | Porta de rede do PostgreSQL |
+| `DB_PORT` | `5432` | Não | Porta de rede do PostgreSQL (pode usar `5433` no Docker) |
 | `DB_USER` | `postgres` | Sim | Usuário com permissões no PostgreSQL |
 | `DB_PASSWORD` | - | Sim | Senha do usuário do banco |
 | `DB_NAME` | `contador_calorias` | Sim | Nome da base de dados de desenvolvimento |
@@ -161,9 +163,11 @@ Comandos disponíveis a partir da **raiz**:
 | `npm run setup` | Aplica todas as migrações SQL no banco (`node-pg-migrate up`) |
 | `npm run docker:up` | Sobe o container PostgreSQL de desenvolvimento via Docker Compose (`-d`) |
 | `npm run docker:down` | Encerra o container PostgreSQL do Docker Compose |
-| `npm run test` | Roda os 37 testes automatizados do backend em banco isolado (`_test`) |
-| `npm --prefix frontend test` | Roda a suíte de testes de componentes do frontend via Vitest |
-| `npm run lint` | Valida as regras de ESLint em todo o repositório |
+| `npm run test` | Roda os 110 testes automatizados do backend em banco isolado (`_test`) |
+| `npm run test:strict` | Roda testes do backend sem force-exit para verificação estrita de handles |
+| `npm --prefix frontend test` | Roda os 24 testes automatizados do frontend via Vitest |
+| `npm --prefix frontend run test:coverage` | Roda os testes do frontend gerando cobertura com `@vitest/coverage-v8` |
+| `npm run lint` | Valida as regras de ESLint e higiene de testes em todo o repositório |
 | `npm run build` | Compila a versão de produção do frontend (`tsc -b && vite build`) |
 
 ---
@@ -171,7 +175,9 @@ Comandos disponíveis a partir da **raiz**:
 ## 📚 Mais Informações
 
 Para aprofundamento na arquitetura do sistema e decisões técnicas:
+- [docs/BACKLOG.md](docs/BACKLOG.md) — Backlog consolidado único e decisões de arquitetura (D-01 a D-20).
+- [docs/ROADMAP.md](docs/ROADMAP.md) — Planejamento de fases, marcos e tarefas do projeto.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — Camadas, diagrama ER completo e decisões de banco.
 - [docs/SPEC.md](docs/SPEC.md) — Requisitos funcionais e regras matemáticas de cálculo de TMB e metas.
 - [docs/TESTING.md](docs/TESTING.md) — Guia detalhado de testes automatizados e suítes existentes.
-- [docs/ROADMAP.md](docs/ROADMAP.md) — Registro de fases concluídas e planejadas.
+- [docs/archive/TECH_DEBT.md](docs/archive/TECH_DEBT.md) — Histórico consolidado de dívidas técnicas arquivadas.

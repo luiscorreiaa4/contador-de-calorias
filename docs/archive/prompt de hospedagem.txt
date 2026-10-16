@@ -1,0 +1,1 @@
+ptNão faça, apenas responda e me ensine, caso eu queira fazer uma especie de closed beta apenas para amigos testarem por uma semana para ter feedbacks, como hospedar gratuitamente da melhor forma? Tendo em vista que preciso hospedar o banco, o backend e o front, a maioria dos serviços de hospedagem gratuita hospeda apenas o front

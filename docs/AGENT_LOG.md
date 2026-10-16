@@ -511,5 +511,20 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
   - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
   - Frontend Build (`npm run build`): compilação de produção com código 0.
+- **Commit:** `f6f70ff`
 
-
+### PC-16: Sincronização geral de documentação, skills, versões e arquivamento de dívidas técnicas (D-05, D-18)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `docs/TECH_DEBT.md`: movido com `git mv` para `docs/archive/TECH_DEBT.md` com aviso explícito de arquivamento no cabeçalho referenciando `docs/BACKLOG.md` como fonte única viva de pendências e débitos técnicos (D-18).
+  - Arquivos soltos `.txt` na raiz: movidos para `docs/archive/` preservando os conteúdos originais de prompt (D-05).
+  - `AGENTS.md`: sincronizadas versões reais da stack (React 19.2.8, Vite 8.2.1, TS 6.0.2 / 5.7.3, Tailwind 3.4.19, TanStack Query 5.101.4, React Router 7.18.4, Vitest 5.0.3, MSW 2.15.0, `compression` 1.8.2, `node-pg-migrate` 9.0.0) e atualizados links documentais.
+  - `README.md`: sincronizadas versões de componentes/dependências, documentada opção de porta alternativa `DB_PORT=5433` no `docker-compose.yml` para contornar conflitos com PostgreSQL nativo na porta 5432, atualizada tabela de comandos/scripts e contagem de testes automatizados (110 backend, 24 frontend).
+  - `docs/TESTING.md`: sincronizados status de execução direta e inventário detalhado de todas as 27 suítes do backend e 8 suítes do frontend.
+  - `docs/ARCHITECTURE.md`: adicionados índices de performance da migração PC-10 (`idx_foods_active_name`, `idx_meal_items_food_id`), middleware de compressão HTTP e suporte a roteador SPA declarativo `react-router` v7.
+  - `.agents/skills/`: sincronizadas as skills `backend-middlewares` (suporte a body, query e params no middleware `validate`) e `connect-react-to-backend` (cliente `apiFetch` com resiliência defensiva a 502/não-JSON e evento de desautenticação 401).
+- **Validação:**
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+  - Testes do frontend (`npm --prefix frontend test`): 24 testes passando (8 suítes, 0 falhas).
+  - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
+  - Frontend Build (`npm run build`): compilação de produção com código 0.
