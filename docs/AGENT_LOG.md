@@ -747,4 +747,19 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - Lint Monorepo (`npm run lint`): 0 erros.
   - Frontend Build (`npm run build`): compilação de produção com código 0 em 800ms.
 
+---
+
+## CHECKPOINT E (2026-10-16)
+- **Sublote E (Fase 5 estrutural) CONCLUÍDO:**
+  - `PC-32` (`5446daa`): Escopo estrutural de tokens e componentes primitivos base (`Card`, `Badge`, `Alert` em `components/ui/`, tokens em `index.css`).
+  - `PC-28` (`0e6e900`): Migração de `useEffect` e fetch manual para `useQuery` e `useMutation` no TanStack Query v5 em `LoginForm`, `RegisterForm`, `OnboardingFlow`, `EditProfilePage`.
+  - `PC-29` (`1be4f47`): Substituição de formulários complexos manuais por `react-hook-form` integrado com resolvers Zod em `RegisterForm`, `OnboardingFlow`, `EditProfilePage`.
+  - `PC-30` (`8eae33c`): Decomposição de monolitos em subcomponentes coesos: `EditProfilePage` fatiada com `PersonalInfoSection`, `BiometricsSection`, `RoutineGoalsSection`, `SecuritySection` (com larguras de senha nova e atual rigorosamente idênticas no desktop); `NewMealModal` fatiada com `FoodSearchSelect`, `FoodQuantityForm`, `MealItemList`, `MealModalFooter`.
+- **Validação Completa (100% Verde):**
+  - Backend `test:strict`: 110 testes passando (27 suítes), 0 falhas, 0 leaks.
+  - Frontend `test`: 47 testes passando (14 suítes), 0 falhas.
+  - Lint `lint`: 0 erros no backend e frontend.
+  - Build `build`: compilação de produção bem-sucedida em 819ms.
+
+
 
