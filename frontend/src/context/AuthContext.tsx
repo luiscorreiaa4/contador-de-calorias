@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useMemo, useCallback } from 'react';
 import type { UserProfile } from '../services/auth.service';
 
 interface AuthContextType {
@@ -19,36 +19,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
-  const setAuthSession = (userData: UserProfile, authToken: string) => {
+  const setAuthSession = useCallback((userData: UserProfile, authToken: string) => {
     setUser(userData);
     setToken(authToken);
     localStorage.setItem('user_session', JSON.stringify(userData));
     localStorage.setItem('auth_token', authToken);
-  };
+  }, []);
 
-  const updateUserSession = (userData: UserProfile) => {
+  const updateUserSession = useCallback((userData: UserProfile) => {
     setUser(userData);
     localStorage.setItem('user_session', JSON.stringify(userData));
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setUser(null);
     setToken(null);
     localStorage.removeItem('user_session');
     localStorage.removeItem('auth_token');
-  };
+  }, []);
+
+  const authValue = useMemo(
+    () => ({
+      user,
+      token,
+      isAuthenticated: !!user && !!token,
+      setAuthSession,
+      updateUserSession,
+      logout,
+    }),
+    [user, token, setAuthSession, updateUserSession, logout]
+  );
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        isAuthenticated: !!user && !!token,
-        setAuthSession,
-        updateUserSession,
-        logout,
-      }}
-    >
+    <AuthContext.Provider value={authValue}>
       {children}
     </AuthContext.Provider>
   );

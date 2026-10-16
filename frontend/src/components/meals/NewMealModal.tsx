@@ -79,7 +79,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
 
   const { data: foodsData, isLoading: isLoadingFoods } = useQuery({
     queryKey: ['foods', debouncedSearch],
-    queryFn: () => getFoods(debouncedSearch.length >= 2 ? debouncedSearch : '', 1, 50),
+    queryFn: ({ signal }) => getFoods(debouncedSearch.length >= 2 ? debouncedSearch : '', 1, 50, signal),
     enabled: isOpen,
     placeholderData: (previousData) => previousData,
   });

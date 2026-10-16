@@ -439,8 +439,21 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
 - **Validação:**
   - Testes do frontend (`npm --prefix frontend test`): 19 testes passando (6 suítes, 0 falhas).
   - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+- **Commit:** `85c3261`
+
+### PC-12: Otimizações frontend (lazy de NewMealModal, useMemo em AuthContext, AbortSignal em autocomplete) (PERF-013, PERF-014, PERF-015)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/pages/private/DashboardPage.tsx`: `NewMealModal` convertido para import dinâmico com `React.lazy()` e renderizado sob `<React.Suspense fallback={null}>` estritamente quando `isNewMealModalOpen === true`.
+  - **Evidência de Redução no Dashboard:** O chunk de `DashboardPage` diminuiu de **116.47 kB** para apenas **13.89 kB** (3.24 kB gzip) — uma redução de **~88%** no bundle da tela principal, isolando `NewMealModal` e `react-select` (103.42 kB) para carregamento sob demanda ao clicar em adicionar/editar refeição (PERF-013).
+  - `frontend/src/context/AuthContext.tsx`: estabilizadas as funções `setAuthSession`, `updateUserSession` e `logout` com `useCallback` e memoizado o objeto de contexto com `useMemo`, eliminando re-renderizações espúrias em cascata por alterações de tema (`darkMode`) ou estado superior (PERF-014).
+  - `frontend/src/services/food.service.ts` e `frontend/src/components/meals/NewMealModal.tsx`: adicionado suporte e repasse do `signal?: AbortSignal` a partir do `queryFn` do TanStack Query para a função `getFoods` e para o `apiFetch`, garantindo cancelamento imediato pelo navegador de requisições em trânsito de digitação anterior (PERF-015).
+- **Validação:**
+  - Testes do frontend (`npm --prefix frontend test`): 19 testes passando (6 suítes, 0 falhas).
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
   - Lint Monorepo (`npm run lint`): 0 erros.
-  - Frontend Build (`npm run build`): compilação de produção com código 0 e divisão limpa de chunks.
+  - Frontend Build (`npm run build`): compilação de produção com código 0.
+
 
 
 

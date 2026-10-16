@@ -1,8 +1,13 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Flame, Plus, Utensils, Beef, Clock, Pencil, Trash2, AlertTriangle } from 'lucide-react';
-import { NewMealModal } from '../../components/meals/NewMealModal';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+const NewMealModal = React.lazy(() =>
+  import('../../components/meals/NewMealModal').then((m) => ({
+    default: m.NewMealModal,
+  }))
+);
 import { getTodayMeals, deleteMeal, type Meal } from '../../services/meal.service';
 import { getActiveGoal } from '../../services/goals.service';
 import { getLocalDateString } from '../../utils/date';
@@ -271,14 +276,18 @@ export const DashboardPage: React.FC = () => {
         )}
       </div>
 
-      <NewMealModal
-        isOpen={isNewMealModalOpen}
-        onClose={() => {
-          setIsNewMealModalOpen(false);
-          setMealToEdit(null);
-        }}
-        mealToEdit={mealToEdit}
-      />
+      {isNewMealModalOpen && (
+        <React.Suspense fallback={null}>
+          <NewMealModal
+            isOpen={isNewMealModalOpen}
+            onClose={() => {
+              setIsNewMealModalOpen(false);
+              setMealToEdit(null);
+            }}
+            mealToEdit={mealToEdit}
+          />
+        </React.Suspense>
+      )}
 
       {/* Delete Meal Confirm Modal */}
       {isDeleteModalOpen && mealToDelete && (
