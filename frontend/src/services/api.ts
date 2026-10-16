@@ -20,14 +20,33 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
     headers,
   });
 
-  const json: ApiResponse<T> = await response.json();
+  const contentType = response.headers.get('content-type');
+  let json: ApiResponse<T> | null = null;
 
-  if (!response.ok || !json.success) {
-    if (response.status === 401 || (response.status === 404 && json.message === 'Usuário não encontrado.')) {
+  if (contentType && contentType.includes('application/json')) {
+    try {
+      json = await response.json();
+    } catch {
+      json = null;
+    }
+  }
+
+  if (!response.ok || !json?.success) {
+    if (response.status === 401 || (response.status === 404 && json?.message === 'Usuário não encontrado.')) {
       localStorage.removeItem('auth_token');
       localStorage.removeItem('user_session');
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('auth:unauthorized'));
+      }
     }
-    throw new Error(json.message ?? 'Erro ao comunicar com a API.');
+
+    const errorMessage =
+      json?.message ??
+      (response.status >= 500
+        ? `Serviço temporariamente indisponível (${response.status}). Tente novamente mais tarde.`
+        : `Erro na requisição (${response.status}).`);
+
+    throw new Error(errorMessage);
   }
 
   return json.data as T;

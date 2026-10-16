@@ -462,8 +462,21 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
 - **Validação:**
   - Testes do frontend (`npm --prefix frontend test`): 19 testes passando (6 suítes, 0 falhas).
   - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+- **Commit:** `0119730`
+
+### PC-06: Resiliência em apiFetch (não-JSON/502 e sincronização de 401 com AuthContext) (HIPÓTESE-03, GAP-A03)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/services/api.ts`: implementada checagem defensiva de cabeçalho `Content-Type` e bloco seguro de extração de JSON, eliminando falhas catastróficas por `SyntaxError` diante de respostas HTML de servidores proxy (como 502/503/504) e retornando mensagem de indisponibilidade tratada.
+  - `frontend/src/services/api.ts`: configurado disparo do evento global de janela `auth:unauthorized` sempre que o backend responder com HTTP 401 ou quando o usuário não for localizado (404 com remoção de sessão).
+  - `frontend/src/context/AuthContext.tsx`: adicionado listener com limpeza de `user` e `token` em memória em resposta a `auth:unauthorized`, forçando desautenticação instantânea no cliente React e acionando o redirecionamento automático das rotas protegidas pelo roteador para `/login`.
+  - `frontend/src/tests/api.test.ts`: testes criados reproduzindo e validando o tratamento de resposta 502 HTML e o disparo de `auth:unauthorized` com limpeza de credenciais sob status 401.
+- **Validação:**
+  - Testes do frontend (`npm --prefix frontend test`): 21 testes passando (7 suítes, 0 falhas).
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
   - Lint Monorepo (`npm run lint`): 0 erros.
   - Frontend Build (`npm run build`): compilação de produção com código 0.
+
 
 
 
