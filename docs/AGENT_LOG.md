@@ -428,7 +428,19 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
 - **Validação:**
   - Testes do frontend (`npm --prefix frontend test`): 19 testes passando (6 suítes, 0 falhas).
   - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+- **Commit:** `5ea6077`
+
+### PC-20: Code-splitting por rota e manualChunks de vendor no Vite (PERF-012, D-16)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/router.tsx`: migrados `LoginPage` e `OnboardingFlow` de imports estáticos para importação dinâmica via `lazy()`, completando a separação sob demanda de todas as rotas da aplicação.
+  - `frontend/vite.config.ts`: configurado `build.rollupOptions.output.manualChunks` isolando bibliotecas fundamentais em chunks independentes (`react-vendor`, `tanstack-vendor`, `ui-vendor`, `chart-vendor`).
+  - **Evidência de Redução de Bundle:** O chunk inicial `index.js` diminuiu de **392.41 kB** (121.24 kB gzip) para apenas **20.51 kB** (6.02 kB gzip) — uma redução de **~95%** no código baixado no primeiro paint da página inicial. Dependências pesadas como `recharts` (373 kB) agora só são baixadas quando o usuário acessa `/estatisticas`.
+- **Validação:**
+  - Testes do frontend (`npm --prefix frontend test`): 19 testes passando (6 suítes, 0 falhas).
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
   - Lint Monorepo (`npm run lint`): 0 erros.
-  - Frontend Build (`npm run build`): compilação de produção com código 0.
+  - Frontend Build (`npm run build`): compilação de produção com código 0 e divisão limpa de chunks.
+
 
 

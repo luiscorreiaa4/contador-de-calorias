@@ -92,7 +92,7 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 
 **Roteamento e Performance (D-16: PC-21 antes de PC-20)**
 - [x] **PC-21** Roteamento SPA real com `react-router` v7 (`createBrowserRouter`), URLs declarativas, histórico, botão Voltar e F5 funcionando *(D-16)*.
-- [ ] **PC-20** Code-splitting por rota com `lazy` nativo do roteador + `manualChunks` de vendor no Vite *(D-16)*.
+- [x] **PC-20** Code-splitting por rota com `lazy` nativo do roteador + `manualChunks` de vendor no Vite *(D-16)*.
 - [x] **PC-02** Compressão HTTP (`compression`).
 - [x] **PC-03** Cache do catálogo de alimentos com `Cache-Control: private, max-age=300` + ETag + `Vary: Authorization` *(D-07)*.
 - [x] **PC-09** SQL: remover subqueries do dashboard, `count(*) OVER()`, e projeção explícita de `foods` com `source`, sem `external_id` nem `active` *(D-08, D-14)*.

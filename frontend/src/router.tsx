@@ -9,8 +9,14 @@ import {
 import { RootLayout } from './components/layout/RootLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { PublicRoute } from './components/PublicRoute';
-import { LoginPage } from './pages/public/LoginPage';
-import { OnboardingFlow } from './components/onboarding/OnboardingFlow';
+const LoginPage = lazy(() =>
+  import('./pages/public/LoginPage').then((m) => ({ default: m.LoginPage }))
+);
+const OnboardingFlow = lazy(() =>
+  import('./components/onboarding/OnboardingFlow').then((m) => ({
+    default: m.OnboardingFlow,
+  }))
+);
 
 const DashboardPage = lazy(() =>
   import('./pages/private/DashboardPage').then((m) => ({
