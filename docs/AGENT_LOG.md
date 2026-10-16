@@ -500,10 +500,16 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - Lint Monorepo (`npm run lint`): 0 erros.
   - Frontend Build (`npm run build`): compilação de produção com código 0.
 
-
-
-
-
-
+### PC-13: Auditoria de vulnerabilidades, Gitleaks e cobertura Vitest v8 no pipeline CI (SEC-023, TST-008)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/package.json` e `frontend/vite.config.ts`: instalado `@vitest/coverage-v8` nas devDependencies do frontend, adicionado bloco de configuração de cobertura com provider `v8` (`text`, `json`, `html`), configurados overrides para vulnerabilidades conhecidas (`braces`, `source-map-js`) e criado script `npm --prefix frontend run test:coverage`.
+  - `.github/workflows/ci.yml`: atualizado step `actions/checkout@v4` com `fetch-depth: 0` para inspeção completa de histórico, adicionados steps de auditoria de segurança (`npm audit --audit-level=high`) e detecção de credenciais expostas via `gitleaks/gitleaks-action@v2`, e atualizada execução dos testes frontend para incluir relatório de cobertura.
+  - `.gitignore` e `eslint.config.js`: adicionada exclusão de pastas `coverage` para evitar poluição do lint e commits inadvertidos de artefatos de cobertura.
+- **Validação:**
+  - Testes frontend com cobertura (`npm --prefix frontend run test:coverage`): 24 testes passando (8 suítes), cobertura reportada com sucesso.
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+  - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
+  - Frontend Build (`npm run build`): compilação de produção com código 0.
 
 
