@@ -1,33 +1,21 @@
-Corrija o item [ID] definido em docs/BACKLOG.md (ex: CA-01, PC-02, BL-02).
+Corrija o 
 
-1. Leitura Direta no Backlog:
-   - Abra docs/BACKLOG.md, localize o [ID] na tabela e extraia:
-     * Arquivo(s) e linha(s) afetados (coluna "Item");
-     * A evidência técnica já confirmada (coluna "Status & Evidência");
-     * Se houver decisão na coluna "Dec." (ex: D-01, D-10), leia a Seção 5 de docs/BACKLOG.md. Se eu não tiver especificado a escolha, pergunte-me antes de codificar;
-     * Se precisar de contexto extra, consulte o relatório citado na coluna "Origem" em docs/reviews/.
-
-2. Guias e Regras de Implementação (Obrigatório):
+1. Guias e Regras de Implementação (Obrigatório):
    - Siga rigorosamente as diretrizes em AGENTS.md e .agents/rules/ (backend-rules, react-rules, style-rules).
    - Consulte os manuais em .agents/skills/*/SKILL.md para seguir o padrão exato do projeto:
      * Para rotas/middlewares/banco: consulte .agents/skills/create-backend-resource/ e backend-middlewares/
      * Para React/React Query: consulte .agents/skills/connect-react-to-backend/
      * Para testes backend: consulte .agents/skills/backend-testing-guide/
 
-3. Reprodução do Problema (TDD):
+2. Reprodução do Problema (TDD):
    - Crie primeiro um teste que reproduza a falha e confirme a quebra, ou execute o comando que evidencia o erro (build/lint/audit) antes de qualquer alteração.
 
-4. Correção Mínima:
+3. Correção Mínima:
    - Implemente a correção mais cirúrgica e enxuta possível. Não refatore código fora do escopo.
 
-5. Validação:
+4. Validação:
    - Confirme que o teste criado passou.
    - Valide a área afetada (npm test, npm run lint e npm run build).
-
-6. Fechamento e Registro:
-   - No docs/BACKLOG.md: altere o status do item de [CONFIRMADO] para [CORRIGIDO].
-   - No docs/ROADMAP.md: se o item constar em alguma fase, marque a caixinha como [x].
-   - Proponha o commit semântico atômico referenciando o ID (ex: "fix: [descrição] ([ID])").
 
 Trava de Segurança:
 - Proibido comandos destrutivos (sem DROP, TRUNCATE ou deleções em massa). Se exigir migration, mostre o SQL e aguarde minha autorização expressa antes de rodar.

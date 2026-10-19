@@ -106,6 +106,6 @@ describe('StatsPage (PC-27)', () => {
     await waitFor(() => {
       expect(screen.getByText(/média de consumo/i)).toBeInTheDocument();
     });
-    expect(screen.getByText(/histórico e tendências/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /alimentação/i })).toBeInTheDocument();
   });
 });

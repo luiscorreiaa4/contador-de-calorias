@@ -3,11 +3,23 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render } from '../../../tests/setup/test-utils';
 import { EditProfilePage } from '../EditProfilePage';
+import { AccountPrivacyPage } from '../AccountPrivacyPage';
+import { NotificationsPage } from '../NotificationsPage';
 import { MemoryRouter } from 'react-router';
 import { server } from '../../../mocks/server';
 import { http, HttpResponse } from 'msw';
 
 describe('EditProfilePage Component (PC-34 / TST-011)', () => {
+  it('mantém apenas dados pessoais no perfil, sem medidas, metas, senha ou notificações', async () => {
+    render(<MemoryRouter><EditProfilePage /></MemoryRouter>);
+
+    await screen.findByDisplayValue('Test User');
+    expect(screen.queryByRole('heading', { name: /medidas corporais/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /objetivo e rotina/i })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/nova senha/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /ativar notificações/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /excluir conta/i })).not.toBeInTheDocument();
+  });
   beforeEach(() => {
     localStorage.setItem('auth_token', 'fake-jwt-token');
     localStorage.setItem(
@@ -35,8 +47,8 @@ describe('EditProfilePage Component (PC-34 / TST-011)', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByRole('heading', { name: /editar perfil/i })).toBeInTheDocument();
-    expect(screen.getByLabelText(/nome completo/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /^perfil$/i })).toBeInTheDocument();
+    expect(await screen.findByLabelText(/nome completo/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/e-mail/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /salvar alterações/i })).toBeInTheDocument();
   });
@@ -59,11 +71,10 @@ describe('EditProfilePage Component (PC-34 / TST-011)', () => {
   it('deve exportar os dados do usuário em JSON ao clicar em exportar (BL-10 / D-04)', async () => {
     render(
       <MemoryRouter>
-        <EditProfilePage />
+        <AccountPrivacyPage />
       </MemoryRouter>
     );
 
-    await screen.findByDisplayValue('Test User');
     const exportButton = screen.getByRole('button', { name: /exportar meus dados/i });
     await userEvent.click(exportButton);
 
@@ -103,14 +114,14 @@ describe('EditProfilePage Component (PC-34 / TST-011)', () => {
     await userEvent.click(saveButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/perfil atualizado com sucesso/i)).toBeInTheDocument();
+      expect(screen.getByText(/alterações salvas com sucesso/i)).toBeInTheDocument();
     });
   });
 
   it('deve disparar lembrete de teste de push com sucesso (BL-27)', async () => {
     render(
       <MemoryRouter>
-        <EditProfilePage />
+        <NotificationsPage />
       </MemoryRouter>
     );
 

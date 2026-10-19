@@ -6,7 +6,8 @@ import { getLocalDateString } from '../../utils/date';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from 'recharts';
 import { TrendingUp, Target, Info, AlertTriangle, ArrowLeft } from 'lucide-react';
 
-export const StatsPage: React.FC = () => {
+export const StatsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
+  const Heading = embedded ? 'h2' : 'h1';
   const [period, setPeriod] = useState<'week' | 'month'>('week');
   const clientDate = getLocalDateString();
 
@@ -23,16 +24,16 @@ export const StatsPage: React.FC = () => {
   });
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 py-8 space-y-10">
+    <div className={embedded ? "space-y-8" : "w-full max-w-5xl mx-auto px-4 py-8 space-y-10"}>
       <div className="border-b-2 border-border pb-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-2">
               Estatísticas
             </p>
-            <h1 className="text-3xl sm:text-5xl font-heading font-black text-foreground uppercase tracking-tighter">
-              HISTÓRICO E TENDÊNCIAS
-            </h1>
+            <Heading className="text-3xl sm:text-5xl font-heading font-black text-foreground uppercase tracking-tighter">
+              ALIMENTAÇÃO
+            </Heading>
           </div>
           <Link
             to="/"
@@ -45,6 +46,7 @@ export const StatsPage: React.FC = () => {
         
         <div className="flex gap-4 border-2 border-border p-2 bg-background w-full md:w-fit md:ml-auto">
           <button
+            aria-pressed={period === 'week'}
             onClick={() => setPeriod('week')}
             className={`flex-1 md:flex-none py-3 px-6 text-xs font-black uppercase tracking-widest transition-all focus:outline-none ${
               period === 'week' 
@@ -55,6 +57,7 @@ export const StatsPage: React.FC = () => {
             ÚLTIMOS 7 DIAS
           </button>
           <button
+            aria-pressed={period === 'month'}
             onClick={() => setPeriod('month')}
             className={`flex-1 md:flex-none py-3 px-6 text-xs font-black uppercase tracking-widest transition-all focus:outline-none ${
               period === 'month' 

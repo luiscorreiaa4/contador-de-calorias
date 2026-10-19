@@ -1,228 +1,73 @@
-import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getActiveGoal, updateGoals, previewGoals } from '../../services/goals.service';
+import { useForm, useWatch } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { updateGoalsSchema, type UpdateGoalsDTO } from '@caloriesync/shared';
+import { getActiveGoal, updateGoals, previewGoals, type UserGoal, type EnergyTargets } from '../../services/goals.service';
+import type { UserProfile } from '../../services/auth.service';
 import { getLocalDateString } from '../../utils/date';
-import { Target, Info, Save, Loader2 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { ProfileQueryBoundary } from './ProfileQueryBoundary';
+import { ProfileFormFeedback } from './ProfileFormFeedback';
 
-export function GoalSettingsCard() {
-  const { user } = useAuth();
+function GoalForm({ goal, preview }: { goal: UserGoal; preview: EnergyTargets }) {
   const queryClient = useQueryClient();
-  const clientDate = getLocalDateString();
-  const [mode, setMode] = useState<'auto' | 'manual'>('auto');
-  
-  // Local state for manual mode
-  const [manualCalories, setManualCalories] = useState('');
-  const [manualProteins, setManualProteins] = useState('');
-  const [manualCarbs, setManualCarbs] = useState('');
-  const [manualFats, setManualFats] = useState('');
-  
-  const { data: goal, isLoading } = useQuery({
-    queryKey: ['active-goal', clientDate],
-    queryFn: () => getActiveGoal(clientDate),
+  const { register, control, setValue, handleSubmit, reset, formState: { errors } } = useForm<UpdateGoalsDTO>({
+    resolver: zodResolver(updateGoalsSchema),
+    defaultValues: goal,
   });
-
-  const { data: previewData } = useQuery({
-    queryKey: ['preview-goal', user?.weight, user?.activity_level, user?.goal],
-    queryFn: () => previewGoals({
-      weight: user?.weight,
-      height: user?.height,
-      sex: user?.sex,
-      birthDate: user?.birth_date,
-      body_fat: user?.body_fat,
-      activity_level: user?.activity_level,
-      goal: user?.goal,
-    }),
-    enabled: !!user,
-  });
-
+  const selectedMode = useWatch({ control, name: 'mode' });
+  const isAuto = selectedMode === 'auto';
   const mutation = useMutation({
     mutationFn: updateGoals,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['active-goal'] });
-      queryClient.invalidateQueries({ queryKey: ['mealStats'] });
-      queryClient.invalidateQueries({ queryKey: ['todayMeals'] });
-    }
-  });
-
-  // Sync mode with loaded goal
-  useEffect(() => {
-    if (goal) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setMode(goal.mode);
-      if (goal.mode === 'manual') {
-        setManualCalories(goal.calories.toString());
-        setManualProteins(goal.proteins.toString());
-        setManualCarbs(goal.carbs.toString());
-        setManualFats(goal.fats.toString());
+    onSuccess: updated => {
+      reset(updated);
+      for (const key of ['active-goal', 'mealStats', 'todayMeals']) {
+        void queryClient.invalidateQueries({ queryKey: [key] });
       }
-    }
-  }, [goal]);
-
-  const handleSave = () => {
+    },
+  });
+  const automatic = { calories: preview.suggestedCalories, ...preview.suggestedMacros };
+  const chooseMode = (mode: 'auto' | 'manual') => {
+    setValue('mode', mode);
     if (mode === 'auto') {
-      if (!previewData) return;
-      mutation.mutate({
-        calories: previewData.suggestedCalories,
-        proteins: previewData.suggestedMacros.proteins,
-        carbs: previewData.suggestedMacros.carbs,
-        fats: previewData.suggestedMacros.fats,
-        mode: 'auto',
-      });
-    } else {
-      mutation.mutate({
-        calories: Number(manualCalories) || 0,
-        proteins: Number(manualProteins) || 0,
-        carbs: Number(manualCarbs) || 0,
-        fats: Number(manualFats) || 0,
-        mode: 'manual',
-      });
+      for (const key of ['calories', 'proteins', 'carbs', 'fats'] as const) setValue(key, automatic[key]);
     }
   };
-
-  if (isLoading) {
-    return <div className="p-8 bg-card border-2 border-border animate-pulse h-64 flex items-center justify-center">
-      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">CARREGANDO METAS...</span>
-    </div>;
-  }
-
-  const isAuto = mode === 'auto';
-  
-  const displayCalories = isAuto ? previewData?.suggestedCalories : manualCalories;
-  const displayProt = isAuto ? previewData?.suggestedMacros.proteins : manualProteins;
-  const displayCarb = isAuto ? previewData?.suggestedMacros.carbs : manualCarbs;
-  const displayFat = isAuto ? previewData?.suggestedMacros.fats : manualFats;
-
-  const inputBase =
-    'w-full px-4 py-2.5 bg-background border-2 rounded-none text-sm font-black text-foreground uppercase outline-none transition-colors min-h-[48px]';
-  const inputNormal = 'border-border hover:border-primary/50 focus:border-primary focus:ring-0';
-  const inputDisabled = 'border-border opacity-60 cursor-not-allowed';
-
-  return (
-    <div className="space-y-6">
-      <h2 className="text-xl font-heading font-black uppercase tracking-tight text-foreground border-b-2 border-border pb-2 flex items-center gap-2">
-        METAS DIÁRIAS
-      </h2>
-
-      {/* Toggle Mode */}
-      <div className="flex flex-col sm:flex-row gap-4 border-2 border-border p-2 bg-background">
-        <button
-          type="button"
-          onClick={() => {
-            setMode('auto');
-            if (previewData && goal?.mode === 'manual') {
-              mutation.mutate({
-                calories: previewData.suggestedCalories,
-                proteins: previewData.suggestedMacros.proteins,
-                carbs: previewData.suggestedMacros.carbs,
-                fats: previewData.suggestedMacros.fats,
-                mode: 'auto',
-              });
-            }
-          }}
-          className={`flex-1 py-3 px-4 text-xs font-black uppercase tracking-widest transition-all focus:outline-none ${
-            mode === 'auto' 
-              ? 'bg-primary text-primary-foreground border-2 border-transparent shadow-[2px_2px_0_0_#000] dark:shadow-[2px_2px_0_0_#fff]' 
-              : 'bg-background text-foreground border-2 border-transparent hover:border-border'
-          }`}
-        >
-          AUTOMÁTICO
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode('manual')}
-          className={`flex-1 py-3 px-4 text-xs font-black uppercase tracking-widest transition-all focus:outline-none ${
-            mode === 'manual' 
-              ? 'bg-primary text-primary-foreground border-2 border-transparent shadow-[2px_2px_0_0_#000] dark:shadow-[2px_2px_0_0_#fff]' 
-              : 'bg-background text-foreground border-2 border-transparent hover:border-border'
-          }`}
-        >
-          MANUAL
-        </button>
-      </div>
-
-      {isAuto && (
-        <div className="bg-primary/10 border-2 border-primary/20 p-4 flex items-start gap-3">
-          <Info className="w-5 h-5 text-primary shrink-0" />
-          <p className="text-[10px] font-bold uppercase tracking-widest text-foreground leading-relaxed">
-            O MODO AUTOMÁTICO CALCULA SUAS NECESSIDADES (TMB + FATOR DE ATIVIDADE). 
-            AS METAS SE AJUSTAM SOZINHAS SE VOCÊ ALTERAR PESO, ALTURA OU ROTINA.
-          </p>
-        </div>
-      )}
-
-      {mutation.isSuccess && (
-        <div className="p-4 bg-primary text-primary-foreground font-bold text-xs uppercase tracking-widest flex items-center gap-3 border-2 border-transparent">
-          <Save className="w-5 h-5 shrink-0" />
-          <span>METAS ATUALIZADAS COM SUCESSO!</span>
-        </div>
-      )}
-
-      {/* Inputs Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-        <div>
-          <label className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">CALORIAS (KCAL)</label>
-          <input 
-            type="number" 
-            readOnly={isAuto}
-            value={displayCalories ?? ''}
-            onChange={e => setManualCalories(e.target.value)}
-            className={`${inputBase} ${isAuto ? inputDisabled : inputNormal}`}
-          />
-        </div>
-        <div>
-          <label className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">PROTEÍNAS (G)</label>
-          <input 
-            type="number" 
-            readOnly={isAuto}
-            value={displayProt ?? ''}
-            onChange={e => setManualProteins(e.target.value)}
-            className={`${inputBase} ${isAuto ? inputDisabled : inputNormal}`}
-          />
-        </div>
-        <div>
-          <label className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">CARBOS (G)</label>
-          <input 
-            type="number" 
-            readOnly={isAuto}
-            value={displayCarb ?? ''}
-            onChange={e => setManualCarbs(e.target.value)}
-            className={`${inputBase} ${isAuto ? inputDisabled : inputNormal}`}
-          />
-        </div>
-        <div>
-          <label className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">GORDURAS (G)</label>
-          <input 
-            type="number" 
-            readOnly={isAuto}
-            value={displayFat ?? ''}
-            onChange={e => setManualFats(e.target.value)}
-            className={`${inputBase} ${isAuto ? inputDisabled : inputNormal}`}
-          />
-        </div>
-      </div>
-
-      <div className="flex justify-end pt-4">
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={mutation.isPending || isAuto}
-          title={isAuto ? 'No modo automático, as metas são calculadas dinamicamente pelo sistema.' : undefined}
-          className="w-full sm:w-auto px-8 py-3 bg-foreground text-background font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-foreground/90 transition-all border-2 border-transparent disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
-        >
-          {mutation.isPending ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span>APLICANDO...</span>
-            </>
-          ) : (
-            <>
-              <Target className="w-4 h-4" />
-              <span>APLICAR METAS</span>
-            </>
-          )}
-        </button>
-      </div>
+  return <form noValidate onSubmit={handleSubmit(data => mutation.mutate(data.mode === 'auto' ? { ...automatic, mode: 'auto' } : data))} className="space-y-6">
+    <div className="flex flex-wrap gap-3" role="group" aria-label="Modo das metas">
+      {(['auto', 'manual'] as const).map(mode => <button key={mode} type="button" aria-pressed={selectedMode === mode} onClick={() => chooseMode(mode)} className={`border-2 border-border px-5 py-3 font-black text-xs uppercase focus-visible:ring-2 focus-visible:ring-primary ${selectedMode === mode ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-secondary'}`}>{mode === 'auto' ? 'AUTOMÁTICO' : 'MANUAL'}</button>)}
     </div>
-  );
+    <p className="text-muted-foreground">{isAuto ? 'As metas automáticas usam seus dados corporais, objetivo e rotina. Confirme em Aplicar metas para ativar este modo.' : 'Defina calorias e macronutrientes e confirme em Aplicar metas.'}</p>
+    <ProfileFormFeedback error={mutation.error} success={mutation.isSuccess} />
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {([
+        ['calories', 'CALORIAS (KCAL)'], ['proteins', 'PROTEÍNAS (G)'], ['carbs', 'CARBOIDRATOS (G)'], ['fats', 'GORDURAS (G)'],
+      ] as const).map(([key, label]) => <div key={key} className="space-y-2">
+        <label htmlFor={`goal-${key}`} className="block text-xs font-bold uppercase">{label}</label>
+        {isAuto ? <input id={`goal-${key}`} type="number" readOnly value={automatic[key]} className="w-full border-2 border-border bg-secondary p-3" /> : <input id={`goal-${key}`} type="number" step="any" min={key === 'calories' ? 1 : 0} {...register(key, { valueAsNumber: true })} aria-invalid={!!errors[key]} className="w-full border-2 border-border bg-background p-3 focus:border-primary outline-none" />}
+        {errors[key] && <p role="alert" className="text-xs text-destructive">{errors[key]?.message}</p>}
+      </div>)}
+    </div>
+    <button type="submit" disabled={mutation.isPending} className="border-2 border-primary bg-primary text-primary-foreground px-6 py-3 text-xs font-black uppercase disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-foreground">{mutation.isPending ? 'APLICANDO...' : 'APLICAR METAS'}</button>
+  </form>;
+}
+
+function GoalQueries({ user }: { user: UserProfile }) {
+  const date = getLocalDateString();
+  const goal = useQuery({ queryKey: ['active-goal', date], queryFn: () => getActiveGoal(date), staleTime: 5 * 60 * 1000 });
+  const inputs = { weight: user.weight, height: user.height, sex: user.sex, birthDate: user.birth_date, body_fat: user.body_fat, activity_level: user.activity_level, goal: user.goal };
+  const preview = useQuery({ queryKey: ['preview-goal', inputs], queryFn: () => previewGoals(inputs), staleTime: 5 * 60 * 1000 });
+  if (goal.isPending || preview.isPending) return <p role="status" className="font-bold uppercase">CARREGANDO METAS...</p>;
+  if (goal.isError || preview.isError) return <div role="alert" className="text-destructive space-y-3">
+    <p>{goal.error?.message || preview.error?.message}</p>
+    <button type="button" onClick={() => { void goal.refetch(); void preview.refetch(); }} className="border-2 border-border p-3 font-bold uppercase focus-visible:ring-2 focus-visible:ring-primary">TENTAR NOVAMENTE</button>
+  </div>;
+  if (!goal.data || !preview.data) return <p className="uppercase font-bold">NENHUMA META DISPONÍVEL.</p>;
+  return <GoalForm goal={goal.data} preview={preview.data} />;
+}
+
+export function GoalSettingsCard() {
+  return <section className="bg-card border-2 border-border shadow-hard p-6 space-y-6">
+    <h2 className="text-xl font-heading font-black uppercase">METAS DIÁRIAS</h2>
+    <ProfileQueryBoundary>{user => <GoalQueries user={user} />}</ProfileQueryBoundary>
+  </section>;
 }

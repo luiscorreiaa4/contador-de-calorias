@@ -1,4 +1,9 @@
 import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { createMeasurementSchema, type CreateMeasurementDTO } from '@caloriesync/shared';
+import { z } from 'zod';
+import { BodyHeightForm } from '../../components/profile/BodyHeightForm';
 import { Link } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getMeasurements, addMeasurement, type BodyMeasurement } from '../../services/measurement.service';
@@ -14,14 +19,20 @@ import {
 } from 'recharts';
 import { Scale, TrendingDown, TrendingUp, ArrowLeft, Plus, AlertTriangle, Calendar } from 'lucide-react';
 
-export const MeasurementsPage: React.FC = () => {
+const measurementFormSchema = createMeasurementSchema.extend({
+  measured_at: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'INFORME UMA DATA VÁLIDA.').refine(value => !Number.isNaN(Date.parse(value)), 'INFORME UMA DATA VÁLIDA.'),
+});
+const decimalValue = (value: string) => value.trim() ? Number(value.replace(',', '.')) : undefined;
+
+export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
+  const Heading = embedded ? 'h2' : 'h1';
   const queryClient = useQueryClient();
   const [period, setPeriod] = useState<'30d' | '90d' | 'all'>('90d');
   const [isLogging, setIsLogging] = useState(false);
-  const [weightInput, setWeightInput] = useState('');
-  const [bodyFatInput, setBodyFatInput] = useState('');
-  const [dateInput, setDateInput] = useState(getLocalDateString());
-  const [formError, setFormError] = useState<string | null>(null);
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<z.infer<typeof measurementFormSchema>>({
+    resolver: zodResolver(measurementFormSchema),
+    defaultValues: { measured_at: getLocalDateString() },
+  });
 
   const {
     data: measurements = [],
@@ -36,50 +47,23 @@ export const MeasurementsPage: React.FC = () => {
   });
 
   const mutation = useMutation({
-    mutationFn: (data: { weight: number; body_fat?: number; measured_at?: string }) =>
-      addMeasurement(data),
+    mutationFn: (data: CreateMeasurementDTO) => addMeasurement(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['measurements'] });
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
       setIsLogging(false);
-      setWeightInput('');
-      setBodyFatInput('');
-      setFormError(null);
-    },
-    onError: (err: unknown) => {
-      setFormError(err instanceof Error ? err.message.toUpperCase() : 'ERRO AO REGISTRAR MEDIÇÃO.');
+      reset({ measured_at: getLocalDateString() });
+      for (const key of ['active-goal', 'preview-goal', 'mealStats', 'todayMeals']) {
+        void queryClient.invalidateQueries({ queryKey: [key] });
+      }
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormError(null);
-
-    const weightNum = parseFloat(weightInput.replace(',', '.'));
-    if (isNaN(weightNum) || weightNum <= 0 || weightNum > 500) {
-      setFormError('INFORME UM PESO VÁLIDO (EX: 75.5 KG).');
-      return;
-    }
-
-    let bfNum: number | undefined;
-    if (bodyFatInput.trim()) {
-      bfNum = parseFloat(bodyFatInput.replace(',', '.'));
-      if (isNaN(bfNum) || bfNum <= 0 || bfNum > 100) {
-        setFormError('PERCENTUAL DE GORDURA INVÁLIDO (0 - 100%).');
-        return;
-      }
-    }
-
-    const payload = {
-      weight: weightNum,
-      body_fat: bfNum,
-      measured_at: dateInput ? new Date(dateInput).toISOString() : new Date().toISOString(),
-    };
-
-    mutation.mutate(payload);
+  const onSubmit = (data: z.infer<typeof measurementFormSchema>) => {
+    mutation.mutate({ ...data, measured_at: new Date(data.measured_at).toISOString() });
   };
 
-  // Cálculos estatísticos
+
   const weights = measurements.map((m) => Number(m.weight)).filter((w) => !isNaN(w) && w > 0);
   const currentWeight = weights.length > 0 ? weights[weights.length - 1] : null;
   const initialWeight = weights.length > 0 ? weights[0] : null;
@@ -98,7 +82,7 @@ export const MeasurementsPage: React.FC = () => {
   });
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 py-8 space-y-10">
+    <div className={embedded ? "space-y-8" : "w-full max-w-5xl mx-auto px-4 py-8 space-y-10"}>
       {/* Header */}
       <div className="border-b-2 border-border pb-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -106,12 +90,14 @@ export const MeasurementsPage: React.FC = () => {
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-2">
               Evolução Corporal
             </p>
-            <h1 className="text-3xl sm:text-5xl font-heading font-black text-foreground uppercase tracking-tighter">
+            <Heading className="text-3xl sm:text-5xl font-heading font-black text-foreground uppercase tracking-tighter">
               PESO E MEDIDAS
-            </h1>
+            </Heading>
           </div>
           <div className="flex items-center gap-2">
             <button
+              aria-expanded={isLogging}
+              aria-controls="measurement-form"
               onClick={() => setIsLogging(!isLogging)}
               className="py-3 px-5 text-xs font-black uppercase tracking-widest bg-primary text-primary-foreground border-2 border-primary hover:bg-primary/90 flex items-center gap-2 transition-colors"
             >
@@ -133,6 +119,7 @@ export const MeasurementsPage: React.FC = () => {
           {(['30d', '90d', 'all'] as const).map((p) => (
             <button
               key={p}
+              aria-pressed={period === p}
               onClick={() => setPeriod(p)}
               className={`flex-1 md:flex-none py-2 px-5 text-xs font-black uppercase tracking-widest transition-all focus:outline-none ${
                 period === p
@@ -147,8 +134,10 @@ export const MeasurementsPage: React.FC = () => {
       </div>
 
       {/* Formulário de Registro Rápido */}
+      {embedded && <BodyHeightForm />}
+
       {isLogging && (
-        <form onSubmit={handleSubmit} className="p-6 bg-card border-2 border-border shadow-hard space-y-4">
+        <form id="measurement-form" noValidate onSubmit={handleSubmit(onSubmit)} className="p-6 bg-card border-2 border-border shadow-hard space-y-4">
           <div className="flex items-center justify-between border-b-2 border-border pb-3">
             <h2 className="text-sm font-black uppercase tracking-wider text-foreground flex items-center gap-2">
               <Scale className="w-4 h-4 text-primary" />
@@ -163,9 +152,9 @@ export const MeasurementsPage: React.FC = () => {
             </button>
           </div>
 
-          {formError && (
-            <p className="p-3 bg-destructive text-destructive-foreground text-xs font-bold uppercase tracking-wider">
-              {formError}
+          {(mutation.isError || Object.keys(errors).length > 0) && (
+            <p role="alert" className="p-3 bg-destructive text-destructive-foreground text-xs font-bold uppercase tracking-wider">
+              {mutation.error?.message || errors.weight?.message || errors.body_fat?.message || errors.measured_at?.message}
             </p>
           )}
 
@@ -177,8 +166,9 @@ export const MeasurementsPage: React.FC = () => {
               <input
                 id="input-weight"
                 type="text"
-                value={weightInput}
-                onChange={(e) => setWeightInput(e.target.value)}
+                {...register('weight', { setValueAs: decimalValue })}
+                aria-invalid={!!errors.weight}
+                inputMode="decimal"
                 placeholder="EX: 78.5"
                 className="w-full px-3 py-2 bg-background border-2 border-border text-sm font-black uppercase focus:border-primary outline-none"
                 required
@@ -191,8 +181,9 @@ export const MeasurementsPage: React.FC = () => {
               <input
                 id="input-bodyfat"
                 type="text"
-                value={bodyFatInput}
-                onChange={(e) => setBodyFatInput(e.target.value)}
+                {...register('body_fat', { setValueAs: decimalValue })}
+                aria-invalid={!!errors.body_fat}
+                inputMode="decimal"
                 placeholder="EX: 18.0"
                 className="w-full px-3 py-2 bg-background border-2 border-border text-sm font-black uppercase focus:border-primary outline-none"
               />
@@ -204,8 +195,8 @@ export const MeasurementsPage: React.FC = () => {
               <input
                 id="input-date"
                 type="date"
-                value={dateInput}
-                onChange={(e) => setDateInput(e.target.value)}
+                {...register('measured_at')}
+                aria-invalid={!!errors.measured_at}
                 className="w-full px-3 py-2 bg-background border-2 border-border text-sm font-black uppercase focus:border-primary outline-none"
               />
             </div>
@@ -240,7 +231,7 @@ export const MeasurementsPage: React.FC = () => {
         </div>
         <div className="bg-card border-2 border-border p-4 shadow-hard">
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">MENOR PESO</p>
-          <p className="text-2xl sm:text-3xl font-heading font-black text-emerald-600 dark:text-emerald-400">
+          <p className="text-2xl sm:text-3xl font-heading font-black text-foreground">
             {minWeight !== null ? `${minWeight.toFixed(1)} kg` : '—'}
           </p>
         </div>
@@ -254,9 +245,9 @@ export const MeasurementsPage: React.FC = () => {
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">VARIAÇÃO</p>
           <div className="flex items-center gap-1">
             {weightDiff > 0 ? (
-              <TrendingUp className="w-5 h-5 text-amber-500" />
+              <TrendingUp className="w-5 h-5 text-primary" />
             ) : weightDiff < 0 ? (
-              <TrendingDown className="w-5 h-5 text-emerald-500" />
+              <TrendingDown className="w-5 h-5 text-primary" />
             ) : null}
             <p className="text-2xl sm:text-3xl font-heading font-black text-foreground">
               {currentWeight !== null

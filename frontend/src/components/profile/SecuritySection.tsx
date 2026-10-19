@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import type { UseFormRegister, FieldErrors } from 'react-hook-form';
 import { Lock, Eye, EyeOff } from 'lucide-react';
-import type { EditProfileFormInputs } from '../../types/profile';
+import type { PasswordFormInputs } from '../../types/profile';
 
 interface SecuritySectionProps {
-  register: UseFormRegister<EditProfileFormInputs>;
-  errors: FieldErrors<EditProfileFormInputs>;
-  isEmailChanged: boolean;
+  register: UseFormRegister<PasswordFormInputs>;
+  errors: FieldErrors<PasswordFormInputs>;
   hasNewPassword: boolean;
 }
 
@@ -20,7 +19,6 @@ const inputError =
 export const SecuritySection: React.FC<SecuritySectionProps> = ({
   register,
   errors,
-  isEmailChanged,
   hasNewPassword,
 }) => {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -42,11 +40,7 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
             className="block sm:min-h-10 sm:flex sm:flex-wrap sm:items-end sm:content-end sm:gap-x-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2"
           >
             SENHA ATUAL{' '}
-            {isEmailChanged || hasNewPassword ? (
-              <span className="text-primary">*</span>
-            ) : (
-              <span className="opacity-50">(OPCIONAL)</span>
-            )}
+            <span className="text-primary">*</span>
           </label>
           <div className="relative w-full">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
@@ -54,6 +48,7 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
             </div>
             <input
               id="edit-current-password"
+              autoComplete="current-password"
               type={showCurrentPassword ? 'text' : 'password'}
               placeholder="DIGITE A SENHA ATUAL"
               className={`${inputBase} ${errors.currentPassword ? inputError : inputNormal}`}
@@ -82,7 +77,7 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
             htmlFor="edit-new-password"
             className="block sm:min-h-10 sm:flex sm:flex-wrap sm:items-end sm:content-end sm:gap-x-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2"
           >
-            NOVA SENHA <span className="opacity-50">(OPCIONAL)</span>
+            NOVA SENHA <span className="text-primary">*</span>
           </label>
           <div className="relative w-full">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
@@ -90,6 +85,7 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
             </div>
             <input
               id="edit-new-password"
+              autoComplete="new-password"
               type={showNewPassword ? 'text' : 'password'}
               placeholder="NOVA SENHA"
               className={`${inputBase} ${errors.newPassword ? inputError : inputNormal}`}
@@ -130,6 +126,7 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
               </div>
               <input
                 id="edit-confirm-new-password"
+                autoComplete="new-password"
                 type={showConfirmNewPassword ? 'text' : 'password'}
                 placeholder="REPITA A SENHA"
                 className={`${inputBase} ${errors.confirmNewPassword ? inputError : inputNormal}`}

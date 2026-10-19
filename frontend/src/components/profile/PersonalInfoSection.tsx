@@ -2,12 +2,12 @@ import React from 'react';
 import type { UseFormRegister, FieldErrors, UseFormSetValue } from 'react-hook-form';
 import { User, Mail } from 'lucide-react';
 import { DatePickerInput } from '../common/DatePickerInput';
-import type { EditProfileFormInputs } from '../../types/profile';
+import type { PersonalInfoFormInputs } from '../../types/profile';
 
 interface PersonalInfoSectionProps {
-  register: UseFormRegister<EditProfileFormInputs>;
-  errors: FieldErrors<EditProfileFormInputs>;
-  setValue: UseFormSetValue<EditProfileFormInputs>;
+  register: UseFormRegister<PersonalInfoFormInputs>;
+  errors: FieldErrors<PersonalInfoFormInputs>;
+  setValue: UseFormSetValue<PersonalInfoFormInputs>;
   birthDateValue: string;
   isEmailChanged: boolean;
 }

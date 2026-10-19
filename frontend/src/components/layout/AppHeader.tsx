@@ -1,16 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router';
+import { NavLink, useNavigate } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
 import {
   Flame,
   Sun,
   Moon,
   UserCog,
+  Settings,
+  Bell,
+  Lock,
+  Shield,
   LogOut,
   ChevronDown,
   Target,
   LayoutDashboard,
-  Scale,
+  TrendingUp,
 } from 'lucide-react';
 
 interface AppHeaderProps {
@@ -31,6 +35,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   const { user, isAuthenticated, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
 
   const handleDashboard = () => {
@@ -41,7 +46,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
   const handleStats = () => {
     if (onNavigateToStats) onNavigateToStats();
-    else navigate('/estatisticas');
+    else navigate('/evolucao/alimentacao');
     setMenuOpen(false);
   };
 
@@ -50,6 +55,17 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     else navigate('/perfil');
     setMenuOpen(false);
   };
+
+  const primaryLinks = [
+    { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/evolucao', label: 'Evolução', icon: TrendingUp },
+    { to: '/metas', label: 'Metas', icon: Target },
+    { to: '/perfil', label: 'Perfil', icon: UserCog },
+    { to: '/configuracoes', label: 'Configurações', icon: Settings },
+  ];
+
+  // Desktop usa a barra de abas; o dropdown só repete os links no mobile.
+  const showMainNav = isAuthenticated && !!user?.onboarding_completed;
 
   // Close on click outside
   useEffect(() => {
@@ -64,12 +80,16 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
   // Close on Escape key
   useEffect(() => {
+    if (!menuOpen) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMenuOpen(false);
+      if (e.key === 'Escape') {
+        setMenuOpen(false);
+        menuButtonRef.current?.focus();
+      }
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, []);
+  }, [menuOpen]);
 
   // Generate avatar initials
   const initials = user?.name
@@ -90,7 +110,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
         {/* Logo */}
-        <div className="flex items-center gap-3 shrink-0 cursor-pointer group" onClick={handleDashboard}>
+        <button type="button" aria-label="CalorieSync — Dashboard" className="flex items-center gap-3 shrink-0 cursor-pointer group focus-visible:ring-2 focus-visible:ring-primary" onClick={handleDashboard}>
           <div className="w-10 h-10 bg-primary text-primary-foreground flex items-center justify-center shadow-hard transition-transform group-hover:-translate-y-0.5 group-hover:shadow-hard-hover">
             <Flame className="w-6 h-6 fill-current" aria-hidden="true" />
           </div>
@@ -105,7 +125,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               Alta Performance
             </span>
           </div>
-        </div>
+        </button>
 
         {/* Right side controls */}
         <div className="flex items-center gap-4">
@@ -130,7 +150,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               <button
                 type="button"
                 onClick={() => setMenuOpen((prev) => !prev)}
-                aria-haspopup="true"
+                aria-label="Menu da conta"
+                ref={menuButtonRef}
+                aria-controls="account-navigation"
                 aria-expanded={menuOpen}
                 className="flex items-center gap-3 pl-2 pr-4 py-2 border-2 border-border bg-card hover:border-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary group"
               >
@@ -155,7 +177,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
               {/* Dropdown panel */}
               {menuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-64 bg-card border-2 border-border shadow-hard overflow-hidden z-[100] opacity-100">
+                <div id="account-navigation" className="absolute right-0 top-full mt-2 w-64 bg-card border-2 border-border shadow-hard overflow-hidden z-[100] opacity-100">
                   <div className="p-4 border-b-2 border-border bg-secondary flex justify-between items-start gap-2">
                     <div className="min-w-0">
                       <p className="text-sm font-black font-heading uppercase text-foreground truncate">
@@ -182,39 +204,27 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                     </button>
                   </div>
 
-                  <div className="p-2 flex flex-col gap-1">
-                    <button
-                      onClick={handleDashboard}
-                      className="flex items-center w-full px-3 py-3 text-xs font-bold uppercase tracking-widest text-foreground hover:bg-secondary hover:text-secondary-foreground transition-colors"
-                    >
-                      <LayoutDashboard className="w-4 h-4 mr-3" />
-                      Dashboard
-                    </button>
-                    <button
-                      onClick={handleStats}
-                      className="flex items-center w-full px-3 py-3 text-xs font-bold uppercase tracking-widest text-foreground hover:bg-secondary hover:text-secondary-foreground transition-colors"
-                    >
-                      <Target className="w-4 h-4 mr-3" />
-                      Estatísticas
-                    </button>
-                    <button
-                      onClick={() => {
-                        navigate('/medidas');
-                        setMenuOpen(false);
-                      }}
-                      className="flex items-center w-full px-3 py-3 text-xs font-bold uppercase tracking-widest text-foreground hover:bg-secondary hover:text-secondary-foreground transition-colors"
-                    >
-                      <Scale className="w-4 h-4 mr-3" />
-                      Peso e Medidas
-                    </button>
-                    <button
-                      onClick={handleEditProfile}
-                      className="flex items-center w-full px-3 py-3 text-xs font-bold uppercase tracking-widest text-foreground hover:bg-secondary hover:text-secondary-foreground transition-colors"
-                    >
-                      <UserCog className="w-4 h-4 mr-3" />
-                      Configurações
-                    </button>
-                  </div>
+                  <nav aria-label="Menu da conta" className="p-2 flex flex-col gap-1 max-h-[60vh] overflow-y-auto">
+                    <div className={`flex flex-col gap-1 ${showMainNav ? 'md:hidden' : ''}`}>
+                      {primaryLinks.map(({ to, label, icon: Icon }) => (
+                        <NavLink key={to} to={to} end={to === '/'} onClick={event => {
+                          setMenuOpen(false);
+                          if (to === '/' && onNavigateToDashboard) { event.preventDefault(); handleDashboard(); }
+                          if (to === '/evolucao' && onNavigateToStats) { event.preventDefault(); handleStats(); }
+                          if (to === '/perfil' && onNavigateToEditProfile) { event.preventDefault(); handleEditProfile(); }
+                        }} className={({ isActive }) => `flex items-center px-3 py-3 text-xs font-bold uppercase tracking-wider focus-visible:ring-2 focus-visible:ring-primary ${isActive ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'}`}>
+                          <Icon className="w-4 h-4 mr-3" aria-hidden="true" />{label}
+                        </NavLink>
+                      ))}
+                    </div>
+                    <div className={`border-t-2 border-border mt-1 pt-2 ${showMainNav ? 'md:border-t-0 md:mt-0 md:pt-0' : ''}`}>
+                      {[
+                        { to: '/configuracoes/notificacoes', label: 'Notificações', icon: Bell },
+                        { to: '/configuracoes/seguranca', label: 'Segurança', icon: Lock },
+                        { to: '/configuracoes/privacidade', label: 'Privacidade e dados', icon: Shield },
+                      ].map(({ to, label, icon: Icon }) => <NavLink key={to} to={to} onClick={() => setMenuOpen(false)} className="flex items-center px-3 py-3 text-xs font-bold uppercase tracking-wider hover:bg-secondary focus-visible:ring-2 focus-visible:ring-primary"><Icon className="w-4 h-4 mr-3" aria-hidden="true" />{label}</NavLink>)}
+                    </div>
+                  </nav>
 
                   <div className="p-2 border-t-2 border-border bg-background">
                     <button
@@ -235,6 +245,37 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           )}
         </div>
       </div>
+      {showMainNav && (
+        <div className="hidden md:block border-t-2 border-border bg-card">
+          <nav aria-label="Navegação principal" className="max-w-5xl mx-auto px-6 flex items-stretch gap-1">
+            {primaryLinks.map(({ to, label, icon: Icon }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={to === '/'}
+                onClick={() => setMenuOpen(false)}
+                className={({ isActive }) =>
+                  `group relative flex items-center gap-2 px-5 py-3.5 text-xs font-black uppercase tracking-widest border-b-4 -mb-px transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${
+                    isActive
+                      ? 'border-primary text-foreground bg-secondary'
+                      : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary hover:border-border'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <Icon
+                      className={`w-4 h-4 transition-colors ${isActive ? 'text-primary' : 'group-hover:text-primary'}`}
+                      aria-hidden="true"
+                    />
+                    {label}
+                  </>
+                )}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+      )}
     </header>
   );
 };

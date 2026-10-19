@@ -84,7 +84,7 @@ describe('Router & Navigation (PC-21 / D-16)', () => {
     );
 
     await waitFor(() => {
-      expect(router.state.location.pathname).toBe('/estatisticas');
+      expect(router.state.location.pathname).toBe('/evolucao/alimentacao');
     });
   });
 

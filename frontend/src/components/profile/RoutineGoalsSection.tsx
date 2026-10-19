@@ -1,14 +1,14 @@
 import React from 'react';
 import type { FieldErrors } from 'react-hook-form';
 import { Flame, Target, TrendingUp } from 'lucide-react';
-import type { EditProfileFormInputs } from '../../types/profile';
+import type { RoutineFormInputs } from '../../types/profile';
 
 interface RoutineGoalsSectionProps {
   goalValue: string;
   activityLevelValue: string;
   onSelectGoal: (key: string) => void;
   onSelectActivityLevel: (key: string) => void;
-  errors: FieldErrors<EditProfileFormInputs>;
+  errors: FieldErrors<RoutineFormInputs>;
 }
 
 const goals = [
@@ -41,49 +41,47 @@ export const RoutineGoalsSection: React.FC<RoutineGoalsSectionProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
         {/* Objetivo */}
         <div>
-          <label id="goal-group-label" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3">
+          <p id="goal-group-label" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3">
             SEU FOCO PRINCIPAL
-          </label>
+          </p>
           <div role="radiogroup" aria-labelledby="goal-group-label" className="flex flex-col gap-3">
             {goals.map(({ key, label, icon }) => (
-              <button
+              <label
                 key={key}
-                type="button"
-                role="radio"
-                aria-checked={goalValue === key}
-                onClick={() => onSelectGoal(key)}
-                className={`p-4 border-2 flex items-center gap-4 transition-all focus:outline-none ${
+                htmlFor={`routine-goal-${key}`}
+                className={`p-4 border-2 flex items-center gap-4 transition-all cursor-pointer focus-within:ring-2 focus-within:ring-primary ${
                   goalValue === key
                     ? 'border-primary bg-primary text-primary-foreground shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff]'
                     : 'border-border bg-background text-foreground hover:border-primary/50 hover:bg-secondary'
                 }`}
               >
+                <input id={`routine-goal-${key}`} type="radio" name="routine-goal" value={key} checked={goalValue === key} onChange={() => onSelectGoal(key)} className="accent-primary" />
                 <div className={goalValue === key ? 'text-primary-foreground' : 'text-primary'}>
                   {icon}
                 </div>
                 <span className="font-black uppercase tracking-widest text-sm">{label}</span>
-              </button>
+              </label>
             ))}
           </div>
         </div>
 
         {/* Nível de Atividade */}
         <div>
-          <label className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3">
+          <p id="activity-group-label" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3">
             NÍVEL DE ATIVIDADE FÍSICA
-          </label>
-          <div className="grid gap-3">
+          </p>
+          <div role="radiogroup" aria-labelledby="activity-group-label" className="grid gap-3">
             {activityLevels.map((a) => (
-              <button
+              <label
                 key={a.key}
-                type="button"
-                onClick={() => onSelectActivityLevel(a.key)}
-                className={`p-3 border-2 flex flex-col text-left transition-all focus:outline-none ${
+                htmlFor={`routine-activity-${a.key}`}
+                className={`p-3 border-2 flex flex-col text-left transition-all cursor-pointer focus-within:ring-2 focus-within:ring-primary ${
                   activityLevelValue === a.key
                     ? 'border-primary bg-primary text-primary-foreground'
                     : 'border-border bg-background hover:border-primary/50 text-foreground'
                 }`}
               >
+                <input id={`routine-activity-${a.key}`} type="radio" name="routine-activity" value={a.key} checked={activityLevelValue === a.key} onChange={() => onSelectActivityLevel(a.key)} className="sr-only" />
                 <span className="text-xs font-black uppercase tracking-widest">
                   {a.label}
                 </span>
@@ -94,7 +92,7 @@ export const RoutineGoalsSection: React.FC<RoutineGoalsSectionProps> = ({
                 >
                   {a.desc}
                 </span>
-              </button>
+              </label>
             ))}
           </div>
           {errors.activityLevel && (
