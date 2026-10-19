@@ -244,6 +244,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
         <button
           type="button"
           onClick={handleBack}
+          aria-label="Voltar ao dashboard"
           className="self-start sm:self-auto flex items-center justify-center w-12 h-12 border-2 border-border bg-background hover:bg-primary hover:text-primary-foreground transition-colors text-foreground focus:outline-none focus:border-primary group"
         >
           <ArrowLeft className="w-5 h-5" aria-hidden="true" />
@@ -311,13 +312,13 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
         />
 
         {/* Action Buttons */}
-        <div className="pt-8 border-t-2 border-border flex flex-col-reverse sm:flex-row items-center justify-between gap-6">
-          <div className="w-full sm:w-auto flex flex-col sm:flex-row items-center gap-4">
+        <div className="pt-8 border-t-2 border-border flex flex-col-reverse gap-6">
+          <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
             <button
               type="button"
               onClick={handleExportData}
               disabled={exportDataMutation.isPending}
-              className="w-full sm:w-auto px-4 py-3 border-2 border-border bg-background text-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-secondary transition-colors focus:outline-none focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full min-h-12 px-4 py-3 border-2 border-border bg-background text-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-secondary transition-colors focus:outline-none focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {exportDataMutation.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
@@ -330,18 +331,18 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
             <button
               type="button"
               onClick={() => setShowDeleteModal(true)}
-              className="w-full sm:w-auto px-4 py-3 border-2 border-destructive bg-background text-destructive font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-destructive hover:text-destructive-foreground transition-colors focus:outline-none"
+              className="w-full min-h-12 px-4 py-3 border-2 border-destructive bg-background text-destructive font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-destructive hover:text-destructive-foreground transition-colors focus:outline-none focus:border-destructive"
             >
               <Trash2 className="w-4 h-4" aria-hidden="true" />
               <span>EXCLUIR CONTA</span>
             </button>
           </div>
 
-          <div className="w-full sm:w-auto flex flex-col sm:flex-row items-center gap-4">
+          <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
             <button
               type="button"
               onClick={handleBack}
-              className="w-full sm:w-auto px-6 py-3 border-2 border-border bg-background text-foreground font-black uppercase tracking-widest text-xs hover:bg-secondary transition-colors focus:outline-none focus:border-primary"
+              className="w-full min-h-12 px-4 py-3 border-2 border-border bg-background text-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center hover:bg-secondary transition-colors focus:outline-none focus:border-primary"
             >
               CANCELAR
             </button>
@@ -349,7 +350,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
             <button
               type="submit"
               disabled={!isDirty || updateProfileMutation.isPending}
-              className="w-full sm:w-auto px-8 py-3 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-transparent disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:border-foreground shadow-hard disabled:shadow-none"
+              className="w-full min-h-12 px-4 py-3 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-transparent disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:border-foreground shadow-hard disabled:shadow-none"
             >
               {updateProfileMutation.isPending ? (
                 <>

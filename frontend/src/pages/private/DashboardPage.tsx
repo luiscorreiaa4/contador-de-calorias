@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
-import { Flame, Plus, Utensils, Beef, Clock, Pencil, Trash2, AlertTriangle, ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
+import { Flame, Plus, Utensils, Beef, Clock, Pencil, Trash2, AlertTriangle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, CalendarDays } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const NewMealModal = React.lazy(() =>
@@ -30,6 +30,8 @@ export const DashboardPage: React.FC = () => {
 
   const [isNewMealModalOpen, setIsNewMealModalOpen] = React.useState(false);
   const [mealToEdit, setMealToEdit] = React.useState<Meal | null>(null);
+  const [areMacrosExpanded, setAreMacrosExpanded] = React.useState(false);
+  const macronutrientsId = React.useId();
 
   const [mealToDelete, setMealToDelete] = React.useState<Meal | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
@@ -91,7 +93,7 @@ export const DashboardPage: React.FC = () => {
   const canGoNext = selectedDate < today;
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 py-8 space-y-10">
+    <div className="w-full max-w-5xl mx-auto px-4 py-4 sm:py-8 space-y-6 sm:space-y-10">
       {/* Greeting */}
       <div className="border-b-2 border-border pb-6">
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-2">
@@ -106,23 +108,23 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* Navegação por Data */}
-      <div className="bg-card border-2 border-border shadow-hard p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="bg-card border-2 border-border shadow-hard p-4 flex items-center justify-between gap-2 sm:gap-4">
         <button
           type="button"
           onClick={() => goToDate(addDaysToDateString(selectedDate, -1))}
           aria-label="Dia anterior"
-          className="w-full sm:w-auto px-4 py-2 border-2 border-border bg-background text-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-secondary transition-colors focus:outline-none focus:border-primary"
+          className="w-12 h-12 sm:w-auto sm:h-auto shrink-0 px-0 sm:px-4 py-2 border-2 border-border bg-background text-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-secondary transition-colors focus:outline-none focus:border-primary"
         >
           <ChevronLeft className="w-4 h-4" aria-hidden="true" />
-          Dia anterior
+          <span className="hidden sm:inline">Dia anterior</span>
         </button>
 
-        <div className="flex flex-col items-center gap-1 text-center">
+        <div className="min-w-0 flex-1 sm:flex-none flex flex-col items-center gap-1 text-center">
           <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
             <CalendarDays className="w-3.5 h-3.5" aria-hidden="true" />
             {isToday ? 'Hoje' : 'Diário'}
           </span>
-          <span data-testid="dashboard-date" className="text-sm font-heading font-black uppercase tracking-tight text-foreground">
+          <span data-testid="dashboard-date" className="text-xs sm:text-sm font-heading font-black uppercase tracking-tight text-foreground">
             {selectedDateLabel}
           </span>
           {!isToday && (
@@ -141,9 +143,9 @@ export const DashboardPage: React.FC = () => {
           onClick={() => goToDate(addDaysToDateString(selectedDate, 1))}
           disabled={!canGoNext}
           aria-label="Próximo dia"
-          className="w-full sm:w-auto px-4 py-2 border-2 border-border bg-background text-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-secondary transition-colors focus:outline-none focus:border-primary disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-background"
+          className="w-12 h-12 sm:w-auto sm:h-auto shrink-0 px-0 sm:px-4 py-2 border-2 border-border bg-background text-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-secondary transition-colors focus:outline-none focus:border-primary disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-background"
         >
-          Próximo dia
+          <span className="hidden sm:inline">Próximo dia</span>
           <ChevronRight className="w-4 h-4" aria-hidden="true" />
         </button>
       </div>
@@ -154,7 +156,23 @@ export const DashboardPage: React.FC = () => {
         <div className="bg-card border-2 border-border p-5 shadow-hard flex flex-col justify-between group">
           <div className="flex items-center justify-between mb-4">
             <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">Calorias</span>
-            <Flame className="w-5 h-5 text-primary" aria-hidden="true" />
+            <div className="flex items-center gap-2">
+              <Flame className="w-5 h-5 text-primary" aria-hidden="true" />
+              <button
+                type="button"
+                aria-label={areMacrosExpanded ? 'Recolher macronutrientes' : 'Mostrar macronutrientes'}
+                aria-expanded={areMacrosExpanded}
+                aria-controls={macronutrientsId}
+                onClick={() => setAreMacrosExpanded((expanded) => !expanded)}
+                className="sm:hidden w-11 h-11 -my-3 flex items-center justify-center border-2 border-border bg-background text-foreground hover:bg-secondary focus:outline-none focus:border-primary transition-colors"
+              >
+                {areMacrosExpanded ? (
+                  <ChevronUp className="w-5 h-5" aria-hidden="true" />
+                ) : (
+                  <ChevronDown className="w-5 h-5" aria-hidden="true" />
+                )}
+              </button>
+            </div>
           </div>
           <div>
             <div className="flex items-baseline gap-1">
@@ -167,72 +185,77 @@ export const DashboardPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Proteins Card */}
-        <div className="bg-card border-2 border-border p-5 shadow-hard flex flex-col justify-between group">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">Proteínas</span>
-            <Beef className="w-5 h-5 text-primary" aria-hidden="true" />
-          </div>
-          <div>
-            <div className="flex items-baseline gap-1">
-              <span className="text-4xl font-heading font-black text-foreground tracking-tighter">{consumedProteins.toFixed(0)}</span>
-              <span className="text-sm font-bold text-muted-foreground">/{dailyProteinsGoal.toFixed(0)}g</span>
+        <div
+          id={macronutrientsId}
+          role="group"
+          aria-label="Macronutrientes"
+          className={areMacrosExpanded ? 'contents' : 'hidden sm:contents'}
+        >
+          {/* Proteins Card */}
+          <div className="bg-card border-2 border-border p-5 shadow-hard flex flex-col justify-between group">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">Proteínas</span>
+              <Beef className="w-5 h-5 text-primary" aria-hidden="true" />
+            </div>
+            <div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-4xl font-heading font-black text-foreground tracking-tighter">{consumedProteins.toFixed(0)}</span>
+                <span className="text-sm font-bold text-muted-foreground">/{dailyProteinsGoal.toFixed(0)}g</span>
+              </div>
+            </div>
+            <div className="w-full bg-background border-2 border-border h-3 mt-4 overflow-hidden">
+              <div className="bg-primary h-full transition-all duration-500" style={{ width: `${proteinsPercent}%` }} />
             </div>
           </div>
-          <div className="w-full bg-background border-2 border-border h-3 mt-4 overflow-hidden">
-            <div className="bg-primary h-full transition-all duration-500" style={{ width: `${proteinsPercent}%` }} />
-          </div>
-        </div>
 
-        {/* Carbs Card */}
-        <div className="bg-card border-2 border-border p-5 shadow-hard flex flex-col justify-between group">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">Carboidratos</span>
-            <div className="w-5 h-5 flex items-center justify-center font-bold text-primary bg-primary/10 border border-primary/20">C</div>
-          </div>
-          <div>
-            <div className="flex items-baseline gap-1">
-              <span className="text-4xl font-heading font-black text-foreground tracking-tighter">{consumedCarbs.toFixed(0)}</span>
-              <span className="text-sm font-bold text-muted-foreground">/{dailyCarbsGoal.toFixed(0)}g</span>
+          {/* Carbs Card */}
+          <div className="bg-card border-2 border-border p-5 shadow-hard flex flex-col justify-between group">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">Carboidratos</span>
+              <div className="w-5 h-5 flex items-center justify-center font-bold text-primary bg-primary/10 border border-primary/20">C</div>
+            </div>
+            <div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-4xl font-heading font-black text-foreground tracking-tighter">{consumedCarbs.toFixed(0)}</span>
+                <span className="text-sm font-bold text-muted-foreground">/{dailyCarbsGoal.toFixed(0)}g</span>
+              </div>
+            </div>
+            <div className="w-full bg-background border-2 border-border h-3 mt-4 overflow-hidden">
+              <div className="bg-primary h-full transition-all duration-500" style={{ width: `${carbsPercent}%` }} />
             </div>
           </div>
-          <div className="w-full bg-background border-2 border-border h-3 mt-4 overflow-hidden">
-            <div className="bg-primary h-full transition-all duration-500" style={{ width: `${carbsPercent}%` }} />
-          </div>
-        </div>
 
-        {/* Fats Card */}
-        <div className="bg-card border-2 border-border p-5 shadow-hard flex flex-col justify-between group">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">Gorduras</span>
-            <div className="w-5 h-5 flex items-center justify-center font-bold text-primary bg-primary/10 border border-primary/20">G</div>
-          </div>
-          <div>
-            <div className="flex items-baseline gap-1">
-              <span className="text-4xl font-heading font-black text-foreground tracking-tighter">{consumedFats.toFixed(0)}</span>
-              <span className="text-sm font-bold text-muted-foreground">/{dailyFatsGoal.toFixed(0)}g</span>
+          {/* Fats Card */}
+          <div className="bg-card border-2 border-border p-5 shadow-hard flex flex-col justify-between group">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">Gorduras</span>
+              <div className="w-5 h-5 flex items-center justify-center font-bold text-primary bg-primary/10 border border-primary/20">G</div>
             </div>
-          </div>
-          <div className="w-full bg-background border-2 border-border h-3 mt-4 overflow-hidden">
-            <div className="bg-primary h-full transition-all duration-500" style={{ width: `${fatsPercent}%` }} />
+            <div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-4xl font-heading font-black text-foreground tracking-tighter">{consumedFats.toFixed(0)}</span>
+                <span className="text-sm font-bold text-muted-foreground">/{dailyFatsGoal.toFixed(0)}g</span>
+              </div>
+            </div>
+            <div className="w-full bg-background border-2 border-border h-3 mt-4 overflow-hidden">
+              <div className="bg-primary h-full transition-all duration-500" style={{ width: `${fatsPercent}%` }} />
+            </div>
           </div>
         </div>
       </div>
 
       {/* Quick Action Button */}
-      <div className="bg-background border-2 border-border p-6 shadow-hard flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative overflow-hidden">
-        {/* Decorative background element */}
+      <div className="bg-background border-2 border-border p-4 sm:p-6 shadow-hard flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden">
         <div className="absolute -right-4 -bottom-4 opacity-5 pointer-events-none">
-          <Utensils className="w-48 h-48" />
+          <Utensils className="w-48 h-48" aria-hidden="true" />
         </div>
-        
         <div className="flex items-center gap-4 relative z-10">
           <div className="p-3 bg-primary text-primary-foreground">
             <Utensils className="w-6 h-6" aria-hidden="true" />
           </div>
           <div>
             <h2 className="text-lg font-heading font-black uppercase text-foreground">Registrar Refeição</h2>
-            <p className="text-[11px] font-bold tracking-widest text-muted-foreground uppercase mt-1">Adicione o combustível da sua máquina.</p>
+            <p className="hidden sm:block text-[11px] font-bold tracking-widest text-muted-foreground uppercase mt-1">Adicione o combustível da sua máquina.</p>
           </div>
         </div>
         <button
@@ -241,7 +264,7 @@ export const DashboardPage: React.FC = () => {
             setMealToEdit(null);
             setIsNewMealModalOpen(true);
           }}
-          className="relative z-10 w-full sm:w-auto py-3 px-6 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-transparent focus:outline-none focus:border-foreground"
+          className="relative z-10 w-full sm:w-auto min-h-12 py-3 px-6 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-transparent focus:outline-none focus:border-foreground"
         >
           <Plus className="w-4 h-4" aria-hidden="true" />
           <span>Nova Refeição</span>

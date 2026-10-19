@@ -11,7 +11,7 @@ interface SecuritySectionProps {
 }
 
 const inputBase =
-  'w-full pl-10 pr-12 py-2.5 bg-background border-2 rounded-none text-sm font-medium text-foreground outline-none transition-colors min-h-[48px]';
+  'w-full min-w-0 h-12 pl-10 pr-12 py-2.5 bg-background border-2 rounded-none text-sm font-medium text-foreground outline-none transition-colors';
 const inputNormal =
   'border-border hover:border-primary/50 focus:border-primary focus:ring-0';
 const inputError =
@@ -36,10 +36,10 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
       {/* Grid de 2 colunas com larguras estritamente idênticas no desktop */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start">
         {/* Senha Atual */}
-        <div className="w-full">
+        <div className="w-full min-w-0">
           <label
             htmlFor="edit-current-password"
-            className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2"
+            className="block sm:min-h-10 sm:flex sm:flex-wrap sm:items-end sm:content-end sm:gap-x-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2"
           >
             SENHA ATUAL{' '}
             {isEmailChanged || hasNewPassword ? (
@@ -62,7 +62,7 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
             />
             <button
               type="button"
-              aria-label={showCurrentPassword ? 'Ocultar' : 'Mostrar'}
+              aria-label={showCurrentPassword ? 'Ocultar senha atual' : 'Mostrar senha atual'}
               onClick={() => setShowCurrentPassword((prev) => !prev)}
               className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground focus:outline-none"
             >
@@ -77,10 +77,10 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
         </div>
 
         {/* Nova Senha */}
-        <div className="w-full">
+        <div className="w-full min-w-0">
           <label
             htmlFor="edit-new-password"
-            className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2"
+            className="block sm:min-h-10 sm:flex sm:flex-wrap sm:items-end sm:content-end sm:gap-x-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2"
           >
             NOVA SENHA <span className="opacity-50">(OPCIONAL)</span>
           </label>
@@ -98,6 +98,7 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
             />
             <button
               type="button"
+              aria-label={showNewPassword ? 'Ocultar nova senha' : 'Mostrar nova senha'}
               onClick={() => setShowNewPassword((prev) => !prev)}
               className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground focus:outline-none"
             >
@@ -137,6 +138,7 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
               />
               <button
                 type="button"
+                aria-label={showConfirmNewPassword ? 'Ocultar confirmação de senha' : 'Mostrar confirmação de senha'}
                 onClick={() => setShowConfirmNewPassword((prev) => !prev)}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground focus:outline-none"
               >

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { getMealStats } from '../../services/meal.service';
 import { getLocalDateString } from '../../utils/date';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from 'recharts';
-import { TrendingUp, Target, Info, AlertTriangle } from 'lucide-react';
+import { TrendingUp, Target, Info, AlertTriangle, ArrowLeft } from 'lucide-react';
 
 export const StatsPage: React.FC = () => {
   const [period, setPeriod] = useState<'week' | 'month'>('week');
@@ -23,17 +24,26 @@ export const StatsPage: React.FC = () => {
 
   return (
     <div className="w-full max-w-5xl mx-auto px-4 py-8 space-y-10">
-      <div className="flex flex-col md:flex-row md:items-end justify-between border-b-2 border-border pb-6 gap-6">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-2">
-            Estatísticas
-          </p>
-          <h1 className="text-3xl sm:text-5xl font-heading font-black text-foreground uppercase tracking-tighter">
-            HISTÓRICO E TENDÊNCIAS
-          </h1>
+      <div className="border-b-2 border-border pb-6 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-2">
+              Estatísticas
+            </p>
+            <h1 className="text-3xl sm:text-5xl font-heading font-black text-foreground uppercase tracking-tighter">
+              HISTÓRICO E TENDÊNCIAS
+            </h1>
+          </div>
+          <Link
+            to="/"
+            aria-label="Voltar ao dashboard"
+            className="self-start sm:self-auto shrink-0 flex items-center justify-center w-12 h-12 border-2 border-border bg-background hover:bg-primary hover:text-primary-foreground transition-colors text-foreground focus:outline-none focus:border-primary"
+          >
+            <ArrowLeft className="w-5 h-5" aria-hidden="true" />
+          </Link>
         </div>
         
-        <div className="flex gap-4 border-2 border-border p-2 bg-background w-full md:w-auto">
+        <div className="flex gap-4 border-2 border-border p-2 bg-background w-full md:w-fit md:ml-auto">
           <button
             onClick={() => setPeriod('week')}
             className={`flex-1 md:flex-none py-3 px-6 text-xs font-black uppercase tracking-widest transition-all focus:outline-none ${

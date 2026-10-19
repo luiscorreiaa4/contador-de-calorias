@@ -1,7 +1,7 @@
-import { screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
-import { http, HttpResponse } from 'msw';
+import { delay, http, HttpResponse } from 'msw';
 import { render } from '../../tests/setup/test-utils';
 import { server } from '../../mocks/server';
 import { NewMealModal } from './NewMealModal';
@@ -117,13 +117,16 @@ describe('NewMealModal', () => {
     expect(screen.getAllByText(/62g\s*prot/i).length).toBeGreaterThan(0);
   });
 
-  it('deve carregar a próxima página de alimentos ao acionar o fim da lista (BL-13)', async () => {
+  it('carrega automaticamente no fim sem remontar a lista ou perder a posição e para no total do catálogo', async () => {
+    const requestedPages: number[] = [];
     server.use(
-      http.get(`${baseURL}/foods`, ({ request }) => {
+      http.get(`${baseURL}/foods`, async ({ request }) => {
         const url = new URL(request.url);
         const page = Number(url.searchParams.get('page') ?? '1');
-        const foods = page === 1 ? buildFoods('ALIMENTO P1', 50) : buildFoods('ALIMENTO P2', 1);
-        return HttpResponse.json({ success: true, data: { foods, total: 51 } });
+        requestedPages.push(page);
+        if (page > 1) await delay(100);
+        const foods = buildFoods(`ALIMENTO P${page}`, 50);
+        return HttpResponse.json({ success: true, data: { foods, total: 100 } });
       })
     );
 
@@ -135,10 +138,90 @@ describe('NewMealModal', () => {
     expect(await screen.findByText('ALIMENTO P1 00')).toBeInTheDocument();
     expect(screen.queryByText('ALIMENTO P2 00')).not.toBeInTheDocument();
 
-    const loadMoreButton = await screen.findByRole('button', { name: /carregar mais alimentos/i });
-    await userEvent.click(loadMoreButton);
+    expect(screen.queryByRole('button', { name: /carregar mais alimentos/i })).not.toBeInTheDocument();
+    const list = screen.getByRole('listbox');
+    Object.defineProperties(list, {
+      scrollHeight: { value: 1000, configurable: true },
+      clientHeight: { value: 300, configurable: true },
+    });
+    list.scrollTop = 100;
+    fireEvent.scroll(list);
+    expect(requestedPages).toEqual([1]);
+
+    list.scrollTop = 700;
+    fireEvent.scroll(list);
+    expect(await screen.findByText(/carregando alimentos/i)).toBeInTheDocument();
+    fireEvent.scroll(list);
+    expect(screen.getByRole('listbox')).toBe(list);
+    expect(list.scrollTop).toBe(700);
 
     expect(await screen.findByText('ALIMENTO P2 00')).toBeInTheDocument();
+    expect(screen.getByRole('listbox')).toBe(list);
+    expect(list.scrollTop).toBe(700);
+    expect(screen.getAllByRole('option')).toHaveLength(100);
+    fireEvent.scroll(list);
+    expect(requestedPages).toEqual([1, 2]);
+
+    await userEvent.click(screen.getByRole('option', { name: 'ALIMENTO P2 00' }));
+    expect(await screen.findByText(/quantidade em gramas/i)).toBeInTheDocument();
+  });
+
+  it('preserva os alimentos após erro de paginação e permite tentar novamente sem reiniciar a lista', async () => {
+    let failNextPage = true;
+    const requestedPages: number[] = [];
+    server.use(
+      http.get(`${baseURL}/foods`, ({ request }) => {
+        const page = Number(new URL(request.url).searchParams.get('page') ?? '1');
+        requestedPages.push(page);
+        if (page === 2 && failNextPage) {
+          return HttpResponse.json({ success: false, message: 'Falha temporária' }, { status: 500 });
+        }
+        const foods = buildFoods(`ALIMENTO P${page}`, page === 1 ? 50 : 1);
+        return HttpResponse.json({ success: true, data: { foods, total: 51 } });
+      })
+    );
+
+    render(<NewMealModal isOpen={true} onClose={onClose} />);
+    await userEvent.click(await screen.findByRole('combobox'));
+    await screen.findByRole('option', { name: 'ALIMENTO P1 00' });
+    const list = screen.getByRole('listbox');
+    fireEvent.scroll(list);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/erro ao carregar mais alimentos/i);
+    expect(screen.getAllByRole('option')).toHaveLength(50);
+    fireEvent.scroll(list);
+    expect(requestedPages).toEqual([1, 2]);
+
+    failNextPage = false;
+    await userEvent.click(screen.getByRole('button', { name: /tentar novamente/i }));
+    expect(await screen.findByRole('option', { name: 'ALIMENTO P2 00' })).toBeInTheDocument();
+    expect(screen.getByRole('listbox')).toBe(list);
+    expect(requestedPages).toEqual([1, 2, 2]);
+  });
+
+  it('reinicia a paginação ao pesquisar depois de carregar mais alimentos', async () => {
+    const requests: { page: number; search: string | null }[] = [];
+    server.use(
+      http.get(`${baseURL}/foods`, ({ request }) => {
+        const params = new URL(request.url).searchParams;
+        const page = Number(params.get('page') ?? '1');
+        const search = params.get('search');
+        requests.push({ page, search });
+        const foods = search ? buildFoods('ARROZ', 1) : buildFoods(`ALIMENTO P${page}`, 50);
+        return HttpResponse.json({ success: true, data: { foods, total: search ? 1 : 100 } });
+      })
+    );
+
+    render(<NewMealModal isOpen={true} onClose={onClose} />);
+    const searchInput = await screen.findByRole('combobox');
+    await userEvent.click(searchInput);
+    await screen.findByRole('option', { name: 'ALIMENTO P1 00' });
+    fireEvent.scroll(screen.getByRole('listbox'));
+    await screen.findByRole('option', { name: 'ALIMENTO P2 00' });
+    await userEvent.type(searchInput, 'Arroz');
+    expect(await screen.findByRole('option', { name: 'ARROZ 00' })).toBeInTheDocument();
+    expect(screen.getAllByRole('option')).toHaveLength(1);
+    expect(requests).toEqual([{ page: 1, search: null }, { page: 2, search: null }, { page: 1, search: 'Arroz' }]);
   });
 
   it('deve registrar refeição na data selecionada (BL-02)', async () => {

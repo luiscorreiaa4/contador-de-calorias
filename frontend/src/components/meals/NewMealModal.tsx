@@ -33,7 +33,16 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { data: foodsData, isLoading: isLoadingFoods, isFetchingNextPage, hasNextPage, fetchNextPage } = useInfiniteQuery({
+  const {
+    data: foodsData,
+    isLoading: isLoadingFoods,
+    isError: isFoodsError,
+    isFetchNextPageError,
+    isPlaceholderData,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteQuery({
     queryKey: ['foods', debouncedSearch],
     queryFn: ({ pageParam, signal }) =>
       getFoods(
@@ -44,8 +53,10 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
       ),
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) =>
-      lastPage.foods.length < FOOD_PAGE_SIZE ? undefined : allPages.length + 1,
+      allPages.reduce((total, page) => total + page.foods.length, 0) >= lastPage.total || lastPage.foods.length === 0
+        ? undefined : allPages.length + 1,
     enabled: isOpen,
+    staleTime: 1000 * 60 * 5,
     placeholderData: (previousData) => previousData,
   });
 
@@ -456,8 +467,12 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                   isLoading={isLoadingFoods}
                   hasNextPage={Boolean(hasNextPage)}
                   isFetchingNextPage={isFetchingNextPage}
+                  isError={isFoodsError}
+                  isFetchNextPageError={isFetchNextPageError}
                   onLoadMore={() => {
-                    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+                    if (hasNextPage && !isFetchingNextPage && !isPlaceholderData && searchTerm === debouncedSearch) {
+                      void fetchNextPage({ cancelRefetch: false });
+                    }
                   }}
                   onSearchChange={setSearchTerm}
                   onSelectFood={handleSelectFood}

@@ -1,0 +1,7 @@
+Rolagem infinita do adicionar refeição fake e bugada, está redirecionando para o topo ao chegar no fim e clicar em carregar mais. quero que carregue automaticamente ao chegar no fim sem precisar clicar e pare de redirecionar para cima
+
+antiusual no celular a parte de adicionar refeição precisar descer a tela, a principal feature é adicionar refeição e adicionar refeição é uma coisa que deveria ser rapida e nao atrapalhar tanto o usuário
+
+na tela de configurações tem uma seta para voltar ao dashboard, que não tem na tela de estatísticas.
+
+a tela de editar perfil está com um visual estranho na sessão de segurança, no desktop, os campos de senha atual e nova senha estão desalinhados e com tamanhos diferentes. nos botões mais abaixo está pior ainda, 4 botões na mesma linha, todos com alturas e tamanhos diferentes, lembrando, tudo isso no mobile está ótimo.

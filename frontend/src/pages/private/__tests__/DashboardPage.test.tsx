@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect } from 'vitest';
 import { MemoryRouter, Routes, Route } from 'react-router';
@@ -31,6 +31,37 @@ function renderDashboard(initialPath = '/') {
 }
 
 describe('DashboardPage Async States (PC-27)', () => {
+  it('inicia com macronutrientes recolhidos e permite expandir e recolher pelo mesmo controle', async () => {
+    renderDashboard();
+
+    const toggle = screen.getByRole('button', { name: /mostrar macronutrientes/i });
+    const macros = screen.getByRole('group', { name: /macronutrientes/i });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(toggle).toHaveAttribute('aria-controls', macros.id);
+    expect(screen.getByText(/^calorias$/i)).toBeInTheDocument();
+
+    await userEvent.click(toggle);
+
+    expect(screen.getByRole('button', { name: /recolher macronutrientes/i })).toBe(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(within(macros).getByText(/^proteínas$/i)).toBeInTheDocument();
+    expect(within(macros).getByText(/^carboidratos$/i)).toBeInTheDocument();
+    expect(within(macros).getByText(/^gorduras$/i)).toBeInTheDocument();
+
+    await userEvent.keyboard('{Enter}');
+
+    expect(screen.getByRole('button', { name: /mostrar macronutrientes/i })).toBe(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByText(/^calorias$/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /nova refeição/i })).toBeEnabled();
+  });
+
+  it('abre o cadastro pela ação principal do dashboard', async () => {
+    renderDashboard();
+    await userEvent.click(screen.getByRole('button', { name: /nova refeição/i }));
+    expect(await screen.findByRole('dialog', { name: /nova refeição/i })).toBeInTheDocument();
+  });
+
   it('renderiza o estado de carregamento de refeições', () => {
     renderDashboard();
     expect(screen.getByText(/carregando refeições.../i)).toBeInTheDocument();

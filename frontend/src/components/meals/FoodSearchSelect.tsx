@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { createContext, useContext } from 'react';
 import Select, { components, type MenuListProps } from 'react-select';
 import { Loader2 } from 'lucide-react';
 import type { Food } from '../../services/food.service';
@@ -9,69 +9,81 @@ interface FoodSearchSelectProps {
   isLoading: boolean;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
+  isError: boolean;
+  isFetchNextPageError: boolean;
   onLoadMore: () => void;
   onSearchChange: (val: string) => void;
   onSelectFood: (food: Food) => void;
 }
 
-interface MenuListWithLoadMoreProps {
+interface FoodPagination {
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
+  isFetchNextPageError: boolean;
   onLoadMore: () => void;
 }
 
-/**
- * Paginação infinita: além do carregamento automático ao chegar ao fim
- * da lista (`onMenuScrollToBottom`), expõe um controle textual com feedback de
- * carregamento dentro do próprio menu.
- */
-function createMenuList({ hasNextPage, isFetchingNextPage, onLoadMore }: MenuListWithLoadMoreProps) {
-  const MenuListWithLoadMore: React.FC<MenuListProps<FoodOption, false>> = (props) => (
-    <components.MenuList {...props}>
+const FoodPaginationContext = createContext<FoodPagination | null>(null);
+
+// A identidade do componente precisa ser estável para preservar o scroll do menu.
+const FoodMenuList: React.FC<MenuListProps<FoodOption, false>> = (props) => {
+  const pagination = useContext(FoodPaginationContext);
+
+  return (
+    <components.MenuList
+      {...props}
+      innerProps={{
+        ...props.innerProps,
+        onScroll: (event) => {
+          props.innerProps.onScroll?.(event);
+          const { scrollTop, clientHeight, scrollHeight } = event.currentTarget;
+          if (scrollHeight - scrollTop - clientHeight <= 48 && pagination?.hasNextPage &&
+              !pagination.isFetchingNextPage && !pagination.isFetchNextPageError) {
+            pagination.onLoadMore();
+          }
+        },
+      }}
+    >
       {props.children}
-      {hasNextPage && (
-        <button
-          type="button"
-          onMouseDown={(event) => event.preventDefault()}
-          onClick={(event) => {
-            event.preventDefault();
-            onLoadMore();
-          }}
-          disabled={isFetchingNextPage}
-          className="w-full py-3 text-[10px] font-black uppercase tracking-widest text-center text-primary bg-secondary border-t-2 border-border hover:bg-primary hover:text-primary-foreground transition-colors disabled:opacity-50"
-        >
-          {isFetchingNextPage ? (
-            <span className="inline-flex items-center justify-center gap-2">
-              <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" />
-              CARREGANDO ALIMENTOS...
-            </span>
-          ) : (
-            'CARREGAR MAIS ALIMENTOS'
-          )}
-        </button>
+      {pagination?.isFetchingNextPage && (
+        <div role="status" className="flex items-center justify-center gap-2 py-3 text-[10px] font-black uppercase tracking-widest text-primary bg-secondary border-t-2 border-border">
+          <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" />
+          CARREGANDO ALIMENTOS...
+        </div>
+      )}
+      {pagination?.isFetchNextPageError && (
+        <div className="p-3 border-t-2 border-border">
+          <p role="alert" className="text-xs font-bold uppercase text-destructive">ERRO AO CARREGAR MAIS ALIMENTOS.</p>
+          <button
+            type="button"
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={(event) => {
+              event.preventDefault();
+              pagination.onLoadMore();
+            }}
+            className="w-full py-3 text-[10px] font-black uppercase tracking-widest text-center text-primary bg-secondary border-t-2 border-border hover:bg-primary hover:text-primary-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            TENTAR NOVAMENTE
+          </button>
+        </div>
       )}
     </components.MenuList>
   );
-
-  return MenuListWithLoadMore;
-}
+};
 
 export const FoodSearchSelect: React.FC<FoodSearchSelectProps> = ({
   options,
   isLoading,
   hasNextPage,
   isFetchingNextPage,
+  isError,
+  isFetchNextPageError,
   onLoadMore,
   onSearchChange,
   onSelectFood,
 }) => {
-  const menuListComponent = React.useMemo(
-    () => createMenuList({ hasNextPage, isFetchingNextPage, onLoadMore }),
-    [hasNextPage, isFetchingNextPage, onLoadMore]
-  );
-
   return (
-    <>
+    <FoodPaginationContext.Provider value={{ hasNextPage, isFetchingNextPage, isFetchNextPageError, onLoadMore }}>
       <label htmlFor="food-select-input" className="sr-only">
         PESQUISAR ALIMENTO
       </label>
@@ -87,12 +99,13 @@ export const FoodSearchSelect: React.FC<FoodSearchSelectProps> = ({
           if (option) onSelectFood(option.food);
         }}
         onMenuScrollToBottom={() => {
-          if (hasNextPage && !isFetchingNextPage) onLoadMore();
+          if (hasNextPage && !isFetchingNextPage && !isFetchNextPageError) onLoadMore();
         }}
         placeholder="PESQUISAR ALIMENTO..."
         menuPortalTarget={document.body}
-        noOptionsMessage={() => 'NENHUM ALIMENTO ENCONTRADO'}
-        components={{ MenuList: menuListComponent }}
+        menuShouldScrollIntoView={false}
+        noOptionsMessage={() => isError ? 'ERRO AO CARREGAR ALIMENTOS. TENTE NOVAMENTE.' : 'NENHUM ALIMENTO ENCONTRADO'}
+        components={{ MenuList: FoodMenuList }}
         styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
         classNames={{
           control: (state) =>
@@ -117,6 +130,6 @@ export const FoodSearchSelect: React.FC<FoodSearchSelectProps> = ({
         }}
         unstyled
       />
-    </>
+    </FoodPaginationContext.Provider>
   );
 };
