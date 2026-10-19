@@ -24,7 +24,8 @@ describe('Meal Routes (Integration)', () => {
     const res = await request(app).post('/api/users/register').send({
       name: 'Timezone Tester',
       email: `tester-tz-${Date.now()}@example.com`,
-      password: 'password123'
+      password: 'password123',
+      acceptTerms: true
     });
     userToken = res.body.data.token;
     

@@ -1,6 +1,6 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render } from '../../../tests/setup/test-utils';
 import { EditProfilePage } from '../EditProfilePage';
 import { MemoryRouter } from 'react-router';
@@ -19,6 +19,13 @@ describe('EditProfilePage Component (PC-34 / TST-011)', () => {
         onboarding_completed: true,
       })
     );
+    Object.defineProperty(URL, 'createObjectURL', { value: vi.fn(() => 'blob:mock'), configurable: true });
+    Object.defineProperty(URL, 'revokeObjectURL', { value: vi.fn(), configurable: true });
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('deve renderizar os campos do formulário com dados iniciais', async () => {
@@ -47,6 +54,22 @@ describe('EditProfilePage Component (PC-34 / TST-011)', () => {
     await userEvent.tab();
 
     expect(await screen.findByText(/o nome é obrigatório/i)).toBeInTheDocument();
+  });
+
+  it('deve exportar os dados do usuário em JSON ao clicar em exportar (BL-10 / D-04)', async () => {
+    render(
+      <MemoryRouter>
+        <EditProfilePage />
+      </MemoryRouter>
+    );
+
+    await screen.findByDisplayValue('Test User');
+    const exportButton = screen.getByRole('button', { name: /exportar meus dados/i });
+    await userEvent.click(exportButton);
+
+    expect(await screen.findByText(/seus dados foram exportados com sucesso/i)).toBeInTheDocument();
+    expect(URL.createObjectURL).toHaveBeenCalled();
+    expect(URL.revokeObjectURL).toHaveBeenCalled();
   });
 
   it('deve submeter o formulário com sucesso quando dados válidos forem enviados', async () => {

@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '../../context/AuthContext';
-import { updateUserProfile, deleteUserAccount, getCurrentUserProfile } from '../../services/auth.service';
+import { updateUserProfile, deleteUserAccount, getCurrentUserProfile, exportUserData } from '../../services/auth.service';
+import { downloadJsonFile } from '../../utils/download';
 import { DeleteAccountModal } from '../../components/common/DeleteAccountModal';
 import { GoalSettingsCard } from '../../components/profile/GoalSettingsCard';
 import { PersonalInfoSection } from '../../components/profile/PersonalInfoSection';
@@ -16,6 +17,7 @@ import {
   Save,
   ArrowLeft,
   Trash2,
+  Download,
   AlertTriangle,
   CheckCircle2,
   Loader2,
@@ -162,6 +164,28 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
     },
   });
 
+  // Exportação completa dos dados do titular (LGPD art. 18).
+  const exportDataMutation = useMutation({
+    mutationFn: () => exportUserData(),
+    onSuccess: (payload) => {
+      setServerError(null);
+      setSuccessMessage(null);
+      downloadJsonFile(payload, `caloriesync-dados-${payload.exported_at.slice(0, 10)}.json`);
+      setSuccessMessage('SEUS DADOS FORAM EXPORTADOS COM SUCESSO!');
+    },
+    onError: (err: unknown) => {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      setSuccessMessage(null);
+      setServerError(errorMsg || 'ERRO AO EXPORTAR SEUS DADOS.');
+    },
+  });
+
+  const handleExportData = () => {
+    setServerError(null);
+    setSuccessMessage(null);
+    exportDataMutation.mutate();
+  };
+
   const currentEmailBaseline = (freshUser?.email || user?.email || '').trim().toLowerCase();
   const isEmailChanged = useMemo(() => {
     return (formValues.email || '').trim().toLowerCase() !== currentEmailBaseline;
@@ -288,14 +312,30 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
 
         {/* Action Buttons */}
         <div className="pt-8 border-t-2 border-border flex flex-col-reverse sm:flex-row items-center justify-between gap-6">
-          <button
-            type="button"
-            onClick={() => setShowDeleteModal(true)}
-            className="w-full sm:w-auto px-4 py-3 border-2 border-destructive bg-background text-destructive font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-destructive hover:text-destructive-foreground transition-colors focus:outline-none"
-          >
-            <Trash2 className="w-4 h-4" aria-hidden="true" />
-            <span>EXCLUIR CONTA</span>
-          </button>
+          <div className="w-full sm:w-auto flex flex-col sm:flex-row items-center gap-4">
+            <button
+              type="button"
+              onClick={handleExportData}
+              disabled={exportDataMutation.isPending}
+              className="w-full sm:w-auto px-4 py-3 border-2 border-border bg-background text-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-secondary transition-colors focus:outline-none focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {exportDataMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+              ) : (
+                <Download className="w-4 h-4" aria-hidden="true" />
+              )}
+              <span>{exportDataMutation.isPending ? 'EXPORTANDO...' : 'EXPORTAR MEUS DADOS'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowDeleteModal(true)}
+              className="w-full sm:w-auto px-4 py-3 border-2 border-destructive bg-background text-destructive font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-destructive hover:text-destructive-foreground transition-colors focus:outline-none"
+            >
+              <Trash2 className="w-4 h-4" aria-hidden="true" />
+              <span>EXCLUIR CONTA</span>
+            </button>
+          </div>
 
           <div className="w-full sm:w-auto flex flex-col sm:flex-row items-center gap-4">
             <button

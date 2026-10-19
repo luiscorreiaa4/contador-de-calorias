@@ -21,7 +21,8 @@ describe('Multi-user Authorization & IDOR Protection (PC-18 / TST-003)', () => {
     const resA = await request(app).post('/api/users/register').send({
       name: 'Usuário A',
       email: `tester-auth-a-${timestamp}@example.com`,
-      password: 'password123'
+      password: 'password123',
+      acceptTerms: true
     });
     assert.strictEqual(resA.status, 201);
     tokenA = resA.body.data.token;
@@ -29,7 +30,8 @@ describe('Multi-user Authorization & IDOR Protection (PC-18 / TST-003)', () => {
     const resB = await request(app).post('/api/users/register').send({
       name: 'Usuário B',
       email: `tester-auth-b-${timestamp}@example.com`,
-      password: 'password123'
+      password: 'password123',
+      acceptTerms: true
     });
     assert.strictEqual(resB.status, 201);
     tokenB = resB.body.data.token;

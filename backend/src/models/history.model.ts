@@ -79,3 +79,21 @@ export async function insertBodyMeasurement(
   );
   return result.rows[0];
 }
+
+/** Lista todas as metas do usuário em ordem cronológica para exportação. */
+export async function listGoalsByUser(userId: string): Promise<UserGoal[]> {
+  const result = await pool.query<UserGoal>(
+    `SELECT * FROM user_goals WHERE user_id = $1 ORDER BY effective_from ASC, created_at ASC`,
+    [userId]
+  );
+  return result.rows;
+}
+
+/** Lista todas as medições corporais do usuário em ordem cronológica para exportação. */
+export async function listBodyMeasurementsByUser(userId: string): Promise<BodyMeasurement[]> {
+  const result = await pool.query<BodyMeasurement>(
+    `SELECT * FROM body_measurements WHERE user_id = $1 ORDER BY measured_at ASC, created_at ASC`,
+    [userId]
+  );
+  return result.rows;
+}

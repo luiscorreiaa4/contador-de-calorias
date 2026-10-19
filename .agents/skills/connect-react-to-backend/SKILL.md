@@ -10,7 +10,7 @@ Sempre que criar componentes no React que se conectam com a API do Node.js, siga
 ## 1. Organização
 - Cliente HTTP centralizado em `/src/services/api.ts`. Nunca usar `fetch`/`axios` solto dentro de componentes.
 - Utilize variáveis de ambiente para a URL da API (`import.meta.env.VITE_API_URL`).
-- Tipos de resposta da API em `/src/types/` (compartilhando forma com os DTOs do backend sempre que possível).
+- Contratos/DTOs da API vêm de `@caloriesync/shared` (fonte única com o backend). Tipos exclusivos de UI ficam em `/src/types/`.
 - Toda chamada assíncrona à API passa por **React Query** (`useQuery` para leitura, `useMutation` para escrita) — nunca `useState` + `useEffect` manual.
 
 ## 2. Cliente HTTP Centralizado

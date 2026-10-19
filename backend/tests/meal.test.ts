@@ -1,7 +1,7 @@
 import { closeTestPool } from './helpers/lifecycle.js';
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { createMealSchema } from '../src/schemas/meal.schema.js';
+import { createMealSchema } from '@caloriesync/shared';
 import { calculateItemNutrients } from '../src/services/meal.service.js';
 
 describe('Meal Schema Validation (createMealSchema)', () => {

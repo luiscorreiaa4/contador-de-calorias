@@ -2,10 +2,11 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
 import * as UserModel from '../models/user.model.js';
-import { RegisterUserDTO, LoginUserDTO, UpdateUserDTO, CompleteOnboardingDTO } from '../schemas/user.schema.js';
-import { AuthResponse, UserWithoutPassword } from '../types/user.types.js';
+import { RegisterUserDTO, LoginUserDTO, UpdateUserDTO, CompleteOnboardingDTO } from '@caloriesync/shared';
+import { AuthResponse, UserWithoutPassword, type Meal } from '@caloriesync/shared';
 import * as NutritionService from './nutrition.service.js';
 import * as HistoryModel from '../models/history.model.js';
+import * as MealModel from '../models/meal.model.js';
 import { getSaoPauloDateString } from '../utils/date.js';
 import { pool } from '../database/pool.js';
 interface CustomError extends Error {
@@ -26,7 +27,8 @@ export async function register(data: RegisterUserDTO): Promise<AuthResponse> {
   const newUser = await UserModel.createUser(
     data.name,
     data.email,
-    passwordHash
+    passwordHash,
+    new Date()
   );
 
   const token = generateToken(newUser.id);
@@ -281,7 +283,7 @@ function generateToken(userId: string): string {
   return jwt.sign({ userId }, env.JWT_SECRET, { expiresIn: '7d' });
 }
 
-export async function previewGoals(userId: string, data: Partial<import('../schemas/user.schema.js').PreviewGoalsDTO>) {
+export async function previewGoals(userId: string, data: Partial<import('@caloriesync/shared').PreviewGoalsDTO>) {
   const user = await UserModel.findFullUserById(userId);
   if (!user) {
     const error: CustomError = new Error('Usuário não encontrado.');
@@ -302,7 +304,7 @@ export async function previewGoals(userId: string, data: Partial<import('../sche
   return NutritionService.calculateEnergyTargets(profileForCalc);
 }
 
-export async function updateGoals(userId: string, data: import('../schemas/user.schema.js').UpdateGoalsDTO) {
+export async function updateGoals(userId: string, data: import('@caloriesync/shared').UpdateGoalsDTO) {
   const user = await UserModel.findFullUserById(userId);
   if (!user) {
     const error: CustomError = new Error('Usuário não encontrado.');
@@ -365,4 +367,41 @@ export async function getActiveGoal(userId: string, dateStr?: string) {
     }
   }
   return goal;
+}
+
+// Exportação e portabilidade dos dados do titular (LGPD art. 18).
+export interface UserDataExport {
+  exported_at: string;
+  schema_version: string;
+  profile: UserWithoutPassword;
+  goals: HistoryModel.UserGoal[];
+  body_measurements: HistoryModel.BodyMeasurement[];
+  meals: Meal[];
+}
+
+export const EXPORT_SCHEMA_VERSION = '1.0';
+
+/** Retorna o JSON estruturado com todos os dados pessoais do usuário autenticado. */
+export async function exportUserData(userId: string): Promise<UserDataExport> {
+  const user = await UserModel.findUserById(userId);
+  if (!user) {
+    const error: CustomError = new Error('Usuário não encontrado.');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const [goals, bodyMeasurements, meals] = await Promise.all([
+    HistoryModel.listGoalsByUser(userId),
+    HistoryModel.listBodyMeasurementsByUser(userId),
+    MealModel.findAllMealsByUser(userId),
+  ]);
+
+  return {
+    exported_at: new Date().toISOString(),
+    schema_version: EXPORT_SCHEMA_VERSION,
+    profile: user,
+    goals,
+    body_measurements: bodyMeasurements,
+    meals,
+  };
 }

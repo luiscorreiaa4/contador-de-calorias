@@ -31,6 +31,15 @@ const EditProfilePage = lazy(() =>
 const StatsPage = lazy(() =>
   import('./pages/private/StatsPage').then((m) => ({ default: m.StatsPage }))
 );
+const TermsPage = lazy(() =>
+  import('./pages/public/LegalPage').then((m) => ({ default: m.TermsPage }))
+);
+const PrivacyPage = lazy(() =>
+  import('./pages/public/LegalPage').then((m) => ({ default: m.PrivacyPage }))
+);
+const SecurityPage = lazy(() =>
+  import('./pages/public/LegalPage').then((m) => ({ default: m.SecurityPage }))
+);
 
 export const routes: RouteObject[] = [
   {
@@ -51,10 +60,13 @@ export const routes: RouteObject[] = [
           { index: true, element: <DashboardPage /> },
           { path: 'estatisticas', element: <StatsPage /> },
           { path: 'perfil', element: <EditProfilePage /> },
-          // Reservado para D-20 (Fase 4.5)
           { path: 'diario/:date', element: <DashboardPage /> },
         ],
       },
+      // Páginas legais públicas (acessíveis mesmo autenticado).
+      { path: 'termos', element: <TermsPage /> },
+      { path: 'privacidade', element: <PrivacyPage /> },
+      { path: 'seguranca', element: <SecurityPage /> },
       { path: '*', element: <Navigate to="/" replace /> },
     ],
   },

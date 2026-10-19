@@ -18,12 +18,15 @@ describe('User Routes (Integration - E2E)', () => {
     const response = await request(app).post('/api/users/register').send({
       name: 'Integração Tester',
       email: testEmail,
-      password: testPassword
+      password: testPassword,
+      acceptTerms: true
     });
 
     assert.strictEqual(response.status, 201);
     assert.strictEqual(response.body.success, true);
     assert.strictEqual(response.body.data.user.email, testEmail);
+    // BL-11 / SEC-020 — o aceite dos termos é persistido no cadastro.
+    assert.ok(response.body.data.user.terms_accepted_at, 'terms_accepted_at deve ser registrado no cadastro');
     userToken = response.body.data.token;
   });
 
@@ -59,6 +62,29 @@ describe('User Routes (Integration - E2E)', () => {
     assert.strictEqual(res.body.success, true);
     assert.strictEqual(res.body.data.email, testEmail);
     assert.strictEqual(res.body.data.name, 'Integração Tester');
+  });
+
+  it('GET /api/users/me/export - deve exportar todos os dados do titular em JSON (BL-10 / D-04)', async () => {
+    const res = await request(app)
+      .get('/api/users/me/export')
+      .set('Authorization', `Bearer ${userToken}`);
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.success, true);
+    assert.match(
+      String(res.headers['content-disposition']),
+      /^attachment; filename="caloriesync-dados-\d{4}-\d{2}-\d{2}\.json"$/
+    );
+    assert.strictEqual(res.body.data.profile.email, testEmail);
+    assert.strictEqual(res.body.data.schema_version, '1.0');
+    assert.ok(Array.isArray(res.body.data.goals));
+    assert.ok(Array.isArray(res.body.data.body_measurements));
+    assert.ok(Array.isArray(res.body.data.meals));
+  });
+
+  it('GET /api/users/me/export - deve exigir autenticação', async () => {
+    const res = await request(app).get('/api/users/me/export');
+    assert.strictEqual(res.status, 401);
   });
 
   it('PUT /api/users/me/onboarding - deve concluir onboarding e calcular metas iniciais', async () => {

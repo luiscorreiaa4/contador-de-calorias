@@ -1,7 +1,7 @@
 import { closeTestPool } from '../helpers/lifecycle.js';
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { registerUserSchema, updateUserSchema } from '../../src/schemas/user.schema.js';
+import { registerUserSchema, updateUserSchema } from '@caloriesync/shared';
 import * as UserService from '../../src/services/user.service.js';
 
 describe('Password Security Policy & Dummy Bcrypt Timing Attack Mitigation (PC-08 / SEC-004 / SEC-005)', () => {
@@ -10,7 +10,8 @@ describe('Password Security Policy & Dummy Bcrypt Timing Attack Mitigation (PC-0
     const res = registerUserSchema.safeParse({
       name: 'Tester',
       email: 'test@example.com',
-      password: 'pass12' // 6 caracteres
+      password: 'pass12', // 6 caracteres
+      acceptTerms: true
     });
     assert.strictEqual(res.success, false);
     if (!res.success) {
@@ -22,7 +23,8 @@ describe('Password Security Policy & Dummy Bcrypt Timing Attack Mitigation (PC-0
     const res = registerUserSchema.safeParse({
       name: 'Tester',
       email: 'test@example.com',
-      password: 'somenteletras'
+      password: 'somenteletras',
+      acceptTerms: true
     });
     assert.strictEqual(res.success, false);
     if (!res.success) {
@@ -34,7 +36,8 @@ describe('Password Security Policy & Dummy Bcrypt Timing Attack Mitigation (PC-0
     const res = registerUserSchema.safeParse({
       name: 'Tester',
       email: 'test@example.com',
-      password: '123456789'
+      password: '123456789',
+      acceptTerms: true
     });
     assert.strictEqual(res.success, false);
     if (!res.success) {
@@ -46,7 +49,8 @@ describe('Password Security Policy & Dummy Bcrypt Timing Attack Mitigation (PC-0
     const res = registerUserSchema.safeParse({
       name: 'Tester',
       email: 'test@example.com',
-      password: 'senhaSegura123'
+      password: 'senhaSegura123',
+      acceptTerms: true
     });
     assert.strictEqual(res.success, true);
   });

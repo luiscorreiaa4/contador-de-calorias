@@ -6,7 +6,7 @@ import {
   updateUserSchema,
   deleteUserSchema,
   completeOnboardingSchema,
-} from '../src/schemas/user.schema.js';
+} from '@caloriesync/shared';
 
 describe('User Schema Validation (registerUserSchema)', () => {
   it('deve validar com sucesso um cadastro com dados válidos', () => {
@@ -14,6 +14,7 @@ describe('User Schema Validation (registerUserSchema)', () => {
       name: 'Maria Silva',
       email: 'maria@example.com',
       password: 'senhaSegura123',
+      acceptTerms: true,
     };
 
     const result = registerUserSchema.safeParse(validData);
@@ -30,6 +31,7 @@ describe('User Schema Validation (registerUserSchema)', () => {
       name: 'Ana',
       email: 'email_invalido',
       password: 'senhaSegura123',
+      acceptTerms: true,
     };
 
     const result = registerUserSchema.safeParse(invalidData);
@@ -44,12 +46,45 @@ describe('User Schema Validation (registerUserSchema)', () => {
       name: 'Ana',
       email: 'ana@example.com',
       password: '123',
+      acceptTerms: true,
     };
 
     const result = registerUserSchema.safeParse(invalidData);
     assert.strictEqual(result.success, false);
     if (!result.success) {
       assert.strictEqual(result.error.format().password?._errors[0], 'A senha deve ter no mínimo 8 caracteres.');
+    }
+  });
+});
+
+describe('User Schema Validation (registerUserSchema - consentimento LGPD / BL-11)', () => {
+  const baseData = {
+    name: 'Maria Silva',
+    email: 'maria@example.com',
+    password: 'senhaSegura123',
+  };
+
+  it('deve rejeitar o cadastro quando o aceite dos termos não for enviado', () => {
+    const result = registerUserSchema.safeParse(baseData);
+    assert.strictEqual(result.success, false);
+    if (!result.success) {
+      assert.match(
+        result.error.format().acceptTerms?._errors[0] ?? '',
+        /Termos de Uso e a Política de Privacidade/
+      );
+    }
+  });
+
+  it('deve rejeitar o cadastro quando acceptTerms for false', () => {
+    const result = registerUserSchema.safeParse({ ...baseData, acceptTerms: false });
+    assert.strictEqual(result.success, false);
+  });
+
+  it('deve aceitar o cadastro quando acceptTerms for true', () => {
+    const result = registerUserSchema.safeParse({ ...baseData, acceptTerms: true });
+    assert.strictEqual(result.success, true);
+    if (result.success) {
+      assert.strictEqual(result.data.acceptTerms, true);
     }
   });
 });

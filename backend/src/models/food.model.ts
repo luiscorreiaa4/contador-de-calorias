@@ -1,5 +1,5 @@
 import { pool } from '../database/pool.js';
-import { Food } from '../types/food.types.js';
+import { Food } from '@caloriesync/shared';
 
 interface FoodRowWithCount extends Food {
   total_count?: string;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { X, Utensils } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getFoods, type Food } from '../../services/food.service';
 import { createMeal, updateMeal, type Meal, type CreateMealDTO } from '../../services/meal.service';
 import { FoodSearchSelect } from './FoodSearchSelect';
@@ -8,14 +8,20 @@ import { FoodQuantityForm } from './FoodQuantityForm';
 import { MealItemList } from './MealItemList';
 import { MealModalFooter } from './MealModalFooter';
 import { calculateNutrients, type MealItem, type FoodOption } from '../../types/meal-modal';
+import { parseLocalDateString } from '../../utils/date';
+
+/** Tamanho da página do autocomplete de alimentos. */
+const FOOD_PAGE_SIZE = 50;
 
 interface NewMealModalProps {
   isOpen: boolean;
   onClose: () => void;
   mealToEdit?: Meal | null;
+  /** Data (YYYY-MM-DD) em que a refeição será registrada; padrão: hoje. */
+  mealDate?: string;
 }
 
-export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mealToEdit }) => {
+export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mealToEdit, mealDate }) => {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -27,14 +33,23 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { data: foodsData, isLoading: isLoadingFoods } = useQuery({
+  const { data: foodsData, isLoading: isLoadingFoods, isFetchingNextPage, hasNextPage, fetchNextPage } = useInfiniteQuery({
     queryKey: ['foods', debouncedSearch],
-    queryFn: ({ signal }) => getFoods(debouncedSearch.length >= 2 ? debouncedSearch : '', 1, 50, signal),
+    queryFn: ({ pageParam, signal }) =>
+      getFoods(
+        debouncedSearch.length >= 2 ? debouncedSearch : '',
+        pageParam,
+        FOOD_PAGE_SIZE,
+        signal
+      ),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.foods.length < FOOD_PAGE_SIZE ? undefined : allPages.length + 1,
     enabled: isOpen,
     placeholderData: (previousData) => previousData,
   });
 
-  const foods = useMemo(() => foodsData?.foods || [], [foodsData]);
+  const foods = useMemo(() => foodsData?.pages.flatMap((page) => page.foods) ?? [], [foodsData]);
 
   const [mealName, setMealName] = useState('');
   const [mealTimeStr, setMealTimeStr] = useState('');
@@ -90,7 +105,10 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
       setSelectedFood(null);
       setAmount('');
 
-      const cachedMeals = queryClient.getQueryData<Meal[]>(['todayMeals']) || [];
+      const cachedMeals =
+        (mealDate ? queryClient.getQueryData<Meal[]>(['todayMeals', mealDate]) : undefined) ??
+        queryClient.getQueryData<Meal[]>(['todayMeals']) ??
+        [];
       const nextMealNumber = cachedMeals.length + 1;
 
       if (mealToEdit) {
@@ -148,7 +166,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
       }
       hasInitializedRef.current = true;
     }
-  }, [isOpen, mealToEdit, queryClient, foods]);
+  }, [isOpen, mealToEdit, queryClient, foods, mealDate]);
 
   useEffect(() => {
     if (isOpen) {
@@ -247,14 +265,42 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
     setMealItems((prev) => prev.filter((item) => item.uid !== uid));
   };
 
+  /**
+   * Edição inline da quantidade de um item já adicionado ao prato.
+   * Recalcula os macros proporcionalmente a partir dos valores base do alimento.
+   */
+  const handleUpdateItemAmount = (uid: string, amount: number) => {
+    if (!Number.isFinite(amount) || amount <= 0) return;
+
+    setMealItems((prev) =>
+      prev.map((item) => {
+        if (item.uid !== uid) return item;
+
+        const unitWeight = Number(item.food.unit_weight) || 0;
+        const quantityInBaseUnit =
+          item.unit === 'un' && unitWeight > 0 ? amount * unitWeight : amount;
+
+        const nutrients = calculateNutrients(item.food, quantityInBaseUnit);
+
+        return {
+          ...item,
+          quantity: Math.round(quantityInBaseUnit * 100) / 100,
+          displayAmount: amount,
+          ...nutrients,
+        };
+      })
+    );
+  };
+
   const totalCalories = mealItems.reduce((acc, item) => acc + item.calories, 0);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (mealItems.length === 0) return;
 
-    const mealLabel = mealName.trim() || `REFEIÇÃO ${(queryClient.getQueryData<Meal[]>(['todayMeals']) || []).length + 1}`;
-    const timeToUse = mealToEdit ? new Date(mealToEdit.meal_time) : new Date();
+    const mealLabel = mealName.trim() || `REFEIÇÃO ${((mealDate ? queryClient.getQueryData<Meal[]>(['todayMeals', mealDate]) : undefined) ?? queryClient.getQueryData<Meal[]>(['todayMeals']) ?? []).length + 1}`;
+    // Ao editar preserva a data original; ao criar usa a data selecionada no Dashboard.
+    const timeToUse = mealToEdit ? new Date(mealToEdit.meal_time) : parseLocalDateString(mealDate);
 
     if (mealTimeStr.trim()) {
       if (mealTimeStr.length !== 5) {
@@ -408,6 +454,11 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                 <FoodSearchSelect
                   options={foodOptions}
                   isLoading={isLoadingFoods}
+                  hasNextPage={Boolean(hasNextPage)}
+                  isFetchingNextPage={isFetchingNextPage}
+                  onLoadMore={() => {
+                    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+                  }}
                   onSearchChange={setSearchTerm}
                   onSelectFood={handleSelectFood}
                 />
@@ -435,6 +486,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
               items={mealItems}
               isSubmitting={isSubmitting}
               onRemoveItem={handleRemoveItem}
+              onUpdateItemAmount={handleUpdateItemAmount}
             />
           </div>
 

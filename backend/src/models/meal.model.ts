@@ -1,6 +1,6 @@
 import type { PoolClient } from 'pg';
 import { pool } from '../database/pool.js';
-import { Meal, MealItem } from '../types/meal.types.js';
+import { Meal, MealItem } from '@caloriesync/shared';
 import { getSaoPauloDateString } from '../utils/date.js';
 
 async function insertMealItemsBatch(
@@ -90,22 +90,11 @@ export async function createMealWithItems(
   }
 }
 
-export async function findMealsByUserAndDate(userId: string, dateStart: string, dateEnd: string): Promise<Meal[]> {
-  // Retorna as refeições de um dia com agregação de calorias e proteínas em memória (PERF-001)
-  const mealsResult = await pool.query<Meal>(
-    `SELECT m.id, m.user_id, m.name, m.meal_time, m.created_at, m.updated_at
-     FROM meals m 
-     WHERE m.user_id = $1 AND m.meal_time >= $2 AND m.meal_time < $3
-     ORDER BY m.meal_time DESC`,
-    [userId, dateStart, dateEnd]
-  );
-  
-  const meals = mealsResult.rows;
-  
+async function hydrateMealsWithItems(meals: Meal[]): Promise<Meal[]> {
   if (meals.length === 0) return [];
-  
+
   const mealIds = meals.map(m => m.id);
-  
+
   // Pegar os itens com projeção explícita (sem mi.*)
   const itemsResult = await pool.query<MealItem>(
     `SELECT mi.id, mi.meal_id, mi.food_id, mi.quantity, mi.unit, mi.display_amount, 
@@ -119,18 +108,18 @@ export async function findMealsByUserAndDate(userId: string, dateStart: string, 
      WHERE mi.meal_id = ANY($1::uuid[])`,
     [mealIds]
   );
-  
+
   const itemsByMeal: Record<string, MealItem[]> = {};
   for (const item of itemsResult.rows) {
     if (!itemsByMeal[item.meal_id]) itemsByMeal[item.meal_id] = [];
     itemsByMeal[item.meal_id].push(item);
   }
-  
+
   return meals.map(meal => {
     const items = itemsByMeal[meal.id] || [];
     const total_calories = items.reduce((acc, it) => acc + Number(it.calories), 0);
     const total_proteins = items.reduce((acc, it) => acc + Number(it.proteins), 0);
-    
+
     return {
       ...meal,
       items,
@@ -138,6 +127,32 @@ export async function findMealsByUserAndDate(userId: string, dateStart: string, 
       total_proteins
     };
   });
+}
+
+export async function findMealsByUserAndDate(userId: string, dateStart: string, dateEnd: string): Promise<Meal[]> {
+  // Retorna as refeições de um dia com agregação de calorias e proteínas em memória (PERF-001)
+  const mealsResult = await pool.query<Meal>(
+    `SELECT m.id, m.user_id, m.name, m.meal_time, m.created_at, m.updated_at
+     FROM meals m 
+     WHERE m.user_id = $1 AND m.meal_time >= $2 AND m.meal_time < $3
+     ORDER BY m.meal_time DESC`,
+    [userId, dateStart, dateEnd]
+  );
+
+  return hydrateMealsWithItems(mealsResult.rows);
+}
+
+/** Retorna todo o histórico de refeições do usuário (com itens) para exportação. */
+export async function findAllMealsByUser(userId: string): Promise<Meal[]> {
+  const mealsResult = await pool.query<Meal>(
+    `SELECT m.id, m.user_id, m.name, m.meal_time, m.created_at, m.updated_at
+     FROM meals m
+     WHERE m.user_id = $1
+     ORDER BY m.meal_time ASC, m.created_at ASC`,
+    [userId]
+  );
+
+  return hydrateMealsWithItems(mealsResult.rows);
 }
 
 export async function deleteMealById(userId: string, mealId: string): Promise<boolean> {

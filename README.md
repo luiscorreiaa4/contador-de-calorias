@@ -58,6 +58,9 @@ npm --prefix backend install
 
 # Dependências da SPA frontend
 npm --prefix frontend install
+
+# Dependências do pacote compartilhado (schemas Zod/DTOs/cálculo nutricional)
+npm --prefix shared install
 ```
 
 ### 2. Configurar Variáveis de Ambiente
@@ -163,9 +166,9 @@ Comandos disponíveis a partir da **raiz**:
 | `npm run setup` | Aplica todas as migrações SQL no banco (`node-pg-migrate up`) |
 | `npm run docker:up` | Sobe o container PostgreSQL de desenvolvimento via Docker Compose (`-d`) |
 | `npm run docker:down` | Encerra o container PostgreSQL do Docker Compose |
-| `npm run test` | Roda os 110 testes automatizados do backend em banco isolado (`_test`) |
+| `npm run test` | Roda os 128 testes automatizados do backend em banco isolado (`_test`) |
 | `npm run test:strict` | Roda testes do backend sem force-exit para verificação estrita de handles |
-| `npm --prefix frontend test` | Roda os 24 testes automatizados do frontend via Vitest |
+| `npm --prefix frontend test` | Roda os 66 testes automatizados do frontend via Vitest |
 | `npm --prefix frontend run test:coverage` | Roda os testes do frontend gerando cobertura com `@vitest/coverage-v8` |
 | `npm run lint` | Valida as regras de ESLint e higiene de testes em todo o repositório |
 | `npm run build` | Compila a versão de produção do frontend (`tsc -b && vite build`) |

@@ -3,8 +3,16 @@ import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import * as UserController from '../controllers/user.controller.js';
 import { validate } from '../middlewares/validate.js';
 import { authenticate } from '../middlewares/auth.js';
-import { registerUserSchema, loginUserSchema, updateUserSchema, deleteUserSchema, completeOnboardingSchema, previewGoalsSchema, updateGoalsSchema } from '../schemas/user.schema.js';
-import { dateQuerySchema } from '../schemas/common.schema.js';
+import {
+  registerUserSchema,
+  loginUserSchema,
+  updateUserSchema,
+  deleteUserSchema,
+  completeOnboardingSchema,
+  previewGoalsSchema,
+  updateGoalsSchema,
+  dateQuerySchema,
+} from '@caloriesync/shared';
 
 const router = Router();
 
@@ -13,8 +21,7 @@ const authLimiter = rateLimit({
   max: 10, // Limita cada credencial a 10 requisições por janela de tempo para rotas de auth
   standardHeaders: true,
   legacyHeaders: false,
-  // BL-01 / SEC-006 — chave por IP + e-mail: evita que um atacante bloqueie
-  // toda a base atrás de um NAT e evita que um IP variable burle o limite.
+  // Chave por IP + e-mail normalizado contra ataques de força bruta e bypass por NAT/IP variável.
   keyGenerator: (req) => {
     const ip = ipKeyGenerator(req.ip ?? '');
     const rawEmail = (req.body as { email?: unknown } | undefined)?.email;
@@ -27,6 +34,7 @@ const authLimiter = rateLimit({
 router.post('/register', authLimiter, validate(registerUserSchema), UserController.register);
 router.post('/login', authLimiter, validate(loginUserSchema), UserController.login);
 router.get('/me', authenticate, UserController.getProfile);
+router.get('/me/export', authenticate, UserController.exportData);
 router.put('/me', authenticate, validate(updateUserSchema), UserController.updateProfile);
 router.put('/me/onboarding', authenticate, validate(completeOnboardingSchema), UserController.completeOnboarding);
 router.delete('/me', authenticate, validate(deleteUserSchema), UserController.deleteAccount);

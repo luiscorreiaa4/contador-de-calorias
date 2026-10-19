@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import * as FoodService from '../services/food.service.js';
-import { ListFoodsQueryDTO } from '../schemas/food.schema.js';
+import { ListFoodsQueryDTO } from '@caloriesync/shared';
 
 interface CustomError {
   statusCode?: number;

@@ -92,6 +92,22 @@ async function runImport() {
         continue;
       }
 
+      const formattedName = formatFoodName(food.name);
+
+      // O catálogo possui índice único parcial sobre o nome normalizado
+      // (`f_unaccent(lower(name))` quando `active = true`). Antes do upsert,
+      // desativamos qualquer outro alimento ativo com o mesmo nome para manter
+      // a carga idempotente e evitar violação de unicidade.
+      await client.query(
+        `UPDATE foods
+         SET active = false,
+             updated_at = NOW()
+         WHERE active = true
+           AND f_unaccent(lower(name)) = f_unaccent(lower($1))
+           AND NOT (source = $2 AND external_id = $3)`,
+        [formattedName, food.source, food.external_id]
+      );
+
       // Upsert logic
       const query = `
         INSERT INTO foods (
@@ -117,7 +133,7 @@ async function runImport() {
       `;
       
       const values = [
-        formatFoodName(food.name), food.calories, food.proteins, food.carbs, food.fats,
+        formattedName, food.calories, food.proteins, food.carbs, food.fats,
         food.base_unit || 'g', food.serving_weight || 100,
         food.unit_name || null, food.unit_weight || null,
         food.source, food.external_id

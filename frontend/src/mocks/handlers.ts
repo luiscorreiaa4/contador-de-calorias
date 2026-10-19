@@ -130,6 +130,20 @@ export const handlers = [
     });
   }),
 
+  http.get(`${baseURL}/users/me/export`, () => {
+    return HttpResponse.json({
+      success: true,
+      data: {
+        exported_at: '2026-10-19T12:00:00.000Z',
+        schema_version: '1.0',
+        profile: { id: '1', name: 'Test User', email: 'test@example.com' },
+        goals: [],
+        body_measurements: [],
+        meals: [],
+      },
+    });
+  }),
+
   http.get(`${baseURL}/meals/today`, () => {
     return HttpResponse.json({
       success: true,

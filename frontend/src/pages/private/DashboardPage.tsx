@@ -1,6 +1,7 @@
 import React from 'react';
+import { useNavigate, useParams } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
-import { Flame, Plus, Utensils, Beef, Clock, Pencil, Trash2, AlertTriangle } from 'lucide-react';
+import { Flame, Plus, Utensils, Beef, Clock, Pencil, Trash2, AlertTriangle, ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const NewMealModal = React.lazy(() =>
@@ -10,13 +11,22 @@ const NewMealModal = React.lazy(() =>
 );
 import { getTodayMeals, deleteMeal, type Meal } from '../../services/meal.service';
 import { getActiveGoal } from '../../services/goals.service';
-import { getLocalDateString } from '../../utils/date';
+import { getLocalDateString, isValidLocalDateString, addDaysToDateString, parseLocalDateString } from '../../utils/date';
 
 export const DashboardPage: React.FC = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const params = useParams<{ date?: string }>();
   const { user } = useAuth();
 
-  const clientDate = getLocalDateString();
+  const today = getLocalDateString();
+  const selectedDate = isValidLocalDateString(params.date) ? params.date : today;
+  const isToday = selectedDate === today;
+
+  const goToDate = (date: string) => {
+    if (date === today) navigate('/');
+    else navigate(`/diario/${date}`);
+  };
 
   const [isNewMealModalOpen, setIsNewMealModalOpen] = React.useState(false);
   const [mealToEdit, setMealToEdit] = React.useState<Meal | null>(null);
@@ -31,8 +41,8 @@ export const DashboardPage: React.FC = () => {
     error,
     refetch: refetchMeals,
   } = useQuery({
-    queryKey: ['todayMeals', clientDate],
-    queryFn: ({ signal }) => getTodayMeals(clientDate, signal),
+    queryKey: ['todayMeals', selectedDate],
+    queryFn: ({ signal }) => getTodayMeals(selectedDate, signal),
     staleTime: 1000 * 60 * 5, // 5 minutos de cache (evita redundância)
   });
 
@@ -40,8 +50,8 @@ export const DashboardPage: React.FC = () => {
 
   // Buscar meta do dia
   const { data: activeGoal } = useQuery({
-    queryKey: ['active-goal', clientDate],
-    queryFn: () => getActiveGoal(clientDate),
+    queryKey: ['active-goal', selectedDate],
+    queryFn: () => getActiveGoal(selectedDate),
   });
 
   const deleteMealMutation = useMutation({
@@ -71,6 +81,15 @@ export const DashboardPage: React.FC = () => {
   const carbsPercent = Math.min((consumedCarbs / dailyCarbsGoal) * 100, 100);
   const fatsPercent = Math.min((consumedFats / dailyFatsGoal) * 100, 100);
 
+  const selectedDateLabel = parseLocalDateString(selectedDate).toLocaleDateString('pt-BR', {
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  });
+
+  const canGoNext = selectedDate < today;
+
   return (
     <div className="w-full max-w-5xl mx-auto px-4 py-8 space-y-10">
       {/* Greeting */}
@@ -84,6 +103,49 @@ export const DashboardPage: React.FC = () => {
         <p className="text-xs font-bold text-muted-foreground mt-2 uppercase tracking-widest">
           FOCO ATUAL: <strong className="text-foreground">{user?.goal?.replace(/_/g, ' ') || 'ALTA PERFORMANCE'}</strong>
         </p>
+      </div>
+
+      {/* Navegação por Data */}
+      <div className="bg-card border-2 border-border shadow-hard p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <button
+          type="button"
+          onClick={() => goToDate(addDaysToDateString(selectedDate, -1))}
+          aria-label="Dia anterior"
+          className="w-full sm:w-auto px-4 py-2 border-2 border-border bg-background text-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-secondary transition-colors focus:outline-none focus:border-primary"
+        >
+          <ChevronLeft className="w-4 h-4" aria-hidden="true" />
+          Dia anterior
+        </button>
+
+        <div className="flex flex-col items-center gap-1 text-center">
+          <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+            <CalendarDays className="w-3.5 h-3.5" aria-hidden="true" />
+            {isToday ? 'Hoje' : 'Diário'}
+          </span>
+          <span data-testid="dashboard-date" className="text-sm font-heading font-black uppercase tracking-tight text-foreground">
+            {selectedDateLabel}
+          </span>
+          {!isToday && (
+            <button
+              type="button"
+              onClick={() => goToDate(today)}
+              className="text-[10px] font-bold uppercase tracking-widest text-primary underline underline-offset-2 hover:text-primary/80 focus:outline-none"
+            >
+              Voltar para hoje
+            </button>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => goToDate(addDaysToDateString(selectedDate, 1))}
+          disabled={!canGoNext}
+          aria-label="Próximo dia"
+          className="w-full sm:w-auto px-4 py-2 border-2 border-border bg-background text-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-secondary transition-colors focus:outline-none focus:border-primary disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-background"
+        >
+          Próximo dia
+          <ChevronRight className="w-4 h-4" aria-hidden="true" />
+        </button>
       </div>
 
       {/* Daily Metrics Grid */}
@@ -189,7 +251,7 @@ export const DashboardPage: React.FC = () => {
       {/* Meals List */}
       <div className="space-y-6 pt-4">
         <h3 className="text-xl font-heading font-black text-foreground uppercase tracking-tight flex items-center gap-2">
-          Refeições de Hoje
+          {isToday ? 'Refeições de Hoje' : 'Refeições do Dia'}
           <span className="text-xs font-bold bg-primary text-primary-foreground px-2 py-0.5">{meals.length}</span>
         </h3>
 
@@ -227,7 +289,7 @@ export const DashboardPage: React.FC = () => {
           <div className="bg-card border-2 border-border border-dashed p-12 text-center flex flex-col items-center justify-center">
             <Utensils className="w-10 h-10 text-muted-foreground mb-4 opacity-50" aria-hidden="true" />
             <p className="text-sm font-heading font-black uppercase tracking-tight text-foreground mb-1">
-              NENHUMA REFEIÇÃO REGISTRADA HOJE
+              {isToday ? 'NENHUMA REFEIÇÃO REGISTRADA HOJE' : 'NENHUMA REFEIÇÃO REGISTRADA NESTE DIA'}
             </p>
             <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-4">
               ADICIONE SUA PRIMEIRA REFEIÇÃO ACIMA PARA ACOMPANHAR SEUS MACROS.
@@ -338,6 +400,7 @@ export const DashboardPage: React.FC = () => {
               setMealToEdit(null);
             }}
             mealToEdit={mealToEdit}
+            mealDate={selectedDate}
           />
         </React.Suspense>
       )}

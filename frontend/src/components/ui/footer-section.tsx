@@ -1,5 +1,6 @@
 "use client"
 
+import { Link } from "react-router"
 import { Flame, ShieldAlert, Heart } from "lucide-react"
 
 export interface FooterSectionProps {
@@ -51,29 +52,26 @@ function FooterSection() {
           </p>
 
           <nav className="flex items-center gap-4">
-            <a
-              href="#privacidade"
-              onClick={(e) => e.preventDefault()}
+            <Link
+              to="/privacidade"
               className="hover:text-primary transition-colors focus:outline-none focus:text-primary"
             >
               Privacidade
-            </a>
+            </Link>
             <span className="text-border" aria-hidden="true">/</span>
-            <a
-              href="#termos"
-              onClick={(e) => e.preventDefault()}
+            <Link
+              to="/termos"
               className="hover:text-primary transition-colors focus:outline-none focus:text-primary"
             >
               Termos de Uso
-            </a>
+            </Link>
             <span className="text-border" aria-hidden="true">/</span>
-            <a
-              href="#seguranca"
-              onClick={(e) => e.preventDefault()}
+            <Link
+              to="/seguranca"
               className="hover:text-primary transition-colors focus:outline-none focus:text-primary"
             >
               Segurança
-            </a>
+            </Link>
           </nav>
         </div>
       </div>

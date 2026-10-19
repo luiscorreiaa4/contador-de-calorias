@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router';
 import { User, Mail, Lock, Eye, EyeOff, AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -27,6 +28,9 @@ const registerSchema = z
         { message: 'Mínimo 8 caracteres com letra e número.' }
       ),
     confirmPassword: z.string().min(1, 'Confirme sua senha.'),
+    acceptTerms: z.boolean().refine((value) => value === true, {
+      message: 'Aceite os Termos de Uso e a Política de Privacidade para continuar.',
+    }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'As senhas não coincidem.',
@@ -57,6 +61,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
       email: '',
       password: '',
       confirmPassword: '',
+      acceptTerms: false,
     },
   });
 
@@ -83,6 +88,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
       email: data.email,
       password: data.password,
       confirmPassword: data.confirmPassword,
+      acceptTerms: data.acceptTerms,
     });
   };
 
@@ -196,6 +202,46 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
         </div>
         {errors.confirmPassword && (
           <p id="register-confirm-password-error" className="text-xs font-bold text-red-500 dark:text-red-400 uppercase">{errors.confirmPassword.message}</p>
+        )}
+      </div>
+
+      {/* Consentimento dos termos */}
+      <div className="space-y-2">
+        <div className="flex items-start gap-3">
+          <input
+            id="register-terms"
+            type="checkbox"
+            aria-invalid={!!errors.acceptTerms}
+            aria-describedby={errors.acceptTerms ? 'register-terms-error' : undefined}
+            className={`mt-0.5 h-4 w-4 shrink-0 rounded-none border-2 bg-background accent-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${errors.acceptTerms ? 'border-destructive' : 'border-border'}`}
+            {...register('acceptTerms')}
+          />
+          <label htmlFor="register-terms" className="text-[11px] font-medium leading-relaxed text-muted-foreground">
+            Li e aceito os{' '}
+            <Link
+              to="/termos"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold text-primary uppercase underline underline-offset-2 hover:text-primary/80"
+            >
+              Termos de Uso
+            </Link>{' '}
+            e a{' '}
+            <Link
+              to="/privacidade"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold text-primary uppercase underline underline-offset-2 hover:text-primary/80"
+            >
+              Política de Privacidade
+            </Link>
+            .
+          </label>
+        </div>
+        {errors.acceptTerms && (
+          <p id="register-terms-error" className="text-xs font-bold text-red-500 dark:text-red-400 uppercase">
+            {errors.acceptTerms.message}
+          </p>
         )}
       </div>
 

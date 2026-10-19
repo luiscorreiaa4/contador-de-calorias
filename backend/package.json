@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Backend API Node.js + TypeScript + PostgreSQL para o Contador de Calorias",
   "type": "module",
-  "main": "dist/server.js",
+  "main": "src/server.ts",
   "scripts": {
     "dev": "cross-env TZ=America/Sao_Paulo tsx watch src/server.ts",
     "test": "node ../scripts/run-tests.mjs backend",
@@ -12,8 +12,9 @@
     "migrate:create": "node-pg-migrate create",
     "db:reset": "tsx scripts/reset-db.js && npm run migrate up",
     "db:reset:test": "cross-env NODE_ENV=test DB_NAME=contador_calorias_test tsx scripts/reset-db.js && cross-env NODE_ENV=test node-pg-migrate --database-url-var DATABASE_URL_TEST up",
-    "build": "tsc",
-    "start": "cross-env TZ=America/Sao_Paulo node dist/server.js",
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "start": "cross-env TZ=America/Sao_Paulo tsx src/server.ts",
     "test:strict": "node ../scripts/run-tests.mjs strict"
   },
   "dependencies": {

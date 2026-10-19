@@ -2,8 +2,7 @@ import { Router } from 'express';
 import * as MealController from '../controllers/meal.controller.js';
 import { validate } from '../middlewares/validate.js';
 import { authenticate } from '../middlewares/auth.js';
-import { createMealSchema } from '../schemas/meal.schema.js';
-import { uuidParamSchema, dateQuerySchema, statsQuerySchema } from '../schemas/common.schema.js';
+import { createMealSchema, uuidParamSchema, dateQuerySchema, statsQuerySchema } from '@caloriesync/shared';
 
 const router = Router();
 

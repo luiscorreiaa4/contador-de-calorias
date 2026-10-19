@@ -10,6 +10,10 @@ export const registerUserSchema = z.object({
   name: z.string().min(2, 'O nome deve ter no mínimo 2 caracteres.').max(100, 'O nome deve ter no máximo 100 caracteres.'),
   email: z.string().email('Digite um e-mail válido.'),
   password: strongPasswordSchema,
+  // Consentimento explícito obrigatório no cadastro (LGPD art. 7º, I).
+  acceptTerms: z.literal(true, {
+    errorMap: () => ({ message: 'É necessário aceitar os Termos de Uso e a Política de Privacidade.' }),
+  }),
 });
 
 export const loginUserSchema = z.object({

@@ -13,6 +13,7 @@ export interface User {
   daily_calories_goal: number;
   daily_proteins_goal: number;
   onboarding_completed: boolean;
+  terms_accepted_at: Date | null;
   created_at: Date;
   updated_at: Date;
 }

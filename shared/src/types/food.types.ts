@@ -7,8 +7,7 @@ export interface Food {
   fats: number;
   base_unit: 'g' | 'ml';
   serving_weight: number;
-  unit_name: string | null;
-  unit_weight: number | null;
+  unit_name?: string | null;
+  unit_weight?: number | null;
   source?: string | null;
 }
-

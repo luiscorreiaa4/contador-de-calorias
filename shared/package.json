@@ -1,0 +1,14 @@
+{
+  "name": "@caloriesync/shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Contratos DTO, schemas Zod puros e cálculos nutricionais compartilhados entre frontend e backend.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./nutrition": "./src/nutrition/nutrients.ts"
+  },
+  "dependencies": {
+    "zod": "^3.24.2"
+  }
+}

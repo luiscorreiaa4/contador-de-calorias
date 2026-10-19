@@ -127,7 +127,7 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 ### ⏳ Fase 4.5: Diário Completo (Produto)
 *Objetivo: Implementar os recursos de navegação diária histórica, registro retroativo e ferramentas de produtividade alimentar no diário antes da fase de redesign. Pré-requisito: Fase 4 concluída (especialmente fuso D-01 e roteador D-16).*
 
-- [ ] **BL-02** Navegação por datas no Dashboard e suporte a registro retroativo de refeições com URL declarativa `/diario/:date` *(D-20, D-01, D-16)*.
+- [x] **BL-02** Navegação por datas no Dashboard e suporte a registro retroativo de refeições com URL declarativa `/diario/:date` *(D-20, D-01, D-16)*.
 - [ ] **BL-18** Copiar refeição individual ou dia inteiro anterior para o dia de hoje com um clique *(D-20)*.
 - [ ] **BL-19** Seção de alimentos recentes e favoritos com acesso rápido no modal de refeição *(D-20)*.
 - [ ] **BL-20** Refeições salvas e combos reutilizáveis (ex: "Café da manhã padrão") *(D-20)*.
@@ -156,9 +156,9 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 ---
 
 ### ⏳ Fase 5.5: Pacote Compartilhado de Tipos
-*Objetivo: Compartilhamento determinístico de contratos DTO e schemas entre frontend e backend via npm workspaces. Pré-requisito: Fase 5 concluída e antes do início do app mobile.*
+*Objetivo: Compartilhamento determinístico de contratos DTO e schemas entre frontend e backend via pacote `shared/` com aliases TypeScript/Vite (sem workspaces nesta branch). Pré-requisito: Fase 5 concluída e antes do início do app mobile.*
 
-- [ ] **BL-03** Criação de pacote compartilhado `shared/` no monorepo contendo schemas Zod puros como fonte da verdade (`z.infer`) e cálculos nutricionais testados com paridade *(D-17)*.
+- [x] **BL-03** Criação de pacote compartilhado `shared/` no monorepo contendo schemas Zod puros como fonte da verdade (`z.infer`) e cálculos nutricionais testados com paridade *(D-17)*.
 
 ---
 
@@ -175,8 +175,8 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 ### ⏳ Fase 7: Adequação à LGPD e Privacidade
 *Objetivo: Conformidade rigorosa com leis de dados pessoais de saúde (LGPD art. 18). Bloqueante para lançamento público.*
 
-- [ ] **BL-10** Exportação e portabilidade completa de dados do usuário em formato JSON (principal) e CSV (opcional) *(D-04 — Severidade Média/M)*.
-- [ ] **BL-11** Consentimento explícito no cadastro (`terms_accepted_at`) e links funcionais para Termos de Uso e Política de Privacidade.
+- [x] **BL-10** Exportação e portabilidade completa de dados do usuário em formato JSON (principal) e CSV (opcional) *(D-04 — Severidade Média/M)*.
+- [x] **BL-11** Consentimento explícito no cadastro (`terms_accepted_at`) e links funcionais para Termos de Uso e Política de Privacidade.
 - [ ] **BL-16** Rotina agendada para expurgo seguro de contas inativas há mais de 2 anos.
 
 ---
@@ -185,9 +185,9 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 *Objetivo: Disponibilizar a aplicação em produção com monitoramento, sessão de alta segurança e infraestrutura robusta. Bloqueante para deploy público.*
 
 - [ ] **BL-04** Revogação de sessão: migração de JWT no localStorage para cookies seguros `HttpOnly` com Refresh Tokens rotacionados em banco *(D-02)*.
-- [ ] **BL-01** Habilitação de `trust proxy` configurado por número de saltos (`TRUST_PROXY`) e rate limiting por IP + e-mail *(D-19)*.
-- [ ] **BL-07** Content Security Policy (CSP) rigorosa configurada via Helmet.
-- [ ] **BL-08** Logging HTTP estruturado em JSON com correlation ID e tempo de resposta.
+- [x] **BL-01** Habilitação de `trust proxy` configurado por número de saltos (`TRUST_PROXY`) e rate limiting por IP + e-mail *(D-19)*.
+- [x] **BL-07** Content Security Policy (CSP) rigorosa configurada via Helmet.
+- [x] **BL-08** Logging HTTP estruturado em JSON com correlation ID e tempo de resposta.
 - [ ] **Rastreamento de Erros:** Integração do Sentry no frontend e backend para monitoramento em tempo real.
 - [ ] **Deploy Automatizado:** Pipeline CI/CD via GitHub Actions com fallback SPA para `index.html` *(D-16)*.
 
@@ -196,8 +196,8 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 ## 5. Backlog Futuro (Pós-Fase 8)
 
 - **BL-25** Aplicativo mobile dedicado em Expo / React Native *(D-05 — condicionado à web estável e pacote `shared/` D-17)*.
-- **BL-09** Migração idempotente para deduplicação e índice único parcial no catálogo de alimentos *(D-13)*.
-- **BL-15** Padronização de migrações legadas para ESM nativo *(D-13)*.
+- [x] **BL-09** Migração idempotente para deduplicação e índice único parcial no catálogo de alimentos *(D-13)*.
+- [x] **BL-15** Padronização de migrações legadas para ESM nativo *(D-13)*.
 - **BL-21** Gráfico de evolução de peso e medidas corporais (`body_measurements`).
 - **BL-22** Cadastro de alimentos personalizados pelo próprio usuário *(D-07)*.
 - **BL-23** Registro diário de consumo de água com meta personalizada.

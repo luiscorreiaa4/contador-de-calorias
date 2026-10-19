@@ -1,8 +1,7 @@
 /**
- * BL-01 / D-19 — `trust proxy` deve ser configurado como número de saltos
- * (ex: "1" atrás de um proxy reverso) ou desabilitado com "false".
- * Nunca aceitar `true`: confiar em toda a cadeia permite spoofing de IP
- * via header `X-Forwarded-For` e fura o rate limiting.
+ * Configuração de `trust proxy` como número de saltos (ex: "1" atrás de um proxy reverso)
+ * ou desabilitado com "false". Nunca aceitar `true` (confiar em toda a cadeia permite
+ * spoofing de IP via header `X-Forwarded-For` e compromete o rate limiting).
  */
 export function parseTrustProxy(raw: string | undefined): number | false {
   if (raw === undefined) return false;

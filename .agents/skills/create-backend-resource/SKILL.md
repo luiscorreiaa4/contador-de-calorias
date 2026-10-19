@@ -8,13 +8,15 @@ description: "Padroniza a criação de novos recursos/módulos no backend Node.j
 Sempre que for solicitado criar um novo recurso/módulo no backend (ex: usuários, produtos, autenticação), siga a estrutura abaixo.
 
 ## 1. Mapeamento de Caminhos
-Todos os arquivos devem ser criados obrigatoriamente dentro de `/backend`, em TypeScript:
-- Types/DTO: `/backend/src/types/[recurso].types.ts`
-- Schema de validação: `/backend/src/schemas/[recurso].schema.ts` (zod)
+Contratos compartilhados ficam no pacote `shared/` e o restante dentro de `/backend`, em TypeScript:
+- Types/DTO: `/shared/src/types/[recurso].types.ts` (contrato consumido também pelo frontend)
+- Schema de validação: `/shared/src/schemas/[recurso].schema.ts` (zod puro; sem imports de Express)
 - Model: `/backend/src/models/[recurso].model.ts` (queries do PostgreSQL, sem regra de negócio)
 - Service: `/backend/src/services/[recurso].service.ts` (regras de negócio, orquestra o model)
 - Controller: `/backend/src/controllers/[recurso].controller.ts` (tradução HTTP: chama o service e formata resposta)
 - Routes: `/backend/src/routes/[recurso].routes.ts` (endpoints da API, aplica middleware de validação/auth)
+
+> Contratos e schemas são importados por alias `@caloriesync/shared` (barrel) a partir do backend e do frontend. Cálculos puros reutilizáveis devem ir para `shared/src/nutrition/` e ser importados pelo subpath `@caloriesync/shared/nutrition` no frontend (evita arrastar Zod ao bundle). Novos recursos exportam o schema/DTO no barrel `shared/src/index.ts`.
 
 ## 2. Padronização de Respostas e Status Codes
 Todas as respostas da API devem retornar JSON padronizado:
@@ -31,7 +33,7 @@ Todas as respostas da API devem retornar JSON padronizado:
 Toda rota que recebe dados do usuário deve validar com zod antes de chegar ao controller.
 
 ```typescript
-// /backend/src/schemas/example.schema.ts
+// /shared/src/schemas/example.schema.ts
 import { z } from 'zod';
 
 export const createExampleSchema = z.object({
@@ -43,7 +45,7 @@ export type CreateExampleDTO = z.infer<typeof createExampleSchema>;
 
 ## 4. Modelo de Types
 ```typescript
-// /backend/src/types/example.types.ts
+// /shared/src/types/example.types.ts
 export interface Example {
   id: string;
   name: string;
@@ -55,7 +57,7 @@ export interface Example {
 ```typescript
 // /backend/src/models/example.model.ts
 import { pool } from '../database/pool';
-import { Example } from '../types/example.types';
+import type { Example } from '@caloriesync/shared';
 
 export async function createItem(name: string): Promise<Example> {
   const result = await pool.query<Example>(
@@ -75,7 +77,7 @@ export async function findById(id: string): Promise<Example | null> {
 ```typescript
 // /backend/src/services/example.service.ts
 import * as ExampleModel from '../models/example.model';
-import { CreateExampleDTO } from '../schemas/example.schema';
+import type { CreateExampleDTO } from '@caloriesync/shared';
 
 export async function create(data: CreateExampleDTO) {
   // regra de negócio (ex: checar duplicidade, aplicar transação) fica aqui
@@ -125,7 +127,7 @@ export async function getOne(req: Request, res: Response) {
 import { Router } from 'express';
 import * as ExampleController from '../controllers/example.controller';
 import { validate } from '../middlewares/validate';
-import { createExampleSchema } from '../schemas/example.schema';
+import { createExampleSchema } from '@caloriesync/shared';
 
 const router = Router();
 
