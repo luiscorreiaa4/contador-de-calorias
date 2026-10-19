@@ -21,6 +21,13 @@ const envSchema = z.object({
   JWT_EXPIRES_IN: z.string().default('7d'),
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
   DB_SSL_CA: z.string().optional(),
+  // BL-01 / D-19 — número de saltos confiáveis; nunca "true".
+  TRUST_PROXY: z
+    .string()
+    .refine((value) => /^\d+$/.test(value) || value === 'false', {
+      message: 'TRUST_PROXY deve ser o número de saltos (ex: "1") ou "false"; nunca "true".',
+    })
+    .optional(),
 });
 
 const _env = envSchema.safeParse(process.env);

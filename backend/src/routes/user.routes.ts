@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import * as UserController from '../controllers/user.controller.js';
 import { validate } from '../middlewares/validate.js';
 import { authenticate } from '../middlewares/auth.js';
@@ -10,7 +10,17 @@ const router = Router();
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 10, // Limita cada IP a 10 requisições por janela de tempo para rotas de auth
+  max: 10, // Limita cada credencial a 10 requisições por janela de tempo para rotas de auth
+  standardHeaders: true,
+  legacyHeaders: false,
+  // BL-01 / SEC-006 — chave por IP + e-mail: evita que um atacante bloqueie
+  // toda a base atrás de um NAT e evita que um IP variable burle o limite.
+  keyGenerator: (req) => {
+    const ip = ipKeyGenerator(req.ip ?? '');
+    const rawEmail = (req.body as { email?: unknown } | undefined)?.email;
+    const email = typeof rawEmail === 'string' ? rawEmail.trim().toLowerCase() : '';
+    return email ? `${ip}:${email}` : ip;
+  },
   message: { success: false, message: 'Muitas tentativas de login. Tente novamente após 15 minutos.' }
 });
 
