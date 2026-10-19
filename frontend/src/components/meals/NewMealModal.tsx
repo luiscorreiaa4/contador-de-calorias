@@ -597,14 +597,14 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
               </div>
 
               {!selectedFood && (
-                <div className="flex items-center gap-1.5 border-b-2 border-border pb-3 overflow-x-auto">
+                <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setActiveFoodTab('search')}
-                    className={`px-2.5 py-1 text-[11px] font-black uppercase tracking-wider border-2 transition-colors shrink-0 ${
+                    className={`flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-wider border-2 transition-all focus:outline-none focus:border-primary active:translate-x-px active:translate-y-px ${
                       activeFoodTab === 'search'
                         ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-card text-foreground border-border hover:bg-secondary'
+                        : 'bg-card text-foreground border-border hover:bg-background'
                     }`}
                   >
                     Catálogo
@@ -612,49 +612,49 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                   <button
                     type="button"
                     onClick={() => setActiveFoodTab('recents')}
-                    className={`px-2.5 py-1 text-[11px] font-black uppercase tracking-wider border-2 transition-colors flex items-center gap-1 shrink-0 ${
+                    className={`flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-wider border-2 transition-all focus:outline-none focus:border-primary active:translate-x-px active:translate-y-px ${
                       activeFoodTab === 'recents'
                         ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-card text-foreground border-border hover:bg-secondary'
+                        : 'bg-card text-foreground border-border hover:bg-background'
                     }`}
                   >
-                    <Clock className="w-3 h-3" />
+                    <Clock className="w-3.5 h-3.5 shrink-0" />
                     Recentes ({recentFoods.length})
                   </button>
                   <button
                     type="button"
                     onClick={() => setActiveFoodTab('favorites')}
-                    className={`px-2.5 py-1 text-[11px] font-black uppercase tracking-wider border-2 transition-colors flex items-center gap-1 shrink-0 ${
+                    className={`flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-wider border-2 transition-all focus:outline-none focus:border-primary active:translate-x-px active:translate-y-px ${
                       activeFoodTab === 'favorites'
                         ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-card text-foreground border-border hover:bg-secondary'
+                        : 'bg-card text-foreground border-border hover:bg-background'
                     }`}
                   >
-                    <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                    <Star className="w-3.5 h-3.5 shrink-0 text-amber-500 fill-amber-500" />
                     Favoritos ({favoriteFoods.length})
                   </button>
                   <button
                     type="button"
                     onClick={() => setActiveFoodTab('combos')}
-                    className={`px-2.5 py-1 text-[11px] font-black uppercase tracking-wider border-2 transition-colors flex items-center gap-1 shrink-0 ${
+                    className={`flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-wider border-2 transition-all focus:outline-none focus:border-primary active:translate-x-px active:translate-y-px ${
                       activeFoodTab === 'combos'
                         ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-card text-foreground border-border hover:bg-secondary'
+                        : 'bg-card text-foreground border-border hover:bg-background'
                     }`}
                   >
-                    <Bookmark className="w-3 h-3" />
+                    <Bookmark className="w-3.5 h-3.5 shrink-0" />
                     Combos ({savedMeals.length})
                   </button>
                   <button
                     type="button"
                     onClick={() => setActiveFoodTab('custom')}
-                    className={`px-2.5 py-1 text-[11px] font-black uppercase tracking-wider border-2 transition-colors flex items-center gap-1 shrink-0 ${
+                    className={`col-span-2 flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-widest border-2 border-dashed transition-all focus:outline-none focus:border-primary active:translate-x-px active:translate-y-px ${
                       activeFoodTab === 'custom'
                         ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-card text-foreground border-border hover:bg-secondary'
+                        : 'bg-secondary text-foreground border-border hover:bg-card'
                     }`}
                   >
-                    <Plus className="w-3 h-3" />
+                    <Plus className="w-3.5 h-3.5 shrink-0" />
                     Novo Alimento
                   </button>
                 </div>
