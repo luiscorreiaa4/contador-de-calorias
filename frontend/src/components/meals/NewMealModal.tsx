@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { X, Utensils } from 'lucide-react';
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getFoods, type Food } from '../../services/food.service';
+import { X, Utensils, Star, Clock, Bookmark, Plus } from 'lucide-react';
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getFoods, getRecentFoods, getFavoriteFoods, addFavoriteFood, removeFavoriteFood, createCustomFood, type Food, type CreateCustomFoodDTO } from '../../services/food.service';
 import { createMeal, updateMeal, type Meal, type CreateMealDTO } from '../../services/meal.service';
+import { getSavedMeals, createSavedMeal, deleteSavedMeal, type SavedMeal, type CreateSavedMealDTO } from '../../services/savedMeal.service';
 import { FoodSearchSelect } from './FoodSearchSelect';
 import { FoodQuantityForm } from './FoodQuantityForm';
 import { MealItemList } from './MealItemList';
@@ -104,6 +105,140 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
 
   const isSubmitting = createMealMutation.isPending || updateMealMutation.isPending;
   const hasInitializedRef = useRef(false);
+
+  const [activeFoodTab, setActiveFoodTab] = useState<'search' | 'recents' | 'favorites' | 'combos' | 'custom'>('search');
+  const [comboName, setComboName] = useState('');
+  const [isSavingCombo, setIsSavingCombo] = useState(false);
+
+  const [customFoodForm, setCustomFoodForm] = useState<{
+    name: string;
+    calories: string;
+    proteins: string;
+    carbs: string;
+    fats: string;
+    base_unit: 'g' | 'ml';
+    unit_name: string;
+    unit_weight: string;
+  }>({
+    name: '',
+    calories: '',
+    proteins: '',
+    carbs: '',
+    fats: '',
+    base_unit: 'g',
+    unit_name: '',
+    unit_weight: '',
+  });
+
+  const createCustomFoodMutation = useMutation({
+    mutationFn: (data: CreateCustomFoodDTO) => createCustomFood(data),
+    onSuccess: (newFood) => {
+      queryClient.invalidateQueries({ queryKey: ['foods'] });
+      handleSelectFood(newFood);
+      setActiveFoodTab('search');
+      setCustomFoodForm({
+        name: '',
+        calories: '',
+        proteins: '',
+        carbs: '',
+        fats: '',
+        base_unit: 'g',
+        unit_name: '',
+        unit_weight: '',
+      });
+    },
+    onError: (err: unknown) => {
+      setErrorMessage(err instanceof Error ? err.message.toUpperCase() : 'ERRO AO CADASTRAR ALIMENTO.');
+    },
+  });
+
+
+  const { data: recentFoods = [] } = useQuery({
+    queryKey: ['recentFoods'],
+    queryFn: ({ signal }) => getRecentFoods(signal),
+    enabled: isOpen,
+    staleTime: 1000 * 60 * 2,
+  });
+
+  const { data: favoriteFoods = [] } = useQuery({
+    queryKey: ['favoriteFoods'],
+    queryFn: ({ signal }) => getFavoriteFoods(signal),
+    enabled: isOpen,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const { data: savedMeals = [] } = useQuery({
+    queryKey: ['savedMeals'],
+    queryFn: ({ signal }) => getSavedMeals(signal),
+    enabled: isOpen,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const favoriteIds = useMemo(() => new Set(favoriteFoods.map((f) => f.id)), [favoriteFoods]);
+
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: async ({ foodId, isFav }: { foodId: string; isFav: boolean }) => {
+      if (isFav) {
+        await removeFavoriteFood(foodId);
+      } else {
+        await addFavoriteFood(foodId);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['favoriteFoods'] });
+    },
+  });
+
+  const createComboMutation = useMutation({
+    mutationFn: (data: CreateSavedMealDTO) => createSavedMeal(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['savedMeals'] });
+      setIsSavingCombo(false);
+      setComboName('');
+    },
+    onError: (err: unknown) => {
+      setErrorMessage(err instanceof Error ? err.message.toUpperCase() : 'ERRO AO SALVAR COMBO.');
+    },
+  });
+
+  const deleteComboMutation = useMutation({
+    mutationFn: (id: string) => deleteSavedMeal(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['savedMeals'] });
+    },
+  });
+
+  const handleApplyCombo = (combo: SavedMeal) => {
+    const newItems: MealItem[] = combo.items.map((it) => {
+      const food: Food = {
+        id: it.food_id,
+        name: it.food_name,
+        base_unit: (it.food_base_unit as 'g' | 'ml') || 'g',
+        serving_weight: 100,
+        calories: it.calories,
+        proteins: it.proteins,
+        carbs: it.carbs,
+        fats: it.fats,
+        unit_name: it.food_unit_name,
+        unit_weight: it.food_unit_weight,
+      };
+
+      return {
+        uid: `${it.food_id}-${Date.now()}-${Math.random()}`,
+        food,
+        quantity: it.quantity,
+        unit: (it.unit as 'g' | 'ml' | 'un') || 'g',
+        displayAmount: it.display_amount ?? it.quantity,
+        calories: it.calories,
+        proteins: it.proteins,
+        carbs: it.carbs,
+        fats: it.fats,
+      };
+    });
+
+    setMealItems((prev) => [...prev, ...newItems]);
+    setActiveFoodTab('search');
+  };
 
   useEffect(() => {
     if (!isOpen) {
@@ -461,22 +596,378 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                 )}
               </div>
 
+              {!selectedFood && (
+                <div className="flex items-center gap-1.5 border-b-2 border-border pb-3 overflow-x-auto">
+                  <button
+                    type="button"
+                    onClick={() => setActiveFoodTab('search')}
+                    className={`px-2.5 py-1 text-[11px] font-black uppercase tracking-wider border-2 transition-colors shrink-0 ${
+                      activeFoodTab === 'search'
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-card text-foreground border-border hover:bg-secondary'
+                    }`}
+                  >
+                    Catálogo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveFoodTab('recents')}
+                    className={`px-2.5 py-1 text-[11px] font-black uppercase tracking-wider border-2 transition-colors flex items-center gap-1 shrink-0 ${
+                      activeFoodTab === 'recents'
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-card text-foreground border-border hover:bg-secondary'
+                    }`}
+                  >
+                    <Clock className="w-3 h-3" />
+                    Recentes ({recentFoods.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveFoodTab('favorites')}
+                    className={`px-2.5 py-1 text-[11px] font-black uppercase tracking-wider border-2 transition-colors flex items-center gap-1 shrink-0 ${
+                      activeFoodTab === 'favorites'
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-card text-foreground border-border hover:bg-secondary'
+                    }`}
+                  >
+                    <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                    Favoritos ({favoriteFoods.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveFoodTab('combos')}
+                    className={`px-2.5 py-1 text-[11px] font-black uppercase tracking-wider border-2 transition-colors flex items-center gap-1 shrink-0 ${
+                      activeFoodTab === 'combos'
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-card text-foreground border-border hover:bg-secondary'
+                    }`}
+                  >
+                    <Bookmark className="w-3 h-3" />
+                    Combos ({savedMeals.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveFoodTab('custom')}
+                    className={`px-2.5 py-1 text-[11px] font-black uppercase tracking-wider border-2 transition-colors flex items-center gap-1 shrink-0 ${
+                      activeFoodTab === 'custom'
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-card text-foreground border-border hover:bg-secondary'
+                    }`}
+                  >
+                    <Plus className="w-3 h-3" />
+                    Novo Alimento
+                  </button>
+                </div>
+              )}
+
               {!selectedFood ? (
-                <FoodSearchSelect
-                  options={foodOptions}
-                  isLoading={isLoadingFoods}
-                  hasNextPage={Boolean(hasNextPage)}
-                  isFetchingNextPage={isFetchingNextPage}
-                  isError={isFoodsError}
-                  isFetchNextPageError={isFetchNextPageError}
-                  onLoadMore={() => {
-                    if (hasNextPage && !isFetchingNextPage && !isPlaceholderData && searchTerm === debouncedSearch) {
-                      void fetchNextPage({ cancelRefetch: false });
-                    }
-                  }}
-                  onSearchChange={setSearchTerm}
-                  onSelectFood={handleSelectFood}
-                />
+                activeFoodTab === 'custom' ? (
+                  <div className="space-y-3 bg-card p-3 border-2 border-border">
+                    <div className="flex items-center justify-between border-b-2 border-border pb-2">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-foreground">
+                        CADASTRAR ALIMENTO PERSONALIZADO
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setActiveFoodTab('search')}
+                        className="text-[10px] font-bold uppercase text-muted-foreground hover:text-foreground"
+                      >
+                        CANCELAR
+                      </button>
+                    </div>
+
+                    <div>
+                      <label htmlFor="custom-food-name" className="block text-[10px] font-black uppercase tracking-wider text-muted-foreground mb-1">
+                        NOME DO ALIMENTO *
+                      </label>
+                      <input
+                        id="custom-food-name"
+                        type="text"
+                        value={customFoodForm.name}
+                        onChange={(e) => setCustomFoodForm((prev) => ({ ...prev, name: e.target.value.toUpperCase() }))}
+                        placeholder="EX: WHEY PROTEIN CASEIRO..."
+                        className="w-full px-3 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-primary"
+                        required
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <div>
+                        <label htmlFor="custom-food-calories" className="block text-[9px] font-black uppercase tracking-wider text-muted-foreground mb-1">
+                          KCAL / 100{customFoodForm.base_unit} *
+                        </label>
+                        <input
+                          id="custom-food-calories"
+                          type="number"
+                          step="any"
+                          value={customFoodForm.calories}
+                          onChange={(e) => setCustomFoodForm((prev) => ({ ...prev, calories: e.target.value }))}
+                          placeholder="0"
+                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-primary text-center"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="custom-food-proteins" className="block text-[9px] font-black uppercase tracking-wider text-muted-foreground mb-1">
+                          PROT (G) *
+                        </label>
+                        <input
+                          id="custom-food-proteins"
+                          type="number"
+                          step="any"
+                          value={customFoodForm.proteins}
+                          onChange={(e) => setCustomFoodForm((prev) => ({ ...prev, proteins: e.target.value }))}
+                          placeholder="0"
+                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-primary text-center"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="custom-food-carbs" className="block text-[9px] font-black uppercase tracking-wider text-muted-foreground mb-1">
+                          CARB (G) *
+                        </label>
+                        <input
+                          id="custom-food-carbs"
+                          type="number"
+                          step="any"
+                          value={customFoodForm.carbs}
+                          onChange={(e) => setCustomFoodForm((prev) => ({ ...prev, carbs: e.target.value }))}
+                          placeholder="0"
+                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-primary text-center"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="custom-food-fats" className="block text-[9px] font-black uppercase tracking-wider text-muted-foreground mb-1">
+                          GORD (G) *
+                        </label>
+                        <input
+                          id="custom-food-fats"
+                          type="number"
+                          step="any"
+                          value={customFoodForm.fats}
+                          onChange={(e) => setCustomFoodForm((prev) => ({ ...prev, fats: e.target.value }))}
+                          placeholder="0"
+                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-primary text-center"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <div>
+                        <label htmlFor="custom-food-base-unit" className="block text-[9px] font-black uppercase tracking-wider text-muted-foreground mb-1">
+                          UNIDADE BASE
+                        </label>
+                        <select
+                          id="custom-food-base-unit"
+                          value={customFoodForm.base_unit}
+                          onChange={(e) => setCustomFoodForm((prev) => ({ ...prev, base_unit: e.target.value as 'g' | 'ml' }))}
+                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-primary"
+                        >
+                          <option value="g">GRAMAS (G)</option>
+                          <option value="ml">MILILITROS (ML)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label htmlFor="custom-food-unit-name" className="block text-[9px] font-black uppercase tracking-wider text-muted-foreground mb-1">
+                          PORÇÃO CASEIRA (OPCIONAL)
+                        </label>
+                        <input
+                          id="custom-food-unit-name"
+                          type="text"
+                          value={customFoodForm.unit_name}
+                          onChange={(e) => setCustomFoodForm((prev) => ({ ...prev, unit_name: e.target.value }))}
+                          placeholder="EX: SCOOP, FATIA"
+                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-primary"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="custom-food-unit-weight" className="block text-[9px] font-black uppercase tracking-wider text-muted-foreground mb-1">
+                          PESO DA PORÇÃO ({customFoodForm.base_unit})
+                        </label>
+                        <input
+                          id="custom-food-unit-weight"
+                          type="number"
+                          step="any"
+                          value={customFoodForm.unit_weight}
+                          onChange={(e) => setCustomFoodForm((prev) => ({ ...prev, unit_weight: e.target.value }))}
+                          placeholder="EX: 30"
+                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-primary text-center"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-2 flex justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setActiveFoodTab('search')}
+                        className="px-3 py-1.5 border-2 border-border text-xs font-black uppercase hover:bg-secondary"
+                      >
+                        CANCELAR
+                      </button>
+                      <button
+                        type="button"
+                        disabled={createCustomFoodMutation.isPending || !customFoodForm.name.trim()}
+                        onClick={() => {
+                          const cal = parseFloat(customFoodForm.calories || '0');
+                          const prot = parseFloat(customFoodForm.proteins || '0');
+                          const carb = parseFloat(customFoodForm.carbs || '0');
+                          const fat = parseFloat(customFoodForm.fats || '0');
+                          const uWeight = customFoodForm.unit_weight ? parseFloat(customFoodForm.unit_weight) : undefined;
+
+                          createCustomFoodMutation.mutate({
+                            name: customFoodForm.name.trim(),
+                            calories: isNaN(cal) ? 0 : cal,
+                            proteins: isNaN(prot) ? 0 : prot,
+                            carbs: isNaN(carb) ? 0 : carb,
+                            fats: isNaN(fat) ? 0 : fat,
+                            base_unit: customFoodForm.base_unit,
+                            serving_weight: 100,
+                            unit_name: customFoodForm.unit_name.trim() || undefined,
+                            unit_weight: uWeight && !isNaN(uWeight) ? uWeight : undefined,
+                          });
+                        }}
+                        className="px-4 py-1.5 bg-primary text-primary-foreground text-xs font-black uppercase tracking-wider hover:bg-primary/90 disabled:opacity-50"
+                      >
+                        {createCustomFoodMutation.isPending ? 'SALVANDO...' : 'CADASTRAR E SELECIONAR'}
+                      </button>
+                    </div>
+                  </div>
+                ) : activeFoodTab === 'search' ? (
+                  <FoodSearchSelect
+                    options={foodOptions}
+                    isLoading={isLoadingFoods}
+                    hasNextPage={Boolean(hasNextPage)}
+                    isFetchingNextPage={isFetchingNextPage}
+                    isError={isFoodsError}
+                    isFetchNextPageError={isFetchNextPageError}
+                    onLoadMore={() => {
+                      if (hasNextPage && !isFetchingNextPage && !isPlaceholderData && searchTerm === debouncedSearch) {
+                        void fetchNextPage({ cancelRefetch: false });
+                      }
+                    }}
+                    onSearchChange={setSearchTerm}
+                    onSelectFood={handleSelectFood}
+                  />
+                ) : activeFoodTab === 'recents' ? (
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {recentFoods.length === 0 ? (
+                      <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground p-4 text-center">
+                        NENHUM ALIMENTO RECENTE NOS ÚLTIMOS 14 DIAS
+                      </p>
+                    ) : (
+                      recentFoods.map((food) => (
+                        <div
+                          key={food.id}
+                          className="flex items-center justify-between p-2.5 bg-card border-2 border-border hover:border-primary transition-colors"
+                        >
+                          <div className="flex-1 min-w-0 pr-3">
+                            <p className="text-xs font-black uppercase text-foreground truncate">{food.name}</p>
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                              {food.calories} KCAL · {food.proteins}G PROT
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => toggleFavoriteMutation.mutate({ foodId: food.id, isFav: favoriteIds.has(food.id) })}
+                              className="p-1.5 border-2 border-border text-foreground hover:text-amber-500 focus:outline-none"
+                              title={favoriteIds.has(food.id) ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+                            >
+                              <Star className={`w-3.5 h-3.5 ${favoriteIds.has(food.id) ? 'fill-amber-500 text-amber-500' : ''}`} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleSelectFood(food)}
+                              className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-primary text-primary-foreground hover:bg-primary/90 focus:outline-none"
+                            >
+                              Adicionar
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                ) : activeFoodTab === 'favorites' ? (
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {favoriteFoods.length === 0 ? (
+                      <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground p-4 text-center">
+                        NENHUM ALIMENTO FAVORITADO AINDA
+                      </p>
+                    ) : (
+                      favoriteFoods.map((food) => (
+                        <div
+                          key={food.id}
+                          className="flex items-center justify-between p-2.5 bg-card border-2 border-border hover:border-primary transition-colors"
+                        >
+                          <div className="flex-1 min-w-0 pr-3">
+                            <p className="text-xs font-black uppercase text-foreground truncate">{food.name}</p>
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                              {food.calories} KCAL · {food.proteins}G PROT
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => toggleFavoriteMutation.mutate({ foodId: food.id, isFav: true })}
+                              className="p-1.5 border-2 border-border text-amber-500 hover:text-destructive focus:outline-none"
+                              title="Remover dos favoritos"
+                            >
+                              <Star className="w-3.5 h-3.5 fill-amber-500" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleSelectFood(food)}
+                              className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-primary text-primary-foreground hover:bg-primary/90 focus:outline-none"
+                            >
+                              Adicionar
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {savedMeals.length === 0 ? (
+                      <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground p-4 text-center">
+                        NENHUM COMBO SALVO AINDA
+                      </p>
+                    ) : (
+                      savedMeals.map((combo) => (
+                        <div
+                          key={combo.id}
+                          className="flex items-center justify-between p-2.5 bg-card border-2 border-border hover:border-primary transition-colors"
+                        >
+                          <div className="flex-1 min-w-0 pr-3">
+                            <p className="text-xs font-black uppercase text-foreground truncate">{combo.name}</p>
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                              {combo.items.length} ITENS · {Math.round(combo.total_calories)} KCAL · {Math.round(combo.total_proteins)}G PROT
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => deleteComboMutation.mutate(combo.id)}
+                              className="p-1.5 border-2 border-border text-destructive hover:bg-destructive hover:text-destructive-foreground focus:outline-none"
+                              title="Excluir combo"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleApplyCombo(combo)}
+                              className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-primary text-primary-foreground hover:bg-primary/90 focus:outline-none"
+                            >
+                              Usar Combo
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )
               ) : (
                 <FoodQuantityForm
                   selectedFood={selectedFood}
@@ -503,6 +994,65 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
               onRemoveItem={handleRemoveItem}
               onUpdateItemAmount={handleUpdateItemAmount}
             />
+
+            {/* Salvar como Combo Reutilizável */}
+            {mealItems.length > 0 && (
+              <div className="p-3 bg-secondary border-2 border-border space-y-2">
+                {!isSavingCombo ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setComboName(mealName || 'MEU COMBO');
+                      setIsSavingCombo(true);
+                    }}
+                    className="w-full py-2 px-3 border-2 border-dashed border-border hover:border-primary text-xs font-black uppercase tracking-wider text-muted-foreground hover:text-foreground flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <Bookmark className="w-3.5 h-3.5" />
+                    Salvar itens atuais como combo reutilizável
+                  </button>
+                ) : (
+                  <div className="space-y-2">
+                    <span className="block text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                      Nome do Combo
+                    </span>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={comboName}
+                        onChange={(e) => setComboName(e.target.value.toUpperCase())}
+                        placeholder="EX: CAFÉ DA MANHÃ PADRÃO..."
+                        className="flex-1 px-3 py-1.5 bg-background border-2 border-border text-xs font-black uppercase placeholder:text-muted-foreground focus:border-primary outline-none"
+                      />
+                      <button
+                        type="button"
+                        disabled={createComboMutation.isPending || !comboName.trim()}
+                        onClick={() => {
+                          createComboMutation.mutate({
+                            name: comboName.trim(),
+                            items: mealItems.map((item) => ({
+                              foodId: item.food.id,
+                              quantity: item.quantity,
+                              unit: item.unit,
+                              displayAmount: item.displayAmount,
+                            })),
+                          });
+                        }}
+                        className="px-3 py-1.5 bg-primary text-primary-foreground text-xs font-black uppercase tracking-wider hover:bg-primary/90 disabled:opacity-50"
+                      >
+                        {createComboMutation.isPending ? 'Salvando...' : 'Salvar'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsSavingCombo(false)}
+                        className="px-3 py-1.5 bg-background border-2 border-border text-xs font-black uppercase tracking-wider hover:bg-secondary"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Footer Buttons */}

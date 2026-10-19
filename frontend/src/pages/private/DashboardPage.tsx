@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
-import { Flame, Plus, Utensils, Beef, Clock, Pencil, Trash2, AlertTriangle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, CalendarDays } from 'lucide-react';
+import { Flame, Plus, Utensils, Beef, Clock, Pencil, Trash2, AlertTriangle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, CalendarDays, Copy } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const NewMealModal = React.lazy(() =>
@@ -9,7 +9,7 @@ const NewMealModal = React.lazy(() =>
     default: m.NewMealModal,
   }))
 );
-import { getTodayMeals, deleteMeal, type Meal } from '../../services/meal.service';
+import { getTodayMeals, deleteMeal, copyMeal, type Meal } from '../../services/meal.service';
 import { getActiveGoal } from '../../services/goals.service';
 import { getLocalDateString, isValidLocalDateString, addDaysToDateString, parseLocalDateString } from '../../utils/date';
 
@@ -64,6 +64,29 @@ export const DashboardPage: React.FC = () => {
       setIsDeleteModalOpen(false);
       setMealToDelete(null);
     }
+  });
+
+  const [copyFeedback, setCopyFeedback] = React.useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  const copyMealMutation = useMutation({
+    mutationFn: copyMeal,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['todayMeals'] });
+      queryClient.invalidateQueries({ queryKey: ['mealStats'] });
+      const count = Array.isArray(data) ? data.length : 1;
+      setCopyFeedback({
+        type: 'success',
+        message: `${count} REFEIÇÃO(ÕES) COPIADA(S) COM SUCESSO!`,
+      });
+      setTimeout(() => setCopyFeedback(null), 4000);
+    },
+    onError: (err: unknown) => {
+      setCopyFeedback({
+        type: 'error',
+        message: err instanceof Error ? err.message.toUpperCase() : 'NÃO FOI POSSÍVEL COPIAR A REFEIÇÃO.',
+      });
+      setTimeout(() => setCopyFeedback(null), 5000);
+    },
   });
 
   // Metas do dia
@@ -273,10 +296,39 @@ export const DashboardPage: React.FC = () => {
 
       {/* Meals List */}
       <div className="space-y-6 pt-4">
-        <h3 className="text-xl font-heading font-black text-foreground uppercase tracking-tight flex items-center gap-2">
-          {isToday ? 'Refeições de Hoje' : 'Refeições do Dia'}
-          <span className="text-xs font-bold bg-primary text-primary-foreground px-2 py-0.5">{meals.length}</span>
-        </h3>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <h3 className="text-xl font-heading font-black text-foreground uppercase tracking-tight flex items-center gap-2">
+            {isToday ? 'Refeições de Hoje' : 'Refeições do Dia'}
+            <span className="text-xs font-bold bg-primary text-primary-foreground px-2 py-0.5">{meals.length}</span>
+          </h3>
+
+          <button
+            type="button"
+            onClick={() => {
+              const yesterday = addDaysToDateString(selectedDate, -1);
+              copyMealMutation.mutate({ sourceDate: yesterday, targetDate: selectedDate });
+            }}
+            disabled={copyMealMutation.isPending}
+            className="flex items-center gap-2 px-3 py-1.5 border-2 border-border bg-card text-foreground font-black text-xs uppercase tracking-widest hover:bg-secondary transition-colors focus:outline-none self-start sm:self-auto"
+            title="Copiar todas as refeições do dia anterior para este dia"
+          >
+            <Copy className="w-3.5 h-3.5 text-primary" aria-hidden="true" />
+            <span>{copyMealMutation.isPending ? 'COPIANDO...' : 'COPIAR DE ONTEM'}</span>
+          </button>
+        </div>
+
+        {copyFeedback && (
+          <div
+            role="status"
+            className={`p-3 border-2 text-xs font-black uppercase tracking-widest ${
+              copyFeedback.type === 'success'
+                ? 'border-primary bg-primary/10 text-primary'
+                : 'border-destructive bg-destructive/10 text-destructive'
+            }`}
+          >
+            {copyFeedback.message}
+          </div>
+        )}
 
         {isLoading ? (
           <div className="bg-card border-2 border-border border-dashed p-8 text-center flex items-center justify-center">
@@ -345,6 +397,17 @@ export const DashboardPage: React.FC = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          copyMealMutation.mutate({ sourceMealId: meal.id, targetDate: selectedDate });
+                        }}
+                        disabled={copyMealMutation.isPending}
+                        className="p-2 border-2 border-border bg-background text-foreground hover:bg-primary hover:text-primary-foreground transition-colors focus:outline-none"
+                        title="Duplicar refeição"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                      </button>
                       <button
                         type="button"
                         onClick={() => {

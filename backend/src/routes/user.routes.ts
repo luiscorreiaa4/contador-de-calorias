@@ -12,6 +12,8 @@ import {
   previewGoalsSchema,
   updateGoalsSchema,
   dateQuerySchema,
+  createMeasurementSchema,
+  measurementQuerySchema,
 } from '@caloriesync/shared';
 
 const router = Router();
@@ -43,4 +45,8 @@ router.post('/me/preview-goals', authenticate, validate(previewGoalsSchema), Use
 router.put('/me/goals', authenticate, validate(updateGoalsSchema), UserController.updateGoals);
 router.get('/me/goals', authenticate, validate({ query: dateQuerySchema }), UserController.getActiveGoal);
 
+router.get('/me/measurements', authenticate, validate({ query: measurementQuerySchema }), UserController.getMeasurements);
+router.post('/me/measurements', authenticate, validate(createMeasurementSchema), UserController.addMeasurement);
+
 export default router;
+

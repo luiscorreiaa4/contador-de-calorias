@@ -1,7 +1,7 @@
 import { apiFetch } from './api';
 
-import type { Food } from '@caloriesync/shared';
-export type { Food };
+import type { Food, CreateCustomFoodDTO } from '@caloriesync/shared';
+export type { Food, CreateCustomFoodDTO };
 
 export interface GetFoodsResponse {
   foods: Food[];
@@ -21,3 +21,27 @@ export const getFoods = async (
   
   return apiFetch<GetFoodsResponse>(`/foods?${params.toString()}`, { signal });
 };
+
+export const getRecentFoods = async (signal?: AbortSignal): Promise<Food[]> => {
+  return apiFetch<Food[]>('/foods/recents', { signal });
+};
+
+export const getFavoriteFoods = async (signal?: AbortSignal): Promise<Food[]> => {
+  return apiFetch<Food[]>('/foods/favorites', { signal });
+};
+
+export const addFavoriteFood = async (foodId: string): Promise<void> => {
+  return apiFetch<void>(`/foods/${foodId}/favorite`, { method: 'POST' });
+};
+
+export const removeFavoriteFood = async (foodId: string): Promise<void> => {
+  return apiFetch<void>(`/foods/${foodId}/favorite`, { method: 'DELETE' });
+};
+
+export const createCustomFood = async (data: CreateCustomFoodDTO): Promise<Food> => {
+  return apiFetch<Food>('/foods/custom', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+};
+

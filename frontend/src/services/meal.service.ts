@@ -1,7 +1,14 @@
 import { apiFetch } from './api';
 
-import type { CreateMealDTO, Meal, MealItem } from '@caloriesync/shared';
-export type { CreateMealDTO, Meal, MealItem };
+import type { CreateMealDTO, CopyMealDTO, Meal, MealItem } from '@caloriesync/shared';
+export type { CreateMealDTO, CopyMealDTO, Meal, MealItem };
+
+export const copyMeal = async (data: CopyMealDTO): Promise<Meal | Meal[]> => {
+  return apiFetch<Meal | Meal[]>('/meals/copy', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+};
 
 export const createMeal = async (data: CreateMealDTO): Promise<Meal> => {
   return apiFetch<Meal>('/meals', {

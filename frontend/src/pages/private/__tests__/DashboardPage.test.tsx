@@ -187,3 +187,106 @@ describe('DashboardPage — navegação de datas (BL-02)', () => {
     expect(screen.getByRole('button', { name: /próximo dia/i })).toBeEnabled();
   });
 });
+
+describe('DashboardPage — Copiar Refeição (BL-18 / FEAT-C03 / D-20)', () => {
+  it('permite copiar todas as refeições do dia anterior com feedback visual', async () => {
+    let copyCalled = false;
+    server.use(
+      http.post(`${baseURL}/meals/copy`, async ({ request }) => {
+        copyCalled = true;
+        const body = (await request.json()) as { sourceDate?: string; targetDate?: string };
+        expect(body.sourceDate).toBeDefined();
+        expect(body.targetDate).toBeDefined();
+        return HttpResponse.json({
+          success: true,
+          message: 'Refeições do dia copiadas com sucesso!',
+          data: [
+            {
+              id: 'copied-1',
+              name: 'Almoço Copiado',
+              meal_time: new Date().toISOString(),
+              items: [],
+              total_calories: 400,
+              total_proteins: 30,
+            },
+          ],
+        });
+      })
+    );
+
+    renderDashboard();
+
+    const copyBtn = await screen.findByRole('button', { name: /copiar de ontem/i });
+    expect(copyBtn).toBeInTheDocument();
+
+    await userEvent.click(copyBtn);
+
+    await waitFor(() => {
+      expect(copyCalled).toBe(true);
+      expect(screen.getByRole('status')).toHaveTextContent(/copiada\(s\) com sucesso/i);
+    });
+  });
+
+  it('permite duplicar uma refeição individual pelo card', async () => {
+    let copyMealId: string | undefined;
+    server.use(
+      http.get(`${baseURL}/meals/today`, () => {
+        return HttpResponse.json({
+          success: true,
+          data: [
+            {
+              id: 'meal-to-copy-123',
+              user_id: '1',
+              name: 'Omelete Proteico',
+              meal_time: '2026-10-15T08:30:00.000Z',
+              total_calories: 320,
+              total_proteins: 28,
+              items: [
+                {
+                  id: 'item-1',
+                  meal_id: 'meal-to-copy-123',
+                  food_id: '1',
+                  food_name: 'Ovos',
+                  quantity: 150,
+                  unit: 'g',
+                  calories: 320,
+                  proteins: 28,
+                  carbs: 2,
+                  fats: 20,
+                },
+              ],
+            },
+          ],
+        });
+      }),
+      http.post(`${baseURL}/meals/copy`, async ({ request }) => {
+        const body = (await request.json()) as { sourceMealId?: string };
+        copyMealId = body.sourceMealId;
+        return HttpResponse.json({
+          success: true,
+          message: 'Refeição copiada com sucesso!',
+          data: {
+            id: 'copied-meal-456',
+            name: 'Omelete Proteico',
+            meal_time: new Date().toISOString(),
+            items: [],
+            total_calories: 320,
+            total_proteins: 28,
+          },
+        });
+      })
+    );
+
+    renderDashboard();
+
+    const duplicateBtn = await screen.findByTitle(/duplicar refeição/i);
+    expect(duplicateBtn).toBeInTheDocument();
+
+    await userEvent.click(duplicateBtn);
+
+    await waitFor(() => {
+      expect(copyMealId).toBe('meal-to-copy-123');
+      expect(screen.getByRole('status')).toHaveTextContent(/copiada\(s\) com sucesso/i);
+    });
+  });
+});

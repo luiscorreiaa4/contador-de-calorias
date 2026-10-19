@@ -10,6 +10,7 @@ import {
   ChevronDown,
   Target,
   LayoutDashboard,
+  Scale,
 } from 'lucide-react';
 
 interface AppHeaderProps {
@@ -195,6 +196,16 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                     >
                       <Target className="w-4 h-4 mr-3" />
                       Estatísticas
+                    </button>
+                    <button
+                      onClick={() => {
+                        navigate('/medidas');
+                        setMenuOpen(false);
+                      }}
+                      className="flex items-center w-full px-3 py-3 text-xs font-bold uppercase tracking-widest text-foreground hover:bg-secondary hover:text-secondary-foreground transition-colors"
+                    >
+                      <Scale className="w-4 h-4 mr-3" />
+                      Peso e Medidas
                     </button>
                     <button
                       onClick={handleEditProfile}

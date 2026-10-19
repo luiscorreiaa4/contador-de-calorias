@@ -89,11 +89,53 @@ export async function listGoalsByUser(userId: string): Promise<UserGoal[]> {
   return result.rows;
 }
 
-/** Lista todas as medições corporais do usuário em ordem cronológica para exportação. */
-export async function listBodyMeasurementsByUser(userId: string): Promise<BodyMeasurement[]> {
-  const result = await pool.query<BodyMeasurement>(
-    `SELECT * FROM body_measurements WHERE user_id = $1 ORDER BY measured_at ASC, created_at ASC`,
-    [userId]
-  );
+/** Lista todas as medições corporais do usuário em ordem cronológica (com filtro opcional de período). */
+export async function listBodyMeasurementsByUser(
+  userId: string,
+  period: '30d' | '90d' | 'all' = 'all'
+): Promise<BodyMeasurement[]> {
+  let query = `SELECT * FROM body_measurements WHERE user_id = $1`;
+  const params: unknown[] = [userId];
+
+  if (period === '30d') {
+    query += ` AND measured_at >= NOW() - INTERVAL '30 days'`;
+  } else if (period === '90d') {
+    query += ` AND measured_at >= NOW() - INTERVAL '90 days'`;
+  }
+
+  query += ` ORDER BY measured_at ASC, created_at ASC`;
+
+  const result = await pool.query<BodyMeasurement>(query, params);
   return result.rows;
 }
+
+/** Registra uma nova medição corporal e atualiza o peso atual do perfil do usuário em transação atômica. */
+export async function addBodyMeasurement(
+  userId: string,
+  weight: number,
+  bodyFat: number | null,
+  measuredAt?: Date
+): Promise<BodyMeasurement> {
+  const dateToUse = measuredAt || new Date();
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const measurement = await insertBodyMeasurement(userId, weight, bodyFat, dateToUse, client);
+    await client.query(
+      `UPDATE users 
+       SET weight = $1, 
+           body_fat = COALESCE($2, body_fat), 
+           updated_at = NOW() 
+       WHERE id = $3`,
+      [weight, bodyFat, userId]
+    );
+    await client.query('COMMIT');
+    return measurement;
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+

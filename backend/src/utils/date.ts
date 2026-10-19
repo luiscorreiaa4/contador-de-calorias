@@ -16,3 +16,20 @@ export function todayInAppTz(now: Date = new Date()): string {
 }
 
 export const getSaoPauloDateString = todayInAppTz;
+
+const saoPauloTimeFormatter = new Intl.DateTimeFormat('en-GB', {
+  timeZone: APP_TIMEZONE,
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hour12: false,
+});
+
+export function getTimeInAppTz(date: Date): string {
+  return saoPauloTimeFormatter.format(date);
+}
+
+export function combineDateAndTimeInAppTz(dateStr: string, timeDate: Date): Date {
+  const timeStr = getTimeInAppTz(timeDate);
+  return new Date(`${dateStr}T${timeStr}-03:00`);
+}

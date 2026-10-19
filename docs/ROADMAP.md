@@ -128,9 +128,9 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 *Objetivo: Implementar os recursos de navegação diária histórica, registro retroativo e ferramentas de produtividade alimentar no diário antes da fase de redesign. Pré-requisito: Fase 4 concluída (especialmente fuso D-01 e roteador D-16).*
 
 - [x] **BL-02** Navegação por datas no Dashboard e suporte a registro retroativo de refeições com URL declarativa `/diario/:date` *(D-20, D-01, D-16)*.
-- [ ] **BL-18** Copiar refeição individual ou dia inteiro anterior para o dia de hoje com um clique *(D-20)*.
-- [ ] **BL-19** Seção de alimentos recentes e favoritos com acesso rápido no modal de refeição *(D-20)*.
-- [ ] **BL-20** Refeições salvas e combos reutilizáveis (ex: "Café da manhã padrão") *(D-20)*.
+- [x] **BL-18** Copiar refeição individual ou dia inteiro anterior para o dia de hoje com um clique *(D-20)*.
+- [x] **BL-19** Seção de alimentos recentes e favoritos com acesso rápido no modal de refeição *(D-20)*.
+- [x] **BL-20** Refeições salvas e combos reutilizáveis (ex: "Café da manhã padrão") *(D-20)*.
 
 ---
 
@@ -198,12 +198,12 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 - **BL-25** Aplicativo mobile dedicado em Expo / React Native *(D-05 — condicionado à web estável e pacote `shared/` D-17)*.
 - [x] **BL-09** Migração idempotente para deduplicação e índice único parcial no catálogo de alimentos *(D-13)*.
 - [x] **BL-15** Padronização de migrações legadas para ESM nativo *(D-13)*.
-- **BL-21** Gráfico de evolução de peso e medidas corporais (`body_measurements`).
-- **BL-22** Cadastro de alimentos personalizados pelo próprio usuário *(D-07)*.
+- [x] **BL-21** Gráfico de evolução de peso e medidas corporais (`body_measurements`).
+- [x] **BL-22** Cadastro de alimentos personalizados pelo próprio usuário *(D-07)*.
 - **BL-23** Registro diário de consumo de água com meta personalizada.
 - **BL-24** Leitor de código de barras via Open Food Facts.
-- **BL-26** Suporte a PWA, manifesto web e modo offline.
-- **BL-27** Notificações push na web para lembretes de refeições.
+- [x] **BL-26** Suporte a PWA, manifesto web e modo offline.
+- [x] **BL-27** Notificações push na web para lembretes de refeições.
 - **BL-28** Distribuição de metas nutricionais específicas por tipo de refeição.
 - **CA-06** Expurgo definitivo de histórico do commit `24d1ce65` via `git-filter-repo` *(D-12 — execução manual após conclusão da branch)*.
 

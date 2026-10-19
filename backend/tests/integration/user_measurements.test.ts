@@ -1,0 +1,101 @@
+import { closeTestPool } from '../helpers/lifecycle.js';
+import { describe, it } from 'node:test';
+import assert from 'node:assert';
+import request from 'supertest';
+import { app } from '../../src/app.js';
+import { cleanupTestData } from '../helpers/db.js';
+
+describe('User Body Measurements Evolution (BL-21 / FEAT-C04)', () => {
+  closeTestPool(async () => {
+    await cleanupTestData('tester-meas-%');
+  });
+
+  let user1Token: string;
+  let user2Token: string;
+
+  it('Setup: Registrar usuários de teste', async () => {
+    const res1 = await request(app).post('/api/users/register').send({
+      name: 'Measurement Tester 1',
+      email: `tester-meas-1-${Date.now()}@example.com`,
+      password: 'password123',
+      acceptTerms: true,
+    });
+    assert.strictEqual(res1.status, 201);
+    user1Token = res1.body.data.token;
+
+    const res2 = await request(app).post('/api/users/register').send({
+      name: 'Measurement Tester 2',
+      email: `tester-meas-2-${Date.now()}@example.com`,
+      password: 'password123',
+      acceptTerms: true,
+    });
+    assert.strictEqual(res2.status, 201);
+    user2Token = res2.body.data.token;
+  });
+
+  it('GET /api/users/me/measurements - deve retornar 401 sem autenticação', async () => {
+    const res = await request(app).get('/api/users/me/measurements');
+    assert.strictEqual(res.status, 401);
+  });
+
+  it('POST /api/users/me/measurements - deve retornar 401 sem autenticação', async () => {
+    const res = await request(app).post('/api/users/me/measurements').send({ weight: 75.5 });
+    assert.strictEqual(res.status, 401);
+  });
+
+  it('POST /api/users/me/measurements - deve validar campos obrigatórios e rejeitar peso inválido (400)', async () => {
+    const res = await request(app)
+      .post('/api/users/me/measurements')
+      .set('Authorization', `Bearer ${user1Token}`)
+      .send({ weight: -10 });
+
+    assert.strictEqual(res.status, 400);
+    assert.strictEqual(res.body.success, false);
+  });
+
+  it('POST /api/users/me/measurements - deve registrar medição com sucesso e atualizar peso do usuário', async () => {
+    const res = await request(app)
+      .post('/api/users/me/measurements')
+      .set('Authorization', `Bearer ${user1Token}`)
+      .send({ weight: 82.5, body_fat: 18.2 });
+
+    assert.strictEqual(res.status, 201);
+    assert.strictEqual(res.body.success, true);
+    assert.strictEqual(Number(res.body.data.weight), 82.5);
+    assert.strictEqual(Number(res.body.data.body_fat), 18.2);
+
+    // Verificar se perfil do usuário reflete o peso atualizado
+    const profileRes = await request(app)
+      .get('/api/users/me')
+      .set('Authorization', `Bearer ${user1Token}`);
+    assert.strictEqual(Number(profileRes.body.data.weight), 82.5);
+    assert.strictEqual(Number(profileRes.body.data.body_fat), 18.2);
+  });
+
+  it('GET /api/users/me/measurements - deve listar medições do usuário em ordem cronológica', async () => {
+    // Registrar mais uma medição
+    await request(app)
+      .post('/api/users/me/measurements')
+      .set('Authorization', `Bearer ${user1Token}`)
+      .send({ weight: 81.8, body_fat: 17.9 });
+
+    const res = await request(app)
+      .get('/api/users/me/measurements')
+      .set('Authorization', `Bearer ${user1Token}`);
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.success, true);
+    assert.ok(Array.isArray(res.body.data));
+    assert.ok(res.body.data.length >= 2);
+  });
+
+  it('GET /api/users/me/measurements - IDOR: usuário 2 não deve ver medições do usuário 1', async () => {
+    const res = await request(app)
+      .get('/api/users/me/measurements')
+      .set('Authorization', `Bearer ${user2Token}`);
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.success, true);
+    assert.strictEqual(res.body.data.length, 0);
+  });
+});

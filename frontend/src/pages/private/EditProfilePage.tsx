@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '../../context/AuthContext';
 import { updateUserProfile, deleteUserAccount, getCurrentUserProfile, exportUserData } from '../../services/auth.service';
+import { registerPushNotifications, sendTestPush } from '../../services/push.service';
 import { downloadJsonFile } from '../../utils/download';
 import { DeleteAccountModal } from '../../components/common/DeleteAccountModal';
 import { GoalSettingsCard } from '../../components/profile/GoalSettingsCard';
@@ -21,6 +22,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   Loader2,
+  Bell,
 } from 'lucide-react';
 
 const formatInitialBirthDate = (val?: string): string => {
@@ -51,6 +53,32 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
 
   const [serverError, setServerError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const [pushStatus, setPushStatus] = useState<string | null>(null);
+  const [isEnablingPush, setIsEnablingPush] = useState(false);
+
+  const handleEnablePush = async () => {
+    setIsEnablingPush(true);
+    setPushStatus(null);
+    try {
+      await registerPushNotifications();
+      setPushStatus('NOTIFICAÇÕES PUSH ATIVADAS COM SUCESSO!');
+    } catch (err: unknown) {
+      setPushStatus(err instanceof Error ? err.message.toUpperCase() : 'ERRO AO ATIVAR NOTIFICAÇÕES.');
+    } finally {
+      setIsEnablingPush(false);
+    }
+  };
+
+  const handleSendTestPush = async () => {
+    try {
+      await sendTestPush();
+      setPushStatus('LEMBRETE DE TESTE ENVIADO COM SUCESSO!');
+    } catch (err: unknown) {
+      setPushStatus(err instanceof Error ? err.message.toUpperCase() : 'ERRO AO ENVIAR TESTE.');
+    }
+  };
+
 
   const initialBaseline = useMemo(() => {
     const rawBirthDate = user?.birth_date || (user as unknown as { birthDate?: string })?.birthDate || '';
@@ -310,6 +338,46 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ onBack }) => {
           isEmailChanged={isEmailChanged}
           hasNewPassword={Boolean(formValues.newPassword && formValues.newPassword.length > 0)}
         />
+
+        {/* Seção de Notificações Push e Lembretes (BL-27) */}
+        <div className="bg-card border-2 border-border p-6 shadow-hard space-y-4">
+          <div className="flex items-center gap-3 border-b-2 border-border pb-3">
+            <Bell className="w-5 h-5 text-primary" aria-hidden="true" />
+            <div>
+              <h2 className="text-sm font-black uppercase tracking-wider text-foreground">
+                Lembretes e Notificações Push (Web Push)
+              </h2>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Receba lembretes automáticos no navegador para suas refeições
+              </p>
+            </div>
+          </div>
+
+          {pushStatus && (
+            <div className="p-3 bg-secondary border-2 border-border text-xs font-bold uppercase tracking-wider text-foreground">
+              {pushStatus}
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <button
+              type="button"
+              onClick={handleEnablePush}
+              disabled={isEnablingPush}
+              className="py-2.5 px-4 bg-primary text-primary-foreground text-xs font-black uppercase tracking-wider hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              <Bell className="w-4 h-4" />
+              {isEnablingPush ? 'ATIVANDO...' : 'ATIVAR NOTIFICAÇÕES PUSH'}
+            </button>
+            <button
+              type="button"
+              onClick={handleSendTestPush}
+              className="py-2.5 px-4 bg-background border-2 border-border text-xs font-black uppercase tracking-wider hover:bg-secondary flex items-center justify-center gap-2"
+            >
+              ENVIAR LEMBRETE DE TESTE
+            </button>
+          </div>
+        </div>
 
         {/* Action Buttons */}
         <div className="pt-8 border-t-2 border-border flex flex-col-reverse gap-6">

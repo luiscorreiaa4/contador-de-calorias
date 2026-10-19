@@ -222,3 +222,48 @@ export async function exportData(req: AuthenticatedRequest, res: Response) {
     });
   }
 }
+
+export async function getMeasurements(req: AuthenticatedRequest, res: Response) {
+  try {
+    if (!req.userId) {
+      return res.status(401).json({ success: false, message: 'Usuário não autenticado.' });
+    }
+    const period = req.query.period as '30d' | '90d' | 'all' | undefined;
+    const measurements = await UserService.getBodyMeasurements(req.userId, period);
+    return res.status(200).json({
+      success: true,
+      data: measurements,
+    });
+  } catch (error: unknown) {
+    const err = error as CustomError;
+    const statusCode = err.statusCode ?? 500;
+    const message = statusCode === 500 ? 'Erro interno no servidor.' : (err.message ?? 'Erro ao listar medições.');
+    return res.status(statusCode).json({
+      success: false,
+      message,
+    });
+  }
+}
+
+export async function addMeasurement(req: AuthenticatedRequest, res: Response) {
+  try {
+    if (!req.userId) {
+      return res.status(401).json({ success: false, message: 'Usuário não autenticado.' });
+    }
+    const measurement = await UserService.addBodyMeasurement(req.userId, req.body);
+    return res.status(201).json({
+      success: true,
+      data: measurement,
+      message: 'Medição registrada com sucesso.',
+    });
+  } catch (error: unknown) {
+    const err = error as CustomError;
+    const statusCode = err.statusCode ?? 500;
+    const message = statusCode === 500 ? 'Erro interno no servidor.' : (err.message ?? 'Erro ao registrar medição.');
+    return res.status(statusCode).json({
+      success: false,
+      message,
+    });
+  }
+}
+

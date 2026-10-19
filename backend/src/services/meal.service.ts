@@ -1,8 +1,8 @@
 import * as MealModel from '../models/meal.model.js';
 import * as FoodModel from '../models/food.model.js';
-import type { CreateMealDTO } from '@caloriesync/shared';
+import type { CreateMealDTO, CopyMealDTO } from '@caloriesync/shared';
 import { calculateItemNutrients } from '@caloriesync/shared/nutrition';
-import { getSaoPauloDateString } from '../utils/date.js';
+import { getSaoPauloDateString, combineDateAndTimeInAppTz } from '../utils/date.js';
 
 interface CustomError extends Error {
   statusCode?: number;
@@ -171,4 +171,31 @@ export async function getMealStats(userId: string, period: 'week' | 'month' = 'm
     averages,
     chartData
   };
+}
+
+export async function copyMealOrDay(userId: string, data: CopyMealDTO) {
+  if (data.sourceMealId) {
+    const sourceMeal = await MealModel.findMealById(userId, data.sourceMealId);
+    if (!sourceMeal) {
+      const error: CustomError = new Error('Refeição não encontrada ou não pertence a este usuário.');
+      error.statusCode = 404;
+      throw error;
+    }
+    const targetMealTime = combineDateAndTimeInAppTz(data.targetDate, new Date(sourceMeal.meal_time));
+    return MealModel.copyMeal(userId, data.sourceMealId, targetMealTime);
+  }
+
+  if (data.sourceDate) {
+    const meals = await getTodayMeals(userId, data.sourceDate);
+    if (!meals || meals.length === 0) {
+      const error: CustomError = new Error('Nenhuma refeição encontrada na data de origem para copiar.');
+      error.statusCode = 404;
+      throw error;
+    }
+    return MealModel.copyDayMeals(userId, meals, data.targetDate);
+  }
+
+  const error: CustomError = new Error('sourceMealId ou sourceDate deve ser informado.');
+  error.statusCode = 400;
+  throw error;
 }

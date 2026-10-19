@@ -1,7 +1,7 @@
 import type { PoolClient } from 'pg';
 import { pool } from '../database/pool.js';
 import { Meal, MealItem } from '@caloriesync/shared';
-import { getSaoPauloDateString } from '../utils/date.js';
+import { getSaoPauloDateString, combineDateAndTimeInAppTz } from '../utils/date.js';
 
 async function insertMealItemsBatch(
   client: PoolClient,
@@ -161,6 +161,87 @@ export async function deleteMealById(userId: string, mealId: string): Promise<bo
     [mealId, userId]
   );
   return (result.rowCount ?? 0) > 0;
+}
+
+export async function findMealById(userId: string, mealId: string): Promise<Meal | null> {
+  const result = await pool.query<Meal>(
+    `SELECT m.id, m.user_id, m.name, m.meal_time, m.created_at, m.updated_at
+     FROM meals m
+     WHERE m.id = $1 AND m.user_id = $2`,
+    [mealId, userId]
+  );
+  if (result.rowCount === 0) return null;
+  const hydrated = await hydrateMealsWithItems(result.rows);
+  return hydrated[0] ?? null;
+}
+
+export async function copyMeal(
+  userId: string,
+  sourceMealId: string,
+  targetMealTime: Date
+): Promise<Meal> {
+  const sourceMeal = await findMealById(userId, sourceMealId);
+  if (!sourceMeal) {
+    const error: Error & { statusCode?: number } = new Error('Refeição não encontrada ou não pertence a este usuário.');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const itemsData = (sourceMeal.items || []).map(it => ({
+    foodId: it.food_id,
+    quantity: Number(it.quantity),
+    unit: it.unit,
+    displayAmount: it.display_amount !== null && it.display_amount !== undefined ? Number(it.display_amount) : null,
+    calories: Number(it.calories),
+    proteins: Number(it.proteins),
+    carbs: Number(it.carbs),
+    fats: Number(it.fats),
+  }));
+
+  return createMealWithItems(userId, sourceMeal.name, targetMealTime, itemsData);
+}
+
+export async function copyDayMeals(
+  userId: string,
+  sourceMeals: Meal[],
+  targetDate: string
+): Promise<Meal[]> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const createdMeals: Meal[] = [];
+
+    for (const sourceMeal of sourceMeals) {
+      const targetTime = combineDateAndTimeInAppTz(targetDate, new Date(sourceMeal.meal_time));
+      const mealResult = await client.query<Meal>(
+        'INSERT INTO meals (user_id, name, meal_time) VALUES ($1, $2, $3) RETURNING *',
+        [userId, sourceMeal.name, targetTime]
+      );
+      const newMeal = mealResult.rows[0];
+
+      const itemsData = (sourceMeal.items || []).map(it => ({
+        foodId: it.food_id,
+        quantity: Number(it.quantity),
+        unit: it.unit,
+        displayAmount: it.display_amount !== null && it.display_amount !== undefined ? Number(it.display_amount) : null,
+        calories: Number(it.calories),
+        proteins: Number(it.proteins),
+        carbs: Number(it.carbs),
+        fats: Number(it.fats),
+      }));
+
+      const insertedItems = await insertMealItemsBatch(client, newMeal.id, itemsData);
+      createdMeals.push({ ...newMeal, items: insertedItems });
+    }
+
+    await client.query('COMMIT');
+    return createdMeals;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 export async function updateMealWithItems(

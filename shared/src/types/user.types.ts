@@ -28,3 +28,12 @@ export interface AuthResponse {
   user: UserWithoutPassword;
   token: string;
 }
+
+export interface BodyMeasurement {
+  id: string;
+  user_id: string;
+  weight: number;
+  body_fat: number | null;
+  measured_at: string;
+  created_at: string;
+}

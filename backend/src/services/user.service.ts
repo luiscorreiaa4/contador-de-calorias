@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
 import * as UserModel from '../models/user.model.js';
-import { RegisterUserDTO, LoginUserDTO, UpdateUserDTO, CompleteOnboardingDTO } from '@caloriesync/shared';
+import { RegisterUserDTO, LoginUserDTO, UpdateUserDTO, CompleteOnboardingDTO, CreateMeasurementDTO } from '@caloriesync/shared';
 import { AuthResponse, UserWithoutPassword, type Meal } from '@caloriesync/shared';
 import * as NutritionService from './nutrition.service.js';
 import * as HistoryModel from '../models/history.model.js';
@@ -405,3 +405,19 @@ export async function exportUserData(userId: string): Promise<UserDataExport> {
     meals,
   };
 }
+
+export async function getBodyMeasurements(
+  userId: string,
+  period?: '30d' | '90d' | 'all'
+): Promise<HistoryModel.BodyMeasurement[]> {
+  return HistoryModel.listBodyMeasurementsByUser(userId, period);
+}
+
+export async function addBodyMeasurement(
+  userId: string,
+  data: CreateMeasurementDTO
+): Promise<HistoryModel.BodyMeasurement> {
+  const measuredAt = data.measured_at ? new Date(data.measured_at) : new Date();
+  return HistoryModel.addBodyMeasurement(userId, data.weight, data.body_fat ?? null, measuredAt);
+}
+

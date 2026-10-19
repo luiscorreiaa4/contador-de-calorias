@@ -287,4 +287,65 @@ describe('NewMealModal', () => {
       expect(screen.getAllByText(/390\s*kcal/i).length).toBeGreaterThan(0);
     });
   });
+
+  it('deve alternar para a aba de favoritos e permitir selecionar um alimento (BL-19)', async () => {
+    render(<NewMealModal isOpen={true} onClose={onClose} />);
+
+    const favTab = await screen.findByRole('button', { name: /favoritos/i });
+    await userEvent.click(favTab);
+
+    // Deve exibir o item favorito mockado
+    expect(await screen.findByText(/ovo de galinha/i)).toBeInTheDocument();
+
+    const addBtn = screen.getByRole('button', { name: /adicionar/i });
+    await userEvent.click(addBtn);
+
+    // Deve abrir o formulário de quantidade do alimento selecionado
+    expect(screen.getByRole('spinbutton')).toBeInTheDocument();
+  });
+
+  it('deve alternar para a aba de combos e permitir aplicar um combo à refeição (BL-20)', async () => {
+    render(<NewMealModal isOpen={true} onClose={onClose} />);
+
+    const comboTab = await screen.findByRole('button', { name: /combos/i });
+    await userEvent.click(comboTab);
+
+    // Deve listar o combo 'Café Matinal'
+    expect(await screen.findByText(/café matinal/i)).toBeInTheDocument();
+
+    const useComboBtn = screen.getByRole('button', { name: /usar combo/i });
+    await userEvent.click(useComboBtn);
+
+    // Os itens do combo devem ser inseridos na lista de refeição
+    await waitFor(() => {
+      expect(screen.getByText(/arroz branco/i)).toBeInTheDocument();
+    });
+  });
+
+  it('deve permitir cadastrar um alimento personalizado e selecioná-lo automaticamente (BL-22)', async () => {
+    render(<NewMealModal isOpen={true} onClose={onClose} />);
+
+    const customTab = await screen.findByRole('button', { name: /novo alimento/i });
+    await userEvent.click(customTab);
+
+    // Deve exibir o formulário de cadastro de alimento personalizado
+    expect(screen.getByLabelText(/nome do alimento/i)).toBeInTheDocument();
+
+    await userEvent.type(screen.getByLabelText(/nome do alimento/i), 'Panqueca de Banana Fit');
+    await userEvent.type(screen.getByLabelText(/kcal \/ 100g/i), '180');
+    await userEvent.type(screen.getByLabelText(/prot \(g\)/i), '8');
+    await userEvent.type(screen.getByLabelText(/carb \(g\)/i), '30');
+    await userEvent.type(screen.getByLabelText(/gord \(g\)/i), '3');
+
+    const saveBtn = screen.getByRole('button', { name: /cadastrar e selecionar/i });
+    await userEvent.click(saveBtn);
+
+    // Deve selecionar o alimento recém-criado e exibir o formulário de porção
+    await waitFor(() => {
+      expect(screen.getByText(/panqueca de banana fit/i)).toBeInTheDocument();
+    });
+    expect(screen.getByRole('spinbutton')).toBeInTheDocument();
+  });
 });
+
+

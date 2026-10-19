@@ -31,3 +31,31 @@ export interface Meal {
   total_calories?: number;
   total_proteins?: number;
 }
+
+export interface SavedMealItem {
+  id: string;
+  saved_meal_id: string;
+  food_id: string;
+  food_name: string;
+  food_base_unit: string;
+  food_unit_name?: string | null;
+  food_unit_weight?: number | null;
+  calories: number;
+  proteins: number;
+  carbs: number;
+  fats: number;
+  quantity: number;
+  unit: string;
+  display_amount?: number | null;
+}
+
+export interface SavedMeal {
+  id: string;
+  user_id: string;
+  name: string;
+  created_at: string | Date;
+  updated_at: string | Date;
+  items: SavedMealItem[];
+  total_calories: number;
+  total_proteins: number;
+}

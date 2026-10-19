@@ -7,6 +7,8 @@ import { parseTrustProxy } from './config/trustProxy.js';
 import userRoutes from './routes/user.routes.js';
 import foodRoutes from './routes/food.routes.js';
 import mealRoutes from './routes/meal.routes.js';
+import savedMealRoutes from './routes/saved_meal.routes.js';
+import pushRoutes from './routes/push.routes.js';
 import { pool } from './database/pool.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { requestLogger } from './middlewares/requestLogger.js';
@@ -48,6 +50,8 @@ app.use(express.json({ limit: '50kb' }));
 app.use('/api/users', userRoutes);
 app.use('/api/foods', foodRoutes);
 app.use('/api/meals', mealRoutes);
+app.use('/api/saved-meals', savedMealRoutes);
+app.use('/api/push', pushRoutes);
 
 // Health Check com probe ativo do banco
 app.get('/health', async (_req, res) => {

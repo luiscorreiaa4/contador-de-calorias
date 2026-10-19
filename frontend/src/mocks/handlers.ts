@@ -63,7 +63,236 @@ export const handlers = [
       },
     });
   }),
-  
+
+  http.get(`${baseURL}/foods/recents`, () => {
+    return HttpResponse.json({
+      success: true,
+      data: [
+        {
+          id: '1',
+          name: 'Arroz Branco',
+          calories: 130,
+          proteins: 2.5,
+          carbs: 28.1,
+          fats: 0.2,
+          base_unit: 'g',
+          serving_weight: 100,
+        },
+      ],
+    });
+  }),
+
+  http.post(`${baseURL}/foods/custom`, async ({ request }) => {
+    const body = (await request.json()) as {
+      name: string;
+      calories: number;
+      proteins: number;
+      carbs: number;
+      fats: number;
+      base_unit?: 'g' | 'ml';
+      serving_weight?: number;
+      unit_name?: string;
+      unit_weight?: number;
+    };
+    return HttpResponse.json(
+      {
+        success: true,
+        message: 'Alimento personalizado cadastrado com sucesso!',
+        data: {
+          id: `custom-${Date.now()}`,
+          name: body.name,
+          calories: body.calories,
+          proteins: body.proteins,
+          carbs: body.carbs,
+          fats: body.fats,
+          base_unit: body.base_unit || 'g',
+          serving_weight: body.serving_weight || 100,
+          unit_name: body.unit_name || null,
+          unit_weight: body.unit_weight || null,
+          source: 'custom',
+        },
+      },
+      { status: 201 }
+    );
+  }),
+
+  http.get(`${baseURL}/foods/favorites`, () => {
+    return HttpResponse.json({
+      success: true,
+      data: [
+        {
+          id: '2',
+          name: 'Ovo de galinha',
+          calories: 143,
+          proteins: 13,
+          carbs: 1.6,
+          fats: 8.9,
+          base_unit: 'g',
+          serving_weight: 100,
+          unit_name: 'ovo médio',
+          unit_weight: 50,
+        },
+      ],
+    });
+  }),
+
+  http.post(`${baseURL}/foods/:id/favorite`, () => {
+    return HttpResponse.json({
+      success: true,
+      message: 'Alimento adicionado aos favoritos.',
+    });
+  }),
+
+  http.delete(`${baseURL}/foods/:id/favorite`, () => {
+    return HttpResponse.json({
+      success: true,
+      message: 'Alimento removido dos favoritos.',
+    });
+  }),
+
+  http.get(`${baseURL}/saved-meals`, () => {
+    return HttpResponse.json({
+      success: true,
+      data: [
+        {
+          id: 'saved-1',
+          user_id: '1',
+          name: 'Café Matinal',
+          created_at: '2026-10-15T08:00:00Z',
+          updated_at: '2026-10-15T08:00:00Z',
+          total_calories: 273,
+          total_proteins: 15.5,
+          items: [
+            {
+              id: 'item-1',
+              saved_meal_id: 'saved-1',
+              food_id: '1',
+              food_name: 'Arroz Branco',
+              food_base_unit: 'g',
+              quantity: 100,
+              unit: 'g',
+              calories: 130,
+              proteins: 2.5,
+              carbs: 28.1,
+              fats: 0.2,
+            },
+            {
+              id: 'item-2',
+              saved_meal_id: 'saved-1',
+              food_id: '2',
+              food_name: 'Ovo de galinha',
+              food_base_unit: 'g',
+              quantity: 100,
+              unit: 'g',
+              calories: 143,
+              proteins: 13,
+              carbs: 1.6,
+              fats: 8.9,
+            },
+          ],
+        },
+      ],
+    });
+  }),
+
+  http.post(`${baseURL}/saved-meals`, async ({ request }) => {
+    const body = (await request.json()) as { name: string };
+    return HttpResponse.json({
+      success: true,
+      message: 'Combo salvo com sucesso!',
+      data: {
+        id: 'saved-new',
+        name: body.name,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        items: [],
+        total_calories: 0,
+        total_proteins: 0,
+      },
+    });
+  }),
+
+  http.delete(`${baseURL}/saved-meals/:id`, () => {
+    return HttpResponse.json({
+      success: true,
+      message: 'Combo excluído com sucesso!',
+    });
+  }),
+
+  http.get(`${baseURL}/users/me/measurements`, () => {
+    return HttpResponse.json({
+      success: true,
+      data: [
+        {
+          id: 'meas-1',
+          user_id: '1',
+          weight: 80.0,
+          body_fat: 18.0,
+          measured_at: '2026-10-01T08:00:00Z',
+          created_at: '2026-10-01T08:00:00Z',
+        },
+        {
+          id: 'meas-2',
+          user_id: '1',
+          weight: 79.2,
+          body_fat: 17.5,
+          measured_at: '2026-10-10T08:00:00Z',
+          created_at: '2026-10-10T08:00:00Z',
+        },
+      ],
+    });
+  }),
+
+  http.post(`${baseURL}/users/me/measurements`, async ({ request }) => {
+    const body = (await request.json()) as { weight: number; body_fat?: number; measured_at?: string };
+    return HttpResponse.json({
+      success: true,
+      data: {
+        id: 'meas-new',
+        user_id: '1',
+        weight: body.weight,
+        body_fat: body.body_fat ?? null,
+        measured_at: body.measured_at || new Date().toISOString(),
+        created_at: new Date().toISOString(),
+      },
+      message: 'Medição registrada com sucesso.',
+    });
+  }),
+
+  http.get(`${baseURL}/push/public-key`, () => {
+    return HttpResponse.json({
+      success: true,
+      data: {
+        publicKey: 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U',
+      },
+    });
+  }),
+
+  http.post(`${baseURL}/push/subscribe`, () => {
+    return HttpResponse.json(
+      {
+        success: true,
+        message: 'Inscrição push registrada com sucesso.',
+      },
+      { status: 201 }
+    );
+  }),
+
+  http.post(`${baseURL}/push/unsubscribe`, () => {
+    return HttpResponse.json({
+      success: true,
+      message: 'Inscrição push cancelada com sucesso.',
+    });
+  }),
+
+  http.post(`${baseURL}/push/test`, () => {
+    return HttpResponse.json({
+      success: true,
+      message: 'Lembrete enviado com sucesso!',
+      data: { sent: true, recipientCount: 1 },
+    });
+  }),
+
   http.get(`${baseURL}/meals/stats`, ({ request }) => {
     const url = new URL(request.url);
     const period = (url.searchParams.get('period') as 'week' | 'month') || 'week';
@@ -104,6 +333,38 @@ export const handlers = [
         meal_time: new Date().toISOString(),
         items: [],
       },
+    });
+  }),
+
+  http.post(`${baseURL}/meals/copy`, async ({ request }) => {
+    const body = (await request.json()) as { sourceMealId?: string; sourceDate?: string; targetDate: string };
+    if (body.sourceMealId) {
+      return HttpResponse.json({
+        success: true,
+        message: 'Refeição copiada com sucesso!',
+        data: {
+          id: 'copied-meal-1',
+          name: 'Almoço Copiado',
+          meal_time: `${body.targetDate}T12:00:00.000Z`,
+          items: [],
+          total_calories: 500,
+          total_proteins: 30,
+        },
+      });
+    }
+    return HttpResponse.json({
+      success: true,
+      message: 'Refeições do dia copiadas com sucesso!',
+      data: [
+        {
+          id: 'copied-meal-1',
+          name: 'Almoço Copiado',
+          meal_time: `${body.targetDate}T12:00:00.000Z`,
+          items: [],
+          total_calories: 500,
+          total_proteins: 30,
+        },
+      ],
     });
   }),
 

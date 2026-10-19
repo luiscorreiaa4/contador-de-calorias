@@ -1,6 +1,7 @@
 export * from './schemas/user.schema.js';
 export * from './schemas/meal.schema.js';
 export * from './schemas/food.schema.js';
+export * from './schemas/push.schema.js';
 export * from './schemas/common.schema.js';
 export * from './types/user.types.js';
 export * from './types/meal.types.js';

@@ -31,6 +31,9 @@ const EditProfilePage = lazy(() =>
 const StatsPage = lazy(() =>
   import('./pages/private/StatsPage').then((m) => ({ default: m.StatsPage }))
 );
+const MeasurementsPage = lazy(() =>
+  import('./pages/private/MeasurementsPage').then((m) => ({ default: m.MeasurementsPage }))
+);
 const TermsPage = lazy(() =>
   import('./pages/public/LegalPage').then((m) => ({ default: m.TermsPage }))
 );
@@ -59,6 +62,8 @@ export const routes: RouteObject[] = [
           { path: 'onboarding', element: <OnboardingFlow /> },
           { index: true, element: <DashboardPage /> },
           { path: 'estatisticas', element: <StatsPage /> },
+          { path: 'medidas', element: <MeasurementsPage /> },
+          { path: 'evolucao', element: <MeasurementsPage /> },
           { path: 'perfil', element: <EditProfilePage /> },
           { path: 'diario/:date', element: <DashboardPage /> },
         ],

@@ -106,4 +106,20 @@ describe('EditProfilePage Component (PC-34 / TST-011)', () => {
       expect(screen.getByText(/perfil atualizado com sucesso/i)).toBeInTheDocument();
     });
   });
+
+  it('deve disparar lembrete de teste de push com sucesso (BL-27)', async () => {
+    render(
+      <MemoryRouter>
+        <EditProfilePage />
+      </MemoryRouter>
+    );
+
+    const testPushBtn = await screen.findByRole('button', { name: /enviar lembrete de teste/i });
+    await userEvent.click(testPushBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/lembrete de teste enviado com sucesso/i)).toBeInTheDocument();
+    });
+  });
 });
+

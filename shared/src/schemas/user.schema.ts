@@ -75,6 +75,16 @@ export const updateGoalsSchema = z.object({
   mode: z.enum(['auto', 'manual']),
 });
 
+export const createMeasurementSchema = z.object({
+  weight: z.number().positive('O peso deve ser maior que zero.').max(500, 'Peso inválido.'),
+  body_fat: z.number().positive('O percentual de gordura deve ser maior que zero.').max(100, 'Percentual inválido.').nullable().optional(),
+  measured_at: z.string().optional(),
+});
+
+export const measurementQuerySchema = z.object({
+  period: z.enum(['30d', '90d', 'all']).optional(),
+});
+
 export type RegisterUserDTO = z.infer<typeof registerUserSchema>;
 export type LoginUserDTO = z.infer<typeof loginUserSchema>;
 export type UpdateUserDTO = z.infer<typeof updateUserSchema>;
@@ -82,3 +92,6 @@ export type DeleteUserDTO = z.infer<typeof deleteUserSchema>;
 export type CompleteOnboardingDTO = z.infer<typeof completeOnboardingSchema>;
 export type PreviewGoalsDTO = z.infer<typeof previewGoalsSchema>;
 export type UpdateGoalsDTO = z.infer<typeof updateGoalsSchema>;
+export type CreateMeasurementDTO = z.infer<typeof createMeasurementSchema>;
+export type MeasurementQueryDTO = z.infer<typeof measurementQuerySchema>;
+
