@@ -108,7 +108,18 @@ export function GoalSettingsCard() {
       <div className="flex flex-col sm:flex-row gap-4 border-2 border-border p-2 bg-background">
         <button
           type="button"
-          onClick={() => setMode('auto')}
+          onClick={() => {
+            setMode('auto');
+            if (previewData && goal?.mode === 'manual') {
+              mutation.mutate({
+                calories: previewData.suggestedCalories,
+                proteins: previewData.suggestedMacros.proteins,
+                carbs: previewData.suggestedMacros.carbs,
+                fats: previewData.suggestedMacros.fats,
+                mode: 'auto',
+              });
+            }
+          }}
           className={`flex-1 py-3 px-4 text-xs font-black uppercase tracking-widest transition-all focus:outline-none ${
             mode === 'auto' 
               ? 'bg-primary text-primary-foreground border-2 border-transparent shadow-[2px_2px_0_0_#000] dark:shadow-[2px_2px_0_0_#fff]' 
@@ -195,7 +206,8 @@ export function GoalSettingsCard() {
         <button
           type="button"
           onClick={handleSave}
-          disabled={mutation.isPending}
+          disabled={mutation.isPending || isAuto}
+          title={isAuto ? 'No modo automático, as metas são calculadas dinamicamente pelo sistema.' : undefined}
           className="w-full sm:w-auto px-8 py-3 bg-foreground text-background font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-foreground/90 transition-all border-2 border-transparent disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
         >
           {mutation.isPending ? (

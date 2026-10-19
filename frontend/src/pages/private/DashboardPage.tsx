@@ -35,6 +35,7 @@ export const DashboardPage: React.FC = () => {
 
   const [mealToDelete, setMealToDelete] = React.useState<Meal | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
+  const [isCopyModalOpen, setIsCopyModalOpen] = React.useState(false);
 
   const {
     data: todayMeals,
@@ -304,12 +305,9 @@ export const DashboardPage: React.FC = () => {
 
           <button
             type="button"
-            onClick={() => {
-              const yesterday = addDaysToDateString(selectedDate, -1);
-              copyMealMutation.mutate({ sourceDate: yesterday, targetDate: selectedDate });
-            }}
+            onClick={() => setIsCopyModalOpen(true)}
             disabled={copyMealMutation.isPending}
-            className="flex items-center gap-2 px-3 py-1.5 border-2 border-border bg-card text-foreground font-black text-xs uppercase tracking-widest hover:bg-secondary transition-colors focus:outline-none self-start sm:self-auto"
+            className="flex items-center gap-2 px-3 py-1.5 border-2 border-border bg-card text-foreground font-black text-xs uppercase tracking-widest hover:bg-secondary transition-colors focus:outline-none self-start sm:self-auto disabled:opacity-50 disabled:cursor-not-allowed"
             title="Copiar todas as refeições do dia anterior para este dia"
           >
             <Copy className="w-3.5 h-3.5 text-primary" aria-hidden="true" />
@@ -533,6 +531,61 @@ export const DashboardPage: React.FC = () => {
                 className="px-6 py-2 bg-destructive text-destructive-foreground font-black uppercase tracking-widest text-xs flex items-center gap-2 hover:bg-destructive/90 transition-colors focus:outline-none focus:ring-2 focus:ring-destructive focus:ring-offset-2 focus:ring-offset-background"
               >
                 {deleteMealMutation.isPending ? 'Excluindo...' : 'Sim, Excluir'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Copy Yesterday's Meals Confirm Modal */}
+      {isCopyModalOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-background/90 backdrop-blur-sm">
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-md bg-card border-2 border-border shadow-hard overflow-hidden"
+          >
+            <div className="p-6 border-b-2 border-border">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-primary text-primary-foreground shrink-0 border-2 border-transparent">
+                  <Copy className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-heading font-black text-foreground uppercase tracking-tight mb-2">
+                    COPIAR REFEIÇÕES DE ONTEM
+                  </h2>
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-relaxed">
+                    DESEJA COPIAR TODAS AS REFEIÇÕES DO DIA ANTERIOR PARA O DIA SELECIONADO? AS REFEIÇÕES SERÃO DUPLICADAS.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-4 p-4 bg-background">
+              <button
+                type="button"
+                onClick={() => setIsCopyModalOpen(false)}
+                disabled={copyMealMutation.isPending}
+                className="px-4 py-2 font-bold uppercase tracking-widest text-xs text-foreground hover:bg-secondary transition-colors focus:outline-none focus:border-primary border-2 border-transparent"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (copyMealMutation.isPending) return;
+                  const yesterday = addDaysToDateString(selectedDate, -1);
+                  copyMealMutation.mutate(
+                    { sourceDate: yesterday, targetDate: selectedDate },
+                    {
+                      onSettled: () => {
+                        setIsCopyModalOpen(false);
+                      },
+                    }
+                  );
+                }}
+                disabled={copyMealMutation.isPending}
+                className="px-6 py-2 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center gap-2 hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {copyMealMutation.isPending ? 'Copiando...' : 'Sim, Copiar'}
               </button>
             </div>
           </div>

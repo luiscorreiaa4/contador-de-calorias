@@ -1,5 +1,5 @@
 import React from 'react';
-import { Utensils, X, Scale, Info, Plus } from 'lucide-react';
+import { Utensils, X, Scale, Info, Plus, Star } from 'lucide-react';
 import type { Food } from '../../services/food.service';
 
 interface NutrientCalc {
@@ -17,6 +17,8 @@ interface FoodQuantityFormProps {
   currentItemCalculations: NutrientCalc | null;
   amountInputRef: React.RefObject<HTMLInputElement | null>;
   isSubmitting: boolean;
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
   onSetAmountMode: (mode: 'un' | 'weight') => void;
   onSetAmount: (val: number | '') => void;
   onCancelSelection: () => void;
@@ -30,6 +32,8 @@ export const FoodQuantityForm: React.FC<FoodQuantityFormProps> = ({
   currentItemCalculations,
   amountInputRef,
   isSubmitting,
+  isFavorite = false,
+  onToggleFavorite,
   onSetAmountMode,
   onSetAmount,
   onCancelSelection,
@@ -57,14 +61,28 @@ export const FoodQuantityForm: React.FC<FoodQuantityFormProps> = ({
             </p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={onCancelSelection}
-          className="p-1 border-2 border-transparent text-muted-foreground hover:border-border hover:text-foreground transition-colors"
-          title="Trocar alimento"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        <div className="flex items-center gap-1">
+          {onToggleFavorite && (
+            <button
+              type="button"
+              onClick={onToggleFavorite}
+              title={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+              aria-label={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+              className="p-1.5 border-2 border-transparent text-muted-foreground hover:border-border hover:text-foreground transition-colors"
+            >
+              <Star className={`w-5 h-5 ${isFavorite ? 'fill-amber-500 text-amber-500' : ''}`} />
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onCancelSelection}
+            className="p-1.5 border-2 border-transparent text-muted-foreground hover:border-border hover:text-foreground transition-colors"
+            title="Trocar alimento"
+            aria-label="Trocar alimento"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       {/* Alternador de unidade vs peso */}
@@ -138,15 +156,34 @@ export const FoodQuantityForm: React.FC<FoodQuantityFormProps> = ({
             </span>
           </div>
 
-          <button
-            type="button"
-            onClick={onAddItem}
-            disabled={!amount || Number(amount) <= 0 || isSubmitting}
-            className="px-6 py-3 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-transparent disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:border-foreground"
-          >
-            <Plus className="w-4 h-4" />
-            <span>INCLUIR</span>
-          </button>
+          <div className="flex items-center gap-2">
+            {onToggleFavorite && (
+              <button
+                type="button"
+                onClick={onToggleFavorite}
+                title={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+                aria-label={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+                className={`min-h-12 px-4 border-2 border-border transition-colors flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-wider ${
+                  isFavorite
+                    ? 'bg-amber-500/10 border-amber-500 text-amber-500 hover:bg-amber-500/20'
+                    : 'bg-background hover:bg-secondary text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Star className={`w-4 h-4 shrink-0 ${isFavorite ? 'fill-amber-500 text-amber-500' : ''}`} />
+                <span className="hidden sm:inline">{isFavorite ? 'FAVORITO' : 'FAVORITAR'}</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={onAddItem}
+              disabled={!amount || Number(amount) <= 0 || isSubmitting}
+              className="flex-1 sm:flex-none min-h-12 px-6 py-3 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-transparent disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:border-foreground"
+            >
+              <Plus className="w-4 h-4 shrink-0" />
+              <span>INCLUIR</span>
+            </button>
+          </div>
         </div>
       </div>
 

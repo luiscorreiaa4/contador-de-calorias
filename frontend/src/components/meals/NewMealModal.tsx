@@ -976,6 +976,14 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                   currentItemCalculations={currentItemCalculations}
                   amountInputRef={amountInputRef}
                   isSubmitting={isSubmitting}
+                  isFavorite={Boolean(selectedFood && favoriteIds.has(selectedFood.id))}
+                  onToggleFavorite={() => {
+                    if (!selectedFood) return;
+                    toggleFavoriteMutation.mutate({
+                      foodId: selectedFood.id,
+                      isFav: favoriteIds.has(selectedFood.id),
+                    });
+                  }}
                   onSetAmountMode={setAmountMode}
                   onSetAmount={setAmount}
                   onCancelSelection={() => {
@@ -1005,49 +1013,51 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                       setComboName(mealName || 'MEU COMBO');
                       setIsSavingCombo(true);
                     }}
-                    className="w-full py-2 px-3 border-2 border-dashed border-border hover:border-primary text-xs font-black uppercase tracking-wider text-muted-foreground hover:text-foreground flex items-center justify-center gap-2 transition-colors"
+                    className="w-full py-2.5 px-3 border-2 border-dashed border-border hover:border-primary text-xs font-black uppercase tracking-wider text-muted-foreground hover:text-foreground flex items-center justify-center gap-2 transition-colors text-center"
                   >
-                    <Bookmark className="w-3.5 h-3.5" />
-                    Salvar itens atuais como combo reutilizável
+                    <Bookmark className="w-4 h-4 shrink-0 text-primary" aria-hidden="true" />
+                    <span className="leading-tight">Salvar itens atuais como combo reutilizável</span>
                   </button>
                 ) : (
                   <div className="space-y-2">
                     <span className="block text-[10px] font-black uppercase tracking-wider text-muted-foreground">
                       Nome do Combo
                     </span>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <input
                         type="text"
                         value={comboName}
                         onChange={(e) => setComboName(e.target.value.toUpperCase())}
                         placeholder="EX: CAFÉ DA MANHÃ PADRÃO..."
-                        className="flex-1 px-3 py-1.5 bg-background border-2 border-border text-xs font-black uppercase placeholder:text-muted-foreground focus:border-primary outline-none"
+                        className="w-full sm:flex-1 min-w-0 px-3 py-2 bg-background border-2 border-border text-xs font-black uppercase placeholder:text-muted-foreground focus:border-primary outline-none"
                       />
-                      <button
-                        type="button"
-                        disabled={createComboMutation.isPending || !comboName.trim()}
-                        onClick={() => {
-                          createComboMutation.mutate({
-                            name: comboName.trim(),
-                            items: mealItems.map((item) => ({
-                              foodId: item.food.id,
-                              quantity: item.quantity,
-                              unit: item.unit,
-                              displayAmount: item.displayAmount,
-                            })),
-                          });
-                        }}
-                        className="px-3 py-1.5 bg-primary text-primary-foreground text-xs font-black uppercase tracking-wider hover:bg-primary/90 disabled:opacity-50"
-                      >
-                        {createComboMutation.isPending ? 'Salvando...' : 'Salvar'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setIsSavingCombo(false)}
-                        className="px-3 py-1.5 bg-background border-2 border-border text-xs font-black uppercase tracking-wider hover:bg-secondary"
-                      >
-                        Cancelar
-                      </button>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          disabled={createComboMutation.isPending || !comboName.trim()}
+                          onClick={() => {
+                            createComboMutation.mutate({
+                              name: comboName.trim(),
+                              items: mealItems.map((item) => ({
+                                foodId: item.food.id,
+                                quantity: item.quantity,
+                                unit: item.unit,
+                                displayAmount: item.displayAmount,
+                              })),
+                            });
+                          }}
+                          className="flex-1 sm:flex-none px-4 py-2 bg-primary text-primary-foreground text-xs font-black uppercase tracking-wider hover:bg-primary/90 disabled:opacity-50"
+                        >
+                          {createComboMutation.isPending ? 'Salvando...' : 'Salvar'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsSavingCombo(false)}
+                          className="flex-1 sm:flex-none px-4 py-2 bg-background border-2 border-border text-xs font-black uppercase tracking-wider hover:bg-secondary text-foreground"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}

@@ -346,6 +346,55 @@ describe('NewMealModal', () => {
     });
     expect(screen.getByRole('spinbutton')).toBeInTheDocument();
   });
+
+  it('permite favoritar um alimento diretamente pelo card perto do botão de incluir', async () => {
+    let isFav = false;
+    server.use(
+      http.get(`${baseURL}/foods/favorites`, () => {
+        return HttpResponse.json({
+          success: true,
+          data: isFav
+            ? [
+                {
+                  id: '1',
+                  name: 'Arroz Branco',
+                  calories: 130,
+                  proteins: 2.6,
+                  carbs: 28.2,
+                  fats: 0.4,
+                  base_unit: 'g',
+                  serving_weight: 100,
+                },
+              ]
+            : [],
+        });
+      }),
+      http.post(`${baseURL}/foods/:id/favorite`, () => {
+        isFav = true;
+        return HttpResponse.json({ success: true });
+      })
+    );
+
+    render(<NewMealModal isOpen={true} onClose={vi.fn()} />);
+
+    const searchInput = await screen.findByRole('combobox');
+    await userEvent.type(searchInput, 'Arroz');
+    const option = await screen.findByText(/arroz branco/i);
+    await userEvent.click(option);
+
+    // Card de quantidade aberto: botão de favoritar deve estar disponível perto de INCLUIR e no cabeçalho
+    const favButtons = await screen.findAllByRole('button', { name: /adicionar aos favoritos/i });
+    expect(favButtons.length).toBeGreaterThan(0);
+
+    // Clica para favoritar
+    await userEvent.click(favButtons[0]);
+
+    // O status do botão deve refletir que o alimento foi favoritado
+    await waitFor(() => {
+      expect(screen.getAllByRole('button', { name: /remover dos favoritos/i }).length).toBeGreaterThan(0);
+    });
+  });
 });
+
 
 

@@ -221,6 +221,9 @@ describe('DashboardPage — Copiar Refeição (BL-18 / FEAT-C03 / D-20)', () => 
 
     await userEvent.click(copyBtn);
 
+    const confirmBtn = await screen.findByRole('button', { name: /sim, copiar/i });
+    await userEvent.click(confirmBtn);
+
     await waitFor(() => {
       expect(copyCalled).toBe(true);
       expect(screen.getByRole('status')).toHaveTextContent(/copiada\(s\) com sucesso/i);

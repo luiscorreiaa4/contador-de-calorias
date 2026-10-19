@@ -318,18 +318,18 @@ export const MeasurementsPage: React.FC = () => {
           <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
                 <XAxis
                   dataKey="date"
                   tickLine={false}
-                  axisLine={{ stroke: 'var(--color-border)', strokeWidth: 2 }}
-                  tick={{ fontSize: 10, fontWeight: 'bold' }}
+                  axisLine={{ stroke: 'hsl(var(--border))', strokeWidth: 2 }}
+                  tick={{ fontSize: 10, fontWeight: 'bold', fill: 'hsl(var(--muted-foreground))' }}
                 />
                 <YAxis
                   domain={['dataMin - 2', 'dataMax + 2']}
                   tickLine={false}
-                  axisLine={{ stroke: 'var(--color-border)', strokeWidth: 2 }}
-                  tick={{ fontSize: 10, fontWeight: 'bold' }}
+                  axisLine={{ stroke: 'hsl(var(--border))', strokeWidth: 2 }}
+                  tick={{ fontSize: 10, fontWeight: 'bold', fill: 'hsl(var(--muted-foreground))' }}
                 />
                 <Tooltip
                   content={({ active, payload }) => {
@@ -351,10 +351,11 @@ export const MeasurementsPage: React.FC = () => {
                 <Line
                   type="monotone"
                   dataKey="weight"
-                  stroke="var(--color-primary)"
+                  stroke="hsl(var(--primary))"
                   strokeWidth={3}
-                  dot={{ r: 4, strokeWidth: 2 }}
-                  activeDot={{ r: 6 }}
+                  dot={{ r: 4, strokeWidth: 2, fill: 'hsl(var(--card))', stroke: 'hsl(var(--primary))' }}
+                  activeDot={{ r: 6, fill: 'hsl(var(--primary))', stroke: 'hsl(var(--foreground))', strokeWidth: 2 }}
+                  connectNulls
                 />
               </LineChart>
             </ResponsiveContainer>
