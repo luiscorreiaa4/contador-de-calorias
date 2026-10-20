@@ -25,7 +25,7 @@ function FooterSection() {
             </div>
             <div>
               <span className="font-heading font-black text-lg sm:text-xl tracking-tighter text-foreground uppercase">
-                CALORIE<span className="text-primary">SYNC</span>
+                CALORIE<span className="bg-primary text-primary-foreground px-1 ml-0.5">SYNC</span>
               </span>
               <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
                 Constância e clareza para metas diárias.
@@ -38,7 +38,7 @@ function FooterSection() {
 
         {/* Middle: Simplified Health Disclaimer */}
         <div className="flex items-center gap-2 text-[9px] text-muted-foreground uppercase tracking-widest opacity-60 hover:opacity-100 transition-opacity">
-          <ShieldAlert className="w-3 h-3 text-primary shrink-0" aria-hidden="true" />
+          <ShieldAlert className="w-3 h-3 text-primary-ink shrink-0" aria-hidden="true" />
           <p>
             ESTIMATIVAS NUTRICIONAIS. NÃO SUBSTITUI ORIENTAÇÃO MÉDICA.
           </p>
@@ -48,27 +48,27 @@ function FooterSection() {
         <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-4 pt-6 border-t-2 border-border text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
           <p className="flex items-center gap-1.5">
             © {currentYear} CalorieSync. Alta Performance{' '}
-            <Heart className="w-3 h-3 text-primary fill-current inline-block" aria-hidden="true" />{' '}
+            <Heart className="w-3 h-3 text-primary-ink fill-current inline-block" aria-hidden="true" />{' '}
           </p>
 
           <nav className="flex items-center gap-4">
             <Link
               to="/privacidade"
-              className="hover:text-primary transition-colors focus:outline-none focus:text-primary"
+              className="hover:text-primary-ink transition-colors focus:outline-none focus:text-primary-ink"
             >
               Privacidade
             </Link>
             <span className="text-border" aria-hidden="true">/</span>
             <Link
               to="/termos"
-              className="hover:text-primary transition-colors focus:outline-none focus:text-primary"
+              className="hover:text-primary-ink transition-colors focus:outline-none focus:text-primary-ink"
             >
               Termos de Uso
             </Link>
             <span className="text-border" aria-hidden="true">/</span>
             <Link
               to="/seguranca"
-              className="hover:text-primary transition-colors focus:outline-none focus:text-primary"
+              className="hover:text-primary-ink transition-colors focus:outline-none focus:text-primary-ink"
             >
               Segurança
             </Link>

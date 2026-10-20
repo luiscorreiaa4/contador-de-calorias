@@ -60,13 +60,13 @@ Para assegurar estritamente a **Invariante I1** (o modo escuro NÃO muda visualm
 | frontend/src/styles/index.css | G1 | 62 | [x] | tokens semânticos completos do CORES.md |
 | frontend/tailwind.config.js | G1 | 39 | [x] | primary.ink e sombras adaptativas hard/hard-fill |
 | frontend/vite.config.ts | G1 | 0 | [x] | sem ocorrências (scan) |
-| frontend/src/components/ui/alert.tsx | G2 | 8 | [ ] |  |
-| frontend/src/components/ui/badge.tsx | G2 | 12 | [ ] |  |
-| frontend/src/components/ui/button.tsx | G2 | 17 | [ ] |  |
-| frontend/src/components/ui/card.tsx | G2 | 4 | [ ] |  |
-| frontend/src/components/ui/footer-section.tsx | G2 | 25 | [ ] |  |
-| frontend/src/components/ui/input.tsx | G2 | 8 | [ ] |  |
-| frontend/src/components/ui/label.tsx | G2 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/components/ui/alert.tsx | G2 | 8 | [x] | removido dark: redundante |
+| frontend/src/components/ui/badge.tsx | G2 | 12 | [x] | border-black no badge primário |
+| frontend/src/components/ui/button.tsx | G2 | 17 | [x] | border-2 border-black no default e text-primary-ink no link |
+| frontend/src/components/ui/card.tsx | G2 | 4 | [x] | tokens puros (border-border, bg-card) |
+| frontend/src/components/ui/footer-section.tsx | G2 | 25 | [x] | SYNC marca-texto, text-primary-ink em ícones e links |
+| frontend/src/components/ui/input.tsx | G2 | 8 | [x] | hover e foco ajustados com border-ring e ring-offset |
+| frontend/src/components/ui/label.tsx | G2 | 0 | [x] | sem ocorrências (scan) |
 | frontend/src/components/auth/AuthCard.tsx | G3 | 21 | [ ] |  |
 | frontend/src/components/auth/LoginForm.tsx | G3 | 20 | [ ] |  |
 | frontend/src/components/auth/RegisterForm.tsx | G3 | 43 | [ ] |  |
