@@ -360,11 +360,6 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
       setAmountMode('weight');
       setAmount(food.base_unit === 'ml' ? 200 : 100);
     }
-
-    setTimeout(() => {
-      amountInputRef.current?.focus();
-      amountInputRef.current?.select();
-    }, 50);
   };
 
   const currentItemCalculations = useMemo(() => {

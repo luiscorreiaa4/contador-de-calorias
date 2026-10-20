@@ -242,6 +242,8 @@ describe('NewMealModal', () => {
     await userEvent.type(searchInput, 'Arroz');
     await userEvent.click(await screen.findByText(/arroz branco/i));
 
+    expect(await screen.findByText(/quantidade em gramas/i)).toBeInTheDocument();
+
     const amountInput = screen.getByRole('spinbutton');
     await userEvent.clear(amountInput);
     await userEvent.type(amountInput, '150');
@@ -268,6 +270,8 @@ describe('NewMealModal', () => {
     const option = await screen.findByText(/arroz branco/i);
     await userEvent.click(option);
 
+    expect(await screen.findByText(/quantidade em gramas/i)).toBeInTheDocument();
+
     const amountInput = screen.getByRole('spinbutton');
     await userEvent.clear(amountInput);
     await userEvent.type(amountInput, '150');
@@ -278,7 +282,7 @@ describe('NewMealModal', () => {
       expect(screen.getAllByText(/195\s*kcal/i).length).toBeGreaterThan(0);
     });
 
-    const inlineInput = screen.getByLabelText(/quantidade de arroz branco/i);
+    const inlineInput = await screen.findByLabelText(/quantidade de arroz branco/i);
     await userEvent.clear(inlineInput);
     await userEvent.type(inlineInput, '300');
 

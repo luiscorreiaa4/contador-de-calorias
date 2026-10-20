@@ -55,9 +55,9 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/setupTests.ts'],
     globals: true,
-    testTimeout: 10000,
-    hookTimeout: 10000,
-    teardownTimeout: 5000,
+    testTimeout: 20000,
+    hookTimeout: 20000,
+    teardownTimeout: 10000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

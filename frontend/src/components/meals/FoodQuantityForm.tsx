@@ -39,6 +39,11 @@ export const FoodQuantityForm: React.FC<FoodQuantityFormProps> = ({
   onCancelSelection,
   onAddItem,
 }) => {
+  React.useEffect(() => {
+    amountInputRef.current?.focus();
+    amountInputRef.current?.select();
+  }, [selectedFood.id, amountInputRef]);
+
   return (
     <div className="space-y-4">
       {/* Informações do alimento selecionado */}
