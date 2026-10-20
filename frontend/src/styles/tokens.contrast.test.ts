@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import cssContent from './index.css?raw';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const cssContent = fs.readFileSync(path.resolve(__dirname, 'index.css'), 'utf-8');
 
 function hslToRgb(h: number, s: number, l: number): [number, number, number] {
   s /= 100;
