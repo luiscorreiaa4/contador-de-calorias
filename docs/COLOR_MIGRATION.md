@@ -52,14 +52,14 @@ Para assegurar estritamente a **Invariante I1** (o modo escuro NÃO muda visualm
 
 | Caminho | Grupo | Ocorrências (Antes) | Status | Observação |
 | :--- | :---: | :---: | :---: | :--- |
-| frontend/index.html | G1 | 2 | [ ] |  |
-| frontend/postcss.config.js | G1 | 0 | [ ] | sem ocorrências (scan) |
-| frontend/public/favicon.svg | G1 | 11 | [ ] |  |
-| frontend/public/sw.js | G1 | 0 | [ ] | sem ocorrências (scan) |
-| frontend/src/styles/App.css | G1 | 0 | [ ] | sem ocorrências (scan) |
-| frontend/src/styles/index.css | G1 | 62 | [ ] |  |
-| frontend/tailwind.config.js | G1 | 39 | [ ] |  |
-| frontend/vite.config.ts | G1 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/index.html | G1 | 2 | [x] | theme-color claro/escuro e estilo anti-flash |
+| frontend/postcss.config.js | G1 | 0 | [x] | sem ocorrências (scan) |
+| frontend/public/favicon.svg | G1 | 11 | [x] | atualizado com #CCFF00 neon |
+| frontend/public/sw.js | G1 | 0 | [x] | sem ocorrências (scan) |
+| frontend/src/styles/App.css | G1 | 0 | [x] | sem ocorrências (scan) |
+| frontend/src/styles/index.css | G1 | 62 | [x] | tokens semânticos completos do CORES.md |
+| frontend/tailwind.config.js | G1 | 39 | [x] | primary.ink e sombras adaptativas hard/hard-fill |
+| frontend/vite.config.ts | G1 | 0 | [x] | sem ocorrências (scan) |
 | frontend/src/components/ui/alert.tsx | G2 | 8 | [ ] |  |
 | frontend/src/components/ui/badge.tsx | G2 | 12 | [ ] |  |
 | frontend/src/components/ui/button.tsx | G2 | 17 | [ ] |  |
