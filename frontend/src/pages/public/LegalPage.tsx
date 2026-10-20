@@ -34,7 +34,7 @@ const LegalPageLayout: React.FC<LegalPageLayoutProps> = ({
   <article className="w-full max-w-3xl mx-auto px-4 py-10 sm:py-14">
     <div className="border-b-2 border-border pb-6 mb-8 flex items-start justify-between gap-4">
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-2 flex items-center gap-2">
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary-ink mb-2 flex items-center gap-2">
           {icon}
           {eyebrow}
         </p>
@@ -47,7 +47,7 @@ const LegalPageLayout: React.FC<LegalPageLayoutProps> = ({
       </div>
       <Link
         to="/"
-        className="shrink-0 flex items-center justify-center gap-2 px-3 py-2 border-2 border-border bg-background text-foreground text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-colors focus:outline-none focus:border-primary"
+        className="shrink-0 flex items-center justify-center gap-2 px-3 py-2 border-2 border-border bg-background text-foreground text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
         <ArrowLeft className="w-4 h-4" aria-hidden="true" />
         Voltar

@@ -120,7 +120,7 @@ export const DashboardPage: React.FC = () => {
     <div className="w-full max-w-5xl mx-auto px-4 py-4 sm:py-8 space-y-6 sm:space-y-10">
       {/* Greeting */}
       <div className="border-b-2 border-border pb-6">
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-2">
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary-ink mb-2">
           Painel de Performance
         </p>
         <h1 className="text-3xl sm:text-5xl font-heading font-black text-foreground uppercase tracking-tighter">
@@ -137,14 +137,14 @@ export const DashboardPage: React.FC = () => {
           type="button"
           onClick={() => goToDate(addDaysToDateString(selectedDate, -1))}
           aria-label="Dia anterior"
-          className="w-12 h-12 sm:w-auto sm:h-auto shrink-0 px-0 sm:px-4 py-2 border-2 border-border bg-background text-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-secondary transition-colors focus:outline-none focus:border-primary"
+          className="w-12 h-12 sm:w-auto sm:h-auto shrink-0 px-0 sm:px-4 py-2 border-2 border-border bg-background text-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           <ChevronLeft className="w-4 h-4" aria-hidden="true" />
           <span className="hidden sm:inline">Dia anterior</span>
         </button>
 
         <div className="min-w-0 flex-1 sm:flex-none flex flex-col items-center gap-1 text-center">
-          <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+          <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-primary-ink">
             <CalendarDays className="w-3.5 h-3.5" aria-hidden="true" />
             {isToday ? 'Hoje' : 'Diário'}
           </span>
@@ -155,7 +155,7 @@ export const DashboardPage: React.FC = () => {
             <button
               type="button"
               onClick={() => goToDate(today)}
-              className="text-[10px] font-bold uppercase tracking-widest text-primary underline underline-offset-2 hover:text-primary/80 focus:outline-none"
+              className="text-[10px] font-bold uppercase tracking-widest text-primary-ink underline underline-offset-2 hover:text-primary-ink/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               Voltar para hoje
             </button>
@@ -167,7 +167,7 @@ export const DashboardPage: React.FC = () => {
           onClick={() => goToDate(addDaysToDateString(selectedDate, 1))}
           disabled={!canGoNext}
           aria-label="Próximo dia"
-          className="w-12 h-12 sm:w-auto sm:h-auto shrink-0 px-0 sm:px-4 py-2 border-2 border-border bg-background text-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-secondary transition-colors focus:outline-none focus:border-primary disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-background"
+          className="w-12 h-12 sm:w-auto sm:h-auto shrink-0 px-0 sm:px-4 py-2 border-2 border-border bg-background text-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-background"
         >
           <span className="hidden sm:inline">Próximo dia</span>
           <ChevronRight className="w-4 h-4" aria-hidden="true" />
@@ -179,16 +179,16 @@ export const DashboardPage: React.FC = () => {
         {/* Calories Card */}
         <div className="bg-card border-2 border-border p-5 shadow-hard flex flex-col justify-between group">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">Calorias</span>
+            <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-primary-ink transition-colors">Calorias</span>
             <div className="flex items-center gap-2">
-              <Flame className="w-5 h-5 text-primary" aria-hidden="true" />
+              <Flame className="w-5 h-5 text-primary-ink" aria-hidden="true" />
               <button
                 type="button"
                 aria-label={areMacrosExpanded ? 'Recolher macronutrientes' : 'Mostrar macronutrientes'}
                 aria-expanded={areMacrosExpanded}
                 aria-controls={macronutrientsId}
                 onClick={() => setAreMacrosExpanded((expanded) => !expanded)}
-                className="sm:hidden w-11 h-11 -my-3 flex items-center justify-center border-2 border-border bg-background text-foreground hover:bg-secondary focus:outline-none focus:border-primary transition-colors"
+                className="sm:hidden w-11 h-11 -my-3 flex items-center justify-center border-2 border-border bg-background text-foreground hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
               >
                 {areMacrosExpanded ? (
                   <ChevronUp className="w-5 h-5" aria-hidden="true" />
@@ -218,8 +218,8 @@ export const DashboardPage: React.FC = () => {
           {/* Proteins Card */}
           <div className="bg-card border-2 border-border p-5 shadow-hard flex flex-col justify-between group">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">Proteínas</span>
-              <Beef className="w-5 h-5 text-primary" aria-hidden="true" />
+              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-primary-ink transition-colors">Proteínas</span>
+              <Beef className="w-5 h-5 text-primary-ink" aria-hidden="true" />
             </div>
             <div>
               <div className="flex items-baseline gap-1">
@@ -235,8 +235,8 @@ export const DashboardPage: React.FC = () => {
           {/* Carbs Card */}
           <div className="bg-card border-2 border-border p-5 shadow-hard flex flex-col justify-between group">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">Carboidratos</span>
-              <div className="w-5 h-5 flex items-center justify-center font-bold text-primary bg-primary/10 border border-primary/20">C</div>
+              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-primary-ink transition-colors">Carboidratos</span>
+              <div className="w-5 h-5 flex items-center justify-center font-bold text-primary-ink bg-secondary border-2 border-border">C</div>
             </div>
             <div>
               <div className="flex items-baseline gap-1">
@@ -252,8 +252,8 @@ export const DashboardPage: React.FC = () => {
           {/* Fats Card */}
           <div className="bg-card border-2 border-border p-5 shadow-hard flex flex-col justify-between group">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">Gorduras</span>
-              <div className="w-5 h-5 flex items-center justify-center font-bold text-primary bg-primary/10 border border-primary/20">G</div>
+              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-primary-ink transition-colors">Gorduras</span>
+              <div className="w-5 h-5 flex items-center justify-center font-bold text-primary-ink bg-secondary border-2 border-border">G</div>
             </div>
             <div>
               <div className="flex items-baseline gap-1">
@@ -274,7 +274,7 @@ export const DashboardPage: React.FC = () => {
           <Utensils className="w-48 h-48" aria-hidden="true" />
         </div>
         <div className="flex items-center gap-4 relative z-10">
-          <div className="p-3 bg-primary text-primary-foreground">
+          <div className="p-3 bg-primary text-primary-foreground border-2 border-black">
             <Utensils className="w-6 h-6" aria-hidden="true" />
           </div>
           <div>
@@ -288,7 +288,7 @@ export const DashboardPage: React.FC = () => {
             setMealToEdit(null);
             setIsNewMealModalOpen(true);
           }}
-          className="relative z-10 w-full sm:w-auto min-h-12 py-3 px-6 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-transparent focus:outline-none focus:border-foreground"
+          className="relative z-10 w-full sm:w-auto min-h-12 py-3 px-6 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-black shadow-hard-fill focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <Plus className="w-4 h-4" aria-hidden="true" />
           <span>Nova Refeição</span>
@@ -300,17 +300,17 @@ export const DashboardPage: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <h3 className="text-xl font-heading font-black text-foreground uppercase tracking-tight flex items-center gap-2">
             {isToday ? 'Refeições de Hoje' : 'Refeições do Dia'}
-            <span className="text-xs font-bold bg-primary text-primary-foreground px-2 py-0.5">{meals.length}</span>
+            <span className="text-xs font-bold bg-primary text-primary-foreground px-2 py-0.5 border-2 border-black">{meals.length}</span>
           </h3>
 
           <button
             type="button"
             onClick={() => setIsCopyModalOpen(true)}
             disabled={copyMealMutation.isPending}
-            className="flex items-center gap-2 px-3 py-1.5 border-2 border-border bg-card text-foreground font-black text-xs uppercase tracking-widest hover:bg-secondary transition-colors focus:outline-none self-start sm:self-auto disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-3 py-1.5 border-2 border-border bg-card text-foreground font-black text-xs uppercase tracking-widest hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring self-start sm:self-auto disabled:opacity-50 disabled:cursor-not-allowed"
             title="Copiar todas as refeições do dia anterior para este dia"
           >
-            <Copy className="w-3.5 h-3.5 text-primary" aria-hidden="true" />
+            <Copy className="w-3.5 h-3.5 text-primary-ink" aria-hidden="true" />
             <span>{copyMealMutation.isPending ? 'COPIANDO...' : 'COPIAR DE ONTEM'}</span>
           </button>
         </div>
@@ -320,7 +320,7 @@ export const DashboardPage: React.FC = () => {
             role="status"
             className={`p-3 border-2 text-xs font-black uppercase tracking-widest ${
               copyFeedback.type === 'success'
-                ? 'border-primary bg-primary/10 text-primary'
+                ? 'border-foreground bg-secondary text-foreground'
                 : 'border-destructive bg-destructive/10 text-destructive'
             }`}
           >
@@ -353,7 +353,7 @@ export const DashboardPage: React.FC = () => {
             <button
               type="button"
               onClick={() => refetchMeals()}
-              className="px-4 py-2 border-2 border-destructive bg-destructive text-destructive-foreground font-black uppercase text-xs tracking-widest hover:opacity-90 focus:outline-none"
+              className="px-4 py-2 border-2 border-destructive bg-destructive text-destructive-foreground font-black uppercase text-xs tracking-widest hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               TENTAR NOVAMENTE
             </button>
@@ -373,7 +373,7 @@ export const DashboardPage: React.FC = () => {
                 setMealToEdit(null);
                 setIsNewMealModalOpen(true);
               }}
-              className="py-2.5 px-5 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-transparent focus:outline-none"
+              className="py-2.5 px-5 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-black shadow-hard-fill focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <Plus className="w-4 h-4" aria-hidden="true" />
               <span>REGISTRAR REFEIÇÃO</span>
@@ -401,7 +401,7 @@ export const DashboardPage: React.FC = () => {
                           copyMealMutation.mutate({ sourceMealId: meal.id, targetDate: selectedDate });
                         }}
                         disabled={copyMealMutation.isPending}
-                        className="p-2 border-2 border-border bg-background text-foreground hover:bg-primary hover:text-primary-foreground transition-colors focus:outline-none"
+                        className="p-2 border-2 border-border bg-background text-foreground hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         title="Duplicar refeição"
                       >
                         <Copy className="w-3.5 h-3.5" />
@@ -412,7 +412,7 @@ export const DashboardPage: React.FC = () => {
                           setMealToEdit(meal);
                           setIsNewMealModalOpen(true);
                         }}
-                        className="p-2 border-2 border-border bg-background text-foreground hover:bg-primary hover:text-primary-foreground transition-colors focus:outline-none"
+                        className="p-2 border-2 border-border bg-background text-foreground hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         title="Editar refeição"
                       >
                         <Pencil className="w-3.5 h-3.5" />
@@ -423,7 +423,7 @@ export const DashboardPage: React.FC = () => {
                           setMealToDelete(meal);
                           setIsDeleteModalOpen(true);
                         }}
-                        className="p-2 border-2 border-border bg-background text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors focus:outline-none"
+                        className="p-2 border-2 border-border bg-background text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         title="Excluir refeição"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -452,7 +452,7 @@ export const DashboardPage: React.FC = () => {
                       );
                     })}
                     {meal.items.length > 3 && (
-                      <p className="text-[10px] font-bold text-primary uppercase tracking-widest pt-2">
+                      <p className="text-[10px] font-bold text-primary-ink uppercase tracking-widest pt-2">
                         + {meal.items.length - 3} OUTROS ALIMENTOS...
                       </p>
                     )}
@@ -461,11 +461,11 @@ export const DashboardPage: React.FC = () => {
 
                 <div className="flex items-center gap-6 text-xs pt-4 border-t-2 border-border mt-auto">
                   <div className="flex items-center gap-2 font-black text-foreground uppercase tracking-widest">
-                    <Flame className="w-4 h-4 text-primary" />
+                    <Flame className="w-4 h-4 text-primary-ink" />
                     <span>{Number(meal.total_calories).toFixed(0)} KCAL</span>
                   </div>
                   <div className="flex items-center gap-2 font-black text-foreground uppercase tracking-widest">
-                    <Beef className="w-4 h-4 text-primary" />
+                    <Beef className="w-4 h-4 text-primary-ink" />
                     <span>{Number(meal.total_proteins).toFixed(0)}G PROT</span>
                   </div>
                 </div>
@@ -520,7 +520,7 @@ export const DashboardPage: React.FC = () => {
                   setMealToDelete(null);
                 }}
                 disabled={deleteMealMutation.isPending}
-                className="px-4 py-2 font-bold uppercase tracking-widest text-xs text-foreground hover:bg-secondary transition-colors focus:outline-none focus:border-primary border-2 border-transparent"
+                className="px-4 py-2 font-bold uppercase tracking-widest text-xs text-foreground hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background border-2 border-transparent"
               >
                 Cancelar
               </button>
@@ -528,7 +528,7 @@ export const DashboardPage: React.FC = () => {
                 type="button"
                 onClick={() => deleteMealMutation.mutate(mealToDelete.id)}
                 disabled={deleteMealMutation.isPending}
-                className="px-6 py-2 bg-destructive text-destructive-foreground font-black uppercase tracking-widest text-xs flex items-center gap-2 hover:bg-destructive/90 transition-colors focus:outline-none focus:ring-2 focus:ring-destructive focus:ring-offset-2 focus:ring-offset-background"
+                className="px-6 py-2 bg-destructive text-destructive-foreground font-black uppercase tracking-widest text-xs flex items-center gap-2 hover:bg-destructive/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 {deleteMealMutation.isPending ? 'Excluindo...' : 'Sim, Excluir'}
               </button>
@@ -546,7 +546,7 @@ export const DashboardPage: React.FC = () => {
           >
             <div className="p-6 border-b-2 border-border">
               <div className="flex items-start gap-4">
-                <div className="p-3 bg-primary text-primary-foreground shrink-0 border-2 border-transparent">
+                <div className="p-3 bg-primary text-primary-foreground shrink-0 border-2 border-black shadow-hard-fill">
                   <Copy className="w-6 h-6" />
                 </div>
                 <div>
@@ -564,7 +564,7 @@ export const DashboardPage: React.FC = () => {
                 type="button"
                 onClick={() => setIsCopyModalOpen(false)}
                 disabled={copyMealMutation.isPending}
-                className="px-4 py-2 font-bold uppercase tracking-widest text-xs text-foreground hover:bg-secondary transition-colors focus:outline-none focus:border-primary border-2 border-transparent"
+                className="px-4 py-2 font-bold uppercase tracking-widest text-xs text-foreground hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background border-2 border-transparent"
               >
                 Cancelar
               </button>
@@ -583,7 +583,7 @@ export const DashboardPage: React.FC = () => {
                   );
                 }}
                 disabled={copyMealMutation.isPending}
-                className="px-6 py-2 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center gap-2 hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2 bg-primary text-primary-foreground border-2 border-black shadow-hard-fill font-black uppercase tracking-widest text-xs flex items-center gap-2 hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {copyMealMutation.isPending ? 'Copiando...' : 'Sim, Copiar'}
               </button>

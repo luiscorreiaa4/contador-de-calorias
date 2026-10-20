@@ -29,7 +29,7 @@ export function NotificationsPage() {
       {test.isSuccess && (
         <p
           role="status"
-          className="font-black text-xs uppercase p-3 border-2 border-primary bg-primary/20 text-foreground"
+          className="font-black text-xs uppercase p-3 border-2 border-foreground bg-primary/20 text-foreground"
         >
           LEMBRETE DE TESTE ENVIADO COM SUCESSO!
         </p>
@@ -142,7 +142,7 @@ export function NotificationsPage() {
           type="button"
           onClick={() => test.mutate()}
           disabled={test.isPending}
-          className="border-2 border-border bg-secondary/60 hover:bg-secondary px-5 py-3 text-xs font-black uppercase tracking-wider text-foreground disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-primary shadow-hard transition-all active:translate-x-0.5 active:translate-y-0.5"
+          className="border-2 border-border bg-secondary/60 hover:bg-secondary px-5 py-3 text-xs font-black uppercase tracking-wider text-foreground disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background shadow-hard transition-all active:translate-x-0.5 active:translate-y-0.5"
         >
           {test.isPending ? 'ENVIANDO...' : 'ENVIAR LEMBRETE DE TESTE'}
         </button>

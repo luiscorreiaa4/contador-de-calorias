@@ -87,7 +87,7 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
       <div className="border-b-2 border-border pb-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-2">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary-ink mb-2">
               Evolução Corporal
             </p>
             <Heading className="text-3xl sm:text-5xl font-heading font-black text-foreground uppercase tracking-tighter">
@@ -99,7 +99,7 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
               aria-expanded={isLogging}
               aria-controls="measurement-form"
               onClick={() => setIsLogging(!isLogging)}
-              className="py-3 px-5 text-xs font-black uppercase tracking-widest bg-primary text-primary-foreground border-2 border-primary hover:bg-primary/90 flex items-center gap-2 transition-colors"
+              className="py-3 px-5 text-xs font-black uppercase tracking-widest bg-primary text-primary-foreground border-2 border-black shadow-hard-fill hover:bg-primary/90 flex items-center gap-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               <Plus className="w-4 h-4" />
               NOVA MEDIÇÃO
@@ -107,7 +107,7 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
             <Link
               to="/"
               aria-label="Voltar ao dashboard"
-              className="flex items-center justify-center w-12 h-12 border-2 border-border bg-background hover:bg-primary hover:text-primary-foreground transition-colors text-foreground focus:outline-none focus:border-primary"
+              className="flex items-center justify-center w-12 h-12 border-2 border-border bg-background hover:bg-primary hover:text-primary-foreground transition-colors text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               <ArrowLeft className="w-5 h-5" aria-hidden="true" />
             </Link>
@@ -121,9 +121,9 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
               key={p}
               aria-pressed={period === p}
               onClick={() => setPeriod(p)}
-              className={`flex-1 md:flex-none py-2 px-5 text-xs font-black uppercase tracking-widest transition-all focus:outline-none ${
+              className={`flex-1 md:flex-none py-2 px-5 text-xs font-black uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                 period === p
-                  ? 'bg-primary text-primary-foreground border-2 border-transparent'
+                  ? 'bg-primary text-primary-foreground border-2 border-black shadow-hard-fill'
                   : 'bg-background text-foreground border-2 border-transparent hover:border-border'
               }`}
             >
@@ -140,7 +140,7 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
         <form id="measurement-form" noValidate onSubmit={handleSubmit(onSubmit)} className="p-6 bg-card border-2 border-border shadow-hard space-y-4">
           <div className="flex items-center justify-between border-b-2 border-border pb-3">
             <h2 className="text-sm font-black uppercase tracking-wider text-foreground flex items-center gap-2">
-              <Scale className="w-4 h-4 text-primary" />
+              <Scale className="w-4 h-4 text-primary-ink" />
               REGISTRAR NOVO PESO / MEDIÇÃO
             </h2>
             <button
@@ -170,7 +170,7 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
                 aria-invalid={!!errors.weight}
                 inputMode="decimal"
                 placeholder="EX: 78.5"
-                className="w-full px-3 py-2 bg-background border-2 border-border text-sm font-black uppercase focus:border-primary outline-none"
+                className="w-full px-3 py-2 bg-background border-2 border-border text-sm font-black uppercase focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background outline-none"
                 required
               />
             </div>
@@ -185,7 +185,7 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
                 aria-invalid={!!errors.body_fat}
                 inputMode="decimal"
                 placeholder="EX: 18.0"
-                className="w-full px-3 py-2 bg-background border-2 border-border text-sm font-black uppercase focus:border-primary outline-none"
+                className="w-full px-3 py-2 bg-background border-2 border-border text-sm font-black uppercase focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background outline-none"
               />
             </div>
             <div>
@@ -197,7 +197,7 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
                 type="date"
                 {...register('measured_at')}
                 aria-invalid={!!errors.measured_at}
-                className="w-full px-3 py-2 bg-background border-2 border-border text-sm font-black uppercase focus:border-primary outline-none"
+                className="w-full px-3 py-2 bg-background border-2 border-border text-sm font-black uppercase focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background outline-none"
               />
             </div>
           </div>
@@ -206,14 +206,14 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
             <button
               type="button"
               onClick={() => setIsLogging(false)}
-              className="px-4 py-2 border-2 border-border text-xs font-black uppercase hover:bg-secondary"
+              className="px-4 py-2 border-2 border-border text-xs font-black uppercase hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               CANCELAR
             </button>
             <button
               type="submit"
               disabled={mutation.isPending}
-              className="px-6 py-2 bg-primary text-primary-foreground text-xs font-black uppercase hover:bg-primary/90 disabled:opacity-50"
+              className="px-6 py-2 bg-primary text-primary-foreground border-2 border-black shadow-hard-fill text-xs font-black uppercase hover:bg-primary/90 disabled:opacity-50 disabled:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               {mutation.isPending ? 'SALVANDO...' : 'CONFIRMAR PESO'}
             </button>
@@ -245,9 +245,9 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">VARIAÇÃO</p>
           <div className="flex items-center gap-1">
             {weightDiff > 0 ? (
-              <TrendingUp className="w-5 h-5 text-primary" />
+              <TrendingUp className="w-5 h-5 text-primary-ink" />
             ) : weightDiff < 0 ? (
-              <TrendingDown className="w-5 h-5 text-primary" />
+              <TrendingDown className="w-5 h-5 text-primary-ink" />
             ) : null}
             <p className="text-2xl sm:text-3xl font-heading font-black text-foreground">
               {currentWeight !== null
@@ -262,7 +262,7 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
       <div className="bg-card border-2 border-border p-6 shadow-hard space-y-6">
         <div className="flex items-center justify-between border-b-2 border-border pb-4">
           <h2 className="text-sm sm:text-base font-black uppercase tracking-tight text-foreground flex items-center gap-2">
-            <Scale className="w-5 h-5 text-primary" />
+            <Scale className="w-5 h-5 text-primary-ink" />
             GRÁFICO DE EVOLUÇÃO TEMPORAL
           </h2>
           <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
@@ -300,7 +300,7 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
             </p>
             <button
               onClick={() => setIsLogging(true)}
-              className="px-4 py-2 bg-primary text-primary-foreground text-xs font-black uppercase tracking-wider"
+              className="px-4 py-2 bg-primary text-primary-foreground border-2 border-black shadow-hard-fill text-xs font-black uppercase tracking-wider hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               REGISTRAR PRIMEIRO PESO
             </button>
@@ -331,7 +331,7 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
                           <p className="text-[10px] font-bold text-muted-foreground uppercase">{data.date}</p>
                           <p className="text-sm font-black uppercase text-foreground">{data.weight} kg</p>
                           {data.bodyFat !== undefined && (
-                            <p className="text-xs font-bold text-primary uppercase">{data.bodyFat}% gordura</p>
+                            <p className="text-xs font-bold text-primary-ink uppercase">{data.bodyFat}% gordura</p>
                           )}
                         </div>
                       );
@@ -342,10 +342,10 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
                 <Line
                   type="monotone"
                   dataKey="weight"
-                  stroke="hsl(var(--primary))"
+                  stroke="hsl(var(--primary-ink))"
                   strokeWidth={3}
-                  dot={{ r: 4, strokeWidth: 2, fill: 'hsl(var(--card))', stroke: 'hsl(var(--primary))' }}
-                  activeDot={{ r: 6, fill: 'hsl(var(--primary))', stroke: 'hsl(var(--foreground))', strokeWidth: 2 }}
+                  dot={{ r: 4, strokeWidth: 2, fill: 'hsl(var(--card))', stroke: 'hsl(var(--primary-ink))' }}
+                  activeDot={{ r: 6, fill: 'hsl(var(--primary-ink))', stroke: 'hsl(var(--foreground))', strokeWidth: 2 }}
                   connectNulls
                 />
               </LineChart>
@@ -358,7 +358,7 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
       {measurements.length > 0 && (
         <div className="bg-card border-2 border-border p-6 shadow-hard space-y-4">
           <h2 className="text-sm font-black uppercase tracking-tight text-foreground flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-primary" />
+            <Calendar className="w-4 h-4 text-primary-ink" />
             HISTÓRICO DE REGISTROS
           </h2>
           <div className="overflow-x-auto">

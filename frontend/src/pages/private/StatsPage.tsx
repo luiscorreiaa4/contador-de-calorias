@@ -28,7 +28,7 @@ export const StatsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }
       <div className="border-b-2 border-border pb-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-2">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary-ink mb-2">
               Estatísticas
             </p>
             <Heading className="text-3xl sm:text-5xl font-heading font-black text-foreground uppercase tracking-tighter">
@@ -38,7 +38,7 @@ export const StatsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }
           <Link
             to="/"
             aria-label="Voltar ao dashboard"
-            className="self-start sm:self-auto shrink-0 flex items-center justify-center w-12 h-12 border-2 border-border bg-background hover:bg-primary hover:text-primary-foreground transition-colors text-foreground focus:outline-none focus:border-primary"
+            className="self-start sm:self-auto shrink-0 flex items-center justify-center w-12 h-12 border-2 border-border bg-background hover:bg-primary hover:text-primary-foreground transition-colors text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             <ArrowLeft className="w-5 h-5" aria-hidden="true" />
           </Link>
@@ -48,9 +48,9 @@ export const StatsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }
           <button
             aria-pressed={period === 'week'}
             onClick={() => setPeriod('week')}
-            className={`flex-1 md:flex-none py-3 px-6 text-xs font-black uppercase tracking-widest transition-all focus:outline-none ${
+            className={`flex-1 md:flex-none py-3 px-6 text-xs font-black uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
               period === 'week' 
-                ? 'bg-primary text-primary-foreground border-2 border-transparent shadow-[2px_2px_0_0_#000] dark:shadow-[2px_2px_0_0_#fff]' 
+                ? 'bg-primary text-primary-foreground border-2 border-black shadow-hard-fill' 
                 : 'bg-background text-foreground border-2 border-transparent hover:border-border'
             }`}
           >
@@ -59,9 +59,9 @@ export const StatsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }
           <button
             aria-pressed={period === 'month'}
             onClick={() => setPeriod('month')}
-            className={`flex-1 md:flex-none py-3 px-6 text-xs font-black uppercase tracking-widest transition-all focus:outline-none ${
+            className={`flex-1 md:flex-none py-3 px-6 text-xs font-black uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
               period === 'month' 
-                ? 'bg-primary text-primary-foreground border-2 border-transparent shadow-[2px_2px_0_0_#000] dark:shadow-[2px_2px_0_0_#fff]' 
+                ? 'bg-primary text-primary-foreground border-2 border-black shadow-hard-fill' 
                 : 'bg-background text-foreground border-2 border-transparent hover:border-border'
             }`}
           >
@@ -109,11 +109,11 @@ export const StatsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }
       ) : stats ? (
         <div className="space-y-10">
           
-          <div className="bg-primary/10 border-2 border-primary/20 p-4 flex items-start gap-4">
-            <Info className="w-6 h-6 text-primary shrink-0" />
+          <div className="bg-primary/10 border-2 border-border p-4 flex items-start gap-4">
+            <Info className="w-6 h-6 text-primary-ink shrink-0" />
             <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-foreground leading-relaxed">
-              AS MÉDIAS ABAIXO CONSIDERAM <strong className="text-primary">APENAS OS DIAS EM QUE HOUVE PELO MENOS UMA REFEIÇÃO REGISTRADA</strong>.<br className="hidden sm:block" /> 
-              NESTE PERÍODO DE {stats.totalDays} DIAS, VOCÊ REGISTROU REFEIÇÕES EM <strong className="text-primary">{stats.daysLogged} DIAS</strong>.
+              AS MÉDIAS ABAIXO CONSIDERAM <strong className="text-primary-ink">APENAS OS DIAS EM QUE HOUVE PELO MENOS UMA REFEIÇÃO REGISTRADA</strong>.<br className="hidden sm:block" /> 
+              NESTE PERÍODO DE {stats.totalDays} DIAS, VOCÊ REGISTROU REFEIÇÕES EM <strong className="text-primary-ink">{stats.daysLogged} DIAS</strong>.
             </p>
           </div>
 
@@ -121,10 +121,10 @@ export const StatsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="bg-card border-2 border-border p-6 shadow-hard group">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-[11px] font-bold text-muted-foreground group-hover:text-primary transition-colors uppercase tracking-widest">
+                <h3 className="text-[11px] font-bold text-muted-foreground group-hover:text-primary-ink transition-colors uppercase tracking-widest">
                   MÉDIA DE CONSUMO
                 </h3>
-                <div className="p-2 bg-primary text-primary-foreground">
+                <div className="p-2 bg-primary text-primary-foreground border-2 border-black shadow-hard-fill">
                   <TrendingUp className="w-5 h-5" />
                 </div>
               </div>
@@ -152,7 +152,7 @@ export const StatsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }
 
             <div className="bg-card border-2 border-border p-6 shadow-hard group">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-[11px] font-bold text-muted-foreground group-hover:text-primary transition-colors uppercase tracking-widest">
+                <h3 className="text-[11px] font-bold text-muted-foreground group-hover:text-primary-ink transition-colors uppercase tracking-widest">
                   MÉDIA DA META
                 </h3>
                 <div className="p-2 border-2 border-border bg-background text-foreground group-hover:border-foreground transition-colors">
@@ -226,7 +226,7 @@ export const StatsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }
                       borderRadius: '0px', 
                       border: '2px solid hsl(var(--border))', 
                       backgroundColor: 'hsl(var(--card))',
-                      boxShadow: '4px 4px 0px 0px rgba(0,0,0,1)',
+                      boxShadow: '4px 4px 0px 0px hsl(var(--shadow) / var(--shadow-alpha))',
                       textTransform: 'uppercase',
                       padding: '12px'
                     }}
@@ -254,7 +254,7 @@ export const StatsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }
                       label={{ position: 'top', value: 'MÉDIA DA META', fill: 'hsl(var(--foreground))', fontSize: 10, fontWeight: 'bold', letterSpacing: '0.1em' }}
                     />
                   )}
-                  <Bar dataKey="consumed_calories" fill="hsl(var(--primary))" radius={[0, 0, 0, 0]} maxBarSize={60} />
+                  <Bar dataKey="consumed_calories" fill="hsl(var(--primary))" stroke="hsl(var(--foreground))" strokeWidth={2} radius={[0, 0, 0, 0]} maxBarSize={60} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

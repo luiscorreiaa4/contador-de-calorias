@@ -22,7 +22,7 @@ export function AccountPrivacyPage() {
     <p className="text-muted-foreground">Baixe uma cópia dos seus dados ou solicite a exclusão da conta.</p>
     {download.isError && <p role="alert" className="text-destructive">{download.error.message}</p>}
     {download.isSuccess && <p role="status" className="font-bold uppercase">SEUS DADOS FORAM EXPORTADOS COM SUCESSO!</p>}
-    <button type="button" disabled={download.isPending} onClick={() => download.mutate()} className="border-2 border-border px-4 py-3 font-black text-xs uppercase hover:bg-secondary disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-primary">{download.isPending ? 'EXPORTANDO...' : 'EXPORTAR MEUS DADOS'}</button>
+    <button type="button" disabled={download.isPending} onClick={() => download.mutate()} className="border-2 border-border px-4 py-3 font-black text-xs uppercase hover:bg-secondary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">{download.isPending ? 'EXPORTANDO...' : 'EXPORTAR MEUS DADOS'}</button>
     <div className="border-2 border-destructive p-4 space-y-3">
       <h3 className="font-black uppercase text-destructive">EXCLUIR CONTA</h3>
       <p className="text-muted-foreground">A exclusão é permanente. Você precisará confirmar sua senha.</p>
