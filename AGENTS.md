@@ -26,7 +26,8 @@ Executar na **raiz** do monorepo:
 - `npm run test:backend:file <caminho>` — Executa um único arquivo de teste no backend (ex: `tests/integration/meal_items_batch.test.ts`).
 - `npm --prefix frontend test` — Executa testes do frontend via Vitest.
 - `npm run test:frontend:file <caminho>` — Executa um único arquivo de teste no frontend (ex: `src/components/meals/NewMealModal.test.tsx`).
-- `npm run lint` — Valida ESLint em todo o repositório.
+- `npm run lint` — Valida ESLint em todo o repositório e executa a guarda de cores (`check:colors`).
+- `npm --prefix frontend run check:colors` — Executa a guarda de cores do design brutalista (tokens semânticos, ausência de literais/dark:).
 - `npm run build` — Compila bundle de produção do frontend (`tsc -b && vite build`).
 
 ---

@@ -6,12 +6,26 @@ Documento de controle e inventário mecânico da migração de cores para a iden
 
 | Métrica | Antes (Baseline) | Depois |
 | :--- | :--- | :--- |
-| Total de arquivos inventariados | 94 | 94 |
-| Ocorrências do scan amplo | 2088 | PENDENTE |
+| Total de arquivos inventariados | 94 | 95 (inclui tokens.contrast.test.ts) |
+| Ocorrências do scan amplo | 2088 | 2632 |
 | Violações check:colors | 208 | 0 |
-| Exceções (color-guard-allow) | 0 | PENDENTE |
+| Exceções (color-guard-allow) | 0 | 0 |
 
 ## 2. Decisões do Agente e Comparativo do Bloco .dark (Invariante I1)
+
+### Decisões do Agente
+1. **Divergência Autorizada em `--destructive`:**
+   - Modo claro: `hsl(0 74% 42%)` (`#B91C1C`), contraste 6,2:1 sobre fundo branco (aprovado WCAG AA).
+   - Modo escuro: `hsl(0 84% 60%)` (`#EF4343`), inalterado (Invariante I1).
+2. **Criação de Tokens Semânticos para Lacunas:**
+   - `--warning`: `38 92% 50%` (`#F59E0B`) e `--warning-foreground`: `0 0% 4%` (`#0A0A0A`) para alertas e estrelas de favoritos.
+   - `--shadow-fill` e `--shadow-fill-alpha`: `0 0% 0% / 1` (claro) e `0 0% 100% / 0.2` (escuro) para sombras neutras sob fills neon sólidos.
+3. **Fills Neon Sólidos (`bg-primary`):**
+   - Todos os botões, abas e badges neon sólidos receberam `border-2 border-black` e `shadow-hard-fill` (ou `disabled:shadow-none`).
+4. **Contorno de Barras de Progresso no Dashboard:**
+   - Adicionado contorno `border-2 border-foreground` no modo claro para delimitar a área neon contra o card branco, sem alterar o modo escuro.
+5. **Padronização de Foco Visível:**
+   - Onde o foco de teclado tinha anel primário ou borda transparente, padronizado para `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background`.
 
 ### Comparativo do Bloco `.dark` (Antes x Depois)
 Para assegurar estritamente a **Invariante I1** (o modo escuro NÃO muda visualmente):
@@ -20,33 +34,37 @@ Para assegurar estritamente a **Invariante I1** (o modo escuro NÃO muda visualm
   - `--primary-ink: 72 100% 50%` — no modo escuro coincide exatamente com `--primary` (`#CCFF00`), preservando o verde neon idêntico para textos e ícones.
   - `--shadow: 72 100% 50%` com `--shadow-alpha: 0.2` e `--shadow-alpha-hover: 0.4` — centraliza em variáveis CSS o que antes estava hardcoded no Tailwind (`rgba(204, 255, 0, 0.2)` e `0.4`).
   - `--shadow-fill: 0 0% 100%` com `--shadow-fill-alpha: 0.2` e `--shadow-fill-alpha-hover: 0.4` — centraliza a sombra branca de alto contraste para fills neon que antes estava como `rgba(255, 255, 255, 0.2)` no `.dark .brutalist-shadow`.
+  - `--warning: 38 92% 50%` com `--warning-foreground: 0 0% 4%` — mapeia avisos e estrelas mantendo o tom âmbar.
 - **Diferença visual observável:** Zero. O modo escuro permanece 100% idêntico.
-
 
 ## 3. Exceções Autorizadas (color-guard-allow)
 
-*Nenhuma exceção registrada até o momento.*
+*0 exceções necessárias.* Todas as 95 unidades de arquivo do frontend foram migradas para aderir estritamente aos tokens semânticos sem uso de comentário de escape.
 
 ## 4. Lacunas (Cores sem equivalente semântico)
 
-*Tokens novos mapeados serão registrados aqui.*
+- **Amarelo / Âmbar (Favoritos e Alertas):** Antes sem token centralizado (`text-yellow-400` / `fill-yellow-400`); resolvido com `--warning: 38 92% 50%` e `--warning-foreground: 0 0% 4%`.
+- **Gráficos (Recharts):**
+  - Linhas de evolução: traço `stroke="hsl(var(--primary-ink))"` e pontos `stroke="hsl(var(--primary-ink))"`.
+  - Barras de histórico calórico: `fill="hsl(var(--primary))"` com contorno de alto contraste `stroke="hsl(var(--foreground))" strokeWidth={2}`.
+  - Tooltips de gráficos: fundo `hsl(var(--card))`, borda `hsl(var(--border))` e sombra brutalista semântica `hsl(var(--shadow) / var(--shadow-alpha))`.
 
 ## 5. Arquivos Pendentes
 
-*Nenhum arquivo pendente.*
+*Nenhum arquivo pendente.* Todos os 95 arquivos foram auditados, validados e concluídos [x].
 
-## 6. Lista de Telas para Revisão Visual Manual
+## 6. Lista de Telas para Revisão Visual Manual (Claro e Escuro)
 
-- [ ] /login (Login/Cadastro e Termos)
-- [ ] / (Dashboard / Diário com cards, macros, calendário, botão Nova Refeição, modal)
-- [ ] /evolucao/alimentacao (Estatísticas de alimentação com gráficos)
-- [ ] /evolucao/corpo (Histórico de medidas corporais com gráficos)
-- [ ] /metas/rotina (Metas de rotina e biometria)
-- [ ] /metas/diarias (Metas diárias de calorias e macros)
-- [ ] /perfil (Dados pessoais)
-- [ ] /configuracoes/notificacoes (Configurações de lembretes e push)
-- [ ] /configuracoes/seguranca (Troca de senha e encerramento de conta)
-- [ ] /configuracoes/privacidade (Termos de uso, privacidade e LGPD)
+- [ ] `/login` (Login/Cadastro e Termos)
+- [ ] `/` (Dashboard / Diário com cards, macros, calendário, botão Nova Refeição, modais)
+- [ ] `/evolucao/alimentacao` (Estatísticas de alimentação com gráfico de barras)
+- [ ] `/evolucao/corpo` (Histórico de medidas corporais com gráfico de linhas)
+- [ ] `/metas/rotina` (Metas de rotina e biometria)
+- [ ] `/metas/diarias` (Metas diárias de calorias e macros)
+- [ ] `/perfil` (Dados pessoais)
+- [ ] `/configuracoes/notificacoes` (Configurações de lembretes e push)
+- [ ] `/configuracoes/seguranca` (Troca de senha e encerramento de conta)
+- [ ] `/configuracoes/privacidade` (Termos de uso, privacidade e LGPD)
 
 ## 7. Inventário Completo e Checklist de Arquivos
 

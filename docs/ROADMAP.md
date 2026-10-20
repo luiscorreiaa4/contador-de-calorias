@@ -142,7 +142,7 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 
 **Tokens, Estilo e Acessibilidade**
 - [x] **PC-32** Centralização de variáveis CSS brutalistas (cores, contornos, espaçamentos) e criação de componentes primitivos base reutilizáveis.
-- [x] **PC-25** Conformidade visual: eliminar cores hex hardcoded (`#0a0a0a`), `dark:` ad-hoc, `rounded-*` e sombras suaves nos componentes ativos *(D-06)*.
+- [x] **PC-25** Conformidade visual: migração completa de cores Neo-Brutalismo de Tinta (CORES.md, check:colors), eliminação de cores hex hardcoded, dark: ad-hoc, rounded-* e sombras suaves *(D-06)*.
 - [x] **PC-26** Acessibilidade: label associada em `food-amount`, `aria-label` no `react-select`, `DatePickerInput` com Esc e foco acessível.
 - [x] **PC-27** Tratamento visual explícito de estados `isError` e `empty` no Dashboard e Estatísticas.
 - [x] **PC-33** Fontes self-hosted com carregamento local; carregar `Montserrat` efetivamente ou remover declaração órfã.

@@ -285,8 +285,29 @@ Para elementos que já têm o fundo totalmente verde neon (como abas selecionada
    - A classe `.dark` é injetada na tag `<html>`, trocando automaticamente as variáveis CSS de `:root` para `.dark` sem necessidade de classes redundantes no HTML.
 
 4. **Checklist de Migração no Código:**
-   - [ ] Substituir `text-primary` usado em **textos e ícones sobre fundo** por `text-primary-ink`.
-   - [ ] Manter `bg-primary` nos fills (botões, barras, badges) e adicionar `border-2 border-black` (ou `border-foreground`).
-   - [ ] Trocar `focus:border-primary` / `ring-primary` por `focus:border-ring` / `ring-ring`.
-   - [ ] Transformar o "SYNC" do logo em marca-texto (`bg-primary text-primary-foreground px-1`).
-   - [ ] Verificar se nenhuma sombra está com `rgba(204, 255, 0, …)` fixo no código (usar `shadow-hard` / `shadow-hard-hover`).
+   - [x] Substituir `text-primary` usado em **textos e ícones sobre fundo** por `text-primary-ink`.
+   - [x] Manter `bg-primary` nos fills (botões, barras, badges) e adicionar `border-2 border-black` (ou `border-foreground`).
+   - [x] Trocar `focus:border-primary` / `ring-primary` por `focus:border-ring` / `ring-ring`.
+   - [x] Transformar o "SYNC" do logo em marca-texto (`bg-primary text-primary-foreground px-1`).
+   - [x] Verificar se nenhuma sombra está com `rgba(204, 255, 0, …)` fixo no código (usar `shadow-hard` / `shadow-hard-hover`).
+
+---
+
+## 🛡️ Como Evitar Regressão
+
+Para garantir que novos componentes e refatorações preservem a integridade da paleta semântica e do contraste WCAG:
+
+1. **Guarda Automática de Cores (`check:colors`):**
+   - Integrado ao pipeline de testes e ao lint raiz (`npm run lint`), o script `frontend/scripts/check-colors.mjs` verifica todos os arquivos do frontend contra padrões proibidos:
+     - Literais hexadecimais (`#hex`) ou funções numéricas `rgb()` / `rgba()` / `hsl()` (exceto `hsl(var(--token))`).
+     - Classes `text-primary` ou `text-accent` soltas (sem sufixo `-ink` ou `-foreground`).
+     - Utilitários da paleta padrão do Tailwind com números (ex.: `gray-500`, `blue-600`).
+     - Variantes `dark:` aplicadas diretamente a classes utilitárias de cor (as cores se adaptam automaticamente via tokens CSS).
+     - Valores arbitrários como `bg-[#...]` ou `shadow-[...]`.
+2. **Exceção Pontual Controlada:**
+   - Se um elemento estritamente necessitar de uma exceção, use o comentário `/* color-guard-allow: <motivo> */` ou `// color-guard-allow: <motivo>` na mesma linha ou na anterior.
+3. **Preenchimento vs. Tinta:**
+   - **`bg-primary`** é apenas para **superfície** (botão, badge, progresso), acompanhado de `text-primary-foreground` e `border-2 border-black`.
+   - **`text-primary-ink`** é para **tinta** (textos, ícones, traços).
+4. **Foco Visível:**
+   - Use `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background`.

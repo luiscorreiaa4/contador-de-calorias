@@ -9,7 +9,7 @@
     "dev": "npm --prefix frontend run dev",
     "dev:all": "concurrently -n \"BACKEND,FRONTEND\" -c \"cyan,magenta\" \"npm run server\" \"npm run dev\"",
     "build": "npm --prefix frontend run build",
-    "lint": "node scripts/check-test-hygiene.mjs && eslint .",
+    "lint": "node scripts/check-test-hygiene.mjs && npm --prefix frontend run check:colors && eslint .",
     "test": "node scripts/run-tests.mjs backend",
     "test:backend:file": "node scripts/run-tests.mjs file",
     "test:frontend:file": "node scripts/run-tests.mjs frontend",
