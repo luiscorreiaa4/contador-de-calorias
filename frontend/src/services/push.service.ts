@@ -32,22 +32,116 @@ export const unsubscribePush = async (endpoint: string): Promise<void> => {
 };
 
 export const sendTestPush = async (): Promise<{ message: string }> => {
-  return apiFetch<{ message: string }>('/push/test', {
+  const result = await apiFetch<{ message: string }>('/push/test', {
     method: 'POST',
   });
+
+  // Dispara a notificação visualmente no navegador se a permissão estiver concedida
+  try {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration) {
+          await registration.showNotification('CalorieSync', {
+            body: 'Lembrete de teste: Não se esqueça de registrar suas refeições de hoje!',
+            icon: '/favicon.svg',
+            badge: '/favicon.svg',
+            data: { url: '/' },
+          });
+          return result;
+        }
+      }
+      new Notification('CalorieSync', {
+        body: 'Lembrete de teste: Não se esqueça de registrar suas refeições de hoje!',
+        icon: '/favicon.svg',
+      });
+    }
+  } catch (err) {
+    console.warn('Falha ao acionar notificação visual no navegador:', err);
+  }
+
+  return result;
 };
 
+export interface PushStatus {
+  isSupported: boolean;
+  permission: NotificationPermission | 'unsupported';
+  isSubscribed: boolean;
+}
+
+export const getPushSubscriptionStatus = async (): Promise<PushStatus> => {
+  if (
+    typeof window === 'undefined' ||
+    !('serviceWorker' in navigator) ||
+    !('PushManager' in window) ||
+    !('Notification' in window)
+  ) {
+    return {
+      isSupported: false,
+      permission: 'unsupported',
+      isSubscribed: false,
+    };
+  }
+
+  const permission = Notification.permission;
+  if (permission !== 'granted') {
+    return {
+      isSupported: true,
+      permission,
+      isSubscribed: false,
+    };
+  }
+
+  try {
+    const registration = await navigator.serviceWorker.getRegistration();
+    const subscription = await registration?.pushManager?.getSubscription();
+    return {
+      isSupported: true,
+      permission,
+      isSubscribed: !!subscription,
+    };
+  } catch (err) {
+    console.warn('Erro ao consultar status de inscrição push:', err);
+    return {
+      isSupported: true,
+      permission,
+      isSubscribed: false,
+    };
+  }
+};
+
+async function ensureServiceWorkerReady(): Promise<ServiceWorkerRegistration> {
+  const existingRegistration = await navigator.serviceWorker.getRegistration();
+  if (!existingRegistration) {
+    await navigator.serviceWorker.register('/sw.js');
+  }
+
+  // Timeout defensivo de 8 segundos para evitar promise travada eternamente
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => {
+      reject(new Error('Tempo limite esgotado ao aguardar o Service Worker.'));
+    }, 8000);
+  });
+
+  return Promise.race([navigator.serviceWorker.ready, timeoutPromise]);
+}
+
 export const registerPushNotifications = async (): Promise<boolean> => {
-  if (typeof window === 'undefined' || !('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+  if (
+    typeof window === 'undefined' ||
+    !('serviceWorker' in navigator) ||
+    !('PushManager' in window) ||
+    !('Notification' in window)
+  ) {
     throw new Error('Navegador não suporta notificações Push.');
   }
 
   const permission = await Notification.requestPermission();
   if (permission !== 'granted') {
-    throw new Error('Permissão de notificações não concedida.');
+    throw new Error('Permissão de notificações não concedida nas configurações do navegador.');
   }
 
-  const registration = await navigator.serviceWorker.ready;
+  const registration = await ensureServiceWorkerReady();
   const { publicKey } = await getVapidPublicKey();
   const convertedVapidKey = urlBase64ToUint8Array(publicKey);
 
@@ -71,3 +165,28 @@ export const registerPushNotifications = async (): Promise<boolean> => {
 
   return true;
 };
+
+export const unregisterPushNotifications = async (): Promise<boolean> => {
+  if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
+    return false;
+  }
+
+  try {
+    const registration = await navigator.serviceWorker.getRegistration();
+    const subscription = await registration?.pushManager?.getSubscription();
+    if (subscription) {
+      const endpoint = subscription.endpoint;
+      try {
+        await unsubscribePush(endpoint);
+      } catch (err) {
+        console.warn('Falha ao remover inscrição push no backend:', err);
+      }
+      await subscription.unsubscribe();
+    }
+    return true;
+  } catch (err) {
+    console.warn('Falha ao cancelar inscrição push:', err);
+    throw new Error('Erro ao desativar notificações push.', { cause: err });
+  }
+};
+

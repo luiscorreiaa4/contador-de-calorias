@@ -8,7 +8,11 @@ const STATIC_ASSETS = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
+    caches.open(CACHE_NAME).then((cache) =>
+      cache.addAll(STATIC_ASSETS).catch((err) => {
+        console.warn('Falha parcial ao pré-armazenar assets no Service Worker:', err);
+      })
+    )
   );
   self.skipWaiting();
 });
@@ -28,8 +32,12 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
 
-  // Não interceptar requisições para a API do backend
-  if (url.pathname.startsWith('/api')) {
+  // Não interceptar requisições para a API do backend nem ambiente local de desenvolvimento (evita conflitos com HMR do Vite)
+  if (
+    url.pathname.startsWith('/api') ||
+    url.hostname === 'localhost' ||
+    url.hostname === '127.0.0.1'
+  ) {
     return;
   }
 
