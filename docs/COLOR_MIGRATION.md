@@ -123,29 +123,30 @@ Para assegurar estritamente a **Invariante I1** (o modo escuro NÃO muda visualm
 | frontend/src/types/profile.ts | G5 | 14 | [x] | sem violações, tipos TypeScript |
 | frontend/src/utils/date.ts | G5 | 15 | [x] | sem violações, utilitários de data |
 | frontend/src/utils/download.ts | G5 | 2 | [x] | sem violações, utilitários de download |
-| frontend/src/components/auth/LoginForm.test.tsx | G6 | 0 | [ ] | sem ocorrências (scan) |
-| frontend/src/components/auth/RegisterForm.test.tsx | G6 | 0 | [ ] | sem ocorrências (scan) |
-| frontend/src/components/common/DatePickerInput.test.tsx | G6 | 0 | [ ] | sem ocorrências (scan) |
-| frontend/src/components/meals/NewMealModal.test.tsx | G6 | 6 | [ ] |  |
-| frontend/src/components/onboarding/OnboardingFlow.test.tsx | G6 | 0 | [ ] | sem ocorrências (scan) |
-| frontend/src/components/ui/__tests__/primitives.test.tsx | G6 | 8 | [ ] |  |
-| frontend/src/context/AuthContext.test.tsx | G6 | 0 | [ ] | sem ocorrências (scan) |
-| frontend/src/pages/private/__tests__/DashboardPage.test.tsx | G6 | 19 | [ ] |  |
-| frontend/src/pages/private/__tests__/EditProfilePage.test.tsx | G6 | 2 | [ ] |  |
-| frontend/src/pages/private/__tests__/MeasurementsPage.test.tsx | G6 | 0 | [ ] | sem ocorrências (scan) |
-| frontend/src/pages/private/__tests__/NotificationsPage.test.tsx | G6 | 1 | [ ] |  |
-| frontend/src/pages/private/__tests__/SettingsSeparation.test.tsx | G6 | 7 | [ ] |  |
-| frontend/src/pages/private/__tests__/StatsPage.test.tsx | G6 | 0 | [ ] | sem ocorrências (scan) |
-| frontend/src/pages/public/__tests__/LegalPage.test.tsx | G6 | 0 | [ ] | sem ocorrências (scan) |
-| frontend/src/setupTests.ts | G6 | 0 | [ ] | sem ocorrências (scan) |
-| frontend/src/tests/api.test.ts | G6 | 1 | [ ] |  |
-| frontend/src/tests/auth_storage.test.tsx | G6 | 0 | [ ] | sem ocorrências (scan) |
-| frontend/src/tests/LoginPage.test.tsx | G6 | 0 | [ ] | sem ocorrências (scan) |
-| frontend/src/tests/navigation.test.tsx | G6 | 2 | [ ] |  |
-| frontend/src/tests/router.test.tsx | G6 | 3 | [ ] |  |
-| frontend/src/tests/setup/test-utils.tsx | G6 | 0 | [ ] | sem ocorrências (scan) |
-| frontend/src/types/__tests__/meal-modal.test.ts | G6 | 0 | [ ] | sem ocorrências (scan) |
-| frontend/src/utils/__tests__/date.test.ts | G6 | 17 | [ ] |  |
+| frontend/src/components/auth/LoginForm.test.tsx | G6 | 0 | [x] | sem ocorrências (scan) |
+| frontend/src/components/auth/RegisterForm.test.tsx | G6 | 0 | [x] | sem ocorrências (scan) |
+| frontend/src/components/common/DatePickerInput.test.tsx | G6 | 0 | [x] | sem ocorrências (scan) |
+| frontend/src/components/meals/NewMealModal.test.tsx | G6 | 6 | [x] | testes passam sem quebra de asserção |
+| frontend/src/components/onboarding/OnboardingFlow.test.tsx | G6 | 0 | [x] | sem ocorrências (scan) |
+| frontend/src/components/ui/__tests__/primitives.test.tsx | G6 | 8 | [x] | testes passam sem quebra de asserção |
+| frontend/src/context/AuthContext.test.tsx | G6 | 0 | [x] | sem ocorrências (scan) |
+| frontend/src/pages/private/__tests__/DashboardPage.test.tsx | G6 | 19 | [x] | testes passam sem quebra de asserção |
+| frontend/src/pages/private/__tests__/EditProfilePage.test.tsx | G6 | 2 | [x] | testes passam sem quebra de asserção |
+| frontend/src/pages/private/__tests__/MeasurementsPage.test.tsx | G6 | 0 | [x] | sem ocorrências (scan) |
+| frontend/src/pages/private/__tests__/NotificationsPage.test.tsx | G6 | 1 | [x] | testes passam sem quebra de asserção |
+| frontend/src/pages/private/__tests__/SettingsSeparation.test.tsx | G6 | 7 | [x] | testes passam sem quebra de asserção |
+| frontend/src/pages/private/__tests__/StatsPage.test.tsx | G6 | 0 | [x] | sem ocorrências (scan) |
+| frontend/src/pages/public/__tests__/LegalPage.test.tsx | G6 | 0 | [x] | sem ocorrências (scan) |
+| frontend/src/setupTests.ts | G6 | 0 | [x] | sem ocorrências (scan) |
+| frontend/src/styles/tokens.contrast.test.ts | G6 | 0 | [x] | 24 testes de contraste WCAG passando (leitura via fs) |
+| frontend/src/tests/api.test.ts | G6 | 1 | [x] | testes passam sem quebra de asserção |
+| frontend/src/tests/auth_storage.test.tsx | G6 | 0 | [x] | sem ocorrências (scan) |
+| frontend/src/tests/LoginPage.test.tsx | G6 | 0 | [x] | sem ocorrências (scan) |
+| frontend/src/tests/navigation.test.tsx | G6 | 2 | [x] | testes passam sem quebra de asserção |
+| frontend/src/tests/router.test.tsx | G6 | 3 | [x] | testes passam sem quebra de asserção |
+| frontend/src/tests/setup/test-utils.tsx | G6 | 0 | [x] | sem ocorrências (scan) |
+| frontend/src/types/__tests__/meal-modal.test.ts | G6 | 0 | [x] | sem ocorrências (scan) |
+| frontend/src/utils/__tests__/date.test.ts | G6 | 17 | [x] | testes passam sem quebra de asserção |
 
 ---
 
