@@ -67,31 +67,31 @@ Para assegurar estritamente a **Invariante I1** (o modo escuro NÃO muda visualm
 | frontend/src/components/ui/footer-section.tsx | G2 | 25 | [x] | SYNC marca-texto, text-primary-ink em ícones e links |
 | frontend/src/components/ui/input.tsx | G2 | 8 | [x] | hover e foco ajustados com border-ring e ring-offset |
 | frontend/src/components/ui/label.tsx | G2 | 0 | [x] | sem ocorrências (scan) |
-| frontend/src/components/auth/AuthCard.tsx | G3 | 21 | [ ] |  |
-| frontend/src/components/auth/LoginForm.tsx | G3 | 20 | [ ] |  |
-| frontend/src/components/auth/RegisterForm.tsx | G3 | 43 | [ ] |  |
-| frontend/src/components/common/DatePickerInput.tsx | G3 | 50 | [ ] |  |
-| frontend/src/components/common/DeleteAccountModal.tsx | G3 | 43 | [ ] |  |
-| frontend/src/components/layout/AppHeader.tsx | G3 | 83 | [ ] |  |
-| frontend/src/components/layout/Footer.tsx | G3 | 0 | [ ] | sem ocorrências (scan) |
-| frontend/src/components/layout/RootLayout.tsx | G3 | 11 | [ ] |  |
-| frontend/src/components/layout/SectionLayout.tsx | G3 | 17 | [ ] |  |
-| frontend/src/components/meals/FoodQuantityForm.tsx | G3 | 92 | [ ] |  |
-| frontend/src/components/meals/FoodSearchSelect.tsx | G3 | 36 | [ ] |  |
-| frontend/src/components/meals/MealItemList.tsx | G3 | 34 | [ ] |  |
-| frontend/src/components/meals/MealModalFooter.tsx | G3 | 23 | [ ] |  |
-| frontend/src/components/meals/NewMealModal.tsx | G3 | 263 | [ ] |  |
-| frontend/src/components/onboarding/OnboardingFlow.tsx | G3 | 129 | [ ] |  |
-| frontend/src/components/profile/BiometricsSection.tsx | G3 | 14 | [ ] |  |
-| frontend/src/components/profile/BodyHeightForm.tsx | G3 | 18 | [ ] |  |
-| frontend/src/components/profile/GoalSettingsCard.tsx | G3 | 38 | [ ] |  |
-| frontend/src/components/profile/PersonalInfoSection.tsx | G3 | 17 | [ ] |  |
-| frontend/src/components/profile/ProfileFormFeedback.tsx | G3 | 13 | [ ] |  |
-| frontend/src/components/profile/ProfileQueryBoundary.tsx | G3 | 8 | [ ] |  |
-| frontend/src/components/profile/RoutineGoalsSection.tsx | G3 | 44 | [ ] |  |
-| frontend/src/components/profile/SecuritySection.tsx | G3 | 16 | [ ] |  |
-| frontend/src/components/ProtectedRoute.tsx | G3 | 0 | [ ] | sem ocorrências (scan) |
-| frontend/src/components/PublicRoute.tsx | G3 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/components/auth/AuthCard.tsx | G3 | 21 | [x] | border-2 border-black no badge de chama e no alert de sucesso |
+| frontend/src/components/auth/LoginForm.tsx | G3 | 20 | [x] | text-destructive nos erros, accent-primary-ink, text-primary-ink no link |
+| frontend/src/components/auth/RegisterForm.tsx | G3 | 43 | [x] | text-destructive nos erros, accent-primary-ink, text-primary-ink nos termos |
+| frontend/src/components/common/DatePickerInput.tsx | G3 | 50 | [x] | border-ring no foco, shadow-hard no calendário, border-black no dia selecionado |
+| frontend/src/components/common/DeleteAccountModal.tsx | G3 | 43 | [x] | border-ring no foco, inputs e botões semânticos |
+| frontend/src/components/layout/AppHeader.tsx | G3 | 83 | [x] | SYNC marca-texto, border-black no ícone da chama, text-primary-ink em ícones e links, border-foreground no tab ativo |
+| frontend/src/components/layout/Footer.tsx | G3 | 0 | [x] | sem ocorrências (scan) |
+| frontend/src/components/layout/RootLayout.tsx | G3 | 11 | [x] | bg-warning text-warning-foreground no aviso offline, border-b-foreground no spinner |
+| frontend/src/components/layout/SectionLayout.tsx | G3 | 17 | [x] | border-black bg-primary na tab ativa, ring-ring no foco |
+| frontend/src/components/meals/FoodQuantityForm.tsx | G3 | 92 | [x] | shadow-hard, border-black nos botões/badges neon, text-primary-ink, warning nas estrelas |
+| frontend/src/components/meals/FoodSearchSelect.tsx | G3 | 36 | [x] | text-primary-ink no loader e botão de retry, border-ring no foco do select |
+| frontend/src/components/meals/MealItemList.tsx | G3 | 34 | [x] | border-black no badge contador, text-primary-ink nos totais e ícones lineares, border-ring |
+| frontend/src/components/meals/MealModalFooter.tsx | G3 | 23 | [x] | border-black e shadow-hard-fill no botão submit, border-ring no foco do cancelar |
+| frontend/src/components/meals/NewMealModal.tsx | G3 | 263 | [x] | border-black nas abas e botões neon, text-primary-ink, warning nos favoritos, border-ring nos inputs |
+| frontend/src/components/onboarding/OnboardingFlow.tsx | G3 | 129 | [x] | text-primary-ink nos ícones lineares, border-black e shadow-hard-fill nos botões e checks neon |
+| frontend/src/components/profile/BiometricsSection.tsx | G3 | 14 | [x] | inputNormal atualizado para border-ring e ring-offset-background |
+| frontend/src/components/profile/BodyHeightForm.tsx | G3 | 18 | [x] | border-ring no foco do input e botão salvar |
+| frontend/src/components/profile/GoalSettingsCard.tsx | G3 | 38 | [x] | border-black nas abas ativas e no botão aplicar, border-ring nos inputs e foco |
+| frontend/src/components/profile/PersonalInfoSection.tsx | G3 | 17 | [x] | inputNormal atualizado para border-ring, text-primary-ink no aviso de senha |
+| frontend/src/components/profile/ProfileFormFeedback.tsx | G3 | 13 | [x] | border-foreground no feedback de sucesso, border-black e shadow-hard-fill no botão salvar |
+| frontend/src/components/profile/ProfileQueryBoundary.tsx | G3 | 8 | [x] | border-ring no foco do botão de retry |
+| frontend/src/components/profile/RoutineGoalsSection.tsx | G3 | 44 | [x] | border-black e shadow-hard-fill nas opções selecionadas, accent-primary-ink, text-primary-ink |
+| frontend/src/components/profile/SecuritySection.tsx | G3 | 16 | [x] | inputNormal atualizado para border-ring, text-primary-ink nos asteriscos obrigatórios |
+| frontend/src/components/ProtectedRoute.tsx | G3 | 0 | [x] | sem ocorrências (scan) |
+| frontend/src/components/PublicRoute.tsx | G3 | 0 | [x] | sem ocorrências (scan) |
 | frontend/src/App.tsx | G4 | 0 | [ ] | sem ocorrências (scan) |
 | frontend/src/main.tsx | G4 | 0 | [ ] | sem ocorrências (scan) |
 | frontend/src/pages/private/AccountPrivacyPage.tsx | G4 | 20 | [ ] |  |
@@ -146,3 +146,21 @@ Para assegurar estritamente a **Invariante I1** (o modo escuro NÃO muda visualm
 | frontend/src/tests/setup/test-utils.tsx | G6 | 0 | [ ] | sem ocorrências (scan) |
 | frontend/src/types/__tests__/meal-modal.test.ts | G6 | 0 | [ ] | sem ocorrências (scan) |
 | frontend/src/utils/__tests__/date.test.ts | G6 | 17 | [ ] |  |
+
+---
+
+## Decisões do Agente
+1. **Logo SYNC como marca-texto:** Em `AppHeader.tsx`, o texto "SYNC" recebeu a estilização `bg-primary text-primary-foreground px-1 ml-0.5 font-black`, seguindo a especificação de marca-texto neon de `docs/CORES.md` §1.
+2. **Ícone de chama no cabeçalho:** O quadrado neon com a chama no cabeçalho recebeu `border-2 border-black` para contraste brutalista, alinhado ao padrão de botões e fills sólidos.
+3. **Borda inferior da navegação ativa:** A aba ativa no cabeçalho desktop agora utiliza `border-foreground` (em vez do proibido `border-primary`) mantendo alto contraste em ambos os modos.
+4. **Alerta offline e estrelas de favoritos:** Centralizado o uso dos tokens semânticos `--warning` e `--warning-foreground` em substituição aos literais `bg-amber-500`, `text-amber-500` e `fill-amber-500`.
+
+---
+
+## Lacunas (Cores sem equivalente semântico)
+- `--warning` (`38 92% 50%` - #F59E0B): Criado para representar avisos neutros (como banner de modo offline em `RootLayout.tsx`) e elementos dourados/âmbar (como estrelas de alimentos favoritos em `FoodQuantityForm.tsx` e `NewMealModal.tsx`). `--warning-foreground` (`0 0% 4%`) atinge contraste WCAG > 10:1 sobre o tom âmbar nos dois modos.
+
+---
+
+## Exceções (color-guard-allow)
+- Nenhuma exceção necessária até o momento; todos os arquivos migrados atendem 100% às regras semânticas sem marcadores de bypass.
