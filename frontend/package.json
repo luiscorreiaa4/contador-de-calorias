@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "check:colors": "node scripts/check-colors.mjs",
     "test": "node ../scripts/run-tests.mjs frontend",
     "test:coverage": "node ../scripts/run-tests.mjs frontend --coverage"
   },

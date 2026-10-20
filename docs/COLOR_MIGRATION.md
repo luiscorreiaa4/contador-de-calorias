@@ -8,7 +8,7 @@ Documento de controle e inventário mecânico da migração de cores para a iden
 | :--- | :--- | :--- |
 | Total de arquivos inventariados | 94 | 94 |
 | Ocorrências do scan amplo | 2088 | PENDENTE |
-| Violações check:colors | PENDENTE (Fase 2) | 0 |
+| Violações check:colors | 208 | 0 |
 | Exceções (color-guard-allow) | 0 | PENDENTE |
 
 ## 2. Decisões do Agente e Comparativo do Bloco .dark (Invariante I1)
