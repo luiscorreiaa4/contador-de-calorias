@@ -19,7 +19,8 @@ describe('Atomic Transactions & Rollback on Failure (PC-17 / ARCH-002 / TST-012)
     const auth = await UserService.register({
       name: 'Tester Rollback Onboard',
       email,
-      password: 'senhaForte123'
+      password: 'senhaForte123', // gitleaks:allow
+      acceptTerms: true
     });
     const userId = auth.user.id;
 
@@ -61,7 +62,8 @@ describe('Atomic Transactions & Rollback on Failure (PC-17 / ARCH-002 / TST-012)
     const auth = await UserService.register({
       name: 'Tester Goals Rollback',
       email,
-      password: 'senhaForte123'
+      password: 'senhaForte123', // gitleaks:allow
+      acceptTerms: true
     });
     const userId = auth.user.id;
 
@@ -95,7 +97,8 @@ describe('Atomic Transactions & Rollback on Failure (PC-17 / ARCH-002 / TST-012)
     const auth = await UserService.register({
       name: 'Tester Profile Original',
       email,
-      password: 'senhaForte123'
+      password: 'senhaForte123', // gitleaks:allow
+      acceptTerms: true
     });
     const userId = auth.user.id;
 

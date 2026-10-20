@@ -1,0 +1,6 @@
+# Gitleaks ignore list for false-positive test credentials in commit history
+44b63e19e3858a32ecea13c9e5492b96435b0c83:backend/tests/integration/transactions_rollback.test.ts:generic-api-key:21
+44b63e19e3858a32ecea13c9e5492b96435b0c83:backend/tests/integration/transactions_rollback.test.ts:generic-api-key:63
+44b63e19e3858a32ecea13c9e5492b96435b0c83:backend/tests/integration/transactions_rollback.test.ts:generic-api-key:97
+741e8b32f4585bd6af77c963c09c8700f6e2b098:backend/tests/unit/password_security.test.ts:generic-api-key:47
+741e8b32f4585bd6af77c963c09c8700f6e2b098:backend/tests/unit/password_security.test.ts:generic-api-key:61
