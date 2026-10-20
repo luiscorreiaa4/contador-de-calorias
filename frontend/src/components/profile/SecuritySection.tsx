@@ -12,7 +12,7 @@ interface SecuritySectionProps {
 const inputBase =
   'w-full min-w-0 h-12 pl-10 pr-12 py-2.5 bg-background border-2 rounded-none text-sm font-medium text-foreground outline-none transition-colors';
 const inputNormal =
-  'border-border hover:border-primary/50 focus:border-primary focus:ring-0';
+  'border-border hover:border-foreground focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
 const inputError =
   'border-destructive bg-destructive/10 text-destructive focus:border-destructive';
 
@@ -40,7 +40,7 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
             className="block sm:min-h-10 sm:flex sm:flex-wrap sm:items-end sm:content-end sm:gap-x-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2"
           >
             SENHA ATUAL{' '}
-            <span className="text-primary">*</span>
+            <span className="text-primary-ink">*</span>
           </label>
           <div className="relative w-full">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
@@ -77,7 +77,7 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
             htmlFor="edit-new-password"
             className="block sm:min-h-10 sm:flex sm:flex-wrap sm:items-end sm:content-end sm:gap-x-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2"
           >
-            NOVA SENHA <span className="text-primary">*</span>
+            NOVA SENHA <span className="text-primary-ink">*</span>
           </label>
           <div className="relative w-full">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">

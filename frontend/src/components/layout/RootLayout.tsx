@@ -47,7 +47,7 @@ export const RootLayout: React.FC = () => {
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300 flex flex-col justify-between relative overflow-x-hidden">
       {isOffline && (
-        <div role="status" className="w-full bg-amber-500 text-black py-1.5 px-4 text-center font-black text-xs uppercase tracking-wider border-b-2 border-border flex items-center justify-center gap-2">
+        <div role="status" className="w-full bg-warning text-warning-foreground py-1.5 px-4 text-center font-black text-xs uppercase tracking-wider border-b-2 border-border flex items-center justify-center gap-2">
           <span>MODO OFFLINE ATIVADO — DADOS CARREGADOS DO CACHE LOCAL</span>
         </div>
       )}
@@ -59,7 +59,7 @@ export const RootLayout: React.FC = () => {
         <Suspense
           fallback={
             <div className="flex items-center justify-center w-full h-64">
-              <div className="animate-spin rounded-none h-8 w-8 border-2 border-border border-b-primary"></div>
+              <div className="animate-spin rounded-none h-8 w-8 border-2 border-border border-b-foreground"></div>
             </div>
           }
         >

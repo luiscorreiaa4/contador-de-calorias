@@ -212,6 +212,9 @@ Para elementos que já têm o fundo totalmente verde neon (como abas selecionada
      --destructive: 0 74% 42%;        /* #B91C1C — claro */
      --destructive-foreground: 0 0% 100%;
 
+     --warning: 38 92% 50%;           /* #F59E0B — avisos e favoritos */
+     --warning-foreground: 0 0% 4%;
+
      /* Sombra brutalista */
      --shadow: 0 0% 4%;
      --shadow-alpha: 1;
@@ -235,6 +238,8 @@ Para elementos que já têm o fundo totalmente verde neon (como abas selecionada
      --muted-foreground: 0 0% 80%;    /* #CCCCCC */
      --destructive: 0 84% 60%;        /* #EF4343 — escuro */
      --destructive-foreground: 0 0% 100%;
+     --warning: 38 92% 50%;           /* #F59E0B */
+     --warning-foreground: 0 0% 4%;
      --border: 0 0% 15%;              /* #262626 */
      --input: 0 0% 15%;
      --ring: 72 100% 50%;             /* #CCFF00 */
@@ -264,10 +269,15 @@ Para elementos que já têm o fundo totalmente verde neon (como abas selecionada
        foreground: 'hsl(var(--primary-foreground) / <alpha-value>)',
        ink: 'hsl(var(--primary-ink) / <alpha-value>)', // text-primary-ink
      },
+     warning: {
+       DEFAULT: 'hsl(var(--warning) / <alpha-value>)',
+       foreground: 'hsl(var(--warning-foreground) / <alpha-value>)',
+     },
    },
    boxShadow: {
      hard: '4px 4px 0px 0px hsl(var(--shadow) / var(--shadow-alpha))',
      'hard-hover': '6px 6px 0px 0px hsl(var(--shadow) / var(--shadow-alpha-hover))',
+     'hard-fill': '4px 4px 0px 0px hsl(var(--shadow-fill) / var(--shadow-fill-alpha))',
    },
    ```
 

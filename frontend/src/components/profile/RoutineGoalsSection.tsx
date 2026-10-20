@@ -49,14 +49,14 @@ export const RoutineGoalsSection: React.FC<RoutineGoalsSectionProps> = ({
               <label
                 key={key}
                 htmlFor={`routine-goal-${key}`}
-                className={`p-4 border-2 flex items-center gap-4 transition-all cursor-pointer focus-within:ring-2 focus-within:ring-primary ${
+                className={`p-4 border-2 flex items-center gap-4 transition-all cursor-pointer focus-within:ring-2 focus-within:ring-ring ${
                   goalValue === key
-                    ? 'border-primary bg-primary text-primary-foreground shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff]'
-                    : 'border-border bg-background text-foreground hover:border-primary/50 hover:bg-secondary'
+                    ? 'border-black bg-primary text-primary-foreground shadow-hard-fill'
+                    : 'border-border bg-background text-foreground hover:border-foreground hover:bg-secondary'
                 }`}
               >
-                <input id={`routine-goal-${key}`} type="radio" name="routine-goal" value={key} checked={goalValue === key} onChange={() => onSelectGoal(key)} className="accent-primary" />
-                <div className={goalValue === key ? 'text-primary-foreground' : 'text-primary'}>
+                <input id={`routine-goal-${key}`} type="radio" name="routine-goal" value={key} checked={goalValue === key} onChange={() => onSelectGoal(key)} className="accent-primary-ink" />
+                <div className={goalValue === key ? 'text-primary-foreground' : 'text-primary-ink'}>
                   {icon}
                 </div>
                 <span className="font-black uppercase tracking-widest text-sm">{label}</span>
@@ -75,10 +75,10 @@ export const RoutineGoalsSection: React.FC<RoutineGoalsSectionProps> = ({
               <label
                 key={a.key}
                 htmlFor={`routine-activity-${a.key}`}
-                className={`p-3 border-2 flex flex-col text-left transition-all cursor-pointer focus-within:ring-2 focus-within:ring-primary ${
+                className={`p-3 border-2 flex flex-col text-left transition-all cursor-pointer focus-within:ring-2 focus-within:ring-ring ${
                   activityLevelValue === a.key
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'border-border bg-background hover:border-primary/50 text-foreground'
+                    ? 'border-black bg-primary text-primary-foreground shadow-hard-fill'
+                    : 'border-border bg-background hover:border-foreground text-foreground'
                 }`}
               >
                 <input id={`routine-activity-${a.key}`} type="radio" name="routine-activity" value={a.key} checked={activityLevelValue === a.key} onChange={() => onSelectActivityLevel(a.key)} className="sr-only" />

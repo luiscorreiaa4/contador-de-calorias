@@ -86,7 +86,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           />
         </div>
         {errors.email && (
-          <p id="login-email-error" className="text-xs font-bold text-red-500 dark:text-red-400 uppercase">
+          <p id="login-email-error" className="text-xs font-bold text-destructive uppercase">
             {errors.email}
           </p>
         )}
@@ -122,7 +122,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           </button>
         </div>
         {errors.password && (
-          <p id="login-password-error" className="text-xs font-bold text-red-500 dark:text-red-400 uppercase">
+          <p id="login-password-error" className="text-xs font-bold text-destructive uppercase">
             {errors.password}
           </p>
         )}
@@ -136,7 +136,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
             type="checkbox"
             checked={formData.rememberMe}
             onChange={(e) => setFormData({ ...formData, rememberMe: e.target.checked })}
-            className="w-4 h-4 rounded-none border-2 border-border bg-background accent-primary cursor-pointer"
+            className="w-4 h-4 rounded-none border-2 border-border bg-background accent-primary-ink cursor-pointer"
           />
           <Label htmlFor="remember-me" className="cursor-pointer select-none">
             Lembrar-me
@@ -145,7 +145,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
         <a
           href="#forgot-password"
           onClick={(e) => e.preventDefault()}
-          className="text-xs font-bold uppercase tracking-widest text-primary hover:text-primary/80 transition-colors focus:outline-none focus:underline"
+          className="text-xs font-bold uppercase tracking-widest text-primary-ink hover:text-primary-ink/80 transition-colors focus:outline-none focus:underline"
         >
           Esqueci minha senha
         </a>

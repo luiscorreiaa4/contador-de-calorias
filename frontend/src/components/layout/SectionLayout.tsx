@@ -15,7 +15,7 @@ export function SectionLayout({ title, description, links }: SectionLayoutProps)
       </div>
       <nav aria-label={title} className="flex flex-wrap gap-2 border-b-2 border-border pb-4">
         {links.map(({ to, label }) => (
-          <NavLink key={to} to={to} className={({ isActive }) => `border-2 px-4 py-3 text-xs font-black uppercase tracking-wider focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${isActive ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card hover:bg-secondary'}`}>
+          <NavLink key={to} to={to} className={({ isActive }) => `border-2 px-4 py-3 text-xs font-black uppercase tracking-wider focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${isActive ? 'border-black bg-primary text-primary-foreground' : 'border-border bg-card hover:bg-secondary'}`}>
             {label}
           </NavLink>
         ))}

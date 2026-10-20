@@ -39,6 +39,9 @@
     --destructive: 0 74% 42%;        /* #B91C1C - WCAG AA contraste sobre fundo claro */
     --destructive-foreground: 0 0% 100%;
 
+    --warning: 38 92% 50%;           /* #F59E0B - Âmbar para alertas e favoritos */
+    --warning-foreground: 0 0% 4%;
+
     --border: 0 0% 4%;               /* #0A0A0A - Contorno preto brutalista */
     --input: 0 0% 4%;
     --ring: 0 0% 4%;
@@ -77,6 +80,8 @@
     --accent-foreground: 0 0% 4%;
     --destructive: 0 84% 60%;        /* #EF4343 */
     --destructive-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;           /* #F59E0B */
+    --warning-foreground: 0 0% 4%;
     --border: 0 0% 15%;              /* #262626 */
     --input: 0 0% 15%;
     --ring: 72 100% 50%;             /* #CCFF00 */

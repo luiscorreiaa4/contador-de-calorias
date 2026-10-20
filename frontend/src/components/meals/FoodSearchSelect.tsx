@@ -46,7 +46,7 @@ const FoodMenuList: React.FC<MenuListProps<FoodOption, false>> = (props) => {
     >
       {props.children}
       {pagination?.isFetchingNextPage && (
-        <div role="status" className="flex items-center justify-center gap-2 py-3 text-[10px] font-black uppercase tracking-widest text-primary bg-secondary border-t-2 border-border">
+        <div role="status" className="flex items-center justify-center gap-2 py-3 text-[10px] font-black uppercase tracking-widest text-primary-ink bg-secondary border-t-2 border-border">
           <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" />
           CARREGANDO ALIMENTOS...
         </div>
@@ -61,7 +61,7 @@ const FoodMenuList: React.FC<MenuListProps<FoodOption, false>> = (props) => {
               event.preventDefault();
               pagination.onLoadMore();
             }}
-            className="w-full py-3 text-[10px] font-black uppercase tracking-widest text-center text-primary bg-secondary border-t-2 border-border hover:bg-primary hover:text-primary-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full py-3 text-[10px] font-black uppercase tracking-widest text-center text-primary-ink bg-secondary border-t-2 border-border hover:bg-primary hover:text-primary-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             TENTAR NOVAMENTE
           </button>
@@ -110,7 +110,7 @@ export const FoodSearchSelect: React.FC<FoodSearchSelectProps> = ({
         classNames={{
           control: (state) =>
             `bg-background border-2 border-border rounded-none text-xs font-black shadow-none transition-colors min-h-[48px] uppercase ${
-              state.isFocused ? 'border-primary' : 'hover:border-primary/50'
+              state.isFocused ? 'border-ring' : 'hover:border-foreground'
             }`,
           input: () => 'text-foreground py-0.5 uppercase',
           singleValue: () => 'text-foreground uppercase',

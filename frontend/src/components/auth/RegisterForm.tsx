@@ -119,7 +119,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
           />
         </div>
         {errors.name && (
-          <p id="register-name-error" className="text-xs font-bold text-red-500 dark:text-red-400 uppercase">{errors.name.message}</p>
+          <p id="register-name-error" className="text-xs font-bold text-destructive uppercase">{errors.name.message}</p>
         )}
       </div>
 
@@ -141,7 +141,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
           />
         </div>
         {errors.email && (
-          <p id="register-email-error" className="text-xs font-bold text-red-500 dark:text-red-400 uppercase">{errors.email.message}</p>
+          <p id="register-email-error" className="text-xs font-bold text-destructive uppercase">{errors.email.message}</p>
         )}
       </div>
 
@@ -171,7 +171,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
           </button>
         </div>
         {errors.password && (
-          <p id="register-password-error" className="text-xs font-bold text-red-500 dark:text-red-400 uppercase">{errors.password.message}</p>
+          <p id="register-password-error" className="text-xs font-bold text-destructive uppercase">{errors.password.message}</p>
         )}
       </div>
 
@@ -201,7 +201,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
           </button>
         </div>
         {errors.confirmPassword && (
-          <p id="register-confirm-password-error" className="text-xs font-bold text-red-500 dark:text-red-400 uppercase">{errors.confirmPassword.message}</p>
+          <p id="register-confirm-password-error" className="text-xs font-bold text-destructive uppercase">{errors.confirmPassword.message}</p>
         )}
       </div>
 
@@ -213,7 +213,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
             type="checkbox"
             aria-invalid={!!errors.acceptTerms}
             aria-describedby={errors.acceptTerms ? 'register-terms-error' : undefined}
-            className={`mt-0.5 h-4 w-4 shrink-0 rounded-none border-2 bg-background accent-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${errors.acceptTerms ? 'border-destructive' : 'border-border'}`}
+            className={`mt-0.5 h-4 w-4 shrink-0 rounded-none border-2 bg-background accent-primary-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-ring ${errors.acceptTerms ? 'border-destructive' : 'border-border'}`}
             {...register('acceptTerms')}
           />
           <label htmlFor="register-terms" className="text-[11px] font-medium leading-relaxed text-muted-foreground">
@@ -222,7 +222,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
               to="/termos"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-bold text-primary uppercase underline underline-offset-2 hover:text-primary/80"
+              className="font-bold text-primary-ink uppercase underline underline-offset-2 hover:text-primary-ink/80"
             >
               Termos de Uso
             </Link>{' '}
@@ -231,7 +231,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
               to="/privacidade"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-bold text-primary uppercase underline underline-offset-2 hover:text-primary/80"
+              className="font-bold text-primary-ink uppercase underline underline-offset-2 hover:text-primary-ink/80"
             >
               Política de Privacidade
             </Link>
@@ -239,7 +239,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
           </label>
         </div>
         {errors.acceptTerms && (
-          <p id="register-terms-error" className="text-xs font-bold text-red-500 dark:text-red-400 uppercase">
+          <p id="register-terms-error" className="text-xs font-bold text-destructive uppercase">
             {errors.acceptTerms.message}
           </p>
         )}

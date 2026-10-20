@@ -42,9 +42,9 @@ export const FoodQuantityForm: React.FC<FoodQuantityFormProps> = ({
   return (
     <div className="space-y-4">
       {/* Informações do alimento selecionado */}
-      <div className="flex items-center justify-between p-4 bg-card border-2 border-border shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff]">
+      <div className="flex items-center justify-between p-4 bg-card border-2 border-border shadow-hard">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary text-primary-foreground border-2 border-transparent">
+          <div className="p-2 bg-primary text-primary-foreground border-2 border-black">
             <Utensils className="w-5 h-5" />
           </div>
           <div>
@@ -54,7 +54,7 @@ export const FoodQuantityForm: React.FC<FoodQuantityFormProps> = ({
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">
               BASE: {selectedFood.calories} KCAL / 100{selectedFood.base_unit.toUpperCase()}
               {selectedFood.unit_name && selectedFood.unit_weight && (
-                <span className="ml-1 text-primary font-bold">
+                <span className="ml-1 text-primary-ink font-bold">
                   (1 {selectedFood.unit_name.toUpperCase()} ≈ {Number(selectedFood.unit_weight)}G)
                 </span>
               )}
@@ -70,7 +70,7 @@ export const FoodQuantityForm: React.FC<FoodQuantityFormProps> = ({
               aria-label={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
               className="p-1.5 border-2 border-transparent text-muted-foreground hover:border-border hover:text-foreground transition-colors"
             >
-              <Star className={`w-5 h-5 ${isFavorite ? 'fill-amber-500 text-amber-500' : ''}`} />
+              <Star className={`w-5 h-5 ${isFavorite ? 'fill-warning text-warning' : ''}`} />
             </button>
           )}
           <button
@@ -96,7 +96,7 @@ export const FoodQuantityForm: React.FC<FoodQuantityFormProps> = ({
             }}
             className={`flex-1 py-2 px-3 text-[10px] font-black uppercase tracking-widest transition-all focus:outline-none flex items-center justify-center gap-2 ${
               amountMode === 'un'
-                ? 'bg-primary text-primary-foreground border-2 border-transparent'
+                ? 'bg-primary text-primary-foreground border-2 border-black'
                 : 'bg-background text-foreground border-2 border-transparent hover:border-border'
             }`}
           >
@@ -110,7 +110,7 @@ export const FoodQuantityForm: React.FC<FoodQuantityFormProps> = ({
             }}
             className={`flex-1 py-2 px-3 text-[10px] font-black uppercase tracking-widest transition-all focus:outline-none flex items-center justify-center gap-2 ${
               amountMode === 'weight'
-                ? 'bg-primary text-primary-foreground border-2 border-transparent'
+                ? 'bg-primary text-primary-foreground border-2 border-black'
                 : 'bg-background text-foreground border-2 border-transparent hover:border-border'
             }`}
           >
@@ -130,7 +130,7 @@ export const FoodQuantityForm: React.FC<FoodQuantityFormProps> = ({
               : 'QUANTIDADE EM GRAMAS (G)'}
           </label>
           {amountMode === 'un' && selectedFood.unit_weight && amount && Number(amount) > 0 && (
-            <span className="text-[10px] font-bold text-primary uppercase tracking-widest flex items-center gap-1">
+            <span className="text-[10px] font-bold text-primary-ink uppercase tracking-widest flex items-center gap-1">
               <Info className="w-3 h-3" />
               EQUIVALE A {Number(amount) * Number(selectedFood.unit_weight)}G
             </span>
@@ -149,7 +149,7 @@ export const FoodQuantityForm: React.FC<FoodQuantityFormProps> = ({
               onChange={(e) => onSetAmount(e.target.value ? Number(e.target.value) : '')}
               placeholder={amountMode === 'un' ? 'EX: 2' : selectedFood.base_unit === 'ml' ? 'EX: 200' : 'EX: 150'}
               aria-label="Quantidade do alimento"
-              className="w-full px-4 py-3 bg-background border-2 border-border text-sm font-black text-foreground uppercase placeholder:text-muted-foreground focus:border-primary outline-none transition-colors"
+              className="w-full px-4 py-3 bg-background border-2 border-border text-sm font-black text-foreground uppercase placeholder:text-muted-foreground focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background outline-none transition-colors"
             />
             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted-foreground uppercase pointer-events-none">
               {amountMode === 'un' ? selectedFood.unit_name || 'UN' : selectedFood.base_unit}
@@ -165,11 +165,11 @@ export const FoodQuantityForm: React.FC<FoodQuantityFormProps> = ({
                 aria-label={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
                 className={`min-h-12 px-4 border-2 border-border transition-colors flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-wider ${
                   isFavorite
-                    ? 'bg-amber-500/10 border-amber-500 text-amber-500 hover:bg-amber-500/20'
+                    ? 'bg-warning/10 border-warning text-warning hover:bg-warning/20'
                     : 'bg-background hover:bg-secondary text-muted-foreground hover:text-foreground'
                 }`}
               >
-                <Star className={`w-4 h-4 shrink-0 ${isFavorite ? 'fill-amber-500 text-amber-500' : ''}`} />
+                <Star className={`w-4 h-4 shrink-0 ${isFavorite ? 'fill-warning text-warning' : ''}`} />
                 <span className="hidden sm:inline">{isFavorite ? 'FAVORITO' : 'FAVORITAR'}</span>
               </button>
             )}
@@ -178,7 +178,7 @@ export const FoodQuantityForm: React.FC<FoodQuantityFormProps> = ({
               type="button"
               onClick={onAddItem}
               disabled={!amount || Number(amount) <= 0 || isSubmitting}
-              className="flex-1 sm:flex-none min-h-12 px-6 py-3 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-transparent disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:border-foreground"
+              className="flex-1 sm:flex-none min-h-12 px-6 py-3 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-black shadow-hard-fill disabled:shadow-none disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <Plus className="w-4 h-4 shrink-0" />
               <span>INCLUIR</span>

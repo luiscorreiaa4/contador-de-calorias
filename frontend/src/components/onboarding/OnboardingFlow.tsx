@@ -117,9 +117,9 @@ export const OnboardingFlow: React.FC = () => {
   };
 
   const goals = [
-    { key: 'perder_peso', label: 'EMAGRECER', icon: <Flame className="w-5 h-5 text-primary" /> },
-    { key: 'manter_peso', label: 'MANTER PESO', icon: <Target className="w-5 h-5 text-primary" /> },
-    { key: 'ganhar_massa', label: 'GANHAR MASSA', icon: <TrendingUp className="w-5 h-5 text-primary" /> },
+    { key: 'perder_peso', label: 'EMAGRECER', icon: <Flame className="w-5 h-5 text-primary-ink" /> },
+    { key: 'manter_peso', label: 'MANTER PESO', icon: <Target className="w-5 h-5 text-primary-ink" /> },
+    { key: 'ganhar_massa', label: 'GANHAR MASSA', icon: <TrendingUp className="w-5 h-5 text-primary-ink" /> },
   ];
 
   const activityLevels = [
@@ -130,7 +130,7 @@ export const OnboardingFlow: React.FC = () => {
     { key: 'extremamente_ativo', label: 'EXTREMAMENTE ATIVO', desc: 'TRABALHO FÍSICO PESADO OU TREINO 2X/DIA' },
   ];
 
-  const inputBase = 'w-full pl-10 pr-4 py-3 bg-background border-2 border-border rounded-none text-sm font-black text-foreground placeholder:text-muted-foreground focus:border-primary outline-none transition-colors min-h-[48px]';
+  const inputBase = 'w-full pl-10 pr-4 py-3 bg-background border-2 border-border rounded-none text-sm font-black text-foreground placeholder:text-muted-foreground focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background outline-none transition-colors min-h-[48px]';
 
   return (
     <form 
@@ -165,7 +165,7 @@ export const OnboardingFlow: React.FC = () => {
 
       {step === 1 && (
         <div className="space-y-6">
-          <h3 className="text-sm font-heading font-black text-foreground uppercase tracking-tight border-l-4 border-primary pl-3">INFORMAÇÕES BÁSICAS</h3>
+          <h3 className="text-sm font-heading font-black text-foreground uppercase tracking-tight border-l-4 border-foreground pl-3">INFORMAÇÕES BÁSICAS</h3>
           
           <div>
             <label className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">SEXO BIOLÓGICO</label>
@@ -198,7 +198,7 @@ export const OnboardingFlow: React.FC = () => {
 
       {step === 2 && (
         <div className="space-y-6">
-          <h3 className="text-sm font-heading font-black text-foreground uppercase tracking-tight border-l-4 border-primary pl-3">QUAL É O SEU OBJETIVO PRINCIPAL?</h3>
+          <h3 className="text-sm font-heading font-black text-foreground uppercase tracking-tight border-l-4 border-foreground pl-3">QUAL É O SEU OBJETIVO PRINCIPAL?</h3>
           <div className="grid gap-4">
             {goals.map((g) => (
               <button
@@ -207,16 +207,16 @@ export const OnboardingFlow: React.FC = () => {
                 onClick={() => {
                   setValue('goal', g.key, { shouldValidate: true });
                 }}
-                className={`p-4 border-2 flex items-center gap-4 transition-all focus:outline-none uppercase ${
+                className={`p-4 border-2 flex items-center gap-4 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring uppercase ${
                   formValues.goal === g.key 
-                    ? 'border-primary bg-secondary shadow-hard translate-y-0.5' 
-                    : 'border-border bg-background hover:-translate-y-0.5 hover:shadow-hard-hover hover:border-primary'
+                    ? 'border-foreground bg-secondary shadow-hard translate-y-0.5' 
+                    : 'border-border bg-background hover:-translate-y-0.5 hover:shadow-hard-hover hover:border-foreground'
                 }`}
               >
-                <div className={`p-2 border-2 ${formValues.goal === g.key ? 'bg-background border-primary' : 'bg-secondary border-transparent'}`}>
+                <div className={`p-2 border-2 ${formValues.goal === g.key ? 'bg-background border-foreground' : 'bg-secondary border-transparent'}`}>
                   {g.icon}
                 </div>
-                <span className={`font-black tracking-widest text-xs ${formValues.goal === g.key ? 'text-primary' : 'text-foreground'}`}>
+                <span className={`font-black tracking-widest text-xs ${formValues.goal === g.key ? 'text-primary-ink' : 'text-foreground'}`}>
                   {g.label}
                 </span>
               </button>
@@ -228,7 +228,7 @@ export const OnboardingFlow: React.FC = () => {
 
       {step === 3 && (
         <div className="space-y-6">
-          <h3 className="text-sm font-heading font-black text-foreground uppercase tracking-tight border-l-4 border-primary pl-3">SUAS MEDIDAS CORPORAIS</h3>
+          <h3 className="text-sm font-heading font-black text-foreground uppercase tracking-tight border-l-4 border-foreground pl-3">SUAS MEDIDAS CORPORAIS</h3>
           
           <div>
             <label className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">PESO ATUAL (KG)</label>
@@ -279,7 +279,7 @@ export const OnboardingFlow: React.FC = () => {
 
       {step === 4 && (
         <div className="space-y-6">
-          <h3 className="text-sm font-heading font-black text-foreground uppercase tracking-tight border-l-4 border-primary pl-3">COMO É A SUA ROTINA?</h3>
+          <h3 className="text-sm font-heading font-black text-foreground uppercase tracking-tight border-l-4 border-foreground pl-3">COMO É A SUA ROTINA?</h3>
           <div className="grid gap-4">
             {activityLevels.map((a) => (
               <button
@@ -288,13 +288,13 @@ export const OnboardingFlow: React.FC = () => {
                 onClick={() => {
                   setValue('activityLevel', a.key, { shouldValidate: true });
                 }}
-                className={`p-4 border-2 flex flex-col text-left transition-all focus:outline-none uppercase ${
+                className={`p-4 border-2 flex flex-col text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring uppercase ${
                   formValues.activityLevel === a.key 
-                    ? 'border-primary bg-secondary shadow-hard translate-y-0.5' 
-                    : 'border-border bg-background hover:-translate-y-0.5 hover:shadow-hard-hover hover:border-primary'
+                    ? 'border-foreground bg-secondary shadow-hard translate-y-0.5' 
+                    : 'border-border bg-background hover:-translate-y-0.5 hover:shadow-hard-hover hover:border-foreground'
                 }`}
               >
-                <span className={`font-black tracking-widest text-xs mb-1 ${formValues.activityLevel === a.key ? 'text-primary' : 'text-foreground'}`}>
+                <span className={`font-black tracking-widest text-xs mb-1 ${formValues.activityLevel === a.key ? 'text-primary-ink' : 'text-foreground'}`}>
                   {a.label}
                 </span>
                 <span className="text-[10px] font-bold text-muted-foreground">{a.desc}</span>
@@ -307,7 +307,7 @@ export const OnboardingFlow: React.FC = () => {
 
       {step === 5 && (
         <div className="text-center space-y-6 py-6 border-2 border-border bg-secondary">
-          <div className="w-16 h-16 bg-primary text-primary-foreground border-2 border-transparent flex items-center justify-center mx-auto shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff]">
+          <div className="w-16 h-16 bg-primary text-primary-foreground border-2 border-black flex items-center justify-center mx-auto shadow-hard-fill">
             <CheckCircle2 className="w-8 h-8" />
           </div>
           <div className="px-6">
@@ -325,7 +325,7 @@ export const OnboardingFlow: React.FC = () => {
             type="button"
             onClick={prevStep}
             disabled={onboardingMutation.isPending}
-            className="flex-1 py-3 px-4 border-2 border-border bg-background text-foreground font-black uppercase tracking-widest text-xs hover:bg-secondary focus:outline-none transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            className="flex-1 py-3 px-4 border-2 border-border bg-background text-foreground font-black uppercase tracking-widest text-xs hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
           >
             <ArrowLeft className="w-4 h-4" />
             VOLTAR
@@ -335,7 +335,7 @@ export const OnboardingFlow: React.FC = () => {
         {step < 5 ? (
           <button
             type="submit"
-            className="flex-[2] py-3 px-4 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs border-2 border-transparent hover:bg-primary/90 focus:outline-none shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff] hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+            className="flex-[2] py-3 px-4 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs border-2 border-black hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring shadow-hard-fill hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
           >
             CONTINUAR
             <ArrowRight className="w-4 h-4" />
@@ -344,7 +344,7 @@ export const OnboardingFlow: React.FC = () => {
           <button
             type="submit"
             disabled={onboardingMutation.isPending}
-            className="w-full py-3 px-4 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs border-2 border-transparent hover:bg-primary/90 focus:outline-none shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff] disabled:shadow-none hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 px-4 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs border-2 border-black hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring shadow-hard-fill disabled:shadow-none hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {onboardingMutation.isPending ? (
               <span>CARREGANDO...</span>

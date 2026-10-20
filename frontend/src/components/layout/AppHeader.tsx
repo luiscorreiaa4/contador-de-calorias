@@ -110,15 +110,15 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
         {/* Logo */}
-        <button type="button" aria-label="CalorieSync — Dashboard" className="flex items-center gap-3 shrink-0 cursor-pointer group focus-visible:ring-2 focus-visible:ring-primary" onClick={handleDashboard}>
-          <div className="w-10 h-10 bg-primary text-primary-foreground flex items-center justify-center shadow-hard transition-transform group-hover:-translate-y-0.5 group-hover:shadow-hard-hover">
+        <button type="button" aria-label="CalorieSync — Dashboard" className="flex items-center gap-3 shrink-0 cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background" onClick={handleDashboard}>
+          <div className="w-10 h-10 bg-primary text-primary-foreground border-2 border-black flex items-center justify-center shadow-hard transition-transform group-hover:-translate-y-0.5 group-hover:shadow-hard-hover">
             <Flame className="w-6 h-6 fill-current" aria-hidden="true" />
           </div>
 
           <div className="flex flex-col">
             <div className="flex items-center">
               <span className="font-heading font-black text-lg sm:text-xl tracking-tighter text-foreground uppercase">
-                CALORIE<span className="text-primary">SYNC</span>
+                CALORIE<span className="bg-primary text-primary-foreground px-1 ml-0.5">SYNC</span>
               </span>
             </div>
             <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase -mt-1 hidden sm:block">
@@ -134,12 +134,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               type="button"
               onClick={onToggleTheme}
               aria-label={darkMode ? 'Modo claro' : 'Modo escuro'}
-              className="flex items-center justify-center w-10 h-10 border-2 border-border bg-card hover:bg-secondary transition-colors text-foreground focus:outline-none focus:border-primary group"
+              className="flex items-center justify-center w-10 h-10 border-2 border-border bg-card hover:bg-secondary transition-colors text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background group"
             >
               {darkMode ? (
-                <Sun className="w-5 h-5 group-hover:text-primary transition-colors" />
+                <Sun className="w-5 h-5 group-hover:text-primary-ink transition-colors" />
               ) : (
-                <Moon className="w-5 h-5 group-hover:text-primary transition-colors" />
+                <Moon className="w-5 h-5 group-hover:text-primary-ink transition-colors" />
               )}
             </button>
           )}
@@ -154,7 +154,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 ref={menuButtonRef}
                 aria-controls="account-navigation"
                 aria-expanded={menuOpen}
-                className="flex items-center gap-3 pl-2 pr-4 py-2 border-2 border-border bg-card hover:border-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary group"
+                className="flex items-center gap-3 pl-2 pr-4 py-2 border-2 border-border bg-card hover:border-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background group"
               >
                 {/* Avatar */}
                 <div className="w-8 h-8 bg-foreground text-background flex items-center justify-center text-xs font-bold shrink-0">
@@ -169,8 +169,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 </div>
 
                 <ChevronDown
-                  className={`w-4 h-4 text-muted-foreground group-hover:text-primary transition-transform duration-200 ${
-                    menuOpen ? 'rotate-180 text-primary' : ''
+                  className={`w-4 h-4 text-muted-foreground group-hover:text-primary-ink transition-transform duration-200 ${
+                    menuOpen ? 'rotate-180 text-primary-ink' : ''
                   }`}
                 />
               </button>
@@ -194,12 +194,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                         onToggleTheme();
                       }}
                       aria-label={darkMode ? 'Modo claro' : 'Modo escuro'}
-                      className="shrink-0 flex items-center justify-center w-8 h-8 border-2 border-border bg-card hover:bg-secondary transition-colors text-foreground focus:outline-none focus:border-primary group"
+                      className="shrink-0 flex items-center justify-center w-8 h-8 border-2 border-border bg-card hover:bg-secondary transition-colors text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background group"
                     >
                       {darkMode ? (
-                        <Sun className="w-4 h-4 group-hover:text-primary transition-colors" />
+                        <Sun className="w-4 h-4 group-hover:text-primary-ink transition-colors" />
                       ) : (
-                        <Moon className="w-4 h-4 group-hover:text-primary transition-colors" />
+                        <Moon className="w-4 h-4 group-hover:text-primary-ink transition-colors" />
                       )}
                     </button>
                   </div>
@@ -212,7 +212,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                           if (to === '/' && onNavigateToDashboard) { event.preventDefault(); handleDashboard(); }
                           if (to === '/evolucao' && onNavigateToStats) { event.preventDefault(); handleStats(); }
                           if (to === '/perfil' && onNavigateToEditProfile) { event.preventDefault(); handleEditProfile(); }
-                        }} className={({ isActive }) => `flex items-center px-3 py-3 text-xs font-bold uppercase tracking-wider focus-visible:ring-2 focus-visible:ring-primary ${isActive ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'}`}>
+                        }} className={({ isActive }) => `flex items-center px-3 py-3 text-xs font-bold uppercase tracking-wider focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${isActive ? 'bg-primary text-primary-foreground border-2 border-black' : 'hover:bg-secondary'}`}>
                           <Icon className="w-4 h-4 mr-3" aria-hidden="true" />{label}
                         </NavLink>
                       ))}
@@ -222,14 +222,14 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                         { to: '/configuracoes/notificacoes', label: 'Notificações', icon: Bell },
                         { to: '/configuracoes/seguranca', label: 'Segurança', icon: Lock },
                         { to: '/configuracoes/privacidade', label: 'Privacidade e dados', icon: Shield },
-                      ].map(({ to, label, icon: Icon }) => <NavLink key={to} to={to} onClick={() => setMenuOpen(false)} className="flex items-center px-3 py-3 text-xs font-bold uppercase tracking-wider hover:bg-secondary focus-visible:ring-2 focus-visible:ring-primary"><Icon className="w-4 h-4 mr-3" aria-hidden="true" />{label}</NavLink>)}
+                      ].map(({ to, label, icon: Icon }) => <NavLink key={to} to={to} onClick={() => setMenuOpen(false)} className="flex items-center px-3 py-3 text-xs font-bold uppercase tracking-wider hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><Icon className="w-4 h-4 mr-3" aria-hidden="true" />{label}</NavLink>)}
                     </div>
                   </nav>
 
                   <div className="p-2 border-t-2 border-border bg-background">
                     <button
                       onClick={logout}
-                      className="flex items-center w-full px-3 py-3 text-xs font-bold uppercase tracking-widest text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors group"
+                      className="flex items-center w-full px-3 py-3 text-xs font-bold uppercase tracking-widest text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <LogOut className="w-4 h-4 mr-3 transition-transform group-hover:-translate-x-1" />
                       Sair da conta
@@ -255,9 +255,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 end={to === '/'}
                 onClick={() => setMenuOpen(false)}
                 className={({ isActive }) =>
-                  `group relative flex items-center gap-2 px-5 py-3.5 text-xs font-black uppercase tracking-widest border-b-4 -mb-px transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${
+                  `group relative flex items-center gap-2 px-5 py-3.5 text-xs font-black uppercase tracking-widest border-b-4 -mb-px transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${
                     isActive
-                      ? 'border-primary text-foreground bg-secondary'
+                      ? 'border-foreground text-foreground bg-secondary'
                       : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary hover:border-border'
                   }`
                 }
@@ -265,7 +265,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 {({ isActive }) => (
                   <>
                     <Icon
-                      className={`w-4 h-4 transition-colors ${isActive ? 'text-primary' : 'group-hover:text-primary'}`}
+                      className={`w-4 h-4 transition-colors ${isActive ? 'text-primary-ink' : 'group-hover:text-primary-ink'}`}
                       aria-hidden="true"
                     />
                     {label}

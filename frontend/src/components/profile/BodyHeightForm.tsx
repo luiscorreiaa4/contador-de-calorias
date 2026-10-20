@@ -17,10 +17,10 @@ function HeightForm({ height }: { height: number | null }) {
     <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
       <div className="space-y-2">
         <label htmlFor="body-height" className="block text-xs font-black uppercase">ALTURA (CM)</label>
-        <input id="body-height" type="number" step="any" min="1" {...register('height', { valueAsNumber: true })} aria-invalid={!!errors.height} className="border-2 border-border bg-background p-3 w-full focus:border-primary outline-none" />
+        <input id="body-height" type="number" step="any" min="1" {...register('height', { valueAsNumber: true })} aria-invalid={!!errors.height} className="border-2 border-border bg-background p-3 w-full focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring outline-none" />
         {errors.height && <p role="alert" className="text-destructive text-xs">{errors.height.message}</p>}
       </div>
-      <button type="submit" disabled={!isDirty || mutation.isPending} className="border-2 border-border p-3 text-xs font-black uppercase hover:bg-secondary disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-primary">{mutation.isPending ? 'SALVANDO...' : 'SALVAR ALTURA'}</button>
+      <button type="submit" disabled={!isDirty || mutation.isPending} className="border-2 border-border p-3 text-xs font-black uppercase hover:bg-secondary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">{mutation.isPending ? 'SALVANDO...' : 'SALVAR ALTURA'}</button>
     </div>
     <ProfileFormFeedback error={mutation.error} success={mutation.isSuccess} />
   </form>;

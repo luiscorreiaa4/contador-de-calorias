@@ -79,8 +79,14 @@ const prohibitedRules = [
   },
   {
     id: 'primary-accent-decor',
-    description: 'border-/ring-/outline-/decoration-/caret-/accent-/divide- com primary ou accent',
-    match: (line) => /(?:[a-z0-9_:[\]-]+:)*(?:border|ring|outline|decoration|caret|accent|divide)-(?:primary|accent)(?:\/[0-9]+)?\b/.test(line)
+    description: 'border-/ring-/outline-/decoration-/caret-/accent-/divide- com primary ou accent não permitidos',
+    match: (line) => {
+      // border, ring, outline, divide nunca aceitam primary ou accent
+      if (/(?:[a-z0-9_:[\]-]+:)*(?:border|ring|outline|divide)-(?:primary|accent)(?:-[a-z0-9]+)?(?:\/[0-9]+)?\b/.test(line)) return true;
+      // decoration, caret, accent só aceitam -primary-ink ou -accent-foreground
+      if (/(?:[a-z0-9_:[\]-]+:)*(?:decoration|caret|accent)-(?:primary|accent)(?!(?:-ink|-foreground))\b/.test(line)) return true;
+      return false;
+    }
   },
   {
     id: 'tailwind-palette-num',

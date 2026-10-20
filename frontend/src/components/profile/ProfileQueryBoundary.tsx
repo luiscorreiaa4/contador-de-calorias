@@ -8,7 +8,7 @@ export function ProfileQueryBoundary({ children }: { children: (user: UserProfil
   if (query.isError) return (
     <div role="alert" className="border-2 border-destructive p-4 text-destructive space-y-3">
       <p>{query.error.message}</p>
-      <button type="button" className="border-2 border-border p-3 font-bold uppercase focus-visible:ring-2 focus-visible:ring-primary" onClick={() => void query.refetch()}>TENTAR NOVAMENTE</button>
+      <button type="button" className="border-2 border-border p-3 font-bold uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background" onClick={() => void query.refetch()}>TENTAR NOVAMENTE</button>
     </div>
   );
   if (!query.data) return <p className="font-bold uppercase">PERFIL NÃO ENCONTRADO.</p>;

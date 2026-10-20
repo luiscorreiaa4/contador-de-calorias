@@ -47,7 +47,7 @@ export const AuthCard: React.FC<AuthCardProps> = ({ initialMode }) => {
   return (
     <div className="w-full max-w-sm mx-auto animate-in">
       <div className="mb-10 text-center">
-        <div className="inline-flex items-center justify-center w-12 h-12 bg-primary text-primary-foreground mb-6">
+        <div className="inline-flex items-center justify-center w-12 h-12 bg-primary text-primary-foreground border-2 border-black mb-6 shadow-hard">
           <Flame className="w-6 h-6 fill-current" aria-hidden="true" />
         </div>
         <h1 className="text-3xl font-heading font-black tracking-tighter text-foreground uppercase">
@@ -103,7 +103,7 @@ export const AuthCard: React.FC<AuthCardProps> = ({ initialMode }) => {
         <div className="p-8">
           {/* Success Alert */}
           {isSuccessMessage && (
-            <div className="mb-6 p-4 bg-primary text-primary-foreground text-xs font-bold uppercase tracking-widest text-center animate-in">
+            <div className="mb-6 p-4 bg-primary text-primary-foreground border-2 border-black text-xs font-bold uppercase tracking-widest text-center animate-in shadow-hard">
               {isSuccessMessage}
             </div>
           )}

@@ -515,7 +515,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="p-2 border-2 border-border bg-background text-foreground hover:bg-secondary transition-colors disabled:opacity-50 focus:outline-none focus:border-primary"
+            className="p-2 border-2 border-border bg-background text-foreground hover:bg-secondary transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             aria-label="Fechar janela"
           >
             <X className="w-5 h-5" />
@@ -549,7 +549,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                   value={mealName}
                   onChange={(e) => setMealName(e.target.value.toUpperCase())}
                   placeholder="EX: ALMOÇO..."
-                  className="w-full px-4 py-3 bg-background border-2 border-border text-sm font-black text-foreground uppercase placeholder:text-muted-foreground focus:border-primary outline-none transition-colors"
+                  className="w-full px-4 py-3 bg-background border-2 border-border text-sm font-black text-foreground uppercase placeholder:text-muted-foreground focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background outline-none transition-colors"
                   disabled={isSubmitting}
                 />
               </div>
@@ -570,7 +570,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                     setMealTimeStr(val);
                   }}
                   placeholder="00:00"
-                  className="w-full px-4 py-3 bg-background border-2 border-border text-sm font-black text-foreground uppercase placeholder:text-muted-foreground focus:border-primary outline-none transition-colors text-center"
+                  className="w-full px-4 py-3 bg-background border-2 border-border text-sm font-black text-foreground uppercase placeholder:text-muted-foreground focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background outline-none transition-colors text-center"
                   disabled={isSubmitting}
                 />
               </div>
@@ -589,7 +589,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                       setSelectedFood(null);
                       setAmount('');
                     }}
-                    className="text-[10px] text-primary hover:underline font-bold uppercase tracking-widest"
+                    className="text-[10px] text-primary-ink hover:underline font-bold uppercase tracking-widest"
                   >
                     TROCAR ALIMENTO
                   </button>
@@ -601,9 +601,9 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                   <button
                     type="button"
                     onClick={() => setActiveFoodTab('search')}
-                    className={`flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-wider border-2 transition-all focus:outline-none focus:border-primary active:translate-x-px active:translate-y-px ${
+                    className={`flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-wider border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-x-px active:translate-y-px ${
                       activeFoodTab === 'search'
-                        ? 'bg-primary text-primary-foreground border-primary'
+                        ? 'bg-primary text-primary-foreground border-black'
                         : 'bg-card text-foreground border-border hover:bg-background'
                     }`}
                   >
@@ -612,9 +612,9 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                   <button
                     type="button"
                     onClick={() => setActiveFoodTab('recents')}
-                    className={`flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-wider border-2 transition-all focus:outline-none focus:border-primary active:translate-x-px active:translate-y-px ${
+                    className={`flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-wider border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-x-px active:translate-y-px ${
                       activeFoodTab === 'recents'
-                        ? 'bg-primary text-primary-foreground border-primary'
+                        ? 'bg-primary text-primary-foreground border-black'
                         : 'bg-card text-foreground border-border hover:bg-background'
                     }`}
                   >
@@ -624,21 +624,21 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                   <button
                     type="button"
                     onClick={() => setActiveFoodTab('favorites')}
-                    className={`flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-wider border-2 transition-all focus:outline-none focus:border-primary active:translate-x-px active:translate-y-px ${
+                    className={`flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-wider border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-x-px active:translate-y-px ${
                       activeFoodTab === 'favorites'
-                        ? 'bg-primary text-primary-foreground border-primary'
+                        ? 'bg-primary text-primary-foreground border-black'
                         : 'bg-card text-foreground border-border hover:bg-background'
                     }`}
                   >
-                    <Star className="w-3.5 h-3.5 shrink-0 text-amber-500 fill-amber-500" />
+                    <Star className="w-3.5 h-3.5 shrink-0 text-warning fill-warning" />
                     Favoritos ({favoriteFoods.length})
                   </button>
                   <button
                     type="button"
                     onClick={() => setActiveFoodTab('combos')}
-                    className={`flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-wider border-2 transition-all focus:outline-none focus:border-primary active:translate-x-px active:translate-y-px ${
+                    className={`flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-wider border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-x-px active:translate-y-px ${
                       activeFoodTab === 'combos'
-                        ? 'bg-primary text-primary-foreground border-primary'
+                        ? 'bg-primary text-primary-foreground border-black'
                         : 'bg-card text-foreground border-border hover:bg-background'
                     }`}
                   >
@@ -648,9 +648,9 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                   <button
                     type="button"
                     onClick={() => setActiveFoodTab('custom')}
-                    className={`col-span-2 flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-widest border-2 border-dashed transition-all focus:outline-none focus:border-primary active:translate-x-px active:translate-y-px ${
+                    className={`col-span-2 flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-widest border-2 border-dashed transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-x-px active:translate-y-px ${
                       activeFoodTab === 'custom'
-                        ? 'bg-primary text-primary-foreground border-primary'
+                        ? 'bg-primary text-primary-foreground border-black'
                         : 'bg-secondary text-foreground border-border hover:bg-card'
                     }`}
                   >
@@ -686,13 +686,13 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                         value={customFoodForm.name}
                         onChange={(e) => setCustomFoodForm((prev) => ({ ...prev, name: e.target.value.toUpperCase() }))}
                         placeholder="EX: WHEY PROTEIN CASEIRO..."
-                        className="w-full px-3 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-primary"
+                        className="w-full px-3 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         required
                       />
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      <div>
+                       <div>
                         <label htmlFor="custom-food-calories" className="block text-[9px] font-black uppercase tracking-wider text-muted-foreground mb-1">
                           KCAL / 100{customFoodForm.base_unit} *
                         </label>
@@ -703,7 +703,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                           value={customFoodForm.calories}
                           onChange={(e) => setCustomFoodForm((prev) => ({ ...prev, calories: e.target.value }))}
                           placeholder="0"
-                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-primary text-center"
+                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring text-center"
                           required
                         />
                       </div>
@@ -718,7 +718,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                           value={customFoodForm.proteins}
                           onChange={(e) => setCustomFoodForm((prev) => ({ ...prev, proteins: e.target.value }))}
                           placeholder="0"
-                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-primary text-center"
+                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring text-center"
                           required
                         />
                       </div>
@@ -733,7 +733,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                           value={customFoodForm.carbs}
                           onChange={(e) => setCustomFoodForm((prev) => ({ ...prev, carbs: e.target.value }))}
                           placeholder="0"
-                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-primary text-center"
+                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring text-center"
                           required
                         />
                       </div>
@@ -748,7 +748,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                           value={customFoodForm.fats}
                           onChange={(e) => setCustomFoodForm((prev) => ({ ...prev, fats: e.target.value }))}
                           placeholder="0"
-                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-primary text-center"
+                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring text-center"
                           required
                         />
                       </div>
@@ -763,7 +763,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                           id="custom-food-base-unit"
                           value={customFoodForm.base_unit}
                           onChange={(e) => setCustomFoodForm((prev) => ({ ...prev, base_unit: e.target.value as 'g' | 'ml' }))}
-                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-primary"
+                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         >
                           <option value="g">GRAMAS (G)</option>
                           <option value="ml">MILILITROS (ML)</option>
@@ -779,7 +779,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                           value={customFoodForm.unit_name}
                           onChange={(e) => setCustomFoodForm((prev) => ({ ...prev, unit_name: e.target.value }))}
                           placeholder="EX: SCOOP, FATIA"
-                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-primary"
+                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         />
                       </div>
                       <div>
@@ -793,7 +793,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                           value={customFoodForm.unit_weight}
                           onChange={(e) => setCustomFoodForm((prev) => ({ ...prev, unit_weight: e.target.value }))}
                           placeholder="EX: 30"
-                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-primary text-center"
+                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring text-center"
                         />
                       </div>
                     </div>
@@ -802,7 +802,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                       <button
                         type="button"
                         onClick={() => setActiveFoodTab('search')}
-                        className="px-3 py-1.5 border-2 border-border text-xs font-black uppercase hover:bg-secondary"
+                        className="px-3 py-1.5 border-2 border-border text-xs font-black uppercase hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
                         CANCELAR
                       </button>
@@ -828,7 +828,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                             unit_weight: uWeight && !isNaN(uWeight) ? uWeight : undefined,
                           });
                         }}
-                        className="px-4 py-1.5 bg-primary text-primary-foreground text-xs font-black uppercase tracking-wider hover:bg-primary/90 disabled:opacity-50"
+                        className="px-4 py-1.5 bg-primary text-primary-foreground text-xs font-black uppercase tracking-wider hover:bg-primary/90 border-2 border-black disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
                         {createCustomFoodMutation.isPending ? 'SALVANDO...' : 'CADASTRAR E SELECIONAR'}
                       </button>
@@ -860,7 +860,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                       recentFoods.map((food) => (
                         <div
                           key={food.id}
-                          className="flex items-center justify-between p-2.5 bg-card border-2 border-border hover:border-primary transition-colors"
+                          className="flex items-center justify-between p-2.5 bg-card border-2 border-border hover:border-foreground transition-colors"
                         >
                           <div className="flex-1 min-w-0 pr-3">
                             <p className="text-xs font-black uppercase text-foreground truncate">{food.name}</p>
@@ -872,15 +872,15 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                             <button
                               type="button"
                               onClick={() => toggleFavoriteMutation.mutate({ foodId: food.id, isFav: favoriteIds.has(food.id) })}
-                              className="p-1.5 border-2 border-border text-foreground hover:text-amber-500 focus:outline-none"
+                              className="p-1.5 border-2 border-border text-foreground hover:text-warning focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                               title={favoriteIds.has(food.id) ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
                             >
-                              <Star className={`w-3.5 h-3.5 ${favoriteIds.has(food.id) ? 'fill-amber-500 text-amber-500' : ''}`} />
+                              <Star className={`w-3.5 h-3.5 ${favoriteIds.has(food.id) ? 'fill-warning text-warning' : ''}`} />
                             </button>
                             <button
                               type="button"
                               onClick={() => handleSelectFood(food)}
-                              className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-primary text-primary-foreground hover:bg-primary/90 focus:outline-none"
+                              className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-primary text-primary-foreground border-2 border-black hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                             >
                               Adicionar
                             </button>
@@ -899,7 +899,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                       favoriteFoods.map((food) => (
                         <div
                           key={food.id}
-                          className="flex items-center justify-between p-2.5 bg-card border-2 border-border hover:border-primary transition-colors"
+                          className="flex items-center justify-between p-2.5 bg-card border-2 border-border hover:border-foreground transition-colors"
                         >
                           <div className="flex-1 min-w-0 pr-3">
                             <p className="text-xs font-black uppercase text-foreground truncate">{food.name}</p>
@@ -911,15 +911,15 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                             <button
                               type="button"
                               onClick={() => toggleFavoriteMutation.mutate({ foodId: food.id, isFav: true })}
-                              className="p-1.5 border-2 border-border text-amber-500 hover:text-destructive focus:outline-none"
+                              className="p-1.5 border-2 border-border text-warning hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                               title="Remover dos favoritos"
                             >
-                              <Star className="w-3.5 h-3.5 fill-amber-500" />
+                              <Star className="w-3.5 h-3.5 fill-warning" />
                             </button>
                             <button
                               type="button"
                               onClick={() => handleSelectFood(food)}
-                              className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-primary text-primary-foreground hover:bg-primary/90 focus:outline-none"
+                              className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-primary text-primary-foreground border-2 border-black hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                             >
                               Adicionar
                             </button>
@@ -938,7 +938,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                       savedMeals.map((combo) => (
                         <div
                           key={combo.id}
-                          className="flex items-center justify-between p-2.5 bg-card border-2 border-border hover:border-primary transition-colors"
+                          className="flex items-center justify-between p-2.5 bg-card border-2 border-border hover:border-foreground transition-colors"
                         >
                           <div className="flex-1 min-w-0 pr-3">
                             <p className="text-xs font-black uppercase text-foreground truncate">{combo.name}</p>
@@ -950,7 +950,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                             <button
                               type="button"
                               onClick={() => deleteComboMutation.mutate(combo.id)}
-                              className="p-1.5 border-2 border-border text-destructive hover:bg-destructive hover:text-destructive-foreground focus:outline-none"
+                              className="p-1.5 border-2 border-border text-destructive hover:bg-destructive hover:text-destructive-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                               title="Excluir combo"
                             >
                               <X className="w-3.5 h-3.5" />
@@ -958,7 +958,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                             <button
                               type="button"
                               onClick={() => handleApplyCombo(combo)}
-                              className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-primary text-primary-foreground hover:bg-primary/90 focus:outline-none"
+                              className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-primary text-primary-foreground border-2 border-black hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                             >
                               Usar Combo
                             </button>
@@ -1013,9 +1013,9 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                       setComboName(mealName || 'MEU COMBO');
                       setIsSavingCombo(true);
                     }}
-                    className="w-full py-2.5 px-3 border-2 border-dashed border-border hover:border-primary text-xs font-black uppercase tracking-wider text-muted-foreground hover:text-foreground flex items-center justify-center gap-2 transition-colors text-center"
+                    className="w-full py-2.5 px-3 border-2 border-dashed border-border hover:border-foreground text-xs font-black uppercase tracking-wider text-muted-foreground hover:text-foreground flex items-center justify-center gap-2 transition-colors text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
-                    <Bookmark className="w-4 h-4 shrink-0 text-primary" aria-hidden="true" />
+                    <Bookmark className="w-4 h-4 shrink-0 text-primary-ink" aria-hidden="true" />
                     <span className="leading-tight">Salvar itens atuais como combo reutilizável</span>
                   </button>
                 ) : (
@@ -1029,7 +1029,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                         value={comboName}
                         onChange={(e) => setComboName(e.target.value.toUpperCase())}
                         placeholder="EX: CAFÉ DA MANHÃ PADRÃO..."
-                        className="w-full sm:flex-1 min-w-0 px-3 py-2 bg-background border-2 border-border text-xs font-black uppercase placeholder:text-muted-foreground focus:border-primary outline-none"
+                        className="w-full sm:flex-1 min-w-0 px-3 py-2 bg-background border-2 border-border text-xs font-black uppercase placeholder:text-muted-foreground focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring outline-none"
                       />
                       <div className="flex items-center gap-2 shrink-0">
                         <button
@@ -1046,7 +1046,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                               })),
                             });
                           }}
-                          className="flex-1 sm:flex-none px-4 py-2 bg-primary text-primary-foreground text-xs font-black uppercase tracking-wider hover:bg-primary/90 disabled:opacity-50"
+                          className="flex-1 sm:flex-none px-4 py-2 bg-primary text-primary-foreground text-xs font-black uppercase tracking-wider hover:bg-primary/90 border-2 border-black disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         >
                           {createComboMutation.isPending ? 'Salvando...' : 'Salvar'}
                         </button>
