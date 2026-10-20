@@ -105,24 +105,24 @@ Para assegurar estritamente a **Invariante I1** (o modo escuro NÃO muda visualm
 | frontend/src/pages/public/LegalPage.tsx | G4 | 20 | [x] | text-primary-ink no subtítulo/ícone, focus-visible:ring-ring no botão voltar |
 | frontend/src/pages/public/LoginPage.tsx | G4 | 0 | [x] | sem ocorrências (scan) |
 | frontend/src/router.tsx | G4 | 1 | [x] | sem violações, classes seguem tokens semânticos |
-| frontend/src/context/AuthContext.tsx | G5 | 9 | [ ] |  |
-| frontend/src/hooks/useProfileSettings.ts | G5 | 0 | [ ] | sem ocorrências (scan) |
-| frontend/src/lib/utils.ts | G5 | 0 | [ ] | sem ocorrências (scan) |
-| frontend/src/mocks/handlers.ts | G5 | 17 | [ ] |  |
-| frontend/src/mocks/server.ts | G5 | 0 | [ ] | sem ocorrências (scan) |
-| frontend/src/services/api.ts | G5 | 2 | [ ] |  |
-| frontend/src/services/auth.service.ts | G5 | 28 | [ ] |  |
-| frontend/src/services/food.service.ts | G5 | 7 | [ ] |  |
-| frontend/src/services/goals.service.ts | G5 | 8 | [ ] |  |
-| frontend/src/services/meal.service.ts | G5 | 10 | [ ] |  |
-| frontend/src/services/measurement.service.ts | G5 | 1 | [ ] |  |
-| frontend/src/services/push.service.ts | G5 | 11 | [ ] |  |
-| frontend/src/services/savedMeal.service.ts | G5 | 2 | [ ] |  |
-| frontend/src/types/auth.ts | G5 | 12 | [ ] |  |
-| frontend/src/types/meal-modal.ts | G5 | 3 | [ ] |  |
-| frontend/src/types/profile.ts | G5 | 14 | [ ] |  |
-| frontend/src/utils/date.ts | G5 | 15 | [ ] |  |
-| frontend/src/utils/download.ts | G5 | 2 | [ ] |  |
+| frontend/src/context/AuthContext.tsx | G5 | 9 | [x] | sem violações, sem estilos inline nem cores literais |
+| frontend/src/hooks/useProfileSettings.ts | G5 | 0 | [x] | sem ocorrências (scan) |
+| frontend/src/lib/utils.ts | G5 | 0 | [x] | sem ocorrências (scan) |
+| frontend/src/mocks/handlers.ts | G5 | 17 | [x] | sem violações, dados de mock |
+| frontend/src/mocks/server.ts | G5 | 0 | [x] | sem ocorrências (scan) |
+| frontend/src/services/api.ts | G5 | 2 | [x] | sem violações |
+| frontend/src/services/auth.service.ts | G5 | 28 | [x] | sem violações |
+| frontend/src/services/food.service.ts | G5 | 7 | [x] | sem violações |
+| frontend/src/services/goals.service.ts | G5 | 8 | [x] | sem violações |
+| frontend/src/services/meal.service.ts | G5 | 10 | [x] | sem violações |
+| frontend/src/services/measurement.service.ts | G5 | 1 | [x] | sem violações |
+| frontend/src/services/push.service.ts | G5 | 11 | [x] | sem violações |
+| frontend/src/services/savedMeal.service.ts | G5 | 2 | [x] | sem violações |
+| frontend/src/types/auth.ts | G5 | 12 | [x] | sem violações, tipos TypeScript |
+| frontend/src/types/meal-modal.ts | G5 | 3 | [x] | sem violações, tipos TypeScript |
+| frontend/src/types/profile.ts | G5 | 14 | [x] | sem violações, tipos TypeScript |
+| frontend/src/utils/date.ts | G5 | 15 | [x] | sem violações, utilitários de data |
+| frontend/src/utils/download.ts | G5 | 2 | [x] | sem violações, utilitários de download |
 | frontend/src/components/auth/LoginForm.test.tsx | G6 | 0 | [ ] | sem ocorrências (scan) |
 | frontend/src/components/auth/RegisterForm.test.tsx | G6 | 0 | [ ] | sem ocorrências (scan) |
 | frontend/src/components/common/DatePickerInput.test.tsx | G6 | 0 | [ ] | sem ocorrências (scan) |
