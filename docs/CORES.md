@@ -3,6 +3,8 @@
 Este documento documenta de forma completa todas as cores, variáveis, códigos hexadecimais e regras de sombra do projeto **CalorieSync** (extraídos do Dashboard, `tailwind.config.js`, `index.css` e da identidade brutalista da aplicação).
 
 > **Revisão v2 — "Neo-Brutalismo de Tinta":** o modo claro foi redesenhado porque o verde neon `#CCFF00` tinha contraste de apenas **1,17 : 1** sobre o branco (praticamente invisível). O modo escuro permanece como estava.
+>
+> **Revisão v3 — "Ajuste de Acessibilidade Destructive":** no modo claro, `--destructive` foi ajustado para `#B91C1C` (`hsl(0, 74%, 42%)`) porque `#EF4343` dava apenas ~3,8:1 sobre branco (reprovando WCAG AA para texto normal). No modo escuro permanece `#EF4343` (`hsl(0, 84%, 60%)`).
 
 ---
 
@@ -37,6 +39,8 @@ Este documento documenta de forma completa todas as cores, variáveis, códigos 
 | `#4D6600` sobre `#F5F5F0` (fundo claro) | 6,0 : 1 | ✅ AA |
 | `#0A0A0A` sobre `#CCFF00` (texto em fill) | 16,9 : 1 | ✅ AAA |
 | `#525252` sobre `#F5F5F0` (muted claro) | ≈ 7 : 1 | ✅ AAA |
+| `#B91C1C` sobre `#FFFFFF` (destrutivo claro) | 6,2 : 1 | ✅ AA |
+| `#EF4343` sobre `#1A1A1A` (destrutivo escuro) | 5,2 : 1 | ✅ AA |
 
 ---
 
@@ -64,7 +68,8 @@ Este documento documenta de forma completa todas as cores, variáveis, códigos 
 | **Anel de Foco (Modo Escuro)** | `--ring` | `72 100% 50%` | **`#CCFF00`** | `rgb(204, 255, 0)` |
 | **Superfície de Apoio / Tag (Claro)** | `--secondary` | `60 10% 88%` | **`#E3E3DC`** | `rgb(227, 227, 220)` |
 | **Superfície de Apoio / Tag (Escuro)**| `--secondary` | `0 0% 15%` | **`#262626`** | `rgb(38, 38, 38)` |
-| **Vermelho Destrutivo (Erros/Delete)**| `--destructive` | `0 84% 60%` | **`#EF4343`** | `rgb(239, 67, 67)` |
+| **Vermelho Destrutivo (Modo Claro)** | `--destructive` | `0 74% 42%` | **`#B91C1C`** | `rgb(185, 28, 28)` |
+| **Vermelho Destrutivo (Modo Escuro)** | `--destructive` | `0 84% 60%` | **`#EF4343`** | `rgb(239, 67, 67)` |
 | **Texto sobre Destrutivo** | `--destructive-foreground`| `0 0% 100%` | **`#FFFFFF`** | `rgb(255, 255, 255)` |
 | **Texto sobre Primário** | `--primary-foreground` | `0 0% 4%` | **`#0A0A0A`** | `rgb(10, 10, 10)` |
 
@@ -204,10 +209,18 @@ Para elementos que já têm o fundo totalmente verde neon (como abas selecionada
      --input: 0 0% 4%;
      --ring: 0 0% 4%;
 
+     --destructive: 0 74% 42%;        /* #B91C1C — claro */
+     --destructive-foreground: 0 0% 100%;
+
      /* Sombra brutalista */
      --shadow: 0 0% 4%;
      --shadow-alpha: 1;
      --shadow-alpha-hover: 1;
+
+     /* Sombra neutra para fills neon */
+     --shadow-fill: 0 0% 0%;
+     --shadow-fill-alpha: 1;
+     --shadow-fill-alpha-hover: 1;
    }
 
    .dark {
@@ -220,6 +233,8 @@ Para elementos que já têm o fundo totalmente verde neon (como abas selecionada
      --primary-ink: 72 100% 50%;      /* #CCFF00 */
      --secondary: 0 0% 15%;           /* #262626 */
      --muted-foreground: 0 0% 80%;    /* #CCCCCC */
+     --destructive: 0 84% 60%;        /* #EF4343 — escuro */
+     --destructive-foreground: 0 0% 100%;
      --border: 0 0% 15%;              /* #262626 */
      --input: 0 0% 15%;
      --ring: 72 100% 50%;             /* #CCFF00 */
@@ -227,6 +242,10 @@ Para elementos que já têm o fundo totalmente verde neon (como abas selecionada
      --shadow: 72 100% 50%;
      --shadow-alpha: 0.2;
      --shadow-alpha-hover: 0.4;
+
+     --shadow-fill: 0 0% 100%;
+     --shadow-fill-alpha: 0.2;
+     --shadow-fill-alpha-hover: 0.4;
    }
 
    ::selection {

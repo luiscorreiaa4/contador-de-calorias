@@ -761,5 +761,15 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
   - Lint `lint`: 0 erros no backend e frontend.
   - Build `build`: compilação de produção bem-sucedida em 819ms.
 
+---
+
+## LINHA DE BASE — MIGRAÇÃO DE CORES (2026-10-20)
+- **Status Inicial:**
+  - `npm --prefix frontend test -- --run`: 118 testes aprovados em 21 arquivos (100% verde, código 0).
+  - `npm run lint`: 0 erros, código 0.
+  - `npm run build`: bundle de produção gerado com sucesso em 7.56s (código 0).
+  - Git working tree: limpa na branch `fase2`.
+
+
 
 

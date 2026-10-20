@@ -1,0 +1,148 @@
+# Plano e Acompanhamento de Migração de Cores (CalorieSync)
+
+Documento de controle e inventário mecânico da migração de cores para a identidade neo-brutalista de tinta (Fonte da verdade: docs/CORES.md).
+
+## 1. Totais Antes x Depois
+
+| Métrica | Antes (Baseline) | Depois |
+| :--- | :--- | :--- |
+| Total de arquivos inventariados | 94 | 94 |
+| Ocorrências do scan amplo | 2088 | PENDENTE |
+| Violações check:colors | PENDENTE (Fase 2) | 0 |
+| Exceções (color-guard-allow) | 0 | PENDENTE |
+
+## 2. Decisões do Agente e Comparativo do Bloco .dark (Invariante I1)
+
+### Comparativo do Bloco `.dark` (Antes x Depois)
+Para assegurar estritamente a **Invariante I1** (o modo escuro NÃO muda visualmente):
+- **Valores inalterados:** `--background` (`0 0% 4%`), `--foreground` (`0 0% 100%`), `--card` (`0 0% 10%`), `--card-foreground` (`0 0% 100%`), `--popover` (`0 0% 10%`), `--popover-foreground` (`0 0% 100%`), `--primary` (`72 100% 50%`), `--primary-foreground` (`0 0% 4%`), `--secondary` (`0 0% 15%`), `--secondary-foreground` (`0 0% 100%`), `--muted` (`0 0% 10%`), `--muted-foreground` (`0 0% 80%`), `--accent` (`72 100% 50%`), `--accent-foreground` (`0 0% 4%`), `--destructive` (`0 84% 60%`), `--destructive-foreground` (`0 0% 100%`), `--border` (`0 0% 15%`), `--input` (`0 0% 15%`), `--ring` (`72 100% 50%`).
+- **Novos tokens mapeados (sem alteração visual):**
+  - `--primary-ink: 72 100% 50%` — no modo escuro coincide exatamente com `--primary` (`#CCFF00`), preservando o verde neon idêntico para textos e ícones.
+  - `--shadow: 72 100% 50%` com `--shadow-alpha: 0.2` e `--shadow-alpha-hover: 0.4` — centraliza em variáveis CSS o que antes estava hardcoded no Tailwind (`rgba(204, 255, 0, 0.2)` e `0.4`).
+  - `--shadow-fill: 0 0% 100%` com `--shadow-fill-alpha: 0.2` e `--shadow-fill-alpha-hover: 0.4` — centraliza a sombra branca de alto contraste para fills neon que antes estava como `rgba(255, 255, 255, 0.2)` no `.dark .brutalist-shadow`.
+- **Diferença visual observável:** Zero. O modo escuro permanece 100% idêntico.
+
+
+## 3. Exceções Autorizadas (color-guard-allow)
+
+*Nenhuma exceção registrada até o momento.*
+
+## 4. Lacunas (Cores sem equivalente semântico)
+
+*Tokens novos mapeados serão registrados aqui.*
+
+## 5. Arquivos Pendentes
+
+*Nenhum arquivo pendente.*
+
+## 6. Lista de Telas para Revisão Visual Manual
+
+- [ ] /login (Login/Cadastro e Termos)
+- [ ] / (Dashboard / Diário com cards, macros, calendário, botão Nova Refeição, modal)
+- [ ] /evolucao/alimentacao (Estatísticas de alimentação com gráficos)
+- [ ] /evolucao/corpo (Histórico de medidas corporais com gráficos)
+- [ ] /metas/rotina (Metas de rotina e biometria)
+- [ ] /metas/diarias (Metas diárias de calorias e macros)
+- [ ] /perfil (Dados pessoais)
+- [ ] /configuracoes/notificacoes (Configurações de lembretes e push)
+- [ ] /configuracoes/seguranca (Troca de senha e encerramento de conta)
+- [ ] /configuracoes/privacidade (Termos de uso, privacidade e LGPD)
+
+## 7. Inventário Completo e Checklist de Arquivos
+
+| Caminho | Grupo | Ocorrências (Antes) | Status | Observação |
+| :--- | :---: | :---: | :---: | :--- |
+| frontend/index.html | G1 | 2 | [ ] |  |
+| frontend/postcss.config.js | G1 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/public/favicon.svg | G1 | 11 | [ ] |  |
+| frontend/public/sw.js | G1 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/styles/App.css | G1 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/styles/index.css | G1 | 62 | [ ] |  |
+| frontend/tailwind.config.js | G1 | 39 | [ ] |  |
+| frontend/vite.config.ts | G1 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/components/ui/alert.tsx | G2 | 8 | [ ] |  |
+| frontend/src/components/ui/badge.tsx | G2 | 12 | [ ] |  |
+| frontend/src/components/ui/button.tsx | G2 | 17 | [ ] |  |
+| frontend/src/components/ui/card.tsx | G2 | 4 | [ ] |  |
+| frontend/src/components/ui/footer-section.tsx | G2 | 25 | [ ] |  |
+| frontend/src/components/ui/input.tsx | G2 | 8 | [ ] |  |
+| frontend/src/components/ui/label.tsx | G2 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/components/auth/AuthCard.tsx | G3 | 21 | [ ] |  |
+| frontend/src/components/auth/LoginForm.tsx | G3 | 20 | [ ] |  |
+| frontend/src/components/auth/RegisterForm.tsx | G3 | 43 | [ ] |  |
+| frontend/src/components/common/DatePickerInput.tsx | G3 | 50 | [ ] |  |
+| frontend/src/components/common/DeleteAccountModal.tsx | G3 | 43 | [ ] |  |
+| frontend/src/components/layout/AppHeader.tsx | G3 | 83 | [ ] |  |
+| frontend/src/components/layout/Footer.tsx | G3 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/components/layout/RootLayout.tsx | G3 | 11 | [ ] |  |
+| frontend/src/components/layout/SectionLayout.tsx | G3 | 17 | [ ] |  |
+| frontend/src/components/meals/FoodQuantityForm.tsx | G3 | 92 | [ ] |  |
+| frontend/src/components/meals/FoodSearchSelect.tsx | G3 | 36 | [ ] |  |
+| frontend/src/components/meals/MealItemList.tsx | G3 | 34 | [ ] |  |
+| frontend/src/components/meals/MealModalFooter.tsx | G3 | 23 | [ ] |  |
+| frontend/src/components/meals/NewMealModal.tsx | G3 | 263 | [ ] |  |
+| frontend/src/components/onboarding/OnboardingFlow.tsx | G3 | 129 | [ ] |  |
+| frontend/src/components/profile/BiometricsSection.tsx | G3 | 14 | [ ] |  |
+| frontend/src/components/profile/BodyHeightForm.tsx | G3 | 18 | [ ] |  |
+| frontend/src/components/profile/GoalSettingsCard.tsx | G3 | 38 | [ ] |  |
+| frontend/src/components/profile/PersonalInfoSection.tsx | G3 | 17 | [ ] |  |
+| frontend/src/components/profile/ProfileFormFeedback.tsx | G3 | 13 | [ ] |  |
+| frontend/src/components/profile/ProfileQueryBoundary.tsx | G3 | 8 | [ ] |  |
+| frontend/src/components/profile/RoutineGoalsSection.tsx | G3 | 44 | [ ] |  |
+| frontend/src/components/profile/SecuritySection.tsx | G3 | 16 | [ ] |  |
+| frontend/src/components/ProtectedRoute.tsx | G3 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/components/PublicRoute.tsx | G3 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/App.tsx | G4 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/main.tsx | G4 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/pages/private/AccountPrivacyPage.tsx | G4 | 20 | [ ] |  |
+| frontend/src/pages/private/AccountSecurityPage.tsx | G4 | 4 | [ ] |  |
+| frontend/src/pages/private/DashboardPage.tsx | G4 | 229 | [ ] |  |
+| frontend/src/pages/private/EditProfilePage.tsx | G4 | 13 | [ ] |  |
+| frontend/src/pages/private/MeasurementsPage.tsx | G4 | 179 | [ ] |  |
+| frontend/src/pages/private/NotificationsPage.tsx | G4 | 56 | [ ] |  |
+| frontend/src/pages/private/RoutinePage.tsx | G4 | 4 | [ ] |  |
+| frontend/src/pages/private/StatsPage.tsx | G4 | 134 | [ ] |  |
+| frontend/src/pages/public/LegalPage.tsx | G4 | 20 | [ ] |  |
+| frontend/src/pages/public/LoginPage.tsx | G4 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/router.tsx | G4 | 1 | [ ] |  |
+| frontend/src/context/AuthContext.tsx | G5 | 9 | [ ] |  |
+| frontend/src/hooks/useProfileSettings.ts | G5 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/lib/utils.ts | G5 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/mocks/handlers.ts | G5 | 17 | [ ] |  |
+| frontend/src/mocks/server.ts | G5 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/services/api.ts | G5 | 2 | [ ] |  |
+| frontend/src/services/auth.service.ts | G5 | 28 | [ ] |  |
+| frontend/src/services/food.service.ts | G5 | 7 | [ ] |  |
+| frontend/src/services/goals.service.ts | G5 | 8 | [ ] |  |
+| frontend/src/services/meal.service.ts | G5 | 10 | [ ] |  |
+| frontend/src/services/measurement.service.ts | G5 | 1 | [ ] |  |
+| frontend/src/services/push.service.ts | G5 | 11 | [ ] |  |
+| frontend/src/services/savedMeal.service.ts | G5 | 2 | [ ] |  |
+| frontend/src/types/auth.ts | G5 | 12 | [ ] |  |
+| frontend/src/types/meal-modal.ts | G5 | 3 | [ ] |  |
+| frontend/src/types/profile.ts | G5 | 14 | [ ] |  |
+| frontend/src/utils/date.ts | G5 | 15 | [ ] |  |
+| frontend/src/utils/download.ts | G5 | 2 | [ ] |  |
+| frontend/src/components/auth/LoginForm.test.tsx | G6 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/components/auth/RegisterForm.test.tsx | G6 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/components/common/DatePickerInput.test.tsx | G6 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/components/meals/NewMealModal.test.tsx | G6 | 6 | [ ] |  |
+| frontend/src/components/onboarding/OnboardingFlow.test.tsx | G6 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/components/ui/__tests__/primitives.test.tsx | G6 | 8 | [ ] |  |
+| frontend/src/context/AuthContext.test.tsx | G6 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/pages/private/__tests__/DashboardPage.test.tsx | G6 | 19 | [ ] |  |
+| frontend/src/pages/private/__tests__/EditProfilePage.test.tsx | G6 | 2 | [ ] |  |
+| frontend/src/pages/private/__tests__/MeasurementsPage.test.tsx | G6 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/pages/private/__tests__/NotificationsPage.test.tsx | G6 | 1 | [ ] |  |
+| frontend/src/pages/private/__tests__/SettingsSeparation.test.tsx | G6 | 7 | [ ] |  |
+| frontend/src/pages/private/__tests__/StatsPage.test.tsx | G6 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/pages/public/__tests__/LegalPage.test.tsx | G6 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/setupTests.ts | G6 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/tests/api.test.ts | G6 | 1 | [ ] |  |
+| frontend/src/tests/auth_storage.test.tsx | G6 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/tests/LoginPage.test.tsx | G6 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/tests/navigation.test.tsx | G6 | 2 | [ ] |  |
+| frontend/src/tests/router.test.tsx | G6 | 3 | [ ] |  |
+| frontend/src/tests/setup/test-utils.tsx | G6 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/types/__tests__/meal-modal.test.ts | G6 | 0 | [ ] | sem ocorrências (scan) |
+| frontend/src/utils/__tests__/date.test.ts | G6 | 17 | [ ] |  |
