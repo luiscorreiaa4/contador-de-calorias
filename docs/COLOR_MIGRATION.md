@@ -92,19 +92,19 @@ Para assegurar estritamente a **Invariante I1** (o modo escuro NÃO muda visualm
 | frontend/src/components/profile/SecuritySection.tsx | G3 | 16 | [x] | inputNormal atualizado para border-ring, text-primary-ink nos asteriscos obrigatórios |
 | frontend/src/components/ProtectedRoute.tsx | G3 | 0 | [x] | sem ocorrências (scan) |
 | frontend/src/components/PublicRoute.tsx | G3 | 0 | [x] | sem ocorrências (scan) |
-| frontend/src/App.tsx | G4 | 0 | [ ] | sem ocorrências (scan) |
-| frontend/src/main.tsx | G4 | 0 | [ ] | sem ocorrências (scan) |
-| frontend/src/pages/private/AccountPrivacyPage.tsx | G4 | 20 | [ ] |  |
-| frontend/src/pages/private/AccountSecurityPage.tsx | G4 | 4 | [ ] |  |
-| frontend/src/pages/private/DashboardPage.tsx | G4 | 229 | [ ] |  |
-| frontend/src/pages/private/EditProfilePage.tsx | G4 | 13 | [ ] |  |
-| frontend/src/pages/private/MeasurementsPage.tsx | G4 | 179 | [ ] |  |
-| frontend/src/pages/private/NotificationsPage.tsx | G4 | 56 | [ ] |  |
-| frontend/src/pages/private/RoutinePage.tsx | G4 | 4 | [ ] |  |
-| frontend/src/pages/private/StatsPage.tsx | G4 | 134 | [ ] |  |
-| frontend/src/pages/public/LegalPage.tsx | G4 | 20 | [ ] |  |
-| frontend/src/pages/public/LoginPage.tsx | G4 | 0 | [ ] | sem ocorrências (scan) |
-| frontend/src/router.tsx | G4 | 1 | [ ] |  |
+| frontend/src/App.tsx | G4 | 0 | [x] | sem ocorrências (scan) |
+| frontend/src/main.tsx | G4 | 0 | [x] | sem ocorrências (scan) |
+| frontend/src/pages/private/AccountPrivacyPage.tsx | G4 | 20 | [x] | text-primary-ink nos links, border-foreground no feedback, border-black e shadow-hard-fill nos botões de ação |
+| frontend/src/pages/private/AccountSecurityPage.tsx | G4 | 4 | [x] | border-ring no foco dos inputs |
+| frontend/src/pages/private/DashboardPage.tsx | G4 | 229 | [x] | logo SYNC marca-texto, chama/subtítulo em ink, barras neon com contorno border-foreground no claro, badge/botões neon com border-black e shadow-hard-fill, foco visível |
+| frontend/src/pages/private/EditProfilePage.tsx | G4 | 13 | [x] | border-ring nos inputs e foco, focus-visible:ring-ring |
+| frontend/src/pages/private/MeasurementsPage.tsx | G4 | 179 | [x] | text-primary-ink nos textos e ícones lineares, border-black e shadow-hard-fill nos botões/tabs, stroke do gráfico hsl(var(--primary-ink)) |
+| frontend/src/pages/private/NotificationsPage.tsx | G4 | 56 | [x] | border-foreground no feedback de sucesso, focus-visible:ring-ring no botão |
+| frontend/src/pages/private/RoutinePage.tsx | G4 | 4 | [x] | sem violações, classes seguem tokens semânticos |
+| frontend/src/pages/private/StatsPage.tsx | G4 | 134 | [x] | text-primary-ink, border-black e shadow-hard-fill nos tabs e ícone neon, contorno stroke hsl(var(--foreground)) nas barras de gráfico, tooltip com shadow token |
+| frontend/src/pages/public/LegalPage.tsx | G4 | 20 | [x] | text-primary-ink no subtítulo/ícone, focus-visible:ring-ring no botão voltar |
+| frontend/src/pages/public/LoginPage.tsx | G4 | 0 | [x] | sem ocorrências (scan) |
+| frontend/src/router.tsx | G4 | 1 | [x] | sem violações, classes seguem tokens semânticos |
 | frontend/src/context/AuthContext.tsx | G5 | 9 | [ ] |  |
 | frontend/src/hooks/useProfileSettings.ts | G5 | 0 | [ ] | sem ocorrências (scan) |
 | frontend/src/lib/utils.ts | G5 | 0 | [ ] | sem ocorrências (scan) |
