@@ -12,6 +12,7 @@ export const registerUserSchema = z.object({
   password: strongPasswordSchema,
   // Consentimento explícito obrigatório no cadastro (LGPD art. 7º, I).
   acceptTerms: z.literal(true, {
+    message: 'É necessário aceitar os Termos de Uso e a Política de Privacidade.',
     errorMap: () => ({ message: 'É necessário aceitar os Termos de Uso e a Política de Privacidade.' }),
   }),
 });

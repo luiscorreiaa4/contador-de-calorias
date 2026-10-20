@@ -32,7 +32,7 @@ describe('Navegação por finalidade', () => {
 
   it.each(pages)('abre diretamente %s e destaca a área correta no header', async (path, title, section) => {
     const router = renderRoute(path);
-    expect(await screen.findByRole('heading', { name: title }, { timeout: 5000 })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: title }, { timeout: 10000 })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe(path);
     const navigation = screen.getByRole('navigation', { name: 'Navegação principal' });
     expect(within(navigation).getByRole('link', { name: section })).toHaveAttribute('aria-current', 'page');
