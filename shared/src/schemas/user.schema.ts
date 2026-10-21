@@ -6,9 +6,16 @@ export const strongPasswordSchema = z
   .max(72, 'A senha deve ter no máximo 72 caracteres.')
   .regex(/(?=.*[a-zA-Z])(?=.*[0-9])/, 'A senha deve conter pelo menos uma letra e um número.');
 
+export const emailSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .email('Digite um e-mail válido.')
+  .max(255, 'O e-mail deve ter no máximo 255 caracteres.');
+
 export const registerUserSchema = z.object({
   name: z.string().min(2, 'O nome deve ter no mínimo 2 caracteres.').max(100, 'O nome deve ter no máximo 100 caracteres.'),
-  email: z.string().email('Digite um e-mail válido.'),
+  email: emailSchema,
   password: strongPasswordSchema,
   // Consentimento explícito obrigatório no cadastro (LGPD art. 7º, I).
   acceptTerms: z.literal(true, {
@@ -18,13 +25,13 @@ export const registerUserSchema = z.object({
 });
 
 export const loginUserSchema = z.object({
-  email: z.string().email('Digite um e-mail válido.'),
+  email: emailSchema,
   password: z.string().min(1, 'A senha é obrigatória.').max(72, 'A senha deve ter no máximo 72 caracteres.'),
 });
 
 export const updateUserSchema = z.object({
   name: z.string().min(2, 'O nome deve ter no mínimo 2 caracteres.').max(100, 'O nome deve ter no máximo 100 caracteres.').optional(),
-  email: z.string().email('Digite um e-mail válido.').optional(),
+  email: emailSchema.optional(),
   goal: z.enum(['perder_peso', 'manter_peso', 'ganhar_massa']).optional(),
   sex: z.enum(['masculino', 'feminino', 'prefiro_nao_responder']).optional(),
   birthDate: z.string().min(10, 'Data de nascimento inválida.').optional(),

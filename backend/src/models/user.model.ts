@@ -20,19 +20,21 @@ export async function createUser(
   passwordHash: string,
   termsAcceptedAt: Date
 ): Promise<UserWithoutPassword> {
+  const normalizedEmail = email.trim().toLowerCase();
   const result = await pool.query<UserWithoutPassword>(
     `INSERT INTO users (name, email, password_hash, terms_accepted_at)
      VALUES ($1, $2, $3, $4)
      RETURNING id, name, email, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, terms_accepted_at, created_at, updated_at`,
-    [name, email, passwordHash, termsAcceptedAt]
+    [name.trim(), normalizedEmail, passwordHash, termsAcceptedAt]
   );
   return mapUserRow(result.rows[0])!;
 }
 
 export async function findUserByEmail(email: string): Promise<User | null> {
+  const normalizedEmail = email.trim().toLowerCase();
   const result = await pool.query<User>(
-    'SELECT * FROM users WHERE email = $1',
-    [email]
+    'SELECT * FROM users WHERE lower(email) = lower($1)',
+    [normalizedEmail]
   );
   return result.rows[0] ?? null;
 }
@@ -78,11 +80,11 @@ export async function updateUser(
 
   if (fields.name !== undefined) {
     updates.push(`name = $${paramIndex++}`);
-    values.push(fields.name);
+    values.push(fields.name.trim());
   }
   if (fields.email !== undefined) {
     updates.push(`email = $${paramIndex++}`);
-    values.push(fields.email);
+    values.push(fields.email.trim().toLowerCase());
   }
   if (fields.passwordHash !== undefined) {
     updates.push(`password_hash = $${paramIndex++}`);

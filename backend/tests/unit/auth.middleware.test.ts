@@ -98,4 +98,41 @@ describe('Auth Middleware (authenticate)', () => {
       message: 'Acesso negado. Token de autenticação não fornecido.',
     });
   });
+
+  it('deve rejeitar token cujo payload não contenha userId válido (A-010)', () => {
+    const invalidPayloadToken = jwt.sign({ foo: 'bar' }, env.JWT_SECRET);
+    let statusReturned = 0;
+    let jsonReturned: unknown = null;
+    let nextCalled = false;
+
+    const req = {
+      headers: {
+        authorization: `Bearer ${invalidPayloadToken}`,
+      },
+    } as unknown as AuthenticatedRequest;
+
+    const res = {
+      status(code: number) {
+        statusReturned = code;
+        return this;
+      },
+      json(data: unknown) {
+        jsonReturned = data;
+        return this;
+      },
+    } as unknown as Response;
+
+    const next = () => {
+      nextCalled = true;
+    };
+
+    authenticate(req, res, next);
+
+    assert.strictEqual(nextCalled, false);
+    assert.strictEqual(statusReturned, 401);
+    assert.deepStrictEqual(jsonReturned, {
+      success: false,
+      message: 'Token de autenticação inválido ou expirado.',
+    });
+  });
 });

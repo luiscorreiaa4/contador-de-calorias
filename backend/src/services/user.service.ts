@@ -14,22 +14,34 @@ interface CustomError extends Error {
 }
 
 export async function register(data: RegisterUserDTO): Promise<AuthResponse> {
-  const existingUser = await UserModel.findUserByEmail(data.email);
+  const normalizedEmail = data.email.trim().toLowerCase();
+  const existingUser = await UserModel.findUserByEmail(normalizedEmail);
   if (existingUser) {
     const error: CustomError = new Error('Este e-mail já está cadastrado.');
-    error.statusCode = 400;
+    error.statusCode = 409;
     throw error;
   }
 
   const saltRounds = process.env.NODE_ENV === 'test' ? 1 : 10;
   const passwordHash = await bcrypt.hash(data.password, saltRounds);
 
-  const newUser = await UserModel.createUser(
-    data.name,
-    data.email,
-    passwordHash,
-    new Date()
-  );
+  let newUser: UserWithoutPassword;
+  try {
+    newUser = await UserModel.createUser(
+      data.name,
+      normalizedEmail,
+      passwordHash,
+      new Date()
+    );
+  } catch (err: unknown) {
+    const pgErr = err as { code?: string; constraint?: string; detail?: string };
+    if (pgErr?.code === '23505') {
+      const error: CustomError = new Error('Este e-mail já está cadastrado.');
+      error.statusCode = 409;
+      throw error;
+    }
+    throw err;
+  }
 
   const token = generateToken(newUser.id);
 
@@ -211,22 +223,33 @@ export async function updateProfile(userId: string, data: UpdateUserDTO): Promis
   try {
     await client.query('BEGIN');
 
-    const updatedUser = await UserModel.updateUser(
-      userId,
-      {
-        name: data.name,
-        email: data.email,
-        passwordHash: newPasswordHash,
-        goal: data.goal,
-        sex: data.sex,
-        birthDate: data.birthDate,
-        weight: data.weight,
-        height: data.height,
-        body_fat: data.body_fat,
-        activity_level: data.activity_level,
-      },
-      client
-    );
+    let updatedUser: UserWithoutPassword;
+    try {
+      updatedUser = await UserModel.updateUser(
+        userId,
+        {
+          name: data.name,
+          email: data.email,
+          passwordHash: newPasswordHash,
+          goal: data.goal,
+          sex: data.sex,
+          birthDate: data.birthDate,
+          weight: data.weight,
+          height: data.height,
+          body_fat: data.body_fat,
+          activity_level: data.activity_level,
+        },
+        client
+      );
+    } catch (err: unknown) {
+      const pgErr = err as { code?: string; constraint?: string; detail?: string };
+      if (pgErr?.code === '23505') {
+        const error: CustomError = new Error('Este e-mail já está em uso por outra conta.');
+        error.statusCode = 409;
+        throw error;
+      }
+      throw err;
+    }
 
     // Se houve alteração no peso ou percentual de gordura, registrar histórico
     if (data.weight !== undefined || data.body_fat !== undefined) {
@@ -280,7 +303,10 @@ export async function deleteAccount(userId: string, password?: string): Promise<
 }
 
 function generateToken(userId: string): string {
-  return jwt.sign({ userId }, env.JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign({ userId }, env.JWT_SECRET, {
+    expiresIn: (env.JWT_EXPIRES_IN || '7d') as jwt.SignOptions['expiresIn'],
+    algorithm: 'HS256',
+  });
 }
 
 export async function previewGoals(userId: string, data: Partial<import('@caloriesync/shared').PreviewGoalsDTO>) {

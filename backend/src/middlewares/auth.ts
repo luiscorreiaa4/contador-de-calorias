@@ -1,10 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { z } from 'zod';
 import { env } from '../config/env.js';
 
 export interface AuthenticatedRequest extends Request {
   userId?: string;
 }
+
+const tokenPayloadSchema = z.object({
+  userId: z.string().min(1, 'Token inválido: userId ausente.'),
+});
 
 export function authenticate(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
@@ -17,9 +22,19 @@ export function authenticate(req: AuthenticatedRequest, res: Response, next: Nex
 
   try {
     const token = authHeader.split(' ')[1];
-    const payload = jwt.verify(token, env.JWT_SECRET) as { userId: string };
+    const decoded = jwt.verify(token, env.JWT_SECRET, {
+      algorithms: ['HS256'],
+    });
 
-    req.userId = payload.userId;
+    const parsed = tokenPayloadSchema.safeParse(decoded);
+    if (!parsed.success) {
+      return res.status(401).json({
+        success: false,
+        message: 'Token de autenticação inválido ou expirado.',
+      });
+    }
+
+    req.userId = parsed.data.userId;
     next();
   } catch {
     return res.status(401).json({

@@ -41,9 +41,23 @@ describe('User Routes (Integration - E2E)', () => {
     assert.strictEqual(response.body.success, false);
   });
 
+  it('POST /api/users/register - deve rejeitar cadastro duplicado com 409 mesmo com casing diferente (A-002 / A-004)', async () => {
+    const uppercaseEmail = testEmail.toUpperCase();
+    const response = await request(app).post('/api/users/register').send({
+      name: 'Tester Duplicado',
+      email: uppercaseEmail,
+      password: testPassword,
+      acceptTerms: true
+    });
+
+    assert.strictEqual(response.status, 409);
+    assert.strictEqual(response.body.success, false);
+    assert.strictEqual(response.body.message, 'Este e-mail já está cadastrado.');
+  });
+
   it('POST /api/users/login - deve retornar 200 e um token no banco de dados', async () => {
     const response = await request(app).post('/api/users/login').send({
-      email: testEmail,
+      email: testEmail.toUpperCase(),
       password: testPassword
     });
 

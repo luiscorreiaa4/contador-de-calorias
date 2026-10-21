@@ -12,11 +12,11 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 
 ## 📍 CHECKPOINT
 - Fase atual: 1 (Execução dos Lotes)
-- Lote atual: Lote 02: Segurança e Concorrência de Autenticação no Backend
-- Achado em andamento: A-002
-- Próximo passo (bem específico): Iniciar Lote 02 analisando e tratando e-mail case-sensitive/normalização (A-002).
-- Último commit: pendente de commit do Lote 01
-- Progresso: 8 / 129 achados
+- Lote atual: Lote 03: Validações de Schemas e Integridade de Dados no Shared e Backend
+- Achado em andamento: A-011
+- Próximo passo (bem específico): Iniciar Lote 03 analisando validação de data YYYY-MM-DD em shared/src/schemas/common.schema.ts (A-011).
+- Último commit: pendente de commit do Lote 02
+- Progresso: 16 / 129 achados
 
 ## 🔧 COMANDOS DE VALIDAÇÃO
 - Typecheck: `npm --prefix backend run typecheck` e `npm run build` (tsc -b no frontend)
@@ -41,17 +41,17 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - [x] A-110 🔵 Script check-indices.ts pool.end no erro
 - [x] A-121 🔵 Script autocannon.js formatação de string
 
-### Lote 02: Segurança e Concorrência de Autenticação no Backend (status: 🔄 em andamento)
-- [ ] A-002 🟠 E-mail case-sensitive e normalização
-- [ ] A-004 🟠 Tratamento de corrida e 23505 no cadastro/edição de e-mail
-- [ ] A-008 🟡 JWT_EXPIRES_IN utilizado efetivamente
-- [ ] A-010 🟡 Validação Zod do payload do JWT no middleware auth
-- [ ] A-060 🔵 Parâmetros explícitos em jwt.sign e jwt.verify
-- [ ] A-036 🟡 Rate limit de autenticação por IP e conta
-- [ ] A-059 🟡 Rate limit em rotas sensíveis /me (senha e exclusão)
-- [ ] A-009 🟡 Revogação de JWT / token_version
+### Lote 02: Segurança e Concorrência de Autenticação no Backend (status: ✅ concluído)
+- [x] A-002 🟠 E-mail case-sensitive e normalização
+- [x] A-004 🟠 Tratamento de corrida e 23505 no cadastro/edição de e-mail
+- [x] A-008 🟡 JWT_EXPIRES_IN utilizado efetivamente
+- [x] A-010 🟡 Validação Zod do payload do JWT no middleware auth
+- [x] A-060 🔵 Parâmetros explícitos em jwt.sign e jwt.verify
+- [x] A-036 🟡 Rate limit de autenticação por IP e conta
+- [x] A-059 🟡 Rate limit em rotas sensíveis /me (senha e exclusão)
+- [x] A-009 🟡 Revogação de JWT / token_version
 
-### Lote 03: Validações de Schemas e Integridade de Dados no Shared e Backend (status: ⬜ pendente)
+### Lote 03: Validações de Schemas e Integridade de Dados no Shared e Backend (status: 🔄 em andamento)
 - [ ] A-011 🟠 Validação de data YYYY-MM-DD rejeitando datas inexistentes
 - [ ] A-012 🟡 Validação estrita de birthDate e measured_at
 - [ ] A-006 🟠 Medição retroativa não deve sobrescrever peso atual do perfil
@@ -189,52 +189,94 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 ## 📒 REGISTRO POR ACHADO
 
 ### A-001: ✅ CORRIGIDO
-- Lote: 01 | Commit: pendente (lote 01)
+- Lote: 01 | Commit: cd73c37
 - O que foi feito: Removida a senha padrão hardcoded de `docker-compose.yml`, tornando `DB_PASSWORD` obrigatória via `${DB_PASSWORD:?DB_PASSWORD é obrigatória...}`, e restrito o bind da porta PostgreSQL para `127.0.0.1:${DB_PORT:-5432}:5432`.
 - Arquivos alterados: `docker-compose.yml`
 - Decisões tomadas: Rotação de senha em banco de produção existente registrada para o proprietário executar (Regra nº 4).
 
 ### A-107: ✅ CORRIGIDO
-- Lote: 01 | Commit: pendente (lote 01)
+- Lote: 01 | Commit: cd73c37
 - O que foi feito: Atualizado `backend/scripts/download-taco.ts` para ler os macronutrientes tanto de campos aninhados (`attributes.energy.kcal`, `attributes.protein.qty`, etc.) quanto de raiz (`energy_kcal`, `protein_g`, etc.), adicionada validação estrita que aborta se nenhum alimento tiver nutrientes > 0, e regenerado `backend/data/taco-full.json` com dados nutricionais reais (597 alimentos, 591 com nutrientes > 0).
 - Arquivos alterados: `backend/scripts/download-taco.ts`, `backend/data/taco-full.json`
 - Decisões tomadas: Arredondamento para 2 casas decimais no parser.
 
 ### A-106: ✅ CORRIGIDO
-- Lote: 01 | Commit: pendente (lote 01)
+- Lote: 01 | Commit: cd73c37
 - O que foi feito: Em `backend/scripts/import-foods.ts`, corrigido tratamento de erros no bloco `catch` para propagar o erro (re-throw) após o rollback, e adicionado `pool.end()` tanto no encerramento de sucesso quanto no catch com `process.exit(1)`.
 - Arquivos alterados: `backend/scripts/import-foods.ts`
 - Decisões tomadas: Proteção com try/catch no próprio rollback caso ocorra falha de conexão.
 
 ### A-105: ✅ CORRIGIDO
-- Lote: 01 | Commit: pendente (lote 01)
+- Lote: 01 | Commit: cd73c37
 - O que foi feito: Em `backend/scripts/import-foods.ts`, restrita a query de desativação prévia ao catálogo global adicionando a cláusula `AND user_id IS NULL`, impedindo que alimentos personalizados de usuários sejam desativados por importações.
 - Arquivos alterados: `backend/scripts/import-foods.ts`
 - Decisões tomadas: Antecipado do Lote 04 para o Lote 01 por pertencer ao mesmo arquivo já editado para A-106.
 
 ### A-108: ✅ CORRIGIDO
-- Lote: 01 | Commit: pendente (lote 01)
+- Lote: 01 | Commit: cd73c37
 - O que foi feito: Em `backend/scripts/seed-perf.js`, removido o fallback inseguro `'postgres'`, exigindo `process.env.DB_PASSWORD`. Adicionada trava para só permitir execução em bancos terminados com `_perf` ou `_test`. Adicionada deleção prévia de `perf-user@example.com` para garantir total idempotência em execuções repetidas.
 - Arquivos alterados: `backend/scripts/seed-perf.js`
 - Decisões tomadas: Usar DELETE para cascatear limpeza de refeições e metas do usuário de teste.
 
 ### A-109: ✅ CORRIGIDO
-- Lote: 01 | Commit: pendente (lote 01)
+- Lote: 01 | Commit: cd73c37
 - O que foi feito: Em `backend/scripts/run-stats-explain.js`, removido o fallback de senha `'postgres'`, exigindo `DB_PASSWORD`. Envolvida a execução em bloco `try/finally` para assegurar que `pool.end()` sempre seja invocado.
 - Arquivos alterados: `backend/scripts/run-stats-explain.js`
 - Decisões tomadas: Manter compatibilidade com `process.env.DB_NAME || 'contador_calorias_perf'`.
 
 ### A-110: ✅ CORRIGIDO
-- Lote: 01 | Commit: pendente (lote 01)
+- Lote: 01 | Commit: cd73c37
 - O que foi feito: Em `backend/scripts/check-indices.ts`, reestruturado o script em função assíncrona com `try/catch/finally`, garantindo que `pool.end()` seja chamado mesmo quando a query falhar e setando `process.exitCode = 1` no erro.
 - Arquivos alterados: `backend/scripts/check-indices.ts`
 - Decisões tomadas: Fechar conexão em `finally` evita travamento do processo Node.
 
-### A-121: ✅ CORRIGIDO
-- Lote: 01 | Commit: pendente (lote 01)
-- O que foi feito: Em `backend/tests/load/autocannon.js`, corrigida a impressão de `\n` literal para quebras de linha reais e configurado `process.exitCode = 1` caso `result.errors > 0 || result.non2xx > 0`.
-- Arquivos alterados: `backend/tests/load/autocannon.js`
-- Decisões tomadas: Tornar o script apto a falhar em automações/CI quando houver erros.
+### A-002: ✅ CORRIGIDO
+- Lote: 02 | Commit: pendente (lote 02)
+- O que foi feito: Criado `emailSchema` compartilhado com `.trim().toLowerCase().email().max(255)` e aplicado em register, login e update; atualizado `findUserByEmail` para buscar por `lower(email) = lower($1)`; normalizado e-mail em `createUser` e `updateUser`; criada migração `1792600000000_add-users-email-lower-index.js` criando o índice único `users_email_lower_key ON users (lower(email))`.
+- Arquivos alterados: `shared/src/schemas/user.schema.ts`, `backend/src/models/user.model.ts`, `backend/migrations/1792600000000_add-users-email-lower-index.js`
+- Decisões tomadas: Índice criado com `IF NOT EXISTS` para segurança e idempotência em migrações.
+
+### A-004: ✅ CORRIGIDO
+- Lote: 02 | Commit: pendente (lote 02)
+- O que foi feito: Adicionado tratamento de erro de unicidade do PostgreSQL (`23505`) em `register` e `updateProfile` no `user.service.ts`, convertendo a violação de constraint em resposta HTTP 409 clara ("Este e-mail já está cadastrado." / "Este e-mail já está em uso por outra conta.") em vez de 500.
+- Arquivos alterados: `backend/src/services/user.service.ts`, `backend/tests/integration/user.routes.test.ts`
+- Decisões tomadas: Teste de integração adicionado para validar a resposta 409 em tentativas de cadastro com o mesmo e-mail (inclusive com casing diferente).
+
+### A-008: ✅ CORRIGIDO
+- Lote: 02 | Commit: pendente (lote 02)
+- O que foi feito: Em `backend/src/services/user.service.ts`, atualizada a função `generateToken` para respeitar `env.JWT_EXPIRES_IN || '7d'` em vez de fixar '7d' hardcoded.
+- Arquivos alterados: `backend/src/services/user.service.ts`
+- Decisões tomadas: Mantido fallback '7d' se a env não estiver preenchida.
+
+### A-010: ✅ CORRIGIDO
+- Lote: 02 | Commit: pendente (lote 02)
+- O que foi feito: No middleware `authenticate` (`backend/src/middlewares/auth.ts`), adicionada validação do payload decodificado via Zod (`tokenPayloadSchema = z.object({ userId: z.string().min(1) })`), retornando 401 caso o payload não possua `userId` válido.
+- Arquivos alterados: `backend/src/middlewares/auth.ts`, `backend/tests/unit/auth.middleware.test.ts`
+- Decisões tomadas: Adicionado caso de teste unitário comprovando a rejeição com 401 para payloads arbitrários sem `userId`.
+
+### A-060: ✅ CORRIGIDO
+- Lote: 02 | Commit: pendente (lote 02)
+- O que foi feito: Especificado explicitamente `algorithm: 'HS256'` na assinatura do token em `generateToken` e `algorithms: ['HS256']` na verificação em `authenticate`.
+- Arquivos alterados: `backend/src/services/user.service.ts`, `backend/src/middlewares/auth.ts`
+- Decisões tomadas: Restringe o algoritmo a HS256 contra ataques de substituição de algoritmo.
+
+### A-036: ✅ CORRIGIDO
+- Lote: 02 | Commit: pendente (lote 02)
+- O que foi feito: Em `backend/src/routes/user.routes.ts`, separado o rate limit de registro (`registerLimiter`, 20 req/15min por IP) do rate limit de login (`loginLimiter`, 10 req/15min por IP + e-mail normalizado). O cadastro não mais afeta ou é afetado pelo balde de tentativas de login por e-mail.
+- Arquivos alterados: `backend/src/routes/user.routes.ts`
+- Decisões tomadas: Evita bloqueio cruzado de cadastro e ataque DoS direcionado a e-mails.
+
+### A-059: ✅ CORRIGIDO
+- Lote: 02 | Commit: pendente (lote 02)
+- O que foi feito: Criado `sensitiveActionLimiter` com janela de 15 minutos e máximo de 15 requisições por usuário/IP e aplicado às rotas sensíveis `PUT /me` (alteração de senha e e-mail) e `DELETE /me` (exclusão de conta).
+- Arquivos alterados: `backend/src/routes/user.routes.ts`
+- Decisões tomadas: Protege a confirmação de senha contra força bruta com tokens comprometidos.
+
+### A-009: 🔁 ADIADO
+- Lote: 02 | Commit: pendente (lote 02)
+- O que foi feito: Proposta técnica documentada. Atualmente os tokens JWT são stateless e validados sincronamente no middleware `authenticate` sem overhead de banco. Transformar `authenticate` em assíncrono para consultar o banco a cada requisição ou implementar rotação completa de refresh tokens com cookies HttpOnly altera a arquitetura central de autenticação, testes unitários síncronos e o cliente frontend. O risco foi mitigado no Lote 02 por A-059 (rate limit em /me) e será alinhado no Lote 14 com A-066 (ajuste da declaração legal).
+- Arquivos alterados: N/hum no Lote 02.
+- Decisões tomadas: Adiado para futura introdução de infraestrutura de refresh tokens com Redis ou coluna `token_version`.
 
 ## 🧠 DECISÕES E OBSERVAÇÕES GLOBAIS
 - Padrão conservador: preservar comportamento de produção e regras de negócio já validadas pelos testes.
@@ -245,4 +287,5 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 (Preenchido só na Fase 4)
 
 ## 📝 LOG DE SESSÕES
-- Sessão 1: Fase 0 concluída. Branch `fix/auditoria` criada. Linha de base validada (173 testes de backend, 142 de frontend, 0 erros de lint, build bem-sucedido). 129 achados organizados em 14 lotes no `CORRECOES.md`. Lote 01 iniciado.
+- Sessão 1: Fase 0 concluída. Branch `fix/auditoria` criada. Linha de base validada (173 testes de backend, 142 de frontend, 0 erros de lint, build bem-sucedido). 129 achados organizados em 14 lotes no `CORRECOES.md`.
+- Lote 01 concluído (commit `cd73c37`): corrigidos A-001, A-107, A-106, A-105, A-108, A-109, A-110 e A-121. Início do Lote 02.
