@@ -12,11 +12,11 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 
 ## 📍 CHECKPOINT
 - Fase atual: 1 (Execução dos Lotes)
-- Lote atual: Lote 08: Frontend - Autenticação, Sessão e Armazenamento Local
-- Achado em andamento: A-074
-- Próximo passo (bem específico): Iniciar Lote 08 tratando JSON.parse do localStorage com try/catch e safeParse, tipagem de sessão e fluxo de cadastro (A-074, A-075, A-076, A-077, A-078, A-079, A-081, A-082, A-084).
-- Último commit: 5535396 (Lote 07 concluído)
-- Progresso: 52 / 129 achados
+- Lote atual: Lote 09: Frontend - Formulários de Perfil, Medições e Acessibilidade
+- Achado em andamento: A-067
+- Próximo passo (bem específico): Iniciar Lote 09 tratando birthDate (limpeza, validação unificada), labels no onboarding, routine fallback e datas de medições (A-067, A-068, A-072, A-073, A-083, A-085, A-099, A-100).
+- Último commit: 79a3463 (Lote 08 concluído)
+- Progresso: 61 / 129 achados
 
 ## 🔧 COMANDOS DE VALIDAÇÃO
 - Typecheck: `npm --prefix backend run typecheck` e `npm run build` (tsc -b no frontend)
@@ -97,16 +97,16 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - [x] A-087 🟡 Remover simulação enganosa de push no frontend
 - [x] A-116 🟠 Alinhamento de testes de push com o contrato real
 
-### Lote 08: Frontend - Autenticação, Sessão e Armazenamento Local (status: ⬜ pendente)
-- [ ] A-074 🟠 Proteção try/catch e validação no JSON.parse do localStorage
-- [ ] A-075 🟡 Tipagem segura e estado da sessão persistida no AuthContext
-- [ ] A-076 🟡 Coerência do fluxo pós-cadastro no RegisterForm / AuthCard
-- [ ] A-077 🟡 Placeholder de senha atualizado para 8 caracteres
-- [ ] A-078 🟡 Reutilização do registerUserSchema compartilhado
-- [ ] A-079 🟡 Logout automático desacoplado de texto literal da mensagem
-- [ ] A-081 🟡 Semântica do checkbox "Lembrar-me"
-- [ ] A-082 🔵 Tratamento do link "Esqueci minha senha"
-- [ ] A-084 🔵 Título condicional no AuthCard (Login vs Cadastro)
+### Lote 08: Frontend - Autenticação, Sessão e Armazenamento Local (status: ✅ concluído)
+- [x] A-074 🟠 Proteção try/catch e validação no JSON.parse do localStorage
+- [x] A-075 🟡 Tipagem segura e estado da sessão persistida no AuthContext
+- [x] A-076 🟡 Coerência do fluxo pós-cadastro no RegisterForm / AuthCard
+- [x] A-077 🟡 Placeholder de senha atualizado para 8 caracteres
+- [x] A-078 🟡 Reutilização do registerUserSchema compartilhado
+- [x] A-079 🟡 Logout automático desacoplado de texto literal da mensagem
+- [x] A-081 🟡 Semântica do checkbox "Lembrar-me"
+- [x] A-082 🔵 Tratamento do link "Esqueci minha senha"
+- [x] A-084 🔵 Título condicional no AuthCard (Login vs Cadastro)
 
 ### Lote 09: Frontend - Formulários de Perfil, Medições e Acessibilidade (status: ⬜ pendente)
 - [ ] A-067 🟡 Possibilidade de limpar birthDate na edição de perfil
@@ -476,6 +476,60 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - Arquivos alterados: `frontend/src/services/push.service.ts`
 - Decisões tomadas: Elimina simulação local enganosa de push no cliente.
 
+### A-074: ✅ CORRIGIDO
+- Lote: 08 | Commit: 79a3463
+- O que foi feito: Em `frontend/src/context/AuthContext.tsx`, implementada a função defensiva `getStoredUserSession()` com `try/catch` e validação da estrutura do payload ao inicializar o estado de usuário. Se o JSON em `user_session` ou `sessionStorage` estiver malformado ou corrompido, captura o `SyntaxError`, limpa as chaves afetadas e retorna `null`, prevenindo travamento da aplicação em tela branca. Adicionado teste de resiliência em `AuthContext.test.tsx`.
+- Arquivos alterados: `frontend/src/context/AuthContext.tsx`, `frontend/src/context/AuthContext.test.tsx`
+- Decisões tomadas: Elimina ponto único de falha no bootstrap da aplicação.
+
+### A-075: ✅ CORRIGIDO
+- Lote: 08 | Commit: 79a3463
+- O que foi feito: Em `frontend/src/context/AuthContext.tsx`, adicionado o campo derivado `isLoadingProfile: boolean` (`!!token && (!user || !('created_at' in user))`) ao contexto `AuthContextType`, permitindo à interface distinguir quando a sessão básica foi hidratada do storage e os dados completos de biometria e metas estão sendo carregados via rede (`getCurrentUserProfile`).
+- Arquivos alterados: `frontend/src/context/AuthContext.tsx`
+- Decisões tomadas: Não introduz `setState` síncrono em `useEffect`, preservando integridade das regras do React 19 / Compiler.
+
+### A-076: ✅ CORRIGIDO
+- Lote: 08 | Commit: 79a3463
+- O que foi feito: Em `frontend/src/components/auth/AuthCard.tsx` (`handleAuthSuccess`), unificado o fluxo de sucesso: tanto no login quanto no cadastro com sucesso (onde o token JWT e a sessão já são gravados pelo `RegisterForm`), redireciona diretamente para a rota principal `/` (que encaminha ao onboarding ou dashboard) com feedback "Conta criada com sucesso! Redirecionando...", eliminando a mensagem contraditória anterior "Faça login para continuar".
+- Arquivos alterados: `frontend/src/components/auth/AuthCard.tsx`
+- Decisões tomadas: Alinhamento da UX com o comportamento real da API.
+
+### A-077: ✅ CORRIGIDO
+- Lote: 08 | Commit: 79a3463
+- O que foi feito: Em `frontend/src/components/auth/RegisterForm.tsx`, o placeholder do campo de senha foi atualizado de `"MÍNIMO 6 CARACTERES"` para `"MÍNIMO 8 CARACTERES COM LETRA E NÚMERO"`, alinhando a instrução visível com o requisito real da política de senhas.
+- Arquivos alterados: `frontend/src/components/auth/RegisterForm.tsx`
+- Decisões tomadas: Consistência visual e acessibilidade.
+
+### A-078: ✅ CORRIGIDO
+- Lote: 08 | Commit: 79a3463
+- O que foi feito: Em `frontend/src/components/auth/RegisterForm.tsx`, o schema de cadastro foi refatorado para estender `registerUserSchema` de `@caloriesync/shared`, aproveitando a fonte única da verdade para nome, email normalizado, senha forte (com teto de 72 chars do bcrypt) e termos de uso LGPD, mantendo apenas `confirmPassword` e o refinamento de igualdade como especificidades de formulário cliente.
+- Arquivos alterados: `frontend/src/components/auth/RegisterForm.tsx`
+- Decisões tomadas: Elimina duplicação e divergência de regras entre frontend e backend.
+
+### A-079: ✅ CORRIGIDO
+- Lote: 08 | Commit: 79a3463
+- O que foi feito: Desacoplada a regra de desautenticação automática no cliente (`frontend/src/services/api.ts`). O backend em `backend/src/services/user.service.ts` (`getUserProfile`) agora responde explicitamente com código HTTP 401 e `code: 'USER_NOT_FOUND'` caso o usuário do token não exista. Em `api.ts`, a verificação checa `response.status === 401` ou `json?.code === 'USER_NOT_FOUND'`, preservando retrocompatibilidade com 404 textual e limpando tanto `localStorage` quanto `sessionStorage`.
+- Arquivos alterados: `backend/src/services/user.service.ts`, `backend/src/middlewares/errorHandler.ts`, `frontend/src/services/api.ts`
+- Decisões tomadas: Sessão desacoplada de tradução ou texto de mensagem de erro.
+
+### A-081: ✅ CORRIGIDO
+- Lote: 08 | Commit: 79a3463
+- O que foi feito: Em `frontend/src/components/auth/LoginForm.tsx` e `frontend/src/context/AuthContext.tsx`, conectado o checkbox "Lembrar-me" à persistência: ao submeter com `rememberMe: false`, os tokens de autenticação e sessão são gravados em `sessionStorage` (sendo expirados ao fechar a aba/navegador), e quando `true`, em `localStorage`. Ambos os storages são limpos no logout. Adicionado teste unitário cobrindo o fluxo em `AuthContext.test.tsx`.
+- Arquivos alterados: `frontend/src/components/auth/LoginForm.tsx`, `frontend/src/context/AuthContext.tsx`, `frontend/src/context/AuthContext.test.tsx`
+- Decisões tomadas: Respeita a privacidade e semântica de computadores compartilhados.
+
+### A-082: ✅ CORRIGIDO
+- Lote: 08 | Commit: 79a3463
+- O que foi feito: Em `frontend/src/components/auth/LoginForm.tsx`, adicionado tratamento no clique do link "Esqueci minha senha" para exibir mensagem de feedback imediata informando com transparência que a redefinição automática via e-mail está em implementação, evitando que a ação seja inerte.
+- Arquivos alterados: `frontend/src/components/auth/LoginForm.tsx`
+- Decisões tomadas: Feedback claro ao usuário sobre o recurso.
+
+### A-084: ✅ CORRIGIDO
+- Lote: 08 | Commit: 79a3463
+- O que foi feito: Em `frontend/src/components/auth/AuthCard.tsx`, o título principal `<h1>` foi condicionado ao modo ativo (`mode === 'register' ? 'Crie sua conta' : 'Bem-vindo de volta'`), garantindo coerência visual quando o usuário navega para a aba de cadastro.
+- Arquivos alterados: `frontend/src/components/auth/AuthCard.tsx`
+- Decisões tomadas: Consistência de interface.
+
 ## 🧠 DECISÕES E OBSERVAÇÕES GLOBAIS
 - Padrão conservador: preservar comportamento de produção e regras de negócio já validadas pelos testes.
 - Toda modificação passa por validação rápida (typecheck / testes da área) e ao final do lote pela validação completa (`npm run lint`, `npm run build`, `npm run test`, `npm run test:frontend`).
@@ -493,6 +547,8 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - Lote 05 concluído (commit `8ab32cc`): corrigidos A-007, A-017, A-018, A-031, A-058, A-040, A-022.
 - Lote 06 concluído (commit `902186b`): corrigidos A-013, A-014, A-016, A-026, A-034, A-037, A-063, A-033.
 - Lote 07 concluído (commit `5535396`): corrigidos A-005, A-030, A-071, A-086, A-087, A-116.
+- Lote 08 concluído (commit `79a3463`): corrigidos A-074, A-075, A-076, A-077, A-078, A-079, A-081, A-082, A-084.
+
 
 
 
