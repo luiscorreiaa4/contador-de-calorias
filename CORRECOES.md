@@ -15,7 +15,7 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - Lote atual: Lote 14: Documentação, Contratos e Alinhamento Final
 - Achado em andamento: A-046
 - Próximo passo (bem específico): Iniciar Lote 14 com revisão de scripts e aliases no package.json raiz (A-046, A-047, A-048, A-050, A-051), configuração de envs (.env.example A-053), desligamento gracioso (A-055), trust proxy e threadpool (A-056, A-057, A-042), textos legais (A-066), CI (A-111, A-112), documentação de testes e backlog (A-122, A-123, A-124, A-125, A-126, A-128) e revisões de contratos/modelos (A-019, A-027, A-032, A-038, A-041, A-044, A-064, A-065, A-091).
-- Último commit: pendente de commit do Lote 13
+- Último commit: e3ecb75 (Lote 13 concluído)
 - Progresso: 98 / 129 achados
 
 ## 🔧 COMANDOS DE VALIDAÇÃO
@@ -711,43 +711,43 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - Decisões tomadas: Limpeza de dependência fantasma sem risco operacional.
 
 ### A-117: ✅ CORRIGIDO
-- Lote: 13 | Commit: pendente
+- Lote: 13 | Commit: e3ecb75
 - O que foi feito: Em `backend/src/routes/user.routes.ts`, adicionado `loginIpLimiter` (máximo de 30 tentativas por IP em 15 minutos) antes do `loginLimiter` (10 tentativas por IP + e-mail normalizado). Em `backend/tests/integration/auth_rate_limit.test.ts`, a suíte foi atualizada para cobrir três comportamentos distintos: (1) que requisições abaixo do teto global por IP com e-mails distintos não são bloqueadas, (2) que requisições para o mesmo e-mail bloqueiam após 10 tentativas, e (3) que o teto global por IP (30 tentativas) bloqueia com 429 mesmo quando todos os e-mails são distintos, eliminando o falso contrato de bypass infinito por e-mail.
 - Arquivos alterados: `backend/src/routes/user.routes.ts`, `backend/tests/integration/auth_rate_limit.test.ts`
 - Decisões tomadas: Proteção em camadas mitiga tanto força bruta direcionada a uma única conta quanto ataques de credential stuffing e pulverização de senhas vindos de um mesmo endereço IP.
 
 ### A-118: ✅ CORRIGIDO
-- Lote: 13 | Commit: pendente
+- Lote: 13 | Commit: e3ecb75
 - O que foi feito: Em `backend/tests/integration/foods_uniqueness.test.ts`, a suíte foi completamente alinhada com os índices parciais multi-tenant criados em A-003 (`idx_foods_catalog_unique_name` e `idx_foods_custom_user_unique_name`), cobrindo com asserções explícitas todos os cenários: unicidade no catálogo geral (`user_id IS NULL`), rejeição de nomes duplicados para o mesmo usuário, permissão para usuários diferentes cadastrarem alimentos com o mesmo nome, e permissão para que um usuário crie alimento personalizado com o mesmo nome de um item do catálogo geral.
 - Arquivos alterados: `backend/tests/integration/foods_uniqueness.test.ts`
 - Decisões tomadas: Cobertura automatizada rigorosa garante o isolamento multi-tenant sem regressões na integridade do catálogo.
 
 ### A-119: ✅ CORRIGIDO
-- Lote: 13 | Commit: pendente
+- Lote: 13 | Commit: e3ecb75
 - O que foi feito: Em `backend/tests/integration/user_measurements.test.ts`, adicionada validação estrita da ordenação cronológica crescente das medições retornadas em `GET /api/users/me/measurements`, comparando pares consecutivos de `measured_at`. Adicionado também teste para o comportamento de A-006: o envio de uma medição com data retroativa não deve sobrescrever o peso mais recente exibido no perfil do usuário.
 - Arquivos alterados: `backend/tests/integration/user_measurements.test.ts`
 - Decisões tomadas: Elimina falsos positivos de ordenação e protege a regra de não sobrescrita de peso retroativo.
 
 ### A-120: ✅ CORRIGIDO
-- Lote: 13 | Commit: pendente
+- Lote: 13 | Commit: e3ecb75
 - O que foi feito: Em `backend/tests/integration/request_logging.test.ts`, substituído o `setTimeout(50)` fixo frágil por sincronização determinística que aguarda ativamente a emissão do log assíncrono contendo o `x-request-id` correspondente, com timeout de segurança e verificação contínua.
 - Arquivos alterados: `backend/tests/integration/request_logging.test.ts`
 - Decisões tomadas: Teste de observabilidade 100% determinístico e imune a lentidão intermitente em ambientes de CI.
 
 ### A-127: ✅ CORRIGIDO
-- Lote: 13 | Commit: pendente
+- Lote: 13 | Commit: e3ecb75
 - O que foi feito: Em `frontend/src/mocks/handlers.ts`, a credencial de login aceita pelo mock do MSW foi atualizada de `123456` para `senha123` (8+ caracteres com letras e números, em conformidade com o schema compartilhado do backend). Em `frontend/src/components/auth/LoginForm.test.tsx`, os testes foram atualizados para utilizar `senha123`.
 - Arquivos alterados: `frontend/src/mocks/handlers.ts`, `frontend/src/components/auth/LoginForm.test.tsx`
 - Decisões tomadas: Mocks de rede agora refletem fielmente as regras de validação criptográfica do produto.
 
 ### A-129: ✅ CORRIGIDO
-- Lote: 13 | Commit: pendente
+- Lote: 13 | Commit: e3ecb75
 - O que foi feito: Em `frontend/src/tests/auth_storage.test.tsx` e `frontend/src/context/AuthContext.test.tsx`, adicionados testes abrangentes para a hidratação inicial de sessão a partir do `localStorage`, confirmando: (1) que a sessão hidratada não contém biometrias ou metas sensíveis, (2) que o estado de carregamento de perfil (`isLoadingProfile`) é ativado para buscar dados completos, e (3) que entradas corrompidas ou objetos parciais sem `id` ou `email` são devidamente descartados e limpos sem causar tela branca ou crash na aplicação.
 - Arquivos alterados: `frontend/src/tests/auth_storage.test.tsx`, `frontend/src/context/AuthContext.test.tsx`
 - Decisões tomadas: Garantida a resiliência do ciclo de vida de bootstrap e restauração de sessão do frontend.
 
 ### A-052: ✅ CORRIGIDO
-- Lote: 13 | Commit: pendente
+- Lote: 13 | Commit: e3ecb75
 - O que foi feito: Em `eslint.config.js`, adicionadas regras estritas de qualidade de código (`no-debugger: 'error'`, `no-duplicate-imports: 'error'`, `@typescript-eslint/no-explicit-any: 'error'`, e ignores de `data/**`). Corrigido import duplicado em `backend/src/services/user.service.ts` e removida diretiva de disable obsoleta em `errorHandler.ts`. A adição de `eslint-plugin-jsx-a11y` foi avaliada e rejeitada neste momento para cumprir a Regra nº 4 (proibição de novas dependências), mantendo a garantia de tipos e compilação via `tsc --noEmit` e `tsc -b`.
 - Arquivos alterados: `eslint.config.js`, `backend/src/services/user.service.ts`, `backend/src/middlewares/errorHandler.ts`
 - Decisões tomadas: Endurecimento do linter com o ferramental existente sem inflar dependências.
@@ -774,7 +774,7 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - Lote 10 concluído (commit `e115dda`): corrigidos A-092, A-093, A-094, A-095, A-096, A-097, A-098, A-089, A-090.
 - Lote 11 concluído (commit `d28b58f`): corrigidos A-101, A-102, A-103, A-104, A-113, A-114, A-115.
 - Lote 12 concluído (commit `68df854`): corrigidos A-028, A-029, A-069, A-070, A-088, A-049.
-- Lote 13 concluído (commit pendente): corrigidos A-117, A-118, A-119, A-120, A-127, A-129, A-052.
+- Lote 13 concluído (commit `e3ecb75`): corrigidos A-117, A-118, A-119, A-120, A-127, A-129, A-052.
 
 
 
