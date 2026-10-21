@@ -14,7 +14,7 @@ Toda suíte que alcance pool/app, inclusive por services, models ou helpers, reg
 
 `test` usa `--test-force-exit` como proteção extra. `test:strict` e `test:file` não usam essa flag e desabilitam `allowExitOnIdle` para expor sockets esquecidos. Execute strict na verificação final e no CI. O timeout de 30 s do Node é herdado pelos subtestes e não substitui o teto global: handles após o fim dos testes ainda podem manter o processo vivo. Frontend: `vitest run`, teste/hook 20 s e teardown 10 s (`frontend/vite.config.ts`); MSW fecha em `afterAll`.
 
-Os resultados históricos abaixo representam a validação contínua da suíte; os resultados atuais e a tabela completa estão em [TEST_HYGIENE_REPORT.md](TEST_HYGIENE_REPORT.md).
+Os resultados na tabela abaixo representam o status verificado da suíte de testes.
 
 Comandos executados a partir da **raiz** do monorepo:
 

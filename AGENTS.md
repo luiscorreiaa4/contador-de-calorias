@@ -55,15 +55,37 @@ Executar na **raiz** do monorepo:
 ---
 
 ## 5. Ponteiros de Documentação e Regras Detalhadas
-- **Regras Detalhadas:**
+- **Regras Detalhadas & Skills:**
   - Backend: [.agents/rules/backend-rules.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/.agents/rules/backend-rules.md)
   - React: [.agents/rules/react-rules.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/.agents/rules/react-rules.md)
   - Estilo e UI: [.agents/rules/style-rules.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/.agents/rules/style-rules.md)
+  - Inspeção no Browser (E2E): [.agents/skills/browser-inspection/SKILL.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/.agents/skills/browser-inspection/SKILL.md)
 - **Documentação de Sistema:**
   - Arquitetura & Banco (ER): [docs/ARCHITECTURE.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/ARCHITECTURE.md)
   - Especificação e Fórmulas de Negócio: [docs/SPEC.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/SPEC.md)
   - Estratégia de Testes: [docs/TESTING.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/TESTING.md)
   - Planejamento de Fases: [docs/ROADMAP.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/ROADMAP.md)
-  - Débitos Técnicos e Backlog: [docs/BACKLOG.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/BACKLOG.md) (histórico em [docs/archive/TECH_DEBT.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/archive/TECH_DEBT.md))
+  - Design System e Cores: [docs/CORES.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/CORES.md)
+  - Navegação e Rotas: [docs/UX_NAVIGATION.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/UX_NAVIGATION.md)
+  - Migrações: [docs/MIGRATIONS.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/MIGRATIONS.md)
 
-SE EXISTIR AUDITORIA.md NA RAIZ E A AUDITORIA NÃO ESTIVER CONCLUÍDA: leia-o inteiro e continue a partir do CHECKPOINT. Modo somente leitura.
+---
+
+## 6. Inspeções no Navegador (Browser Subagent / E2E) e Conta de Teste
+- **Skill de Referência:** [.agents/skills/browser-inspection/SKILL.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/.agents/skills/browser-inspection/SKILL.md)
+- ❌ **PROIBIDO Abrir Navegador para Alterações Simples de CSS/Estilo:** NUNCA abra o subagente do navegador (`browser_subagent`) para conferir pequenas alterações visuais, classes CSS, cores, paddings ou ajustes pontuais. Isso consome tempo e tokens em excesso.
+- ✅ **Casos Exclusivos em que o Browser Pode ser Aberto:**
+  1. Apenas quando o usuário **pedir explicitamente** (ex: "abra o navegador", "tire prints", "inspecione a tela no chrome").
+  2. Em casos de extrema necessidade para validar fluxos interativos complexos ou quebras de tela críticas que não possam ser verificadas de outra forma.
+- **Credenciais da Conta Pré-Existente (Onboarding Concluído):**
+  - **E-mail:** `teste@teste.com` (alternativa: `test@example.com`)
+  - **Senha:** `123456` (alternativa: `Senha123!` para `test@example.com`)
+  - **Usuário:** `testador123`
+  - **Status:** `onboarding_completed: true` (dados corporais, rotina e metas diárias já calculados).
+- **Regras Mandatórias ao Executar o Browser Subagent:**
+  - ❌ **PROIBIDO Criar Conta ou Refazer Onboarding:** Nunca acesse `/cadastro` nem passe pelas 5 etapas do wizard de onboarding (`/onboarding`).
+  - ✅ **Fluxo de Login Direto:**
+    1. Acesse `http://localhost:5173/login`.
+    2. Na aba "ENTRAR", insira `teste@teste.com` no campo de e-mail e `123456` na senha.
+    3. Clique no botão de submissão ("ENTRAR").
+    4. O sistema autentica imediatamente e direciona para o Dashboard (`/`), com acesso liberado a todas as telas (`/`, `/evolucao`, `/metas`, `/configuracoes`, `/perfil`).

@@ -12,7 +12,7 @@ Aplicação web para acompanhamento nutricional, registro de refeições e anál
 - **Conta e privacidade:** gestão de perfil, alteração de senha, exportação de dados e exclusão da conta.
 - **Experiência web:** recursos de PWA, cache de assets e navegação, indicação de conexão offline e infraestrutura de suporte a notificações push.
 
-O projeto está em desenvolvimento. Confirmação de e-mail, recuperação de senha, login social e revogação de sessão com refresh tokens permanecem pendentes na documentação. O [roadmap](docs/ROADMAP.md) e o [backlog](docs/BACKLOG.md) detalham os requisitos que bloqueiam o lançamento público.
+O projeto está em desenvolvimento. Confirmação de e-mail, recuperação de senha, login social e revogação de sessão com refresh tokens permanecem pendentes na documentação. O [roadmap](docs/ROADMAP.md) e a [especificação](docs/SPEC.md) detalham os requisitos que orientam os próximos passos.
 
 ## Tecnologias
 
