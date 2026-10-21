@@ -186,8 +186,9 @@ export const SecurityPage: React.FC = () => (
 
     <LegalSection title="2. Sessões e Autenticação">
       <p>
-        O acesso é autenticado por token JWT de expiração limitada. Em caso de troca de senha, a sessão anterior
-        é invalidada.
+        O acesso é autenticado por token JWT criptográfico com expiração temporária automática. Recomendamos
+        o encerramento explícito da sessão (logout) e a atualização de credenciais em caso de suspeita
+        de acesso indevido.
       </p>
     </LegalSection>
 

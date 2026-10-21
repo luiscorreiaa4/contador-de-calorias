@@ -7,21 +7,26 @@ const { Pool } = pg;
 pg.types.setTypeParser(1700, (val: string) => (val === null ? null : Number(val)));
 
 const dbName = env.DB_NAME;
+const currentEnv = process.env.NODE_ENV || env.NODE_ENV;
 
-if (process.env.NODE_ENV === 'test' && !dbName.endsWith('_test')) {
+if (currentEnv === 'test' && !dbName.endsWith('_test')) {
   console.error('❌ ERRO CRÍTICO: Testes estão tentando rodar num banco que não termina com "_test"!');
   console.error(`O banco atual é: ${dbName}`);
   console.error('Abortando processo para evitar deleção de dados de desenvolvimento/produção.');
   process.exit(1);
 }
 
-export function getSslConfig() {
-  if (process.env.NODE_ENV !== 'production') {
+export function getSslConfig(
+  nodeEnv: string = process.env.NODE_ENV || env.NODE_ENV,
+  caCert?: string
+) {
+  if (nodeEnv !== 'production') {
     return false;
   }
+  const ca = caCert ?? process.env.DB_SSL_CA ?? env.DB_SSL_CA;
   return {
     rejectUnauthorized: true,
-    ...(process.env.DB_SSL_CA ? { ca: process.env.DB_SSL_CA } : {}),
+    ...(ca ? { ca } : {}),
   };
 }
 

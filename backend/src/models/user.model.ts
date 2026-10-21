@@ -155,7 +155,8 @@ export async function updateUser(
   return mapUserRow(result.rows[0])!;
 }
 
-export async function deleteUser(id: string): Promise<boolean> {
-  const result = await pool.query('DELETE FROM users WHERE id = $1', [id]);
+export async function deleteUser(id: string, client?: PoolClient): Promise<boolean> {
+  const db = client || pool;
+  const result = await db.query('DELETE FROM users WHERE id = $1', [id]);
   return (result.rowCount ?? 0) > 0;
 }

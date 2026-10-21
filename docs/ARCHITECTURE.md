@@ -282,3 +282,20 @@ ORDER BY date_val ASC;
 - **Subconsulta Correlacionada Otimizada:** Para cada linha agrupada da CTE `daily_consumption`, a subconsulta lateral busca unicamente o registro mais recente de `user_goals` com `effective_from <= date_val`.
 - **Sem Junções Cartesianas:** Elimina a necessidade de fazer joins completos com filtros no `WHERE` que gerariam produtos cartesianos ou exigiriam funções de janela (`ROW_NUMBER() OVER`) sobre todo o histórico.
 - **Zero N+1 Queries:** O backend não precisa iterar em loops na memória para buscar as metas dia a dia; o PostgreSQL resolve toda a projeção analítica em um único plano de execução indexado.
+
+---
+
+## 6. Convenções de Nomenclatura e Contratos (A-038) [CONFIRMADO]
+
+1. **Banco de Dados e Modelos:** Nomes de tabelas e colunas utilizam estritamente `snake_case` (`meal_time`, `base_unit`, `measured_at`, `effective_from`).
+2. **Respostas da API:** Os payloads HTTP retornados pelo backend preservam os nomes do modelo relacional em `snake_case`, evitando camadas arbitrárias de transformação e deserialização.
+3. **Contratos Zod Compartilhados (`@caloriesync/shared`):**
+   - DTOs de entrada no shared devem respeitar os campos esperados pela camada de serviço e banco.
+   - Qualquer discrepância histórica pontual é absorvida nos schemas de validação Zod sem quebrar clientes legados.
+
+---
+
+## 7. Identificadores UUID e Compatibilidade PostgreSQL (A-065) [CONFIRMADO]
+
+1. **Requisito de Versão:** O CalorieSync requer PostgreSQL 14+ (o ambiente padrão utiliza PostgreSQL 16 via Docker Compose).
+2. **Geração Nativa:** A partir do PostgreSQL 13, a função criptográfica `gen_random_uuid()` integra o núcleo do banco de dados (core), não exigindo extensões externas como `pgcrypto`. As migrações novas utilizam `gen_random_uuid()` nativo com garantia de performance e portabilidade. Migrações de baseline mantêm a extensão `uuid-ossp` apenas para compatibilidade histórica de bootstrapping.

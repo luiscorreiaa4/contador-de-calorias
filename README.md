@@ -10,7 +10,7 @@ Aplicação web para acompanhamento nutricional, registro de refeições e anál
 - **Metas nutricionais:** cálculo automático a partir dos dados corporais, objetivo e atividade física, com opção de ajuste manual e histórico de vigência.
 - **Evolução:** gráficos de consumo alimentar em períodos de 7 e 30 dias e acompanhamento de peso e gordura corporal.
 - **Conta e privacidade:** gestão de perfil, alteração de senha, exportação de dados e exclusão da conta.
-- **Experiência web:** recursos de PWA, cache de assets e navegação, indicação de conexão offline e gerenciamento de notificações push.
+- **Experiência web:** recursos de PWA, cache de assets e navegação, indicação de conexão offline e infraestrutura de suporte a notificações push.
 
 O projeto está em desenvolvimento. Confirmação de e-mail, recuperação de senha, login social e revogação de sessão com refresh tokens permanecem pendentes na documentação. O [roadmap](docs/ROADMAP.md) e o [backlog](docs/BACKLOG.md) detalham os requisitos que bloqueiam o lançamento público.
 
@@ -18,7 +18,7 @@ O projeto está em desenvolvimento. Confirmação de e-mail, recuperação de se
 
 | Camada | Tecnologias principais |
 | --- | --- |
-| Frontend | React 19, Vite 8, TypeScript 6 e React Router 7 |
+| Frontend | React 19, Vite 8, TypeScript 6 e React Router 7 (`react-router` v7 puro, sem pacotes legados) |
 | Interface | Tailwind CSS 3, Radix UI, Recharts e Lucide React |
 | Dados e formulários | TanStack Query 5, React Hook Form e Zod 3 |
 | Backend | Node.js 24, Express 4 e TypeScript 5, com execução via `tsx` |
@@ -143,7 +143,7 @@ As variáveis do backend ficam em `backend/.env`. Os campos de conexão devem se
 | `DB_NAME` | Nome do banco; em desenvolvimento, `contador_calorias` |
 | `DATABASE_URL` | URL de conexão utilizada pelas migrações |
 | `JWT_SECRET` | Chave de assinatura de sessão; obrigatória, com no mínimo 32 caracteres |
-| `JWT_EXPIRES_IN` | Validade do token; configuração documentada: `7d` |
+| `JWT_EXPIRES_IN` | Validade configurável do token (ex: `7d`), aplicada na geração da sessão JWT |
 | `CORS_ORIGIN` | Origem autorizada para o frontend; localmente, `http://localhost:5173` |
 | `DB_SSL_CA` | Certificado de autoridade certificadora para conexões SSL, quando necessário |
 | `TRUST_PROXY` | Número de saltos de proxy confiáveis em ambientes com proxy reverso |

@@ -464,16 +464,42 @@ export async function getActiveGoal(userId: string, dateStr?: string) {
   if (!goal) {
     const user = await UserModel.findFullUserById(userId);
     if (user && user.daily_calories_goal) {
+      let carbs: number;
+      let fats: number;
+      try {
+        if (user.birth_date && user.sex && user.goal && user.weight && user.height && user.activity_level) {
+          const profileForCalc: NutritionService.UserProfile = {
+            sex: user.sex as NutritionService.UserProfile['sex'],
+            birthDate: String(user.birth_date),
+            goal: user.goal as NutritionService.UserProfile['goal'],
+            weight: Number(user.weight),
+            height: Number(user.height),
+            body_fat: user.body_fat != null ? Number(user.body_fat) : null,
+            activity_level: user.activity_level as NutritionService.UserProfile['activity_level'],
+          };
+          const targets = NutritionService.calculateEnergyTargets(profileForCalc);
+          carbs = targets.suggestedMacros.carbs;
+          fats = targets.suggestedMacros.fats;
+        } else {
+          throw new Error('Perfil incompleto');
+        }
+      } catch {
+        const cal = Number(user.daily_calories_goal);
+        const prot = Number(user.daily_proteins_goal) || 100;
+        fats = Math.round((cal * 0.25) / 9);
+        carbs = Math.max(0, Math.round((cal - prot * 4 - fats * 9) / 4));
+      }
+
       return {
-        id: 'fallback',
+        id: `fallback-${userId}`,
         user_id: userId,
         effective_from: user.created_at,
         calories: Number(user.daily_calories_goal),
         proteins: Number(user.daily_proteins_goal),
-        carbs: 0,
-        fats: 0,
-        mode: 'auto',
-        created_at: user.created_at
+        carbs,
+        fats,
+        mode: 'auto' as const,
+        created_at: user.created_at,
       };
     }
   }

@@ -62,7 +62,7 @@ Para assegurar estritamente a **Invariante I1** (o modo escuro NÃO muda visualm
 - [ ] `/metas/rotina` (Metas de rotina e biometria)
 - [ ] `/metas/diarias` (Metas diárias de calorias e macros)
 - [ ] `/perfil` (Dados pessoais)
-- [ ] `/configuracoes/notificacoes` (Configurações de lembretes e push)
+- [x] `/configuracoes/notificacoes` (Configurações de lembretes e push - migrado e verificado por check:colors)
 - [ ] `/configuracoes/seguranca` (Troca de senha e encerramento de conta)
 - [ ] `/configuracoes/privacidade` (Termos de uso, privacidade e LGPD)
 

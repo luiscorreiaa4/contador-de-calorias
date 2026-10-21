@@ -12,7 +12,7 @@
     "lint": "node scripts/check-test-hygiene.mjs && npm --prefix frontend run check:colors && eslint .",
     "test": "node scripts/run-tests.mjs backend",
     "test:backend:file": "node scripts/run-tests.mjs file",
-    "test:frontend:file": "node scripts/run-tests.mjs frontend",
+    "test:frontend:file": "node scripts/run-tests.mjs frontend:file",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "test:strict": "node scripts/run-tests.mjs strict",

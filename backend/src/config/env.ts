@@ -10,7 +10,11 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const envSchema = z.object({
-  PORT: z.string().default('3001'),
+  PORT: z
+    .string()
+    .regex(/^\d+$/, 'PORT deve ser numérica')
+    .refine((v) => Number(v) > 0 && Number(v) <= 65535, 'PORT fora do intervalo')
+    .default('3001'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   DB_HOST: z.string().min(1, 'DB_HOST é obrigatório'),
   DB_PORT: z.string().regex(/^\d+$/, 'DB_PORT deve ser numérica').refine(v => Number(v) > 0 && Number(v) <= 65535, 'DB_PORT fora do intervalo'),

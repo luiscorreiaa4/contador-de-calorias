@@ -38,10 +38,20 @@ app.use(
     },
   })
 );
-app.use(cors({
-  origin: corsOrigin,
-  credentials: true,
-}));
+
+const allowedOrigins = corsOrigin.split(',').map((o) => o.trim()).filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+        return callback(null, true);
+      }
+      return callback(new Error('Origem não permitida por CORS'));
+    },
+    credentials: true,
+  })
+);
 
 app.use(compression());
 app.use(express.json({ limit: '50kb' }));

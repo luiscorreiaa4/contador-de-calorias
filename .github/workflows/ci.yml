@@ -13,7 +13,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15
+        image: postgres:16-alpine
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres_test_password
@@ -44,10 +44,10 @@ jobs:
 
     - name: Install Dependencies
       run: |
-        npm install
-        npm --prefix shared install
-        npm --prefix backend install
-        npm --prefix frontend install
+        npm ci
+        npm --prefix shared ci
+        npm --prefix backend ci
+        npm --prefix frontend ci
 
     - name: Security Audit
       run: npm audit --audit-level=high
@@ -56,6 +56,12 @@ jobs:
       uses: gitleaks/gitleaks-action@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Typecheck Shared
+      run: npm --prefix shared run typecheck
+
+    - name: Typecheck Backend
+      run: npm --prefix backend run typecheck
 
     - name: Run Linter
       run: npm run lint

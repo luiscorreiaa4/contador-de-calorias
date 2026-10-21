@@ -1,5 +1,5 @@
 // Dimensiona o threadpool do libuv antes de operações assíncronas (hash bcrypt).
-import './config/threadpool.js';
+import { UV_THREADPOOL_SIZE } from './config/threadpool.js';
 import { app } from './app.js';
 import { env } from './config/env.js';
 import { pool } from './database/pool.js';
@@ -11,12 +11,29 @@ export const server = app.listen(PORT, () => {
   structuredLog('info', 'server_started', {
     port: PORT,
     baseUrl: `http://localhost:${PORT}/api`,
-    uvThreadpoolSize: Number(process.env.UV_THREADPOOL_SIZE),
+    uvThreadpoolSize: UV_THREADPOOL_SIZE,
   });
 });
 
+let isShuttingDown = false;
+
 export const gracefulShutdown = async (signal: string) => {
+  if (isShuttingDown) {
+    return;
+  }
+  isShuttingDown = true;
   structuredLog('info', 'shutdown_initiated', { signal });
+
+  const forceTimeout = setTimeout(() => {
+    structuredLog('error', 'shutdown_timeout_forced', { signal, timeoutMs: 10000 });
+    process.exit(1);
+  }, 10000);
+  forceTimeout.unref();
+
+  if (typeof server.closeAllConnections === 'function') {
+    server.closeAllConnections();
+  }
+
   server.close(async () => {
     try {
       await pool.end();
@@ -25,8 +42,10 @@ export const gracefulShutdown = async (signal: string) => {
       structuredLog('error', 'pool_close_failed', {
         error: err instanceof Error ? err.message : String(err),
       });
+    } finally {
+      clearTimeout(forceTimeout);
+      process.exit(0);
     }
-    process.exit(0);
   });
 };
 
