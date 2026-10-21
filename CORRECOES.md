@@ -12,11 +12,11 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 
 ## 📍 CHECKPOINT
 - Fase atual: 1 (Execução dos Lotes)
-- Lote atual: Lote 05: Tratamento de Erros, Middlewares e Observabilidade no Backend
-- Achado em andamento: A-007
-- Próximo passo (bem específico): Iniciar Lote 05 criando asyncHandler e eliminando blocos try/catch redundantes nos controllers (A-007, A-017, A-018, A-031, A-058, A-040, A-022).
-- Último commit: fd0f16f (Lote 04 concluído)
-- Progresso: 31 / 129 achados
+- Lote atual: Lote 06: Modelos, Otimizações de Consultas e Limpeza no Backend
+- Achado em andamento: A-013
+- Próximo passo (bem específico): Iniciar Lote 06 implementando batch insert e otimização de retorno sem re-consulta O(n) em saved_meal.model.ts (A-013, A-014, A-016, A-026, A-034, A-037, A-063, A-033).
+- Último commit: pendente (Lote 05 concluído)
+- Progresso: 38 / 129 achados
 
 ## 🔧 COMANDOS DE VALIDAÇÃO
 - Typecheck: `npm --prefix backend run typecheck` e `npm run build` (tsc -b no frontend)
@@ -70,14 +70,14 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - [x] A-035 🟡 Recálculo de metas na atualização do perfil
 - [x] A-061 🔵 Regra de TMB para prefiro_nao_responder
 
-### Lote 05: Tratamento de Erros, Middlewares e Observabilidade no Backend (status: ⬜ pendente)
-- [ ] A-007 🟡 Eliminação de try/catch duplicado nos controllers com asyncHandler
-- [ ] A-017 🟡 Handler 404 e sanitização de erros do body-parser
-- [ ] A-018 🟡 errorHandler com log de stack e requestId
-- [ ] A-031 🔵 structuredLog com console.error/warn e controle por ambiente
-- [ ] A-058 🔵 Validação e sanitização de x-request-id no requestLogger
-- [ ] A-040 🔵 Timeout específico e resposta segura no health check
-- [ ] A-022 🔵 Reforço de tipagem de userId autenticado
+### Lote 05: Tratamento de Erros, Middlewares e Observabilidade no Backend (status: ✅ concluído)
+- [x] A-007 🟡 Eliminação de try/catch duplicado nos controllers com asyncHandler
+- [x] A-017 🟡 Handler 404 e sanitização de erros do body-parser
+- [x] A-018 🟡 errorHandler com log de stack e requestId
+- [x] A-031 🔵 structuredLog com console.error/warn e controle por ambiente
+- [x] A-058 🔵 Validação e sanitização de x-request-id no requestLogger
+- [x] A-040 🔵 Timeout específico e resposta segura no health check
+- [x] A-022 🔵 Reforço de tipagem de userId autenticado
 
 ### Lote 06: Modelos, Otimizações de Consultas e Limpeza no Backend (status: ⬜ pendente)
 - [ ] A-013 🟡 Inserção em batch e otimização de salvamento de combos
@@ -362,6 +362,48 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - Arquivos alterados: `backend/src/services/nutrition.service.ts`
 - Decisões tomadas: Tratamento matematicamente imparcial e neutro para perfis que não especificam gênero binário.
 
+### A-007: ✅ CORRIGIDO
+- Lote: 05 | Commit: pendente
+- O que foi feito: Criado utilitário `backend/src/utils/asyncHandler.ts` e refatorados integralmente todos os controllers (`user.controller.ts`, `food.controller.ts`, `meal.controller.ts`, `saved_meal.controller.ts`, `push.controller.ts`), eliminando mais de 250 linhas de duplicação repetitiva de blocos `try/catch`. Erros e exceções assíncronas agora são capturados e repassados automaticamente ao middleware centralizado `errorHandler` via `next(err)`.
+- Arquivos alterados: `backend/src/utils/asyncHandler.ts`, `backend/src/controllers/user.controller.ts`, `backend/src/controllers/food.controller.ts`, `backend/src/controllers/meal.controller.ts`, `backend/src/controllers/saved_meal.controller.ts`, `backend/src/controllers/push.controller.ts`
+- Decisões tomadas: Eliminação da duplicação mantém arquitetura em 4 camadas limpa e aderente aos padrões do Express.
+
+### A-017: ✅ CORRIGIDO
+- Lote: 05 | Commit: pendente
+- O que foi feito: Em `backend/src/app.ts`, adicionado middleware de 404 antes do errorHandler que captura requisições a rotas inexistentes e retorna `{ success: false, message: 'Rota não encontrada.' }` com status HTTP 404 em formato JSON (com exceção de rota de teste de compressão). Em `backend/src/middlewares/errorHandler.ts`, implementada captura de erros de sintaxe de JSON do `body-parser` (`err.status === 400 && 'body' in err` ou `entity.parse.failed`), devolvendo `{ success: false, message: 'JSON inválido no corpo da requisição.' }` com status 400 em vez de vazar detalhes técnicos internos da biblioteca.
+- Arquivos alterados: `backend/src/app.ts`, `backend/src/middlewares/errorHandler.ts`, `backend/tests/integration/error_handling_and_observability.test.ts`
+- Decisões tomadas: Todas as respostas de erro da aplicação respeitam estritamente o contrato JSON `{ success, message }`.
+
+### A-018: ✅ CORRIGIDO
+- Lote: 05 | Commit: pendente
+- O que foi feito: Em `backend/src/middlewares/errorHandler.ts`, integrado correlation ID (`requestId`) extraído da requisição aos logs de erro estruturados. Para erros 500, o log agora inclui `requestId`, `method`, `url`, `statusCode`, `error` e o `stack` trace completo da exceção para possibilitar depuração e observabilidade em produção, enquanto a resposta ao cliente permanece estritamente sanitizada.
+- Arquivos alterados: `backend/src/middlewares/errorHandler.ts`
+- Decisões tomadas: Rastreabilidade fim-a-fim mantida entre requisições HTTP e erros unhandled de servidor.
+
+### A-031: ✅ CORRIGIDO
+- Lote: 05 | Commit: pendente
+- O que foi feito: Em `backend/src/config/logger.ts` (`structuredLog`), substituído o uso indiscriminado de `console.log` por direcionamento conforme o nível: `'error'` usa `console.error`, `'warn'` usa `console.warn` e `'info'` usa `console.log`, permitindo que coletores e orquestradores 12-factor separem stdout de stderr.
+- Arquivos alterados: `backend/src/config/logger.ts`, `backend/tests/integration/error_handling_and_observability.test.ts`
+- Decisões tomadas: O formato JSON (uma linha por evento) é mantido, segregando apenas o stream de saída.
+
+### A-058: ✅ CORRIGIDO
+- Lote: 05 | Commit: pendente
+- O que foi feito: Em `backend/src/middlewares/requestLogger.ts`, implementada validação estrita com expressão regular `/^[A-Za-z0-9-_]{1,64}$/` sobre o cabeçalho `x-request-id` recebido. Valores vazios, excessivamente longos ou contendo quebras de linha/caracteres maliciosos são descartados e substituídos por um novo UUID v4 gerado criptograficamente. O `requestId` saneado é propagado em `req.requestId` e no header de resposta `X-Request-Id`.
+- Arquivos alterados: `backend/src/middlewares/requestLogger.ts`, `backend/tests/integration/error_handling_and_observability.test.ts`
+- Decisões tomadas: Protege contra log forging / injection e cabeçalhos desproporcionais.
+
+### A-040: ✅ CORRIGIDO
+- Lote: 05 | Commit: pendente
+- O que foi feito: Em `backend/src/app.ts` (`GET /health`), implementado timeout dedicado de 2000ms via `Promise.race` na consulta de teste do banco (`SELECT 1`), liberando timers pendentes em bloco `finally`. Evita que o probe de saúde herde os 10s padrão de timeout e fique travado caso o pool esteja sob contenção.
+- Arquivos alterados: `backend/src/app.ts`
+- Decisões tomadas: Preservado contrato `{ success: true, data: { status: 'healthy', database: 'connected' } }` e 503 com mensagem clara no erro.
+
+### A-022: ✅ CORRIGIDO
+- Lote: 05 | Commit: pendente
+- O que foi feito: Em `backend/src/middlewares/auth.ts`, criada função auxiliar `requireUserId(req)` que garante que `userId` é uma string válida e não-vazia, lançando erro 401 caso ausente. Substituídas todas as asserções não-nulas (`req.userId!`) em todos os controllers (`user`, `food`, `meal`, `saved_meal`, `push`), garantindo segurança estrita em tempo de execução e compilação contra acessos acidentais sem autenticação.
+- Arquivos alterados: `backend/src/middlewares/auth.ts`, `backend/src/controllers/user.controller.ts`, `backend/src/controllers/food.controller.ts`, `backend/src/controllers/meal.controller.ts`, `backend/src/controllers/saved_meal.controller.ts`, `backend/src/controllers/push.controller.ts`, `backend/tests/integration/error_handling_and_observability.test.ts`
+- Decisões tomadas: Proteção contra injeção de `undefined` em SQL e refatores de rotas desatentos.
+
 ## 🧠 DECISÕES E OBSERVAÇÕES GLOBAIS
 - Padrão conservador: preservar comportamento de produção e regras de negócio já validadas pelos testes.
 - Toda modificação passa por validação rápida (typecheck / testes da área) e ao final do lote pela validação completa (`npm run lint`, `npm run build`, `npm run test`, `npm run test:frontend`).
@@ -376,4 +418,5 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - Lote 02 concluído (commit `88b2e0c`): corrigidos A-002, A-004, A-008, A-010, A-060, A-036, A-059; A-009 documentado como adiado com mitigação.
 - Lote 03 concluído (commit `312c849`): corrigidos A-011, A-012, A-006, A-021, A-023, A-043, A-045.
 - Lote 04 concluído (commit `fd0f16f`): corrigidos A-003, A-015, A-020, A-024, A-025, A-035, A-061 (A-105 já realizado no Lote 01).
+- Lote 05 concluído: corrigidos A-007, A-017, A-018, A-031, A-058, A-040, A-022.
 

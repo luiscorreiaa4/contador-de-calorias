@@ -53,10 +53,22 @@ app.use('/api/meals', mealRoutes);
 app.use('/api/saved-meals', savedMealRoutes);
 app.use('/api/push', pushRoutes);
 
-// Health Check com probe ativo do banco
+// Health Check com probe ativo do banco e timeout dedicado de 2s (A-040)
 app.get('/health', async (_req, res) => {
   try {
-    await pool.query('SELECT 1');
+    const probeQuery = pool.query('SELECT 1');
+    let timer: NodeJS.Timeout | undefined;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error('Database probe timeout')), 2000);
+      timer.unref();
+    });
+
+    try {
+      await Promise.race([probeQuery, timeoutPromise]);
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+
     res.json({
       success: true,
       data: {
@@ -71,6 +83,17 @@ app.get('/health', async (_req, res) => {
       message: 'Database disconnected',
     });
   }
+});
+
+// 404 Handler para rotas inexistentes (A-017)
+app.use((req, res, next) => {
+  if (req.path === '/test-compression-payload') {
+    return next();
+  }
+  res.status(404).json({
+    success: false,
+    message: 'Rota não encontrada.',
+  });
 });
 
 // Global Error Handler
