@@ -12,11 +12,11 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 
 ## 📍 CHECKPOINT
 - Fase atual: 1 (Execução dos Lotes)
-- Lote atual: Lote 07: Subsistema de Notificações Push e VAPID
-- Achado em andamento: A-005
-- Próximo passo (bem específico): Iniciar Lote 07 analisando endpoints de push, mock / VAPID keys e validação no frontend/backend (A-005, A-030, A-071, A-086, A-087, A-116).
-- Último commit: 902186b (Lote 06 concluído)
-- Progresso: 46 / 129 achados
+- Lote atual: Lote 08: Frontend - Autenticação, Sessão e Armazenamento Local
+- Achado em andamento: A-074
+- Próximo passo (bem específico): Iniciar Lote 08 tratando JSON.parse do localStorage com try/catch e safeParse, tipagem de sessão e fluxo de cadastro (A-074, A-075, A-076, A-077, A-078, A-079, A-081, A-082, A-084).
+- Último commit: 5535396 (Lote 07 concluído)
+- Progresso: 52 / 129 achados
 
 ## 🔧 COMANDOS DE VALIDAÇÃO
 - Typecheck: `npm --prefix backend run typecheck` e `npm run build` (tsc -b no frontend)
@@ -89,13 +89,13 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - [x] A-063 🔵 Validação de existência em removeFavorite
 - [x] A-033 🟠 Exportação LGPD de histórico
 
-### Lote 07: Subsistema de Notificações Push e VAPID (status: ⬜ pendente)
-- [ ] A-005 🟠 Endpoint de push de teste no backend
-- [ ] A-030 🟡 Configuração e validação de chaves VAPID
-- [ ] A-071 🟡 Botão de teste de push desabilitado/tratado na UI
-- [ ] A-086 🔵 Limpeza de timer em push.service.ts no frontend
-- [ ] A-087 🟡 Remover simulação enganosa de push no frontend
-- [ ] A-116 🟠 Alinhamento de testes de push com o contrato real
+### Lote 07: Subsistema de Notificações Push e VAPID (status: ✅ concluído)
+- [x] A-005 🟠 Endpoint de push de teste no backend
+- [x] A-030 🟡 Configuração e validação de chaves VAPID
+- [x] A-071 🟡 Botão de teste de push desabilitado/tratado na UI
+- [x] A-086 🔵 Limpeza de timer em push.service.ts no frontend
+- [x] A-087 🟡 Remover simulação enganosa de push no frontend
+- [x] A-116 🟠 Alinhamento de testes de push com o contrato real
 
 ### Lote 08: Frontend - Autenticação, Sessão e Armazenamento Local (status: ⬜ pendente)
 - [ ] A-074 🟠 Proteção try/catch e validação no JSON.parse do localStorage
@@ -446,6 +446,36 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - Arquivos alterados: `backend/src/models/meal.model.ts`
 - Decisões tomadas: Garante estabilidade operacional do backend durante requisições de portabilidade de dados.
 
+### A-005 / A-116: ✅ CORRIGIDO
+- Lote: 07 | Commit: 5535396
+- O que foi feito: Em `backend/src/services/push.service.ts` (`sendTestNotification`), implementada validação de inscrições ativas: caso o usuário não possua nenhum dispositivo registrado (`subscriptions.length === 0`), lança erro HTTP 422 (`Nenhum dispositivo cadastrado para receber notificações de teste.`) em vez de retornar sucesso falso. Atualizada a suíte de testes em `backend/tests/integration/push_notifications.test.ts` para validar rejeição com 422 antes da inscrição e após a remoção (`unsubscribe`), e sucesso 200 com `recipientCount: 1` quando inscrito. Em `frontend/src/mocks/handlers.ts`, mock alinhado com o contrato do backend.
+- Arquivos alterados: `backend/src/services/push.service.ts`, `backend/tests/integration/push_notifications.test.ts`, `frontend/src/mocks/handlers.ts`
+- Decisões tomadas: Elimina o envio fictício sem destinatário e alinha os testes para validar o fluxo real em vez de mascarar falhas.
+
+### A-030: ✅ CORRIGIDO
+- Lote: 07 | Commit: 5535396
+- O que foi feito: Declaradas as variáveis de ambiente `VAPID_PUBLIC_KEY` e `VAPID_PRIVATE_KEY` no `envSchema` (`backend/src/config/env.ts`) e documentadas com instruções em `backend/.env.example`. Em `backend/src/services/push.service.ts`, o método `getPublicKey` consome prioritariamente `env.VAPID_PUBLIC_KEY`; se em produção (`NODE_ENV === 'production'`) a chave não estiver configurada, rejeita com erro 503 claro, evitando entregar chaves mockadas inválidas em produção.
+- Arquivos alterados: `backend/src/config/env.ts`, `backend/.env.example`, `backend/src/services/push.service.ts`
+- Decisões tomadas: Permite chave de homologação em desenvolvimento/testes locais, mas força configuração em produção com falha descritiva.
+
+### A-071: ✅ CORRIGIDO
+- Lote: 07 | Commit: 5535396
+- O que foi feito: Em `frontend/src/pages/private/NotificationsPage.tsx`, adicionado cabeçalho e descrição transparente de diagnóstico sobre o botão de lembrete de teste ("Os canais de alerta automático estão em desenvolvimento. Utilize a ação abaixo para testar a comunicação e despacho do serviço de lembretes."), esclarecendo para o usuário o objetivo da ação técnica enquanto os canais automáticos permanecem desabilitados.
+- Arquivos alterados: `frontend/src/pages/private/NotificationsPage.tsx`
+- Decisões tomadas: Transparência na interface sobre o estado real da funcionalidade.
+
+### A-086: ✅ CORRIGIDO
+- Lote: 07 | Commit: 5535396
+- O que foi feito: Em `frontend/src/services/push.service.ts` (`ensureServiceWorkerReady`), armazenado o identificador do timer retornado por `setTimeout` de 8 segundos e executado `clearTimeout(timeoutId)` em bloco `finally` ao redor de `Promise.race([navigator.serviceWorker.ready, timeoutPromise])`.
+- Arquivos alterados: `frontend/src/services/push.service.ts`
+- Decisões tomadas: Previne acúmulo de timers orfãos e handles abertos no loop de eventos.
+
+### A-087: ✅ CORRIGIDO
+- Lote: 07 | Commit: 5535396
+- O que foi feito: Em `frontend/src/services/push.service.ts` (`sendTestPush`), removido o bloco de código que disparava sinteticamente notificações no navegador via `registration.showNotification` / `new Notification`. A função agora despacha exclusivamente a chamada HTTP para a API (`/push/test`) e devolve o resultado real.
+- Arquivos alterados: `frontend/src/services/push.service.ts`
+- Decisões tomadas: Elimina simulação local enganosa de push no cliente.
+
 ## 🧠 DECISÕES E OBSERVAÇÕES GLOBAIS
 - Padrão conservador: preservar comportamento de produção e regras de negócio já validadas pelos testes.
 - Toda modificação passa por validação rápida (typecheck / testes da área) e ao final do lote pela validação completa (`npm run lint`, `npm run build`, `npm run test`, `npm run test:frontend`).
@@ -462,5 +492,7 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - Lote 04 concluído (commit `fd0f16f`): corrigidos A-003, A-015, A-020, A-024, A-025, A-035, A-061 (A-105 já realizado no Lote 01).
 - Lote 05 concluído (commit `8ab32cc`): corrigidos A-007, A-017, A-018, A-031, A-058, A-040, A-022.
 - Lote 06 concluído (commit `902186b`): corrigidos A-013, A-014, A-016, A-026, A-034, A-037, A-063, A-033.
+- Lote 07 concluído (commit `5535396`): corrigidos A-005, A-030, A-071, A-086, A-087, A-116.
+
 
 
