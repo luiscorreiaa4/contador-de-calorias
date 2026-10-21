@@ -12,11 +12,11 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 
 ## 📍 CHECKPOINT
 - Fase atual: 1 (Execução dos Lotes)
-- Lote atual: Lote 10: Frontend - Refeições, Combos e Dashboard
-- Achado em andamento: A-092
-- Próximo passo (bem específico): Iniciar Lote 10 com correção de cálculo nutricional em combos salvos, modal de confirmação acessível ao excluir combo, preservação de horário com fuso ao editar refeição, eliminação de metas fixas fictícias de macros no dashboard e sincronização de datas (A-092, A-093, A-094, A-095, A-096, A-097, A-098, A-089, A-090).
-- Último commit: c95815c (Lote 09 concluído)
-- Progresso: 69 / 129 achados
+- Lote atual: Lote 11: PWA, Estilos, Design Tokens e Contrastes
+- Achado em andamento: A-101
+- Próximo passo (bem específico): Iniciar Lote 11 com Service Worker network-first / cache versionado por build, notificationclick com URL absoluta, manifest PWA, prefers-reduced-motion, contraste destructive dark mode >= 4.5:1, tabela de contrastes e allowlist de cores (A-101, A-102, A-103, A-104, A-113, A-114, A-115).
+- Último commit: e115dda (Lote 10 concluído)
+- Progresso: 78 / 129 achados
 
 ## 🔧 COMANDOS DE VALIDAÇÃO
 - Typecheck: `npm --prefix backend run typecheck` e `npm run build` (tsc -b no frontend)
@@ -118,16 +118,16 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - [x] A-099 🟡 Bloqueio de datas futuras em medições corporais
 - [x] A-100 🟠 Tratamento de fuso em medições sem deslocar dia
 
-### Lote 10: Frontend - Refeições, Combos e Dashboard (status: ⬜ pendente)
-- [ ] A-092 🟠 Correção de cálculo nutricional em combos salvos
-- [ ] A-093 🟡 Diálogo acessível de confirmação ao excluir combo
-- [ ] A-094 🟡 Preservação de horário no fuso correto ao editar refeição
-- [ ] A-095 🟡 Eliminação de metas fixas fictícias de carbs/fats no Dashboard
-- [ ] A-096 🟡 Modais de confirmação acessíveis no Dashboard (focus trap, Esc, aria)
-- [ ] A-097 🟡 Ações de refeição visíveis no foco por teclado
-- [ ] A-098 🔵 Tratamento de erro na busca da meta ativa
-- [ ] A-089 🟡 date.ts parsing estrito sem retorno silencioso de "hoje"
-- [ ] A-090 🟡 Sincronização de data do Dashboard com fuso
+### Lote 10: Frontend - Refeições, Combos e Dashboard (status: ✅ concluído)
+- [x] A-092 🟠 Correção de cálculo nutricional em combos salvos
+- [x] A-093 🟡 Diálogo acessível de confirmação ao excluir combo
+- [x] A-094 🟡 Preservação de horário no fuso correto ao editar refeição
+- [x] A-095 🟡 Eliminação de metas fixas fictícias de carbs/fats no Dashboard
+- [x] A-096 🟡 Modais de confirmação acessíveis no Dashboard (focus trap, Esc, aria)
+- [x] A-097 🟡 Ações de refeição visíveis no foco por teclado
+- [x] A-098 🔵 Tratamento de erro na busca da meta ativa
+- [x] A-089 🟡 date.ts parsing estrito sem retorno silencioso de "hoje"
+- [x] A-090 🟡 Sincronização de data do Dashboard com fuso
 
 ### Lote 11: PWA, Estilos, Design Tokens e Contrastes (status: ⬜ pendente)
 - [ ] A-101 🟠 Service Worker: network-first / cache versionado por build
@@ -578,6 +578,60 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - Arquivos alterados: `frontend/src/pages/private/MeasurementsPage.tsx`, `backend/src/services/user.service.ts`
 - Decisões tomadas: Prevenção de deslocamento de dia no fuso horário brasileiro.
 
+### A-092: ✅ CORRIGIDO
+- Lote: 10 | Commit: e115dda
+- O que foi feito: Em `frontend/src/components/meals/NewMealModal.tsx`, corrigido o cálculo de densidade nutricional ao importar itens de combos salvos. Como os macros em itens de combo salvo representam o total da porção salva (`item.quantity`), foi reconstruída a densidade base por 100g/100ml (`factor = 100 / item.quantity`) com `serving_weight: 100`, garantindo que edições posteriores inline da quantidade no prato recalculem perfeitamente calorias e macronutrientes em vez de duplicar ou manter valores estáticos.
+- Arquivos alterados: `frontend/src/components/meals/NewMealModal.tsx`
+- Decisões tomadas: Reconstrução proporcional base 100 preserva total coerência matemática na edição de quantidades.
+
+### A-093: ✅ CORRIGIDO
+- Lote: 10 | Commit: e115dda
+- O que foi feito: Em `frontend/src/components/meals/NewMealModal.tsx`, integrado o componente acessível `ConfirmDialog` no fluxo de exclusão de combos salvos (`handleDeleteCombo`), substituindo chamadas nativas ou omissão de confirmação por diálogo com focus trap, foco inicial no botão cancelar e fechamento por tecla Escape.
+- Arquivos alterados: `frontend/src/components/meals/NewMealModal.tsx`
+- Decisões tomadas: Conformidade com Regra nº 4 (sem alert/confirm nativos) e design brutalista.
+
+### A-094: ✅ CORRIGIDO
+- Lote: 10 | Commit: e115dda
+- O que foi feito: Em `frontend/src/components/meals/NewMealModal.tsx`, implementada lógica de preservação do instante ao editar refeições: se o usuário mantiver o horário original intacto (`time === initialTime`), o `meal_time` ISO original é preservado sem conversões que possam alterar segundos/milissegundos; caso o horário seja editado ou seja uma nova refeição, a string de timestamp é explicitamente ancorada com o fuso `-03:00` de São Paulo (`${date}T${time}:00-03:00`), prevenindo deslocamentos de dia ou hora no banco.
+- Arquivos alterados: `frontend/src/components/meals/NewMealModal.tsx`
+- Decisões tomadas: Evita conversão UTC arbitrária do navegador do cliente.
+
+### A-095: ✅ CORRIGIDO
+- Lote: 10 | Commit: e115dda
+- O que foi feito: Em `frontend/src/pages/private/DashboardPage.tsx`, eliminados fallbacks fictícios fixos de 250g para carboidratos e 65g para gorduras. Quando o usuário não possui meta de carboidratos ou gorduras definida em seu perfil, o painel agora exibe `—` nos denominadores e na barra de progresso, informando com honestidade que a meta não foi configurada.
+- Arquivos alterados: `frontend/src/pages/private/DashboardPage.tsx`, `frontend/src/pages/private/__tests__/DashboardPage.test.tsx`
+- Decisões tomadas: Transparência nutricional e fim de números inventados na interface.
+
+### A-096: ✅ CORRIGIDO
+- Lote: 10 | Commit: e115dda
+- O que foi feito: Criado o componente acessível `frontend/src/components/common/ConfirmDialog.tsx` com focus trap, tecla `Escape`, `aria-labelledby`, `aria-describedby` e foco automático seguro no botão de cancelamento. Integrado no `DashboardPage.tsx` para confirmar exclusão de refeição e cópia de refeições do dia anterior.
+- Arquivos alterados: `frontend/src/components/common/ConfirmDialog.tsx`, `frontend/src/pages/private/DashboardPage.tsx`
+- Decisões tomadas: Componente reutilizável e padronizado em todo o frontend sob o design brutalista semântico.
+
+### A-097: ✅ CORRIGIDO
+- Lote: 10 | Commit: e115dda
+- O que foi feito: Em `frontend/src/pages/private/DashboardPage.tsx`, adicionadas as classes `group-focus-within:opacity-100 focus-within:opacity-100` nos botões de ação de cada refeição (editar e excluir), garantindo que usuários que navegam por teclado (Tab) consigam enxergar e acionar as opções sem depender de hover do mouse.
+- Arquivos alterados: `frontend/src/pages/private/DashboardPage.tsx`
+- Decisões tomadas: Acessibilidade WCAG 2.1 (Focus Visible).
+
+### A-098: ✅ CORRIGIDO
+- Lote: 10 | Commit: e115dda
+- O que foi feito: Em `frontend/src/pages/private/DashboardPage.tsx`, implementado tratamento visual e resiliente quando a busca da meta ativa do usuário falha (`isActiveGoalError`). O dashboard exibe banner de aviso acessível (`role="alert"`) com botão de recarregar (`refetchActiveGoal()`), permitindo ao usuário continuar visualizando suas refeições e calorias do dia sem quebrar o layout.
+- Arquivos alterados: `frontend/src/pages/private/DashboardPage.tsx`
+- Decisões tomadas: Degradação graciosa em falhas de rede transitórias.
+
+### A-089: ✅ CORRIGIDO
+- Lote: 10 | Commit: e115dda
+- O que foi feito: Em `frontend/src/utils/date.ts`, a função `parseLocalDateString` foi refatorada para retornar `null` (ou lançar erro) diante de strings de datas inválidas, em vez de recorrer silenciosamente à data de hoje mascarando dados corrompidos. Criada a função explícita `parseLocalDateOrToday` para os locais que conscientemente desejam fallback, e `addDaysToDateString` foi protegida para lançar erro descritivo em datas malformadas. Atualizados testes unitários em `date.test.ts`.
+- Arquivos alterados: `frontend/src/utils/date.ts`, `frontend/src/utils/__tests__/date.test.ts`
+- Decisões tomadas: Fail-fast contra strings de data vazias ou corrompidas.
+
+### A-090: ✅ CORRIGIDO
+- Lote: 10 | Commit: e115dda
+- O que foi feito: Em `frontend/src/utils/date.ts`, a função `getLocalDateString` foi refatorada para utilizar `new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(date)`, garantindo que a data civil retornada coincida exatamente com a data do servidor e de Brasília, independentemente do fuso horário da máquina ou dispositivo do cliente.
+- Arquivos alterados: `frontend/src/utils/date.ts`
+- Decisões tomadas: Unificação do calendário civil com o fuso oficial da aplicação.
+
 ## 🧠 DECISÕES E OBSERVAÇÕES GLOBAIS
 - Padrão conservador: preservar comportamento de produção e regras de negócio já validadas pelos testes.
 - Toda modificação passa por validação rápida (typecheck / testes da área) e ao final do lote pela validação completa (`npm run lint`, `npm run build`, `npm run test`, `npm run test:frontend`).
@@ -597,6 +651,8 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - Lote 07 concluído (commit `5535396`): corrigidos A-005, A-030, A-071, A-086, A-087, A-116.
 - Lote 08 concluído (commit `79a3463`): corrigidos A-074, A-075, A-076, A-077, A-078, A-079, A-081, A-082, A-084.
 - Lote 09 concluído (commit `c95815c`): corrigidos A-067, A-068, A-072, A-073, A-083, A-085, A-099, A-100.
+- Lote 10 concluído (commit `e115dda`): corrigidos A-092, A-093, A-094, A-095, A-096, A-097, A-098, A-089, A-090.
+
 
 
 
