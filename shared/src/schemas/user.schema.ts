@@ -59,13 +59,13 @@ export const completeOnboardingSchema = z.object({
 });
 
 export const previewGoalsSchema = z.object({
-  sex: z.enum(['masculino', 'feminino', 'prefiro_nao_responder']).optional(),
-  birthDate: z.string().min(10).optional(),
-  goal: z.enum(['perder_peso', 'manter_peso', 'ganhar_massa']).optional(),
-  weight: z.number().positive().optional(),
-  height: z.number().positive().optional(),
-  body_fat: z.number().positive().nullable().optional(),
-  activity_level: z.enum(['sedentario', 'pouco_ativo', 'moderadamente_ativo', 'muito_ativo', 'extremamente_ativo']).optional(),
+  sex: z.enum(['masculino', 'feminino', 'prefiro_nao_responder']).nullable().optional(),
+  birthDate: z.string().min(10).nullable().optional(),
+  goal: z.enum(['perder_peso', 'manter_peso', 'ganhar_massa']).nullable().optional(),
+  weight: z.preprocess((val) => (val === null || val === '' || val === undefined ? undefined : Number(val)), z.number().positive().optional()),
+  height: z.preprocess((val) => (val === null || val === '' || val === undefined ? undefined : Number(val)), z.number().positive().optional()),
+  body_fat: z.preprocess((val) => (val === null || val === '' || val === undefined ? null : Number(val)), z.number().positive().nullable().optional()),
+  activity_level: z.enum(['sedentario', 'pouco_ativo', 'moderadamente_ativo', 'muito_ativo', 'extremamente_ativo']).nullable().optional(),
 });
 
 export const updateGoalsSchema = z.object({

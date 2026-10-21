@@ -140,6 +140,24 @@ describe('User Routes (Integration - E2E)', () => {
     assert.ok(res.body.data.suggestedMacros.proteins > 0);
   });
 
+  it('POST /api/users/me/preview-goals - deve aceitar strings numéricas e valores nulos sem erro 400', async () => {
+    const res = await request(app)
+      .post('/api/users/me/preview-goals')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({
+        weight: '85.50',
+        height: '180.00',
+        body_fat: null,
+        sex: 'masculino',
+        birthDate: '1995-05-20',
+        goal: 'perder_peso',
+      });
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.success, true);
+    assert.ok(res.body.data.suggestedCalories > 0);
+  });
+
   it('PUT /api/users/me/goals - deve atualizar metas manuais e persistir vigência', async () => {
     const res = await request(app)
       .put('/api/users/me/goals')

@@ -32,7 +32,13 @@ function GoalForm({ goal, preview }: { goal: UserGoal; preview: EnergyTargets })
       for (const key of ['calories', 'proteins', 'carbs', 'fats'] as const) setValue(key, automatic[key]);
     }
   };
-  return <form noValidate onSubmit={handleSubmit(data => mutation.mutate(data.mode === 'auto' ? { ...automatic, mode: 'auto' } : data))} className="space-y-6">
+  const onSubmit = (data: Partial<UpdateGoalsDTO>) => {
+    const payload: UpdateGoalsDTO = data.mode === 'auto'
+      ? { calories: automatic.calories, proteins: automatic.proteins, carbs: automatic.carbs, fats: automatic.fats, mode: 'auto' }
+      : { calories: Number(data.calories), proteins: Number(data.proteins), carbs: Number(data.carbs), fats: Number(data.fats), mode: 'manual' };
+    mutation.mutate(payload);
+  };
+  return <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-6">
     <div className="flex flex-wrap gap-3" role="group" aria-label="Modo das metas">
       {(['auto', 'manual'] as const).map(mode => <button key={mode} type="button" aria-pressed={selectedMode === mode} onClick={() => chooseMode(mode)} className={`border-2 border-border px-5 py-3 font-black text-xs uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${selectedMode === mode ? 'bg-primary text-primary-foreground border-black' : 'bg-background hover:bg-secondary'}`}>{mode === 'auto' ? 'AUTOMÁTICO' : 'MANUAL'}</button>)}
     </div>
@@ -54,7 +60,15 @@ function GoalForm({ goal, preview }: { goal: UserGoal; preview: EnergyTargets })
 function GoalQueries({ user }: { user: UserProfile }) {
   const date = getLocalDateString();
   const goal = useQuery({ queryKey: ['active-goal', date], queryFn: () => getActiveGoal(date), staleTime: 5 * 60 * 1000 });
-  const inputs = { weight: user.weight, height: user.height, sex: user.sex, birthDate: user.birth_date, body_fat: user.body_fat, activity_level: user.activity_level, goal: user.goal };
+  const inputs: Record<string, unknown> = {};
+  if (user.weight != null && !isNaN(Number(user.weight))) inputs.weight = Number(user.weight);
+  if (user.height != null && !isNaN(Number(user.height))) inputs.height = Number(user.height);
+  if (user.body_fat != null && !isNaN(Number(user.body_fat))) inputs.body_fat = Number(user.body_fat);
+  if (user.sex) inputs.sex = user.sex;
+  if (user.birth_date) inputs.birthDate = user.birth_date;
+  if (user.activity_level) inputs.activity_level = user.activity_level;
+  if (user.goal) inputs.goal = user.goal;
+
   const preview = useQuery({ queryKey: ['preview-goal', inputs], queryFn: () => previewGoals(inputs), staleTime: 5 * 60 * 1000 });
   if (goal.isPending || preview.isPending) return <p role="status" className="font-bold uppercase">CARREGANDO METAS...</p>;
   if (goal.isError || preview.isError) return <div role="alert" className="text-destructive space-y-3">

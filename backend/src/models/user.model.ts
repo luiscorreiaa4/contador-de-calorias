@@ -2,6 +2,18 @@ import { pool } from '../database/pool.js';
 import type { PoolClient } from 'pg';
 import { User, UserWithoutPassword } from '@caloriesync/shared';
 
+function mapUserRow(row: UserWithoutPassword | undefined): UserWithoutPassword | null {
+  if (!row) return null;
+  return {
+    ...row,
+    weight: row.weight != null ? Number(row.weight) : null,
+    height: row.height != null ? Number(row.height) : null,
+    body_fat: row.body_fat != null ? Number(row.body_fat) : null,
+    daily_calories_goal: Number(row.daily_calories_goal),
+    daily_proteins_goal: Number(row.daily_proteins_goal),
+  };
+}
+
 export async function createUser(
   name: string,
   email: string,
@@ -14,7 +26,7 @@ export async function createUser(
      RETURNING id, name, email, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, terms_accepted_at, created_at, updated_at`,
     [name, email, passwordHash, termsAcceptedAt]
   );
-  return result.rows[0];
+  return mapUserRow(result.rows[0])!;
 }
 
 export async function findUserByEmail(email: string): Promise<User | null> {
@@ -30,7 +42,7 @@ export async function findUserById(id: string): Promise<UserWithoutPassword | nu
     'SELECT id, name, email, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, terms_accepted_at, created_at, updated_at FROM users WHERE id = $1',
     [id]
   );
-  return result.rows[0] ?? null;
+  return mapUserRow(result.rows[0]);
 }
 
 export async function findFullUserById(id: string): Promise<User | null> {
@@ -134,7 +146,7 @@ export async function updateUser(
 
   const db = client || pool;
   const result = await db.query<UserWithoutPassword>(query, values);
-  return result.rows[0];
+  return mapUserRow(result.rows[0])!;
 }
 
 export async function deleteUser(id: string): Promise<boolean> {

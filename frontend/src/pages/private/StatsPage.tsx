@@ -254,7 +254,7 @@ export const StatsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }
                       label={{ position: 'top', value: 'MÉDIA DA META', fill: 'hsl(var(--foreground))', fontSize: 10, fontWeight: 'bold', letterSpacing: '0.1em' }}
                     />
                   )}
-                  <Bar dataKey="consumed_calories" fill="hsl(var(--primary))" stroke="hsl(var(--foreground))" strokeWidth={2} radius={[0, 0, 0, 0]} maxBarSize={60} />
+                  <Bar dataKey="consumed_calories" fill="hsl(var(--primary))" radius={[0, 0, 0, 0]} maxBarSize={60} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
