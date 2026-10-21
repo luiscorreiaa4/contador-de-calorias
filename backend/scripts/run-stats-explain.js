@@ -5,11 +5,16 @@ dotenv.config();
 
 const { Pool } = pg;
 
+if (!process.env.DB_PASSWORD) {
+  console.error('Erro: DB_PASSWORD não definida nas variáveis de ambiente.');
+  process.exit(1);
+}
+
 const user = process.env.DB_USER || 'postgres';
-const pass = process.env.DB_PASSWORD || 'postgres';
+const pass = process.env.DB_PASSWORD;
 const host = process.env.DB_HOST || 'localhost';
 const port = parseInt(process.env.DB_PORT || '5432', 10);
-const dbName = 'contador_calorias_perf';
+const dbName = process.env.DB_NAME || 'contador_calorias_perf';
 
 const pool = new Pool({
   host,
@@ -84,14 +89,16 @@ async function main() {
   console.log('EXPLAIN ANALYZE: /api/meals/stats sob Volume Real (10k meal_items)');
   console.log('================================================================\n');
 
-  for (const days of periods) {
-    console.log(`\n--- EXPLAIN ANALYZE: Período = ${days} dias ---`);
-    const res = await pool.query(statsQuery, [userId, days, endDate]);
-    const plan = res.rows.map(r => r['QUERY PLAN']).join('\n');
-    console.log(plan);
+  try {
+    for (const days of periods) {
+      console.log(`\n--- EXPLAIN ANALYZE: Período = ${days} dias ---`);
+      const res = await pool.query(statsQuery, [userId, days, endDate]);
+      const plan = res.rows.map(r => r['QUERY PLAN']).join('\n');
+      console.log(plan);
+    }
+  } finally {
+    await pool.end();
   }
-
-  await pool.end();
 }
 
 main().catch(err => {

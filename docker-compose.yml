@@ -7,10 +7,10 @@ services:
       - ./backend/.env
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-vN7qL2xR9mK4zP8wT6aB3}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD é obrigatória no ambiente ou no arquivo .env}
       POSTGRES_DB: ${DB_NAME:-contador_calorias}
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro

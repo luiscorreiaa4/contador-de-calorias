@@ -96,13 +96,14 @@ async function runImport() {
 
       // O catálogo possui índice único parcial sobre o nome normalizado
       // (`f_unaccent(lower(name))` quando `active = true`). Antes do upsert,
-      // desativamos qualquer outro alimento ativo com o mesmo nome para manter
-      // a carga idempotente e evitar violação de unicidade.
+      // desativamos qualquer outro alimento ativo do catálogo global com o mesmo nome para manter
+      // a carga idempotente e evitar violação de unicidade, preservando alimentos de usuários.
       await client.query(
         `UPDATE foods
          SET active = false,
              updated_at = NOW()
          WHERE active = true
+           AND user_id IS NULL
            AND f_unaccent(lower(name)) = f_unaccent(lower($1))
            AND NOT (source = $2 AND external_id = $3)`,
         [formattedName, food.source, food.external_id]
@@ -160,14 +161,25 @@ async function runImport() {
       console.log('COMMIT executado com sucesso.');
     }
   } catch (error) {
-    await client.query('ROLLBACK');
+    try {
+      await client.query('ROLLBACK');
+    } catch (rbError) {
+      console.error('Falha ao executar ROLLBACK:', rbError);
+    }
     console.error('Erro durante a importação. ROLLBACK executado.', error);
+    throw error;
   } finally {
     client.release();
   }
 }
 
-runImport().then(() => process.exit(0)).catch(e => {
-  console.error(e);
-  process.exit(1);
-});
+runImport()
+  .then(async () => {
+    await pool.end();
+    process.exit(0);
+  })
+  .catch(async (e) => {
+    console.error('Falha no processo de importação:', e);
+    await pool.end();
+    process.exit(1);
+  });
