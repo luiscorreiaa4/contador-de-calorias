@@ -10,13 +10,13 @@ Sempre que criar componentes no React que se conectam com a API do Node.js, siga
 ## 1. Organização
 - Cliente HTTP centralizado em `/src/services/api.ts`. Nunca usar `fetch`/`axios` solto dentro de componentes.
 - Utilize variáveis de ambiente para a URL da API (`import.meta.env.VITE_API_URL`).
-- Tipos de resposta da API em `/src/types/` (compartilhando forma com os DTOs do backend sempre que possível).
+- Contratos/DTOs da API vêm de `@caloriesync/shared` (fonte única com o backend). Tipos exclusivos de UI ficam em `/src/types/`.
 - Toda chamada assíncrona à API passa por **React Query** (`useQuery` para leitura, `useMutation` para escrita) — nunca `useState` + `useEffect` manual.
 
 ## 2. Cliente HTTP Centralizado
 ```typescript
 // /src/services/api.ts
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -25,14 +25,44 @@ export interface ApiResponse<T> {
 }
 
 export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options,
-  });
-  const json: ApiResponse<T> = await response.json();
-  if (!response.ok || !json.success) {
-    throw new Error(json.message ?? 'Erro ao comunicar com a API.');
+  const token = localStorage.getItem('token');
+  const headers = new Headers(options?.headers || {});
+
+  if (!headers.has('Content-Type') && !(options?.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
   }
+
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+
+  const response = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers,
+  });
+
+  const contentType = response.headers.get('content-type') || '';
+  let json: ApiResponse<T> | null = null;
+
+  if (contentType.includes('application/json')) {
+    try {
+      json = await response.json();
+    } catch {
+      json = null;
+    }
+  }
+
+  if (response.status === 401) {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user_session');
+    window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+    throw new Error(json?.message || 'Sessão expirada. Faça login novamente.');
+  }
+
+  if (!response.ok || !json?.success) {
+    throw new Error(json?.message ?? `Erro na requisição (${response.status})`);
+  }
+
   return json.data as T;
 }
 ```

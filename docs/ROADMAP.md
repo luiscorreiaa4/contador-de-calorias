@@ -90,96 +90,120 @@ Ordem sugerida (score severidade × esforço; detalhes em [BACKLOG §1](file:///
 ### ⏳ Fase 4: Performance, Robustez e Rede de Testes
 *Objetivo: Medir com precisão e otimizar gargalos reais no frontend e backend, fechar lacunas de robustez do backend e criar a rede de testes necessária para as refatorações da Fase 5. Pré-requisito: Fase 3.5 concluída.*
 
-**Escopo original (mantido)**
-- [ ] **Frontend — code-splitting por rota** com `React.lazy()` + `manualChunks` de vendor → **PC-20** *(depende de D-16: adotar roteador antes — PC-21)*.
-- [ ] **Backend — `EXPLAIN ANALYZE`** em `/api/meals/stats` sob volume, usando o seed de `docs/reviews/performance.md` §4 → **PC-23**.
-- [ ] **Cache — `staleTime`/`gcTime`** + invalidação cruzada de `mealStats`, `todayMeals` e `active-goal` → **PC-05**.
+**Roteamento e Performance (D-16: PC-21 antes de PC-20)**
+- [x] **PC-21** Roteamento SPA real com `react-router` v7 (`createBrowserRouter`), URLs declarativas, histórico, botão Voltar e F5 funcionando *(D-16)*.
+- [x] **PC-20** Code-splitting por rota com `lazy` nativo do roteador + `manualChunks` de vendor no Vite *(D-16)*.
+- [x] **PC-02** Compressão HTTP (`compression`).
+- [x] **PC-03** Cache do catálogo de alimentos com `Cache-Control: private, max-age=300` + ETag + `Vary: Authorization` *(D-07)*.
+- [x] **PC-09** SQL: remover subqueries do dashboard, `count(*) OVER()`, e projeção explícita de `foods` com `source`, sem `external_id` nem `active` *(D-08, D-14)*.
+- [x] **PC-10** Índices `foods(name) WHERE active` e `meal_items(food_id)` via nova migração imutável *(D-13, D-14)*.
+- [x] **PC-05** Cache do React Query: `staleTime`/`gcTime` + invalidação cruzada de `mealStats`, `todayMeals` e `active-goal`.
+- [x] **PC-12** Otimizações frontend: import dinâmico de `NewMealModal`, `useMemo` no `AuthContext`, `AbortSignal` no autocomplete.
+- [x] **PC-22** Inserção multi-row em lote para `meal_items` *(D-14)*.
+- [x] **PC-23** `EXPLAIN ANALYZE` em `/api/meals/stats` sob volume (seed de 10k itens).
 
-**Performance (integrado do backlog)**
-- [ ] **PC-02** Compressão HTTP (`compression`).
-- [ ] **PC-03** Cache do catálogo de alimentos *(D-07)*.
-- [ ] **PC-09** SQL: remover subqueries do dashboard, `count(*) OVER()`, projeção explícita em `foods` *(D-08)*.
-- [ ] **PC-10** Índices `foods(name) WHERE active` e `meal_items(food_id)` (nova migração).
-- [ ] **PC-12** Lazy `NewMealModal`, `useMemo` no `AuthContext`, `AbortSignal` no autocomplete.
-- [ ] **PC-21** Roteamento SPA real (URL, Voltar, F5) *(D-16)*.
-- [ ] **PC-22** Inserção multi-row de `meal_items`.
+**Robustez e Hardening**
+- [x] **PC-04** Remover registro duplicado de rotas em `server.ts` *(D-14)*.
+- [x] **PC-06** `apiFetch`: tratamento de respostas não-JSON (ex: 502) e 401 que limpa `localStorage` sincronizado com `AuthContext`.
+- [x] **PC-07** Bloquear reexecução indevida de onboarding se `onboarding_completed: true`.
+- [x] **PC-08** Política de senha forte + `bcrypt.compare` dummy no login para mitigação de timing attack.
+- [x] **PC-11** Resiliência: `statement_timeout`, `/health` com probe ativo de banco, graceful shutdown.
+- [x] **PC-13** CI: integrar `npm audit --audit-level=high` + Gitleaks; `@vitest/coverage-v8`.
+- [x] **PC-15** Edição de refeição preservando valores nutricionais base do alimento.
+- [x] **PC-17** Transações atômicas (`BEGIN`/`COMMIT`/`ROLLBACK`) em onboarding/perfil/metas + teste de rollback.
+- [x] **PC-19** Remover perfil biométrico do `localStorage` (`user_session`), mantendo dados sensíveis apenas em memória *(D-02)*.
 
-**Robustez e hardening**
-- [ ] **PC-04** Remover registro duplicado de rotas em `server.ts`.
-- [ ] **PC-06** `apiFetch`: respostas não-JSON e 401 sincronizado com `AuthContext`.
-- [ ] **PC-07** Bloquear reexecução do onboarding.
-- [ ] **PC-08** Política de senha + `bcrypt.compare` dummy no login.
-- [ ] **PC-11** `statement_timeout`, `/health` com probe de banco, graceful shutdown.
-- [ ] **PC-13** CI com `npm audit` + Gitleaks; `@vitest/coverage-v8`.
-- [ ] **PC-15** Edição de refeição preservando macros base do alimento.
-- [ ] **PC-17** Transações atômicas em onboarding/perfil/metas + teste de rollback.
-- [ ] **PC-19** Remover perfil biométrico do `localStorage`.
-
-**Rede de testes**
-- [ ] **PC-01** Substituir testes tautológicos/no-op.
-- [ ] **PC-14** Limpeza do banco de testes *(D-11 — exige consentimento)*.
-- [ ] **PC-18** Testes de autorização multiusuário (IDOR).
-- [ ] **PC-24** Cobertura de perfil, onboarding, metas com vigência, PUT/DELETE de refeições e stats.
+**Rede de Testes**
+- [x] **PC-01** Substituir testes falso-positivos por asserções reais.
+- [x] **PC-14** Limpeza determinística do banco de testes em hook `after` (`DELETE FROM users WHERE email LIKE 'tester-%'` com trava de runtime `_test`) *(D-11)*.
+- [x] **PC-18** Testes de integração de autorização multiusuário (IDOR) em todas as rotas *(D-14)*.
+- [x] **PC-24** Cobertura de integração: perfil, onboarding, metas com vigência, PUT/DELETE refeições e stats *(D-14)*.
 
 **Documentação**
-- [ ] **PC-16** Sincronizar `AGENTS.md` (versões), `TESTING.md`, `README.md`, `ARCHITECTURE.md`, `SPEC.md` e skills com o código *(D-18)*.
+- [x] **PC-16** Sincronizar documentação com o código; consolidar `docs/BACKLOG.md` como fonte única; arquivar `docs/TECH_DEBT.md` e mover arquivos `.txt` para `docs/archive/` *(D-18, D-05)*.
+
+---
+
+### ⏳ Fase 4.5: Diário Completo (Produto)
+*Objetivo: Implementar os recursos de navegação diária histórica, registro retroativo e ferramentas de produtividade alimentar no diário antes da fase de redesign. Pré-requisito: Fase 4 concluída (especialmente fuso D-01 e roteador D-16).*
+
+- [x] **BL-02** Navegação por datas no Dashboard e suporte a registro retroativo de refeições com URL declarativa `/diario/:date` *(D-20, D-01, D-16)*.
+- [x] **BL-18** Copiar refeição individual ou dia inteiro anterior para o dia de hoje com um clique *(D-20)*.
+- [x] **BL-19** Seção de alimentos recentes e favoritos com acesso rápido no modal de refeição *(D-20)*.
+- [x] **BL-20** Refeições salvas e combos reutilizáveis (ex: "Café da manhã padrão") *(D-20)*.
 
 ---
 
 ### ⏳ Fase 5: Redesign, Design Tokens e Conformidade do Frontend
-*Objetivo: Elevar a consistência visual e a acessibilidade e alinhar o frontend às regras de `react-rules.md` e `style-rules.md`, sem alterar comportamentos de negócio. Pré-requisito: PC-34 (testes de telas) antes das refatorações estruturais.*
+*Objetivo: Elevar a consistência visual, eliminar código morto e alinhar o frontend às regras brutais de `react-rules.md` e `style-rules.md` sem alterar comportamentos de negócio. Pré-requisito: Fase 4.5 concluída.*
 
-**Escopo original (mantido)**
-- [ ] **Centralização de Tokens:** variáveis CSS completas para cores, espaçamentos e contornos brutalistas em `frontend/src/styles/index.css` → **PC-32**.
-- [ ] **Componentes Primitivos:** botões, inputs, cards e selects como componentes base reutilizáveis → **PC-32**.
-- [ ] **Revisão de Acessibilidade:** contraste WCAG AA e navegação completa por teclado → **PC-32** + **PC-26**.
+**Limpeza Inicial Obrigatória (D-06: PC-31 executado primeiro)**
+- [x] **PC-31** Excluir código morto e dependências órfãs (`ThemeToggle`, `ui/card`, `switch`, `textarea`, `tooltip`, `App.css`, `clean-foods.ts`, `ts-node-dev`) antes de qualquer ajuste de estilo *(D-06)*.
 
-**Integrado do backlog (ordem sugerida)**
-- [ ] **PC-31** Excluir código morto e dependências órfãs — executar primeiro *(D-06)*.
-- [ ] **PC-25** Tokens e geometria: cores fixas/`dark:`/hex, `rounded-*`, sombras suaves.
-- [ ] **PC-26** Acessibilidade: label de `food-amount`, `aria-label` no `react-select`, `DatePickerInput` com Esc + ARIA.
-- [ ] **PC-27** Estados `isError` e vazio no Dashboard e na Stats.
-- [ ] **PC-33** Fontes self-hosted e `Montserrat` efetivamente carregada.
-- [ ] **PC-34** Testes de telas: Dashboard, Onboarding, EditProfile, AuthContext.
-- [ ] **PC-28** `useQuery`/`useMutation` no lugar de `useEffect` + chamadas manuais.
-- [ ] **PC-29** `react-hook-form` + Zod nos formulários complexos.
-- [ ] **PC-30** Decompor `EditProfilePage` e `NewMealModal`.
+**Tokens, Estilo e Acessibilidade**
+- [x] **PC-32** Centralização de variáveis CSS brutalistas (cores, contornos, espaçamentos) e criação de componentes primitivos base reutilizáveis.
+- [x] **PC-25** Conformidade visual: migração completa de cores Neo-Brutalismo de Tinta (CORES.md, check:colors), eliminação de cores hex hardcoded, dark: ad-hoc, rounded-* e sombras suaves *(D-06)*.
+- [x] **PC-26** Acessibilidade: label associada em `food-amount`, `aria-label` no `react-select`, `DatePickerInput` com Esc e foco acessível.
+- [x] **PC-27** Tratamento visual explícito de estados `isError` e `empty` no Dashboard e Estatísticas.
+- [x] **PC-33** Fontes self-hosted com carregamento local; carregar `Montserrat` efetivamente ou remover declaração órfã.
+
+**Refatoração Estrutural e Arquitetura React**
+- [x] **PC-34** Criar rede de testes de componentes para telas principais: Dashboard, Onboarding, EditProfile e AuthContext (rede de proteção para PC-28/29/30).
+- [x] **PC-28** Migrar `useEffect` + fetch manual para `useQuery` e mutações para `useMutation`.
+- [x] **PC-29** Substituir formulários complexos manuais por `react-hook-form` integrado com resolvers Zod.
+- [x] **PC-30** Decompor componentes monolíticos (`EditProfilePage` e `NewMealModal`) em subcomponentes coesos.
 
 ---
 
-### ⏳ Fase 6: Profissionalização e Segurança
-*Objetivo: Recursos para produção segura e proteção contra abusos.*
-- **Confirmação de E-mail:** Verificação em 2 etapas com código OTP ou link de validação.
-- **Login Social (OAuth2):** Autenticação rápida com Google e Apple.
-- **Recuperação de Senha:** Fluxo de "Esqueci minha senha" com token assinado e expiração de 30 minutos.
-- **Proteção Antispam:** Integração de Cloudflare Turnstile nas rotas públicas de autenticação.
-- *Itens do backlog vinculados:* BL-05 (recuperação de senha), BL-06 (login social), BL-12 (verificação de e-mail + registro sem enumeração). *Prioridade em disputa: D-03.*
+### ⏳ Fase 5.5: Pacote Compartilhado de Tipos
+*Objetivo: Compartilhamento determinístico de contratos DTO e schemas entre frontend e backend via pacote `shared/` com aliases TypeScript/Vite (sem workspaces nesta branch). Pré-requisito: Fase 5 concluída e antes do início do app mobile.*
+
+- [x] **BL-03** Criação de pacote compartilhado `shared/` no monorepo contendo schemas Zod puros como fonte da verdade (`z.infer`) e cálculos nutricionais testados com paridade *(D-17)*.
+
+---
+
+### ⏳ Fase 6: Autenticação Avançada e Proteção Antispam
+*Objetivo: Recursos para produção segura e proteção contra abusos. Ordem de implementação estrita conforme D-03: BL-12 → BL-05 → BL-06.*
+
+- [ ] **BL-12** Confirmação de e-mail em duas etapas (código OTP/link) e cadastro com proteção contra enumeração de usuários *(D-03)*.
+- [ ] **BL-05** Fluxo de recuperação de senha ("Esqueci minha senha") com envio de e-mail e token assinado com expiração de 30 minutos *(D-03)*.
+- [ ] **BL-06** Login social (OAuth2 via Google e Apple) integrado à autenticação do backend *(D-03)*.
+- [ ] **Proteção Antispam:** Integração de Cloudflare Turnstile nas rotas públicas de autenticação.
 
 ---
 
 ### ⏳ Fase 7: Adequação à LGPD e Privacidade
-*Objetivo: Conformidade com leis de dados pessoais de saúde.*
-- **Páginas Institucionais:** Termos de Uso e Política de Privacidade.
-- **Consentimento Explícito:** Checkbox no cadastro com registro de auditoria (`terms_accepted_at`).
-- **Portabilidade de Dados:** Endpoint para download do histórico completo em formato `.json` ou `.csv`.
-- **Auditoria de Exclusão:** Garantir que o processo de exclusão de conta respeite integralmente o Direito ao Esquecimento.
-- *Itens do backlog vinculados:* BL-10 (exportação — D-04), BL-11 (consentimento e páginas legais), BL-16 (retenção de contas inativas). Exclusão já verificada como conforme (SEC-022).
+*Objetivo: Conformidade rigorosa com leis de dados pessoais de saúde (LGPD art. 18). Bloqueante para lançamento público.*
+
+- [x] **BL-10** Exportação e portabilidade completa de dados do usuário em formato JSON (principal) e CSV (opcional) *(D-04 — Severidade Média/M)*.
+- [x] **BL-11** Consentimento explícito no cadastro (`terms_accepted_at`) e links funcionais para Termos de Uso e Política de Privacidade.
+- [ ] **BL-16** Rotina agendada para expurgo seguro de contas inativas há mais de 2 anos.
 
 ---
 
 ### ⏳ Fase 8: Observabilidade, Sessão Segura e Deploy Contínuo
-*Objetivo: Disponibilizar a aplicação em produção com monitoramento em tempo real.*
-- **Sessão Segura:** Migrar o token JWT do `localStorage` para cookies seguros `HTTP-Only` com Refresh Tokens rotacionados.
-- **Rastreamento de Erros:** Integração do **Sentry** no frontend e backend para alerta imediato de exceções em produção.
-- **Deploy Automatizado:** Configurar pipeline de deploy contínuo via GitHub Actions para plataformas em nuvem (ex: Render/Railway para backend e Vercel para frontend).
-- *Itens do backlog vinculados:* BL-04 (sessão/refresh — D-02), BL-01 (`trust proxy` — D-19), BL-07 (CSP), BL-08 (logging estruturado).
+*Objetivo: Disponibilizar a aplicação em produção com monitoramento, sessão de alta segurança e infraestrutura robusta. Bloqueante para deploy público.*
+
+- [ ] **BL-04** Revogação de sessão: migração de JWT no localStorage para cookies seguros `HttpOnly` com Refresh Tokens rotacionados em banco *(D-02)*.
+- [x] **BL-01** Habilitação de `trust proxy` configurado por número de saltos (`TRUST_PROXY`) e rate limiting por IP + e-mail *(D-19)*.
+- [x] **BL-07** Content Security Policy (CSP) rigorosa configurada via Helmet.
+- [x] **BL-08** Logging HTTP estruturado em JSON com correlation ID e tempo de resposta.
+- [ ] **Rastreamento de Erros:** Integração do Sentry no frontend e backend para monitoramento em tempo real.
+- [ ] **Deploy Automatizado:** Pipeline CI/CD via GitHub Actions com fallback SPA para `index.html` *(D-16)*.
 
 ---
 
-## 5. Fora das Fases (Aguardando Decisão)
+## 5. Backlog Futuro (Pós-Fase 8)
 
-Itens de alto valor sem fase definida. Ver [BACKLOG §3 e §5](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/BACKLOG.md).
-- **BL-02** Navegação por data + registro retroativo (Crítica) — *D-20: criar fase de produto ou promover para a Fase 4*.
-- **BL-03** Tipos e cálculo compartilhados — *D-17*.
-- **BL-18 a BL-24** Features de retenção (copiar refeição, recentes/favoritos, combos, evolução de peso, alimentos personalizados, água, código de barras).
-- **BL-25** App mobile (Expo) — *D-05*.
+- **BL-25** Aplicativo mobile dedicado em Expo / React Native *(D-05 — condicionado à web estável e pacote `shared/` D-17)*.
+- [x] **BL-09** Migração idempotente para deduplicação e índice único parcial no catálogo de alimentos *(D-13)*.
+- [x] **BL-15** Padronização de migrações legadas para ESM nativo *(D-13)*.
+- [x] **BL-21** Gráfico de evolução de peso e medidas corporais (`body_measurements`).
+- [x] **BL-22** Cadastro de alimentos personalizados pelo próprio usuário *(D-07)*.
+- **BL-23** Registro diário de consumo de água com meta personalizada.
+- **BL-24** Leitor de código de barras via Open Food Facts.
+- [x] **BL-26** Suporte a PWA, manifesto web e modo offline.
+- [x] **BL-27** Notificações push na web para lembretes de refeições.
+- **BL-28** Distribuição de metas nutricionais específicas por tipo de refeição.
+- **CA-06** Expurgo definitivo de histórico do commit `24d1ce65` via `git-filter-repo` *(D-12 — execução manual após conclusão da branch)*.
+

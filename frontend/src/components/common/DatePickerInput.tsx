@@ -44,8 +44,17 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
         setIsOpen(false);
       }
     };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -142,7 +151,7 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
 
   const inputBase =
     'w-full pl-10 pr-10 py-2.5 bg-background border-2 rounded-none text-sm font-black text-foreground uppercase placeholder:text-muted-foreground outline-none transition-colors min-h-[48px]';
-  const inputNormal = 'border-border hover:border-primary/50 focus:border-primary focus:ring-0';
+  const inputNormal = 'border-border hover:border-foreground/60 focus:border-ring focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
   const inputError = 'border-destructive bg-destructive/10 text-destructive focus:border-destructive';
 
   return (
@@ -169,6 +178,8 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
           type="button"
           onClick={handleCalendarToggle}
           aria-label="Abrir calendário"
+          aria-haspopup="dialog"
+          aria-expanded={isOpen}
           className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground transition-colors focus:outline-none"
         >
           <CalendarIcon className="w-4 h-4" aria-hidden="true" />
@@ -186,7 +197,12 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
       </div>
 
       {isOpen && (
-        <div className="absolute z-50 mt-2 right-0 sm:left-0 bg-card border-2 border-border shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff] p-4 w-72 rounded-none animate-in fade-in zoom-in-95 duration-150">
+        <div
+          role="dialog"
+          aria-modal="false"
+          aria-label="Seletor de data"
+          className="absolute z-50 mt-2 right-0 sm:left-0 bg-card border-2 border-border shadow-hard p-4 w-72 rounded-none animate-in fade-in zoom-in-95 duration-150"
+        >
           <div className="flex items-center justify-between mb-4 border-b-2 border-border pb-2">
             <button
               type="button"
@@ -234,9 +250,9 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
                   type="button"
                   disabled={disabled}
                   onClick={() => handleSelectDay(day)}
-                  className={`h-8 w-8 flex items-center justify-center font-black text-xs transition-colors rounded-none border-2 border-transparent focus:outline-none focus:border-primary ${
+                  className={`h-8 w-8 flex items-center justify-center font-black text-xs transition-colors rounded-none border-2 border-transparent focus:outline-none focus:border-ring ${
                     selected
-                      ? 'bg-primary text-primary-foreground'
+                      ? 'bg-primary text-primary-foreground border-black'
                       : disabled
                       ? 'text-muted-foreground opacity-30 cursor-not-allowed'
                       : 'text-foreground hover:bg-secondary hover:border-border'

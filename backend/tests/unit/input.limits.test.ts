@@ -1,11 +1,12 @@
+import { closeTestPool } from '../helpers/lifecycle.js';
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import request from 'supertest';
-import { createMealSchema } from '../../src/schemas/meal.schema.js';
-import { registerUserSchema, updateUserSchema } from '../../src/schemas/user.schema.js';
+import { createMealSchema, registerUserSchema, updateUserSchema } from '@caloriesync/shared';
 import { app } from '../../src/app.js';
 
 describe('Input Limits & Sanitization (CA-11)', () => {
+  closeTestPool();
   it('createMealSchema: deve rejeitar nome de refeição com mais de 100 caracteres', () => {
     const data = {
       name: 'A'.repeat(101),
@@ -59,6 +60,7 @@ describe('Input Limits & Sanitization (CA-11)', () => {
       name: 'A'.repeat(101),
       email: 'teste@exemplo.com',
       password: 'password123',
+      acceptTerms: true,
     };
 
     const result = registerUserSchema.safeParse(data);
@@ -70,6 +72,7 @@ describe('Input Limits & Sanitization (CA-11)', () => {
       name: 'Usuário Teste',
       email: 'teste@exemplo.com',
       password: 'A'.repeat(73),
+      acceptTerms: true,
     };
 
     const result = registerUserSchema.safeParse(data);

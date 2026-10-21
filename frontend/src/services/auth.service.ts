@@ -55,6 +55,7 @@ export async function registerUser(data: RegisterFormData): Promise<AuthResponse
       name: data.name,
       email: data.email,
       password: data.password,
+      acceptTerms: data.acceptTerms,
     }),
   });
 }
@@ -86,4 +87,18 @@ export async function deleteUserAccount(password: string): Promise<void> {
     method: 'DELETE',
     body: JSON.stringify({ password }),
   });
+}
+
+export interface UserDataExportPayload {
+  exported_at: string;
+  schema_version: string;
+  profile: UserProfile;
+  goals: unknown[];
+  body_measurements: unknown[];
+  meals: unknown[];
+}
+
+/** Baixa o pacote completo de dados do titular (JSON). */
+export async function exportUserData(): Promise<UserDataExportPayload> {
+  return apiFetch<UserDataExportPayload>('/users/me/export');
 }

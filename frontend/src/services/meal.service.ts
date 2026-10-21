@@ -1,43 +1,14 @@
 import { apiFetch } from './api';
 
-export interface CreateMealDTO {
-  name: string;
-  mealTime: string;
-  items: {
-    foodId: string;
-    quantity: number;
-    unit?: 'g' | 'ml' | 'un';
-    displayAmount?: number;
-  }[];
-}
+import type { CreateMealDTO, CopyMealDTO, Meal, MealItem } from '@caloriesync/shared';
+export type { CreateMealDTO, CopyMealDTO, Meal, MealItem };
 
-export interface MealItem {
-  id: string;
-  meal_id: string;
-  food_id: string;
-  quantity: number;
-  unit: string;
-  display_amount?: number | null;
-  calories: number;
-  proteins: number;
-  carbs: number;
-  fats: number;
-  food_name: string;
-  food_base_unit?: string;
-  food_unit_name?: string | null;
-  food_unit_weight?: number | null;
-}
-
-export interface Meal {
-  id: string;
-  user_id: string;
-  name: string;
-  meal_time: string;
-  created_at: string;
-  items: MealItem[];
-  total_calories: number;
-  total_proteins: number;
-}
+export const copyMeal = async (data: CopyMealDTO): Promise<Meal | Meal[]> => {
+  return apiFetch<Meal | Meal[]>('/meals/copy', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+};
 
 export const createMeal = async (data: CreateMealDTO): Promise<Meal> => {
   return apiFetch<Meal>('/meals', {

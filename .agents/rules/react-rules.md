@@ -7,7 +7,7 @@ description: Regras obrigatórias e verificáveis para desenvolvimento de fronte
 
 ## 1. Tipagem e Simplicidade
 - **TypeScript Estrito:** 100% do código do frontend deve ser tipado em `.ts` ou `.tsx`. O uso do tipo `any` ou type-casts com `as any` é **terminantemente proibido**.
-- **Tipos e DTOs:** Interfaces de dados e contratos de API devem residir em `src/types/` ou serem exportadas diretamente de arquivos de serviço e schemas.
+- **Tipos e DTOs:** Contratos de API devem vir de `@caloriesync/shared` (fonte única com o backend). Interfaces exclusivas de UI podem residir em `src/types/` ou ser exportadas por arquivos de serviço.
 
 ## 2. Comunicação com a API e Data Fetching (Resolução de Ambiguidade)
 - **Proibição de `fetch` Nativo:** O método `window.fetch()` nativo é **estritamente proibido** em qualquer componente, hook ou serviço, EXCETO dentro da implementação do cliente centralizado em `src/services/api.ts`.

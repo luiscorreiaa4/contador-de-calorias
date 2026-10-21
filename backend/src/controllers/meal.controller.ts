@@ -78,3 +78,19 @@ export async function getStats(req: AuthenticatedRequest, res: Response) {
     return res.status(statusCode).json({ success: false, message });
   }
 }
+
+export async function copy(req: AuthenticatedRequest, res: Response) {
+  try {
+    const userId = req.userId!;
+    const result = await MealService.copyMealOrDay(userId, req.body);
+    const message = Array.isArray(result)
+      ? 'Refeições do dia copiadas com sucesso!'
+      : 'Refeição copiada com sucesso!';
+    return res.status(201).json({ success: true, message, data: result });
+  } catch (error: unknown) {
+    const err = error as CustomError;
+    const statusCode = err.statusCode ?? 500;
+    const message = statusCode === 500 ? 'Erro interno no servidor.' : (err.message ?? 'Erro interno no servidor.');
+    return res.status(statusCode).json({ success: false, message });
+  }
+}

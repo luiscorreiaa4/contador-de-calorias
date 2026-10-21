@@ -1,0 +1,22 @@
+title = "Gitleaks Configuration for CalorieSync"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Ignore test suites, mock credentials and test fixtures"
+paths = [
+  '''(^|/)tests/''',
+  '''(^|/)backend/tests/''',
+  '''(^|/)frontend/src/tests/''',
+  '''(^|/)frontend/src/mocks/''',
+  '''\.(test|spec)\.(ts|tsx|js|jsx)$'''
+]
+regexes = [
+  '''senhaForte123''',
+  '''senhaSegura123''',
+  '''novaSenhaForte123''',
+  '''currentPassword123''',
+  '''senhaInvalida1''',
+  '''senhaAntiga123'''
+]

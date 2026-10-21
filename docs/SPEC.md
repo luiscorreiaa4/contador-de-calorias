@@ -8,16 +8,20 @@ Este documento descreve detalhadamente os Requisitos Funcionais (RFs) e as regra
 
 ### RF-001: Autenticação, Gestão de Conta e Sessão [CONFIRMADO]
 - **Endpoints:**
-  - `POST /api/users/register`: Cadastro com nome, e-mail e senha (mínimo 6 caracteres).
+  - `POST /api/users/register`: Cadastro com nome, e-mail e senha forte (mínimo 8 caracteres, contendo ao menos uma letra e um número).
   - `POST /api/users/login`: Autenticação por e-mail e senha.
   - `GET /api/users/profile`: Obtenção dos dados cadastrais do usuário logado (excluindo hash de senha).
   - `PUT /api/users/profile`: Atualização de dados cadastrais, biometria e credenciais.
   - `DELETE /api/users/account`: Exclusão definitiva de conta mediante confirmação com a senha atual.
 - **Regras de Negócio:**
   - **Criptografia:** Senhas são protegidas com `bcrypt` (fator de custo 10 em desenvolvimento/produção; custo 1 em ambiente de testes para agilidade).
+  - **Política de Senha Forte (PC-08 / SEC-004):** O cadastro e a alteração de credenciais exigem senha com no mínimo 8 caracteres, no máximo 72 caracteres, e obrigatoriedade de ao menos uma letra e um número (`/(?=.*[a-zA-Z])(?=.*[0-9])/`).
+  - **Mitigação de Timing Attack no Login (PC-08 / SEC-005):** Caso o e-mail não seja encontrado no banco durante a autenticação (`POST /api/users/login`), uma verificação `bcrypt.compare` contra um hash dummy pré-computado é executada antes do retorno de erro 401, equalizando o tempo de resposta e prevenindo a enumeração de contas válidas por análise de temporização.
   - **Tokens JWT:** Sessão autenticada via token Bearer assinado com `JWT_SECRET` (mínimo de 32 caracteres) e validade de 7 dias (`JWT_EXPIRES_IN=7d`).
   - **Alteração Segura de E-mail ou Senha:** Caso o usuário altere seu e-mail ou defina uma nova senha, o envio da senha atual (`currentPassword`) é mandatório.
   - **Exclusão com Cascata:** A exclusão de um usuário dispara remoção física imediata em todas as tabelas dependentes (`meals`, `meal_items`, `body_measurements`, `user_goals`) por integridade referencial `ON DELETE CASCADE`.
+  - **Execução Única de Onboarding (PC-07 / SEC-008):** O endpoint `PUT /api/users/me/onboarding` só pode ser concluído uma única vez. Se `onboarding_completed === true`, requisições subsequentes são bloqueadas com status `400 Bad Request` ("Onboarding já foi concluído para este usuário."), impedindo poluição da tabela `body_measurements` e recalculações espúrias. Atualizações posteriores de medidas corporais devem ocorrer via `PUT /api/users/me`.
+  - **Proteção e Privacidade de Dados de Saúde no Cliente (PC-19 / SEC-018):** O armazenamento local persistente (`localStorage.getItem('user_session')`) é estritamente restrito a metadados de sessão não sensíveis (`id`, `name`, `email`, `onboarding_completed`). Dados de saúde, biometria e metas nutricionais (peso, altura, % de gordura, sexo, data de nascimento, calorias e macronutrientes) são mantidos exclusivamente em memória de execução do cliente React e hidratados via `GET /api/users/me`, impedindo o armazenamento em texto plano de dados sensíveis protegidos pela LGPD.
 
 ---
 
@@ -66,24 +70,35 @@ Para evitar dietas restritivas extremas danosas à saúde:
 - Usuárias do sexo feminino ou não respondido: Mínimo inegociável de **1200 kcal**.
 Se o valor calculado for menor que o piso, o valor sugerido é elevado até o limite do piso.
 
-#### 6. Divisão de Macronutrientes (D-15)
-A repartição é baseada em evidências científicas de nutrição esportiva e clínica (ISSN / Aragon / Wilkens):
-1. **Determinação do Peso de Referência:**
-   - **Com Percentual de Gordura Conhecido (`body_fat`):**
-     - Se adiposidade elevada ($\ge 25\%$ masculino ou $\ge 32\%$ feminino): baseia na **Massa Livre de Gordura (LBM)**, com **Proteínas** a $2.2 \text{ g/kg LBM}$ e **Gorduras** a $\max(0.8 \text{ g/kg LBM}, 25\% \text{ das calorias})$.
-     - Se composição corporal padrão/atlética: **Proteínas** a $2.0 \text{ g por kg de peso corporal}$ e **Gorduras** a $1.0 \text{ g por kg de peso corporal}$.
+#### 6. Divisão de Macronutrientes (D-15) [CONFIRMADO]
+Regras de negócio de saúde aplicadas exclusivamente para geração de metas automáticas (metas manuais permanecem sob livre escolha do usuário). Valores de projeto definidos para revisão periódica por profissional de nutrição:
+
+1. **Determinação da Massa de Referência:**
+   - **Com Percentual de Gordura Conhecido (`body_fat` informado e $> 0$):**
+     Utiliza a Massa Livre de Gordura (LBM) calculada pela fórmula de Katch-McArdle:
+     $$\text{Massa de Referência} = \text{peso} \times \left(1 - \frac{\text{body\_fat}}{100}\right)$$
    - **Sem Percentual de Gordura:**
-     - Se sobrepeso acentuado ou obesidade ($\text{IMC} \ge 28.0$): aplica o **Peso Ajustado de Wilkens**:
-       $$\text{Peso Ideal} = 24.0 \times \text{altura (m)}^2$$
-       $$\text{Peso Ajustado} = \text{Peso Ideal} + 0.25 \times (\text{Peso Real} - \text{Peso Ideal})$$
-       **Proteínas:** $2.0 \text{ g por kg de Peso Ajustado}$ | **Gorduras:** $0.8 \text{ g por kg de Peso Ajustado}$.
-     - Se $\text{IMC} < 28.0$: **Proteínas** a $2.0 \text{ g por kg de peso corporal}$ e **Gorduras** a $1.0 \text{ g por kg de peso corporal}$.
-2. **Garantia de Carboidratos (Trava de Segurança Metabólica):**
-   - Proteína e gordura somadas não podem ultrapassar 75% das calorias totais, assegurando no mínimo 25% de calorias destinadas a carboidratos para suporte glicolítico e função tireoidiana.
-3. **Reconciliação Aritmética de Carboidratos:**
-   - O saldo de calorias é convertido diretamente em carboidratos inteiros ($4 \text{ kcal/g}$):
-     $$\text{Carboidratos (g)} = \text{round}\left(\frac{\text{Calorias Sugeridas} - (\text{Proteínas} \times 4) - (\text{Gorduras} \times 9)}{4}\right)$$
-   - Evita divergências aritméticas entre a soma física dos macros e o valor de calorias totais exibido ao usuário.
+     - Se Obesidade ($\text{IMC} \ge 30.0$): aplica a fórmula de peso ajustado:
+       $$\text{Peso Ideal (PI)} = 22.5 \times \text{altura (m)}^2$$
+       $$\text{Massa de Referência (Peso Ajustado)} = \text{PI} + 0.25 \times (\text{peso} - \text{PI})$$
+     - Se $\text{IMC} < 30.0$: utiliza o peso corporal atual:
+       $$\text{Massa de Referência} = \text{peso}$$
+
+2. **Cálculo Base de Macronutrientes:**
+   - **Proteína:** $1.6 \text{ g/kg}$ da massa de referência, limitada a no máximo 35% das calorias totais.
+   - **Gordura:** 25% das calorias totais ($9 \text{ kcal/g}$).
+   - **Carboidrato:** Saldo restante das calorias totais ($4 \text{ kcal/g}$).
+
+3. **Ordem de Ajuste para Garantia de Carboidratos (se Carboidrato $< 20\%$ das calorias):**
+   - Caso o carboidrato calculado resulte em menos de 20% das calorias totais da meta:
+     1. Reduzir a gordura progressivamente até o piso de 20% das calorias totais.
+     2. Se o carboidrato ainda permanecer abaixo de 20%, reduzir a proteína progressivamente até o piso de $1.2 \text{ g/kg}$ da massa de referência.
+
+4. **Invariantes e Reconciliação:**
+   - **Tolerância Calórica:** A soma calórica dos macronutrientes finais fica dentro de $\pm 1\%$ da meta estipulada.
+   - **Não-negatividade:** Nenhum macronutriente pode ter valor negativo.
+   - **Proteção Metabólica:** O carboidrato nunca é forçado a zero por sobrecarga de proteínas e gorduras.
+   - **Reconciliação Inteira:** O saldo calórico após proteína e gordura é convertido em gramas inteiras de carboidrato via $\text{round}\left(\frac{\text{kcal} - (\text{P} \times 4) - (\text{G} \times 9)}{4}\right)$, garantindo que a soma aritmética coincida exatamente com as calorias totais exibidas.
 
 ---
 
@@ -108,8 +123,11 @@ A repartição é baseada em evidências científicas de nutrição esportiva e 
 - **Endpoints:**
   - `GET /api/foods?search=termo&limit=50&offset=0`: Busca de alimentos ativos no catálogo.
 - **Regras de Negócio:**
+  - **Parâmetro Único de Busca (D-09):** Aceita estritamente o parâmetro `search` (parâmetro alternativo `q` descontinuado). Validado com Zod (limite máximo de caracteres) e caracteres curinga (`%`, `_`, `\`) devidamente escapados antes da interpolação no SQL `ILIKE`.
   - **Busca Tolerante:** Termos com ou sem acentos (ex: "feijao" vs "feijão") e diferenças de maiúsculas/minúsculas encontram os mesmos itens através de `f_unaccent(name) ILIKE f_unaccent($1)`.
   - **Ordenação por Similaridade:** O operador `<->` do `pg_trgm` classifica no topo os itens com maior proximidade ortográfica em relação ao que foi digitado.
+  - **Contrato Público e Projeção Explícita (D-08):** Proibido `SELECT *`. A consulta projeta apenas os campos consumidos pelo cliente: `id`, `name`, `calories`, `proteins`, `carbs`, `fats`, `base_unit`, `serving_weight`, `unit_name`, `unit_weight`, `source`. Campos internos como `external_id` e `active` nunca são expostos na API.
+  - **Cache HTTP (D-07):** Endpoint autenticado responde com headers `Cache-Control: private, max-age=300`, `ETag` (nativo do Express) e `Vary: Authorization`. Não utiliza cache público nem LRU global na memória do processo.
   - **Catálogo Somente-Leitura:** Não existem rotas de criação ou exclusão de alimentos para usuários finais. A base é mantida por migrações e scripts de importação de tabelas como a TACO (`backend/scripts/import-foods.ts`).
   - **Ativação Lógica:** Apenas registros com `active = true` são retornados nas consultas.
 
@@ -122,6 +140,12 @@ A repartição é baseada em evidências científicas de nutrição esportiva e 
   - `PUT /api/meals/:id`: Atualização completa do nome, horário e itens de uma refeição.
   - `DELETE /api/meals/:id`: Exclusão de refeição.
 - **Regras de Negócio:**
+  - **Fuso Horário Oficial e Janela Diária (D-01):**
+    - O servidor é a autoridade única do fuso `America/Sao_Paulo` (`APP_TIMEZONE = 'America/Sao_Paulo'`).
+    - Parâmetro `?date=YYYY-MM-DD` é validado via Zod (formato `YYYY-MM-DD`, data de calendário real entre `2000-01-01` e `hoje + 1 dia`). Na ausência do parâmetro, o servidor utiliza `todayInAppTz()` baseado em `Intl.DateTimeFormat('en-CA', { timeZone })`.
+    - Datas de calendário são tratadas exclusivamente como strings (proibido `toISOString().split('T')[0]` e `new Date('YYYY-MM-DD')`).
+    - A janela diária no SQL utiliza faixa em `meal_time` compatível com índices:
+      `meal_time >= ($1::date)::timestamp AT TIME ZONE $tz AND meal_time < (($1::date + 1))::timestamp AT TIME ZONE $tz`
   - **Cálculo Nutricional Proporcional:**
     A base nutricional é definida por 100g ou 100ml (`serving_weight = 100`).
     Se o item utilizar unidade (`un`) e o alimento possuir `unit_weight`, a quantidade em gramas é calculada como $\text{displayAmount} \times \text{unit\_weight}$.
@@ -137,7 +161,29 @@ A repartição é baseada em evidências científicas de nutrição esportiva e 
 - **Endpoints:**
   - `GET /api/meals/stats?period=week|month&date=YYYY-MM-DD`: Agrupamento histórico para a página de estatísticas.
 - **Regras de Negócio:**
+  - **Fuso Horário no Agrupamento (D-01):** O agrupamento diário utiliza `(meal_time AT TIME ZONE $tz)::date`. É proibido o uso de `DATE(meal_time)` puro para evitar deslocamento de datas em registros noturnos.
   - **Períodos Suportados:** `week` (últimos 7 dias) ou `month` (últimos 30 dias).
   - **Agregação SQL com `LATERAL JOIN`:** O banco de dados agrupa as refeições por data e correlaciona a meta que estava em vigor em cada um dos dias do intervalo.
   - **Cálculo Justo de Médias:** As médias do período (`averages.consumed` e `averages.goal`) são calculadas dividindo a soma dos macros **exclusivamente pela quantidade de dias em que houve registros efetivos**, sem derrubar as médias artificialmente em virtude de dias em que o usuário não registrou consumo.
   - **Preenchimento de Lacunas:** Para visualização correta nos gráficos, dias do período sem qualquer registro são retornados com zeros em calorias e macronutrientes.
+
+---
+
+## 2. Tratamento Centralizado de Erros e Contratos de API (D-10) [CONFIRMADO]
+
+1. **Contrato Universal de Resposta:**
+   Toda resposta HTTP da API segue estritamente:
+   ```json
+   {
+     "success": boolean,
+     "data"?: any,
+     "message"?: string
+   }
+   ```
+2. **Hierarquia de Erros Tipados (`AppError`):**
+   - Classes dedicadas estendendo `AppError`: `ValidationError` (400), `UnauthorizedError` (401), `NotFoundError` (404), `ConflictError` (409).
+   - Encaminhamento assíncrono via `asyncHandler` para o Express 4 delegar ao `next(err)`.
+3. **Tratamento Centralizado e Mascaramento de 500:**
+   - Erros desconhecidos respondem status `500` com mensagem genérica opaca (`"Erro interno do servidor"`).
+   - Proibido expor `err.message` ou stack traces em respostas JSON. Detalhes reais são registrados unicamente em `console.error` no servidor.
+   - Códigos de erro do PostgreSQL são mapeados sem vazamento de strings cruas: `23505` (unique violation) → 409, `23503` (foreign key) → 409, `22P02` (invalid syntax) → 400, demais → 500.

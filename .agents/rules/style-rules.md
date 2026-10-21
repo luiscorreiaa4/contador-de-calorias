@@ -18,15 +18,20 @@ O tema claro/escuro é gerenciado **estritamente através de variáveis CSS** de
 - **USO OBRIGATÓRIO DOS TOKENS SEMÂNTICOS:**
   - **Superfícies:** `bg-background` (fundo principal), `bg-card` (cartões e modais), `bg-secondary` (blocos de apoio e tags).
   - **Tipografia:** `text-foreground` (texto padrão de alto contraste), `text-muted-foreground` (textos secundários, legendas e placeholders).
-  - **Destaque Primário:** `bg-primary`, `text-primary-foreground`, `border-primary` (para botões de ação e indicadores de destaque).
-  - **Bordas:** `border-border`.
+  - **Preenchimento Neon (`bg-primary`):** Uso exclusivo para áreas/superfícies (botões, badges, progresso), acompanhado de `text-primary-foreground` e `border-2 border-black`.
+  - **Tinta Neon / Verde (`text-primary-ink`):** Uso obrigatório para textos, ícones lineares, outlines e traços de gráficos sobre fundos (`#4D6600` no claro, `#CCFF00` no escuro). Proibido usar `text-primary` solto.
+  - **Bordas e Foco:** `border-border` para estrutura; `border-ring` ou `ring-ring` para foco.
   - **Ações Destrutivas / Erros:** `bg-destructive`, `text-destructive-foreground`, `border-destructive`.
-- **Proibição de `dark:` Redundante:** Não adicione classes com prefixo `dark:` para cores que já possuem tokens semânticos mapeados nas CSS Variables (ex: não usar `bg-background dark:bg-zinc-900` ou `bg-white dark:bg-[#0a0a0a]`). O Tailwind alterna automaticamente os tokens quando a classe `.dark` está ativa na raiz.
+  - **Avisos e Favoritos:** `bg-warning`, `text-warning`, `text-warning-foreground`.
+- **Proibição de `dark:` Redundante:** Não adicione classes com prefixo `dark:` para cores que já possuem tokens semânticos mapeados nas CSS Variables. O Tailwind alterna automaticamente os tokens quando a classe `.dark` está ativa na raiz.
+- **Validação de Cores (`check:colors`):** O script `npm --prefix frontend run check:colors` (integrado a `npm run lint`) valida a ausência de literais, classes `dark:` de cor e classes proibidas. Exceções pontuais justificadas devem conter o comentário `color-guard-allow: <motivo>` na mesma linha ou na anterior.
 
 ## 3. Sombras e Profundidade
 - **Sem Sombras Suaves:** É proibido o uso de sombras desfocadas tradicionais (`shadow-sm`, `shadow`, `shadow-md`, `shadow-lg`, `shadow-xl`).
-- **Profundidade Brutalista:** Utilizar blocos sólidos de sombra dura:
-  - `shadow-hard` ou sombras de deslocamento rígido: `shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff]`.
+- **Profundidade Brutalista:** Utilizar tokens de sombra dura:
+  - `shadow-hard` e `shadow-hard-hover` para cards e superfícies padrão.
+  - `shadow-hard-fill` e `shadow-hard-fill-hover` para elementos com fundo verde neon (`bg-primary`).
+  - Proibido o uso de sombras arbitrárias `shadow-[...]`.
 
 ## 4. Tipografia
 - **Caixa Alta Obrigatória:** Todos os títulos de páginas, cabeçalhos de seção, botões de ação e labels de formulário DEVEM utilizar a classe `uppercase`.
@@ -34,5 +39,5 @@ O tema claro/escuro é gerenciado **estritamente através de variáveis CSS** de
 
 ## 5. Acessibilidade (WCAG AA) e Interações
 - **Associação de Labels:** Todo elemento `<input>`, `<select>` ou `<textarea>` DEVE possuir um `<label>` correspondente com o atributo `htmlFor` associado ao `id` do campo, ou atributo `aria-label` descritivo quando o label visual for oculto.
-- **Foco por Teclado:** Elementos interativos devem demarcar claramente o foco para navegação por teclado (`focus:outline-none focus:border-primary` ou anel com contraste visível).
+- **Foco por Teclado:** Elementos interativos devem demarcar claramente o foco para navegação por teclado (`focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background` ou `focus:border-ring`).
 - **Proibição de Diálogos Nativos:** É **terminantemente proibido** utilizar `window.alert()` ou `window.confirm()`. Todas as confirmações e alertas devem utilizar modais acessíveis construídos com Radix UI (com foco preso, tecla `Escape` para fechar e atributo `aria-modal="true"`).

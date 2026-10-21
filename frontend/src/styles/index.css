@@ -1,4 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=Inter:wght@300;400;500&display=swap');
+@import '@fontsource/inter/300.css';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+@import '@fontsource/montserrat/700.css';
+@import '@fontsource/montserrat/900.css';
 
 @tailwind base;
 @tailwind components;
@@ -7,59 +13,110 @@
 @layer base {
   :root {
     /* Light Mode Brutalist Aesthetic */
-    --background: 0 0% 100%; /* Pure white */
-    --foreground: 0 0% 4%;   /* Deep black */
+    --background: 60 20% 95%;        /* #F5F5F0 */
+    --foreground: 0 0% 4%;           /* #0A0A0A */
 
-    --card: 0 0% 98%;        /* Very light gray for cards */
+    --card: 0 0% 100%;               /* #FFFFFF */
     --card-foreground: 0 0% 4%;
     
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 4%;
 
-    /* NEON LIME GREEN (#CCFF00) */
+    /* NEON LIME GREEN (#CCFF00) — Fill */
     --primary: 72 100% 50%;
-    --primary-foreground: 0 0% 4%; /* Black text on neon */
+    --primary-foreground: 0 0% 4%;   /* #0A0A0A - Black text on neon */
+    --primary-ink: 75 100% 20%;      /* #4D6600 - Verde-oliva para textos/ícones sobre fundo */
     
-    --secondary: 0 0% 90%;
+    --secondary: 60 10% 88%;         /* #E3E3DC */
     --secondary-foreground: 0 0% 4%;
     
-    --muted: 0 0% 90%;
-    --muted-foreground: 0 0% 40%;
+    --muted: 60 10% 88%;             /* #E3E3DC */
+    --muted-foreground: 0 0% 32%;    /* #525252 */
     
-    --accent: 72 100% 50%;
-    --accent-foreground: 0 0% 4%;
+    --accent: 72 100% 50%;           /* #CCFF00 */
+    --accent-foreground: 0 0% 4%;    /* #0A0A0A */
     
-    --destructive: 0 84% 60%;
+    --destructive: 0 74% 42%;        /* #B91C1C - WCAG AA contraste sobre fundo claro */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 85%;
-    --input: 0 0% 85%;
-    --ring: 72 100% 50%;
+    --warning: 38 92% 50%;           /* #F59E0B - Âmbar para alertas e favoritos */
+    --warning-foreground: 0 0% 4%;
+
+    --border: 0 0% 4%;               /* #0A0A0A - Contorno preto brutalista */
+    --input: 0 0% 4%;
+    --ring: 0 0% 4%;
+
+    /* Sombra brutalista adaptativa dos cards e botões */
+    --shadow: 0 0% 4%;
+    --shadow-alpha: 1;
+    --shadow-alpha-hover: 1;
+
+    /* Sombra neutra para elementos com fill neon */
+    --shadow-fill: 0 0% 0%;
+    --shadow-fill-alpha: 1;
+    --shadow-fill-alpha-hover: 1;
 
     --radius: 0rem;
+    --border-width: 2px;
+    --shadow-offset: 4px;
   }
 
   .dark, :root.dark {
     /* Premium High-Performance Dark Mode Aesthetic */
-    --background: 0 0% 4%;
-    --foreground: 0 0% 100%;
-    --card: 0 0% 10%;
+    --background: 0 0% 4%;           /* #0A0A0A */
+    --foreground: 0 0% 100%;         /* #FFFFFF */
+    --card: 0 0% 10%;                /* #1A1A1A */
     --card-foreground: 0 0% 100%;
     --popover: 0 0% 10%;
     --popover-foreground: 0 0% 100%;
-    --primary: 72 100% 50%;
+    --primary: 72 100% 50%;          /* #CCFF00 */
     --primary-foreground: 0 0% 4%;
-    --secondary: 0 0% 15%;
+    --primary-ink: 72 100% 50%;      /* #CCFF00 */
+    --secondary: 0 0% 15%;           /* #262626 */
     --secondary-foreground: 0 0% 100%;
     --muted: 0 0% 10%;
-    --muted-foreground: 0 0% 80%;
+    --muted-foreground: 0 0% 80%;    /* #CCCCCC */
     --accent: 72 100% 50%;
     --accent-foreground: 0 0% 4%;
-    --destructive: 0 84% 60%;
+    --destructive: 0 84% 60%;        /* #EF4343 */
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 15%;
+    --warning: 38 92% 50%;           /* #F59E0B */
+    --warning-foreground: 0 0% 4%;
+    --border: 0 0% 15%;              /* #262626 */
     --input: 0 0% 15%;
-    --ring: 72 100% 50%;
+    --ring: 72 100% 50%;             /* #CCFF00 */
+
+    /* Sombra brutalista neon adaptativa */
+    --shadow: 72 100% 50%;
+    --shadow-alpha: 0.2;
+    --shadow-alpha-hover: 0.4;
+
+    /* Sombra neutra para elementos com fill neon no escuro */
+    --shadow-fill: 0 0% 100%;
+    --shadow-fill-alpha: 0.2;
+    --shadow-fill-alpha-hover: 0.4;
+
+    --border-width: 2px;
+    --shadow-offset: 4px;
+  }
+}
+
+@layer components {
+  .brutalist-card {
+    border-width: var(--border-width, 2px);
+    border-color: hsl(var(--border));
+    background-color: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+    border-radius: 0;
+  }
+
+  .brutalist-border {
+    border-width: var(--border-width, 2px);
+    border-color: hsl(var(--border));
+  }
+
+  .brutalist-shadow {
+    box-shadow: 4px 4px 0px 0px hsl(var(--shadow-fill) / var(--shadow-fill-alpha));
   }
 }
 

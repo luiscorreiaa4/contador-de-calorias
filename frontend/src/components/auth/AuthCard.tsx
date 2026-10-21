@@ -1,20 +1,45 @@
 import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router';
 import { Flame } from 'lucide-react';
 import type { AuthMode } from '../../types/auth';
 
 import { LoginForm } from './LoginForm';
 import { RegisterForm } from './RegisterForm';
 
-export const AuthCard: React.FC = () => {
-  const [mode, setMode] = useState<AuthMode>('login');
+interface AuthCardProps {
+  initialMode?: AuthMode;
+}
+
+export const AuthCard: React.FC<AuthCardProps> = ({ initialMode }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const defaultMode: AuthMode =
+    initialMode ||
+    (location.pathname === '/cadastro' ? 'register' : 'login');
+
+  const [mode, setMode] = useState<AuthMode>(defaultMode);
   const [isSuccessMessage, setIsSuccessMessage] = useState<string | null>(null);
+
+  const switchMode = (newMode: AuthMode) => {
+    setMode(newMode);
+    if (navigate) {
+      navigate(newMode === 'register' ? '/cadastro' : '/login');
+    }
+  };
 
   const handleAuthSuccess = () => {
     if (mode === 'login') {
       setIsSuccessMessage('Login efetuado com sucesso! Redirecionando...');
+      if (navigate) {
+        navigate('/');
+      }
     } else {
       setIsSuccessMessage('Conta criada! Faça login para continuar.');
       setMode('login');
+      if (navigate) {
+        navigate('/login');
+      }
     }
     setTimeout(() => setIsSuccessMessage(null), 4000);
   };
@@ -22,7 +47,7 @@ export const AuthCard: React.FC = () => {
   return (
     <div className="w-full max-w-sm mx-auto animate-in">
       <div className="mb-10 text-center">
-        <div className="inline-flex items-center justify-center w-12 h-12 bg-primary text-primary-foreground mb-6">
+        <div className="inline-flex items-center justify-center w-12 h-12 bg-primary text-primary-foreground border-2 border-black mb-6 shadow-hard">
           <Flame className="w-6 h-6 fill-current" aria-hidden="true" />
         </div>
         <h1 className="text-3xl font-heading font-black tracking-tighter text-foreground uppercase">
@@ -47,7 +72,7 @@ export const AuthCard: React.FC = () => {
             type="button"
             aria-selected={mode === 'login'}
             aria-controls="panel-auth"
-            onClick={() => setMode('login')}
+            onClick={() => switchMode('login')}
             className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-all duration-200 border-r-2 border-border ${
               mode === 'login'
                 ? 'bg-primary text-primary-foreground'
@@ -63,7 +88,7 @@ export const AuthCard: React.FC = () => {
             type="button"
             aria-selected={mode === 'register'}
             aria-controls="panel-auth"
-            onClick={() => setMode('register')}
+            onClick={() => switchMode('register')}
             className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-all duration-200 ${
               mode === 'register'
                 ? 'bg-primary text-primary-foreground'
@@ -78,7 +103,7 @@ export const AuthCard: React.FC = () => {
         <div className="p-8">
           {/* Success Alert */}
           {isSuccessMessage && (
-            <div className="mb-6 p-4 bg-primary text-primary-foreground text-xs font-bold uppercase tracking-widest text-center animate-in">
+            <div className="mb-6 p-4 bg-primary text-primary-foreground border-2 border-black text-xs font-bold uppercase tracking-widest text-center animate-in shadow-hard">
               {isSuccessMessage}
             </div>
           )}

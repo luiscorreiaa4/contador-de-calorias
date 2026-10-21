@@ -168,3 +168,608 @@ Este arquivo registra a execução autônoma em lote do plano de correção dos 
 - **Validação:** 67 testes de backend passando (18 suítes), 13 testes de frontend passando (5 suítes), lint limpo e build de produção verde.
 - **Commit:** `7ede68f`
 
+---
+
+## Sessão: Formalização das Decisões D-01 a D-20 e Sincronização Geral
+- **Data:** 15/10/2026
+- **Branch:** `fase2`
+- **Ações Realizadas:**
+  - **Decisões D-01 a D-20:** Consolidada a tabela unificada na Seção 5 de `docs/BACKLOG.md` cobrindo todas as 20 decisões arquiteturais, de produto e de governança com regras de implementação estritas.
+  - **`docs/ROADMAP.md`:**
+    - Criada a **Fase 4.5: Diário Completo** (BL-02, BL-18, BL-19, BL-20) entre a Fase 4 e a Fase 5 (D-20).
+    - Criada a **Fase 5.5: Pacote Compartilhado de Tipos** (`shared/` via npm workspaces) após a Fase 5 e antes do mobile (D-17).
+    - Ajustada a Fase 4: `react-router` v7 (PC-21) executado antes do code-splitting (PC-20) (D-16); cache privado em foods (D-07); projeção SQL explícita (D-08); limpeza de teste (D-11); unificação de dívidas no BACKLOG.md (D-18).
+    - Ajustada a Fase 5: expurgo de código morto (PC-31) executado obrigatoriamente antes de correções visuais (PC-25) (D-06).
+    - Ajustada a Fase 6: ordem de autenticação BL-12 -> BL-05 -> BL-06 (D-03).
+    - Ajustada a Fase 7: LGPD (BL-10) com severidade Média/M e bloqueante para lançamento público (D-04).
+    - Ajustada a Fase 8: revogação de sessão (BL-04) com cookie HttpOnly + refresh token (D-02); SSL estrito e saltos em trust proxy (D-19).
+  - **`AGENTS.md` e `docs/TESTING.md`:** Registrada a exceção explícita de limpeza de banco de testes em `AGENTS.md` §4 e `TESTING.md` §3 (`DELETE FROM users WHERE email LIKE 'tester-%'` com runtime guard `current_database()` terminando em `_test`) conforme D-11.
+  - **`backend/src/utils/date.ts`:** Exportada constante `APP_TIMEZONE = 'America/Sao_Paulo'` e função `todayInAppTz` baseada em `Intl.DateTimeFormat('en-CA', { timeZone })` conforme D-01.
+  - **`backend/src/services/nutrition.service.ts` e `backend/tests/unit/nutrition.service.test.ts`:**
+    - Atualizados parâmetros do cálculo de macronutrientes da decisão D-15:
+      - Massa de referência: LBM se %gordura informado; senão peso ajustado ($PI + 0.25 \times (peso - PI)$ com $PI = 22.5 \times altura^2$) para IMC >= 30; senão peso atual.
+      - Proteína: 1,6 g/kg da massa de referência (limite de 35% das calorias).
+      - Gordura: 25% das calorias totais.
+      - Carboidrato: restante das calorias totais.
+      - Ordem de ajuste se carboidrato < 20%: reduzir gordura até 20% -> reduzir proteína até 1,2 g/kg da massa de referência.
+      - Invariantes: tolerância de ±1%, nenhum macro negativo, carboidrato nunca zerado, reconciliação de carboidrato inteiro.
+    - Testes unitários atualizados e validados com 100% de sucesso.
+  - **`docs/SPEC.md`:**
+    - Atualizada a especificação RF-002 (§6 Divisão de Macronutrientes) com a fórmula D-15.
+    - Atualizadas regras de RF-004 com busca por `search` (D-09), projeção explícita com `source` (D-08) e cache privado (D-07).
+    - Atualizadas regras de RF-005 e RF-006 com diretrizes de fuso horário `America/Sao_Paulo` e janelas SQL indexadas (D-01).
+    - Adicionada Seção 2 formalizando o tratamento centralizado de erros com `AppError`, `asyncHandler` e mascaramento de 500 (D-10).
+  - **`docs/BACKLOG.md`:** Coluna de fase alvo atualizada nas tabelas 3.1 e 3.2 (BL-02 e BL-18/19/20 na 4.5, BL-03 na 5.5, BL-25 em Futura).
+
+---
+
+## 2. Linha de Base do Próximo Ciclo (PC) - 15/10/2026
+
+- **Backend Tests (`npm run test`):** PASSOU (67 testes, 18 suítes, 0 falhas).
+- **Backend Build (`npm --prefix backend run build`):** PASSOU (`tsc` código 0).
+- **Lint Monorepo (`npm run lint`):** PASSOU (código 0).
+- **Frontend Build (`npm run build`):** PASSOU (`tsc -b && vite build` código 0).
+- **Frontend Tests (`npm --prefix frontend test -- --run`):** PASSOU (13 testes, 5 suítes, 0 falhas).
+
+---
+
+## 3. Execução dos Itens do Próximo Ciclo (PC)
+
+### PC-01: Eliminar testes falso-positivos (cálculo nutricional e busca com acentos)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/services/meal.service.ts`: exportada função `calculateItemNutrients` para permitir testes unitários diretos.
+  - `backend/tests/meal.test.ts`: suíte `Nutritional Factor Calculations` refatorada para importar e chamar `calculateItemNutrients` com cenários reais (gramas, ml, unidades), eliminando variáveis locais e contas tautológicas isoladas.
+  - `backend/tests/integration/food.routes.test.ts`: substituída a asserção no-op por verificação real de que o resultado da busca insensível a acentuação (`search=maca`) retorna alimentos contendo "Maçã".
+### PC-14: Limpeza determinística do banco de testes (D-11)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/tests/helpers/db.ts`: criado módulo de suporte a testes com função `assertIsTestDatabase` (trava em runtime que valida sufixo `_test` antes de qualquer deleção) e `cleanupTestData(pattern = 'tester-%')` com exclusão em cascata parametrizada por prefixo.
+  - `backend/tests/unit/db_cleanup.test.ts`: testes unitários validando bloqueio contra bancos sem sufixo `_test`, rejeição de padrões que não iniciem com `tester-` e confirmação de deleção efetiva.
+  - `backend/tests/integration/food.routes.test.ts`, `meal.routes.test.ts`, `user.routes.test.ts`: padronização de e-mails de teste com prefixo `tester-` e chamada determinística de `cleanupTestData` no hook `after()`.
+- **Validação:** 70 testes de backend passando (19 suítes), 13 testes de frontend passando, lint 0 erros, build verde.
+
+### PC-18: Testes de integração de autorização multiusuário (IDOR)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/models/meal.model.ts`: adicionado `statusCode = 404` explícito quando `updateMealWithItems` não encontra a refeição ou quando ela pertence a outro usuário, prevenindo status 500 indevido.
+  - `backend/tests/integration/authorization.test.ts`: criada suíte completa de isolamento multiusuário instanciando `Usuário A` e `Usuário B` com namespaces isolados, garantindo que `Usuário B` receba 404 ao tentar atualizar ou excluir refeição de `Usuário A`, não veja refeições de `A` em `/api/meals/today`, não receba calorias de `A` em `/api/meals/stats` e acesse unicamente seus próprios dados em `/api/users/me`.
+### PC-24: Expansão de cobertura de testes de integração backend
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/tests/integration/user.routes.test.ts`: adicionados 9 novos testes de integração cobrindo consulta de perfil (`GET /me`), fluxo completo de onboarding com cálculo de metas e medidas (`PUT /me/onboarding`), simulação de metas (`POST /me/preview-goals`), metas manuais com vigência (`PUT /me/goals` e `GET /me/goals`), atualização protegida de perfil com validação de senha (`PUT /me`) e exclusão de conta com senha e bloqueio de acessos subsequentes (`DELETE /me`).
+  - `backend/tests/integration/meal.routes.test.ts`: adicionados 3 novos testes de integração cobrindo atualização com substituição atômica de itens (`PUT /meals/:id`), estatísticas mensais com médias justas (`GET /meals/stats`) e exclusão com sucesso (`DELETE /meals/:id`).
+- **Validação:** 89 testes de backend passando (20 suítes), 13 testes de frontend passando, lint 0 erros, build verde.
+
+### PC-04: Remover registro duplicado de rotas no Express (ARCH-004)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/server.ts`: removida importação redundante e segundo registro de `userRoutes`, `foodRoutes` e `mealRoutes`.
+  - `backend/src/app.ts`: organizados todos os imports no topo do arquivo antes da instanciação do Express e registro das rotas unificado exclusivamente antes do `errorHandler`.
+  - `backend/tests/unit/routes_registration.test.ts`: teste unitário criado inspecionando a stack interna de roteamento do Express, garantindo que `/api/users`, `/api/foods` e `/api/meals` estejam registrados rigorosamente 1 única vez.
+- **Validação:** 90 testes de backend passando (21 suítes), 13 testes de frontend passando, lint 0 erros, build verde.
+
+### PC-07: Bloquear reexecução indevida de onboarding (SEC-008)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/services/user.service.ts`: adicionada checagem em `completeOnboarding` validando se `user.onboarding_completed` já é `true`. Caso positivo, aborta e lança erro com status `400 Bad Request` ("Onboarding já foi concluído para este usuário."), protegendo a tabela `body_measurements` contra poluição e recálculos espúrios.
+  - `docs/SPEC.md`: atualizada a seção RF-001 documentando formalmente a regra de Execução Única de Onboarding e bloqueio subsequente com status 400.
+  - `backend/tests/integration/user.routes.test.ts`: adicionado teste de integração reproduzindo e confirmando a rejeição com código HTTP 400 ao submeter requisições subsequentes ao endpoint de onboarding.
+- **Validação:** 91 testes de backend passando (21 suítes), 13 testes de frontend passando, lint 0 erros, build verde.
+
+### PC-08: Política de senha forte e mitigação de timing attack no login (SEC-004, SEC-005)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/schemas/user.schema.ts`: criado `strongPasswordSchema` exigindo no mínimo 8 caracteres, no máximo 72 caracteres e regex `/(?=.*[a-zA-Z])(?=.*[0-9])/` (ao menos uma letra e um número). Aplicado em `registerUserSchema.password` e `updateUserSchema.newPassword`.
+  - `backend/src/services/user.service.ts`: adicionada constante `DUMMY_HASH` e chamada `await bcrypt.compare(data.password, DUMMY_HASH)` na função `login` quando o usuário não é encontrado, equalizando o tempo de resposta e mitigando timing attacks / enumeração de contas válidas.
+  - `frontend/src/components/auth/RegisterForm.tsx` e `frontend/src/pages/private/EditProfilePage.tsx`: atualizada a validação client-side para exigir no mínimo 8 caracteres com letra e número.
+  - `frontend/src/components/auth/RegisterForm.test.tsx` e `backend/tests/user.test.ts`: testes atualizados com senhas válidas e cobertura de rejeição para senhas fracas.
+  - `backend/tests/unit/password_security.test.ts`: suíte unitária reproduzindo e confirmando as regras de senha forte e timing attack mitigation.
+  - `docs/SPEC.md`: atualizado RF-001 documentando as novas políticas de segurança de credenciais.
+- **Validação:** 97 testes de backend passando (22 suítes), 14 testes de frontend passando (5 suítes), lint 0 erros, build verde.
+
+### PC-17: Transações atômicas e rollbacks em onboarding, perfil e metas (ARCH-002, TST-012)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/models/user.model.ts`: atualizada a função `updateUser` para aceitar opcionalmente instância de `PoolClient`, permitindo execução dentro de transações atômicas.
+  - `backend/src/models/history.model.ts`: atualizadas as funções `insertGoal` e `insertBodyMeasurement` para aceitar opcionalmente instância de `PoolClient`.
+  - `backend/src/services/user.service.ts`: operações multi-escrita em `completeOnboarding` (`updateUser` + `insertGoal` + `insertBodyMeasurement`), `updateProfile` (`updateUser` + `insertBodyMeasurement`) e `updateGoals` (`insertGoal` + `updateUser`) encapsuladas em transações atômicas estruturadas com `client = await pool.connect()`, `BEGIN`, `COMMIT` e `ROLLBACK` em bloco `try/catch/finally` garantindo `client.release()`.
+  - `backend/tests/integration/transactions_rollback.test.ts`: testes de integração reproduzindo falhas forçadas via constraints nas tabelas do PostgreSQL comprovando que falhas intermediárias disparam rollback total sem deixar o usuário em estado inconsistente.
+- **Validação:** 100 testes de backend passando (23 suítes), 14 testes de frontend passando (5 suítes), lint 0 erros, build verde.
+
+---
+
+## 4. RETOMADA 15/10/2026
+
+- **Contexto:** Retomada autônoma de execução em lote após interrupção da sessão anterior. Árvore de trabalho limpa, tags e stashes verificados.
+- **Itens Concluídos:**
+  - **Sublote A (Rede de testes backend):** PC-01 (`c913dde`), PC-14 (`b19ae7b`), PC-18 (`d1c7f60`), PC-24 (`a3bc7c9`) — 100% concluído.
+  - **Sublote B (Backend robustez/performance):** PC-04 (`4dc33a7`), PC-07 (`08eacf9`), PC-08 (`741e8b3`), PC-17 (`44b63e1`).
+- **Itens Pulados/Falhos:** Nenhum item PC falhou ou foi pulado.
+- **Próximo Item Pendente:** **PC-11** (Sublote B: PC-11, PC-02, PC-03, PC-09, PC-10, PC-22, PC-23).
+- **Nova Linha de Base (100% Verde):**
+  - Backend Tests (`npm run test`): 100 testes passando, 23 suítes, 0 falhas.
+  - Frontend Tests (`npm --prefix frontend test -- --run`): 14 testes passando, 5 suítes, 0 falhas.
+  - Lint Monorepo (`npm run lint`): 0 erros, 0 avisos.
+  - Frontend Build (`npm run build`): compilação de produção com código 0 (`tsc -b && vite build`).
+
+### PC-11: Resiliência de infraestrutura (statement_timeout, health check com probe e graceful shutdown)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/database/pool.ts`: configurado `statement_timeout: 10000` (10 segundos) no `pg.Pool`, abortando queries demoradas e prevenindo exaustão de conexões (PERF-006).
+  - `backend/src/app.ts`: atualizado endpoint `GET /health` para realizar probe ativo de banco com `await pool.query('SELECT 1')` e seguir o contrato de API `{ success: true, data: { status: 'healthy', database: 'connected' } }`, retornando 503 com `{ success: false, message: 'Database disconnected' }` em caso de falha (ARCH-018).
+  - `backend/src/server.ts`: implementada rotina `gracefulShutdown` interceptando sinais do SO (`SIGTERM` e `SIGINT`), fechando o servidor HTTP e encerrando o pool de conexões do PostgreSQL antes do `process.exit(0)` (ARCH-019).
+  - `backend/tests/integration/health_and_resilience.test.ts`: criados testes de integração validando a configuração de `statement_timeout`, a resposta positiva de `GET /health` no padrão `{ success, data }` e o retorno de status 503 quando a sonda do banco falha.
+- **Validação:** 104 testes de backend passando (23 suítes), 14 testes de frontend passando (5 suítes), lint 0 erros, build verde.
+
+### PC-02: Middleware de compressão HTTP (compression)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/package.json`: adicionadas as dependências estáveis `compression` (`^1.8.0`) e `@types/compression` (`^1.7.5`).
+  - `backend/src/app.ts`: importado e registrado `app.use(compression())` no topo da cadeia de middlewares da API.
+  - `backend/tests/integration/compression.test.ts`: teste de integração confirmando o envio do cabeçalho `Content-Encoding: gzip` quando requisitado por clientes compatíveis para payloads acima do threshold (> 1KB).
+- **Validação:** 106 testes de backend passando (23 suítes), 14 testes de frontend passando (5 suítes), lint 0 erros, build verde.
+
+### PC-03: Cache do catálogo de alimentos (HTTP Cache-Control e ETag) (D-07)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/controllers/food.controller.ts`: configurados cabeçalhos de resposta HTTP `Cache-Control: private, max-age=300` e `Vary: Authorization`, preservando segurança e compatibilidade com alimentos personalizados futuros, com suporte nativo do Express a `ETag` e status 304 (Not Modified).
+  - `backend/tests/integration/food.routes.test.ts`: teste de integração validando a presença de `Cache-Control: private, max-age=300`, `Vary: Authorization`, emissão de `ETag` e resposta 304 Not Modified sob envio de `If-None-Match`.
+- **Validação:** 107 testes de backend passando (23 suítes), 14 testes de frontend passando (5 suítes), lint 0 erros, build verde.
+
+### PC-09: Otimização SQL (subqueries do dashboard, count OVER e projeção explícita) (D-08, D-14)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/models/meal.model.ts`: removidas subqueries correlacionadas redundantes em `findMealsByUserAndDate` (`SELECT SUM(calories)` e `SELECT SUM(proteins)` por refeição), calculando os totais diretamente em memória via `.reduce()` sobre os itens já carregados (PERF-001).
+  - `backend/src/models/food.model.ts`: substituídas as chamadas com queries separadas por consulta única com window function `count(*) OVER() AS total_count`, eliminando 50% dos round-trips ao banco em buscas de alimentos (PERF-003). Substituído `SELECT *` por projeção explícita de colunas (`id, name, calories, proteins, carbs, fats, base_unit, serving_weight, unit_name, unit_weight, source`) tanto em `searchFoods` quanto em `findById` e `findByIds`, ocultando metadados internos (`external_id`, `active`) conforme D-08 (PERF-007).
+  - `backend/src/types/food.types.ts` e `frontend/src/services/food.service.ts`: sincronizadas interfaces `Food` com a projeção real, incluindo o campo `source?: string | null` e omitindo colunas internas.
+  - `backend/tests/integration/food.routes.test.ts`: adicionado teste de integração garantindo que `GET /api/foods` projeta `source` e nunca expõe `external_id` nem `active`.
+- **Validação:** 108 testes de backend passando (23 suítes), 14 testes de frontend passando (5 suítes), lint 0 erros, build verde.
+
+### PC-10: Criação de índices via migração (foods name WHERE active e meal_items food_id) (D-13, D-14)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/migrations/1792099463766_add-food-and-meal-indexes.js`: criada nova migração versionada em formato ESM nativo (em conformidade com imutabilidade D-13):
+    - `idx_foods_active_name`: índice parcial B-Tree em `foods (name ASC) WHERE active = true`, otimizando a ordenação e paginação padrão do catálogo de alimentos (PERF-002).
+    - `idx_meal_items_food_id`: índice de chave estrangeira em `meal_items (food_id)`, acelerando verificações de integridade referencial, exclusões e agregações por alimento (PERF-005, ARCH-016).
+    - `down`: `DROP INDEX IF EXISTS idx_foods_active_name` e `DROP INDEX IF EXISTS idx_meal_items_food_id`.
+  - Executado `npm run setup` no banco de desenvolvimento (`contador_calorias`) e migração aplicada no banco de testes (`contador_calorias_test`).
+  - `backend/tests/integration/database_indexes.test.ts`: testes de integração confirmando a presença efetiva dos índices `idx_foods_active_name` e `idx_meal_items_food_id` no PostgreSQL.
+- **Migrações para Revisão do Usuário:**
+  - `backend/migrations/1792099463766_add-food-and-meal-indexes.js`
+- **Validação:** 111 testes de backend passando (23 suítes), 14 testes de frontend passando (5 suítes), lint 0 erros, build verde.
+
+### PC-22: Inserção multi-row em lote para meal_items (PERF-004, D-14)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `backend/src/models/meal.model.ts`: implementada a função auxiliar `insertMealItemsBatch` que gera dinamicamente uma cláusula `VALUES ($1, $2, ...), ($10, ...)` contendo todos os itens da refeição e executa um único comando SQL `INSERT INTO meal_items (...) VALUES (...) RETURNING *`.
+  - Integrada a inserção em lote tanto em `createMealWithItems` quanto em `updateMealWithItems`, eliminando o loop de N inserts sequenciais por refeição e reduzindo a latência de round-trips ao banco (PERF-004).
+  - `backend/src/config/env.ts` e `backend/src/database/pool.ts`: corrigida a resolução do arquivo `.env` para caminho absoluto via `fileURLToPath(import.meta.url)`, prevenindo falhas de autenticação (`28P01`) quando comandos são disparados com prefixo da raiz do repositório.
+  - `package.json` e `backend/package.json`: adicionados os scripts oficiais `test:backend:file` e `test:frontend:file` para execução isolada e síncrona de arquivos de teste individuais sem necessidade de rodar a suíte inteira do projeto.
+  - `backend/tests/integration/meal_items_batch.test.ts`: criada suíte de integração com `describe`, `it` e hook `after` com `try / finally` garantindo `pool.end()` mesmo diante de erros, validando tanto a criação quanto a atualização em lote multi-row.
+  - Suítes de integração do backend padronizadas com encerramento seguro de sockets (`pool.end()`) em bloco `finally`, eliminando deadlocks no Event Loop do Node Native Test Runner.
+- **Validação:**
+  - Teste de arquivo único (`npm run test:backend:file tests/integration/meal_items_batch.test.ts`): passou em 356ms (2/2).
+  - Testes do backend (`npm run test`): 113 testes passando, 24 suítes, 0 falhas.
+  - Testes do frontend (`npm --prefix frontend test -- --run`): 14 testes passando, 5 suítes, 0 falhas.
+### PC-23: Medição de EXPLAIN ANALYZE em /api/meals/stats sob volume real (10k meal_items)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - Criado banco isolado de performance `contador_calorias_perf` e executadas as migrações estruturais do projeto.
+  - Desenvolvido e executado script de seed volumétrico (`backend/scripts/seed-perf.js`), populando a base com 10.000 `meal_items`, 2.500 `meals` (distribuídas ao longo de 365 dias) e histórico de `user_goals` com diferentes janelas vigentes.
+  - Desenvolvido e executado script de medição (`backend/scripts/run-stats-explain.js`) rodando `EXPLAIN (ANALYZE, BUFFERS)` na query de `/api/meals/stats` (`getPeriodStats`) para 7, 30, 90 e 365 dias.
+  - Resultados empíricos registrados em `docs/PERFORMANCE_BASELINE.md`: tempo de execução de 1.05ms (7d), 3.968ms (30d), 8.086ms (90d) e 20.740ms (365d completo sobre 10k itens) — todos ordens de magnitude abaixo do teto de tolerância de 150ms.
+- **Validação:**
+  - `docs/PERFORMANCE_BASELINE.md` atualizado com a tabela comparativa e diagnóstico de planos de execução.
+  - Testes do backend (`npm run test`): 111 testes passando, 26 suítes, 0 falhas.
+  - Testes do frontend (`npm --prefix frontend test -- --run`): 14 testes passando, 5 suítes, 0 falhas.
+  - Lint Monorepo (`npm run lint`): 0 erros.
+  - Frontend Build (`npm run build`): compilação de produção com código 0.
+
+---
+
+## 5. CONCLUSÃO DO SUBLOTE B (CHECKPOINT B)
+
+- **Sublote B Concluído (100%):**
+  - **PC-11:** Resiliência de infraestrutura (`statement_timeout`, `/health` com probe e graceful shutdown) (`bdf7135`)
+  - **PC-02:** Middleware de compressão HTTP (`compression`) (`c41e720`)
+  - **PC-03:** Cache HTTP do catálogo de alimentos (`Cache-Control`, `Vary` e ETag) (`097244d`)
+  - **PC-09:** Otimização SQL no dashboard e food search (sem subqueries correlacionadas, `count(*) OVER()`, projeção explícita de `source`) (`1ad29a3`)
+  - **PC-10:** Índices parciais e de chave estrangeira via migração versionada (`idx_foods_active_name`, `idx_meal_items_food_id`) (`ccb3b45`)
+  - **PC-22:** Inserção multi-row em lote para `meal_items` e isolamento determinístico de testes (`f2d8b58`)
+  - **PC-23:** Execução e documentação de `EXPLAIN ANALYZE` sob 10k itens no `PERFORMANCE_BASELINE.md`
+- **Linha de Base Final (100% Verde):**
+  - Backend Tests (`npm run test`): 111 testes passando, 26 suítes, 0 falhas.
+  - Frontend Tests (`npm --prefix frontend test -- --run`): 14 testes passando, 5 suítes, 0 falhas.
+  - Lint Monorepo (`npm run lint`): 0 erros.
+---
+
+## 6. AUDITORIA E SUPER-CORREÇÃO DE HIGIENE DE TESTES (16/10/2026)
+
+- **Contexto:** Auditoria profunda e padronização da infraestrutura de testes automatizados e encerramento de processos em todo o monorepo (Codex GPT 6.1 SOL).
+- **Ações Implementadas:**
+  - `backend/tests/helpers/lifecycle.ts`: criado helper centralizado `closeTestPool(cleanupCallback?)` que registra `after()` e fecha o pool do PostgreSQL em bloco `finally`, suportando callback de limpeza assíncrono.
+  - Migração de todas as suítes de teste de integração e unitárias que acessam direta ou indiretamente o banco ou a aplicação para registrar `closeTestPool()`.
+  - `scripts/check-test-hygiene.mjs`: guarda estática via AST integrada ao `npm run lint` validando que qualquer arquivo de teste que importe `pool`, `app` ou módulos dependentes registre obrigatoriamente `closeTestPool()`.
+  - `scripts/run-tests.mjs` e `scripts/run-bounded.mjs`: execução delimitada com timeout rígido de 300s (`TEST_PROCESS_TIMEOUT_MS`) e encerramento determinístico de árvore de processos em Windows e Unix.
+  - Adição do modo estrito sem force-exit (`npm run test:strict`) e padronização dos scripts de execução isolada `npm run test:backend:file` e `npm run test:frontend:file`.
+  - Documentação atualizada em `AGENTS.md`, `.agents/rules/backend-rules.md`, `.agents/skills/backend-testing-guide/SKILL.md`, `README.md` e `docs/TESTING.md`.
+  - Relatório completo e evidências determinísticas consolidadas em `docs/TEST_HYGIENE_REPORT.md` e `docs/test-hygiene-verification.json`.
+- **Validação:**
+  - `npm run test`: 110 testes passando (27 suítes), código 0.
+  - `npm run test:strict`: 110 testes passando (27 suítes), sem force-exit, código 0.
+  - `npm --prefix frontend test`: 14 testes passando (5 suítes), código 0.
+  - `npm run lint`: verificação estática de higiene + ESLint com 0 erros.
+  - `npm run build`: compilação de produção com código 0.
+
+---
+
+## 7. RETOMADA 16/10/2026
+
+- **Contexto:** Retomada autônoma de execução em lote após verificação de estado. Árvore de trabalho limpa, tags e stashes verificados.
+- **Itens Concluídos:**
+  - **Sublote A (Rede de testes backend):** PC-01 (`c913dde`), PC-14 (`b19ae7b`), PC-18 (`d1c7f60`), PC-24 (`a3bc7c9`) — 100% concluído.
+  - **Sublote B (Backend robustez/performance):** PC-04 (`4dc33a7`), PC-07 (`08eacf9`), PC-08 (`741e8b3`), PC-17 (`44b63e1`), PC-11 (`bdf7135`), PC-02 (`c41e720`), PC-03 (`097244d`), PC-09 (`1ad29a3`), PC-10 (`ccb3b45`), PC-22 (`f2d8b58`), PC-23 (`6cdaf4b`) — 100% concluído (tag `checkpoint/B`).
+  - **Auditoria de Higiene de Testes:** Suíte unificada com `closeTestPool`, timeout global de 300s, modo estrito e verificação AST no lint (`d136737`).
+- **Itens Pulados/Falhos:** Nenhum item PC falhou ou foi pulado (CA-06 permanece pulado bloqueado por D-12 pós-merge).
+- **Sublote Alvo Desta Janela:** **Sublote C — Frontend (Fase 4) e CI/docs**
+### PC-21: Roteamento SPA real com URLs declarativas, histórico e botões Voltar/F5 (D-16)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/package.json`: adicionada a dependência estável `react-router` (`^7.18.4`).
+  - `frontend/src/router.tsx`: configurado data router declarativo com `createBrowserRouter` (e helper `createTestRouter` com `createMemoryRouter`), mapeando rotas `/login`, `/cadastro`, `/onboarding`, `/`, `/estatisticas`, `/perfil` e reservando `/diario/:date` conforme D-16 e D-20.
+  - `frontend/src/components/layout/RootLayout.tsx`: criado layout mestre contendo `AppHeader`, área principal de rotas com `Suspense` e `Outlet`, e `Footer`.
+  - `frontend/src/components/ProtectedRoute.tsx`: proteção declarativa com redirecionamento para `/login` de usuários não autenticados e para `/onboarding` para quem ainda não concluiu o onboarding.
+  - `frontend/src/components/PublicRoute.tsx`: proteção reversa redirecionando usuários autenticados para `/` (ou `/onboarding`).
+  - `frontend/src/App.tsx`: simplificado para prover `AuthProvider` e `RouterProvider router={router}`.
+  - `frontend/src/components/auth/AuthCard.tsx`, `AppHeader.tsx`, `EditProfilePage.tsx`: navegação integrada nativamente via hook `useNavigate()` e `useLocation()`.
+  - `frontend/src/tests/router.test.tsx`: criada suíte cobrindo redirecionamento de não autenticado para `/login`, aba `/cadastro`, bloqueio/redirecionamento de onboarding e acesso às rotas `/estatisticas` e `/perfil`.
+  - `frontend/src/tests/LoginPage.test.tsx`: atualizado para prover contexto de `MemoryRouter`.
+- **Validação:**
+  - Testes do frontend (`npm --prefix frontend test`): 19 testes passando (6 suítes, 0 falhas).
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+- **Commit:** `5ea6077`
+
+### PC-20: Code-splitting por rota e manualChunks de vendor no Vite (PERF-012, D-16)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/router.tsx`: migrados `LoginPage` e `OnboardingFlow` de imports estáticos para importação dinâmica via `lazy()`, completando a separação sob demanda de todas as rotas da aplicação.
+  - `frontend/vite.config.ts`: configurado `build.rollupOptions.output.manualChunks` isolando bibliotecas fundamentais em chunks independentes (`react-vendor`, `tanstack-vendor`, `ui-vendor`, `chart-vendor`).
+  - **Evidência de Redução de Bundle:** O chunk inicial `index.js` diminuiu de **392.41 kB** (121.24 kB gzip) para apenas **20.51 kB** (6.02 kB gzip) — uma redução de **~95%** no código baixado no primeiro paint da página inicial. Dependências pesadas como `recharts` (373 kB) agora só são baixadas quando o usuário acessa `/estatisticas`.
+- **Validação:**
+  - Testes do frontend (`npm --prefix frontend test`): 19 testes passando (6 suítes, 0 falhas).
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+- **Commit:** `85c3261`
+
+### PC-12: Otimizações frontend (lazy de NewMealModal, useMemo em AuthContext, AbortSignal em autocomplete) (PERF-013, PERF-014, PERF-015)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/pages/private/DashboardPage.tsx`: `NewMealModal` convertido para import dinâmico com `React.lazy()` e renderizado sob `<React.Suspense fallback={null}>` estritamente quando `isNewMealModalOpen === true`.
+  - **Evidência de Redução no Dashboard:** O chunk de `DashboardPage` diminuiu de **116.47 kB** para apenas **13.89 kB** (3.24 kB gzip) — uma redução de **~88%** no bundle da tela principal, isolando `NewMealModal` e `react-select` (103.42 kB) para carregamento sob demanda ao clicar em adicionar/editar refeição (PERF-013).
+  - `frontend/src/context/AuthContext.tsx`: estabilizadas as funções `setAuthSession`, `updateUserSession` e `logout` com `useCallback` e memoizado o objeto de contexto com `useMemo`, eliminando re-renderizações espúrias em cascata por alterações de tema (`darkMode`) ou estado superior (PERF-014).
+  - `frontend/src/services/food.service.ts` e `frontend/src/components/meals/NewMealModal.tsx`: adicionado suporte e repasse do `signal?: AbortSignal` a partir do `queryFn` do TanStack Query para a função `getFoods` e para o `apiFetch`, garantindo cancelamento imediato pelo navegador de requisições em trânsito de digitação anterior (PERF-015).
+- **Validação:**
+  - Testes do frontend (`npm --prefix frontend test`): 19 testes passando (6 suítes, 0 falhas).
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+- **Commit:** `d59b600`
+
+### PC-05: Invalidação cruzada de cache e consistência entre telas (PERF-016, BUG-B07)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/pages/private/DashboardPage.tsx`: adicionada invalidação explícita de `['mealStats']` no callback `onSuccess` de `deleteMealMutation`, assegurando que a exclusão de uma refeição atualize imediatamente as médias e gráficos históricos sem depender do `staleTime` de 5 minutos.
+  - `frontend/src/components/meals/NewMealModal.tsx`: adicionada invalidação de `['mealStats']` no callback `onSuccess` de `createMealMutation` e `updateMealMutation`, garantindo que adições e edições de pratos reflitam de pronto na tela de Estatísticas.
+  - `frontend/src/components/profile/GoalSettingsCard.tsx`: adicionada invalidação de `['mealStats']` e `['todayMeals']` no callback `onSuccess` da mutação de metas nutricionais (`updateGoals`), sincronizando imediatamente o Dashboard e as linhas de meta dos gráficos analíticos.
+- **Validação:**
+  - Testes do frontend (`npm --prefix frontend test`): 19 testes passando (6 suítes, 0 falhas).
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+- **Commit:** `0119730`
+
+### PC-06: Resiliência em apiFetch (não-JSON/502 e sincronização de 401 com AuthContext) (HIPÓTESE-03, GAP-A03)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/services/api.ts`: implementada checagem defensiva de cabeçalho `Content-Type` e bloco seguro de extração de JSON, eliminando falhas catastróficas por `SyntaxError` diante de respostas HTML de servidores proxy (como 502/503/504) e retornando mensagem de indisponibilidade tratada.
+  - `frontend/src/services/api.ts`: configurado disparo do evento global de janela `auth:unauthorized` sempre que o backend responder com HTTP 401 ou quando o usuário não for localizado (404 com remoção de sessão).
+  - `frontend/src/context/AuthContext.tsx`: adicionado listener com limpeza de `user` e `token` em memória em resposta a `auth:unauthorized`, forçando desautenticação instantânea no cliente React e acionando o redirecionamento automático das rotas protegidas pelo roteador para `/login`.
+  - `frontend/src/tests/api.test.ts`: testes criados reproduzindo e validando o tratamento de resposta 502 HTML e o disparo de `auth:unauthorized` com limpeza de credenciais sob status 401.
+- **Validação:**
+  - Testes do frontend (`npm --prefix frontend test`): 21 testes passando (7 suítes, 0 falhas).
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+- **Commit:** `dd14e0e`
+
+### PC-15: Preservação de macros base do alimento ao editar refeição (BUG-B09)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/components/meals/NewMealModal.tsx`: corrigida a rotina de mapeamento de itens ao inicializar o modal em modo de edição (`mealToEdit`). Em vez de gerar um `mockFood` com nutrientes zerados (`calories: 0, proteins: 0, carbs: 0, fats: 0`), o código agora pesquisa o alimento existente no catálogo em cache ou deriva proporcionalmente os valores por 100g/ml com base na porção registrada (`(item.calories / quantity) * 100`).
+  - `frontend/src/components/meals/NewMealModal.test.tsx`: adicionado teste de unidade e renderização com `mealToEdit` garantindo que os nutrientes e totais nutricionais por item e da refeição sejam preservados integralmente.
+- **Validação:**
+  - Testes do frontend (`npm --prefix frontend test`): 22 testes passando (7 suítes, 0 falhas).
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+- **Commit:** `eb3cf27`
+
+### PC-19: Proteção e isolamento de dados de saúde/biometria em memória (SEC-018)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/context/AuthContext.tsx`: sanitizado o armazenamento local `user_session`, restringindo-o unicamente a metadados de sessão não sensíveis (`id`, `name`, `email`, `onboarding_completed`). Dados de biometria e saúde (peso, altura, percentual de gordura, sexo, data de nascimento e metas nutricionais) foram completamente expurgados do `localStorage`.
+  - `frontend/src/context/AuthContext.tsx`: implementada hidratação automática do perfil completo diretamente em memória via `getCurrentUserProfile()` sob presença do token de autenticação, mantendo conformidade integral com a LGPD e prevenindo vazamentos por scripts de terceiros ou ataques XSS.
+  - `frontend/src/mocks/handlers.ts`: adicionado mock handler para `GET /users/me` no MSW para suporte à suíte de testes de sessão.
+  - `frontend/src/tests/auth_storage.test.tsx`: testes criados comprovando que `setAuthSession` e `updateUserSession` não persistem propriedades biométricas em `localStorage`.
+  - `docs/SPEC.md`: atualizado requisito RF-001 documentando as diretrizes de privacidade de dados de saúde no armazenamento local do cliente.
+- **Validação:**
+  - Testes do frontend (`npm --prefix frontend test`): 24 testes passando (8 suítes, 0 falhas).
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+  - Lint Monorepo (`npm run lint`): 0 erros.
+  - Frontend Build (`npm run build`): compilação de produção com código 0.
+
+### PC-13: Auditoria de vulnerabilidades, Gitleaks e cobertura Vitest v8 no pipeline CI (SEC-023, TST-008)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/package.json` e `frontend/vite.config.ts`: instalado `@vitest/coverage-v8` nas devDependencies do frontend, adicionado bloco de configuração de cobertura com provider `v8` (`text`, `json`, `html`), configurados overrides para vulnerabilidades conhecidas (`braces`, `source-map-js`) e criado script `npm --prefix frontend run test:coverage`.
+  - `.github/workflows/ci.yml`: atualizado step `actions/checkout@v4` com `fetch-depth: 0` para inspeção completa de histórico, adicionados steps de auditoria de segurança (`npm audit --audit-level=high`) e detecção de credenciais expostas via `gitleaks/gitleaks-action@v2`, e atualizada execução dos testes frontend para incluir relatório de cobertura.
+  - `.gitignore` e `eslint.config.js`: adicionada exclusão de pastas `coverage` para evitar poluição do lint e commits inadvertidos de artefatos de cobertura.
+- **Validação:**
+  - Testes frontend com cobertura (`npm --prefix frontend run test:coverage`): 24 testes passando (8 suítes), cobertura reportada com sucesso.
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+  - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
+  - Frontend Build (`npm run build`): compilação de produção com código 0.
+- **Commit:** `f6f70ff`
+
+### PC-16: Sincronização geral de documentação, skills, versões e arquivamento de dívidas técnicas (D-05, D-18)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `docs/TECH_DEBT.md`: movido com `git mv` para `docs/archive/TECH_DEBT.md` com aviso explícito de arquivamento no cabeçalho referenciando `docs/BACKLOG.md` como fonte única viva de pendências e débitos técnicos (D-18).
+  - Arquivos soltos `.txt` na raiz: movidos para `docs/archive/` preservando os conteúdos originais de prompt (D-05).
+  - `AGENTS.md`: sincronizadas versões reais da stack (React 19.2.8, Vite 8.2.1, TS 6.0.2 / 5.7.3, Tailwind 3.4.19, TanStack Query 5.101.4, React Router 7.18.4, Vitest 5.0.3, MSW 2.15.0, `compression` 1.8.2, `node-pg-migrate` 9.0.0) e atualizados links documentais.
+  - `README.md`: sincronizadas versões de componentes/dependências, documentada opção de porta alternativa `DB_PORT=5433` no `docker-compose.yml` para contornar conflitos com PostgreSQL nativo na porta 5432, atualizada tabela de comandos/scripts e contagem de testes automatizados (110 backend, 24 frontend).
+  - `docs/TESTING.md`: sincronizados status de execução direta e inventário detalhado de todas as 27 suítes do backend e 8 suítes do frontend.
+  - `docs/ARCHITECTURE.md`: adicionados índices de performance da migração PC-10 (`idx_foods_active_name`, `idx_meal_items_food_id`), middleware de compressão HTTP e suporte a roteador SPA declarativo `react-router` v7.
+  - `.agents/skills/`: sincronizadas as skills `backend-middlewares` (suporte a body, query e params no middleware `validate`) e `connect-react-to-backend` (cliente `apiFetch` com resiliência defensiva a 502/não-JSON e evento de desautenticação 401).
+- **Validação:**
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+  - Testes do frontend (`npm --prefix frontend test`): 24 testes passando (8 suítes, 0 falhas).
+- **Commit:** `c295ce6`
+
+---
+
+## CHECKPOINT C — Finalização do Sublote C (Frontend Fase 4 e CI/Docs)
+- **Data:** 16/10/2026
+- **Status:** CONCLUÍDO (100% verde)
+- **Itens do Sublote C Executados:**
+  - `PC-21` (Commit `5ea6077`): Roteamento SPA declarativo via `react-router` v7 (`createBrowserRouter`), URLs declarativas, histórico, botão Voltar e F5 funcionando (D-16).
+  - `PC-20` (Commit `85c3261`): Code-splitting por rota com `React.lazy()` e vendor chunks no Vite (`react-vendor`, `tanstack-vendor`, `ui-vendor`, `chart-vendor`), reduzindo bundle inicial de 392 kB para 20.5 kB.
+  - `PC-12` (Commit `d59b600`): Import dinâmico sob demanda de `NewMealModal` no Dashboard (reduzindo chunk de 116 kB para 13.8 kB), memoização do `AuthContext` e cancelamento de busca com `AbortSignal`.
+  - `PC-05` (Commit `0119730`): Invalidação cruzada de cache (`mealStats` em criação/edição/deleção de refeições e `todayMeals`/`mealStats` em atualização de metas).
+  - `PC-06` (Commit `dd14e0e`): Resiliência no `apiFetch` para respostas não-JSON (502 HTML) e evento global `auth:unauthorized` sincronizando desautenticação imediata no `AuthContext` sob HTTP 401.
+  - `PC-15` (Commit `eb3cf27`): Preservação dos valores nutricionais base do alimento ao abrir modal de edição de refeição (`mealToEdit`).
+  - `PC-19` (Commit `1829406`): Sanitização do `localStorage` (`user_session`), expurgando dados sensíveis de biometria e saúde para conformidade com a LGPD e mantendo-os exclusivamente em memória via `getCurrentUserProfile()`.
+  - `PC-13` (Commit `f6f70ff`): Pipeline CI atualizado com auditoria de vulnerabilidades `high`, detecção de credenciais expostas via Gitleaks e medição de cobertura no frontend via `@vitest/coverage-v8`.
+  - `PC-16` (Commit `c295ce6`): Sincronização geral de documentação (`AGENTS.md`, `README.md` com porta `5433` do Docker, `TESTING.md`, `ARCHITECTURE.md`), skills em `.agents/skills/` e arquivamento definitivo de `TECH_DEBT.md` e arquivos de prompt em `docs/archive/` (D-05, D-18).
+- **Validação Final:**
+  - `npm run test:strict`: 110 testes passando (27 suítes), código 0.
+  - `npm --prefix frontend test`: 24 testes passando (8 suítes), código 0.
+  - `npm run lint`: 0 erros, 0 warnings.
+  - `npm run build`: compilação de produção com código 0.
+- **Tag do Git:** `checkpoint/C`
+
+---
+
+## 4. Sublote D — Fase 5, base (PC-31, PC-25, PC-26, PC-27, PC-33, PC-34)
+
+### PC-31: Expurgo de código morto e desinstalação de dependências órfãs (D-06, ARCH-013, ARCH-014)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `git rm` (Commit 1 / `87217d3`): comprovado o desuso completo e removidos 6 arquivos órfãos sem imports: `frontend/src/components/ThemeToggle.tsx`, `frontend/src/components/ui/card.tsx`, `frontend/src/components/ui/switch.tsx`, `frontend/src/components/ui/textarea.tsx`, `frontend/src/components/ui/tooltip.tsx` e `backend/clean-foods.ts`.
+  - `npm uninstall` (Commit 2): desinstaladas as dependências órfãs do frontend (`@radix-ui/react-switch`, `@radix-ui/react-tooltip`) e do backend (`ts-node-dev`), limpando vulnerabilidades residuais.
+- **Validação:**
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+  - Testes do frontend (`npm --prefix frontend test`): 24 testes passando (8 suítes, 0 falhas).
+  - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
+- **Commit:** `2d2b989`
+
+### PC-25: Conformidade de tokens, cores semânticas e geometria brutalista (V-07, V-08, V-09)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/components/layout/RootLayout.tsx`: substituído o spinner que violava a geometria com `rounded-full` e cor fixa `border-emerald-500` por elemento brutalista geométrico com `rounded-none border-2 border-border border-b-primary`.
+  - `frontend/src/components/layout/AppHeader.tsx`: substituídas as cores fixas `bg-white dark:bg-[#0a0a0a]` e a paleta `zinc` com hexadecimais (`#1a1a1a`) no painel dropdown pelos tokens semânticos `bg-card` e `bg-secondary`.
+  - `frontend/src/components/ui/input.tsx`: eliminadas as classes ad-hoc `dark:bg-[#0a0a0a]` e `dark:text-white`, unificando a estilização exclusivamente sob `bg-background text-foreground` sincronizados pelas CSS Variables.
+  - `frontend/src/pages/private/DashboardPage.tsx`: removidas as sombras difusas com difusão `shadow-sm` do badge de refeições e dos cartões de refeição, mantendo contornos nítidos e hover brutalista rígido.
+- **Validação:**
+  - `git grep` comprovando zero ocorrências de `#0a0a0a`, `rounded-full`, `border-emerald-500`, `bg-white`, `text-white`, `shadow-sm`, `shadow-md`.
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+  - Testes do frontend (`npm --prefix frontend test`): 24 testes passando (8 suítes, 0 falhas).
+  - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
+  - Frontend Build (`npm run build`): compilação de produção com código 0.
+
+### PC-26: Acessibilidade em componentes interativos (V-10, ARCH-021, ARCH-022)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/components/common/DatePickerInput.tsx`: adicionado listener de teclado para a tecla `Escape` (fechando o popover do calendário), e atributos semânticos ARIA nos elementos interativos (`aria-haspopup="dialog"`, `aria-expanded`, `role="dialog"`, `aria-modal="false"`, `aria-label="Seletor de data"`).
+  - `frontend/src/components/common/DatePickerInput.test.tsx`: criada suíte de testes unitários validando a presença dos atributos ARIA e o comportamento de fechamento com a tecla Escape (100% verde).
+  - `frontend/src/components/meals/NewMealModal.tsx`: adicionado `label` acessível com texto e `htmlFor="food-select-input"` com classe `sr-only`, `aria-label="Pesquisar alimento no catálogo"` e `inputId="food-select-input"` no `Select` (react-select), e adicionado `aria-label="Quantidade do alimento"` no input numérico de quantidade.
+- **Validação:**
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+  - Testes do frontend (`npm --prefix frontend test`): 26 testes passando (9 suítes, 0 falhas).
+  - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
+  - Frontend Build (`npm run build`): compilação de produção com código 0.
+
+### PC-27: Tratamento visual explícito de estados isError e empty no Dashboard e Estatísticas (GAP-A06)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/pages/private/DashboardPage.tsx`:
+    - Desestruturados estados `isLoading`, `isError`, `error` e função `refetch` da query `todayMeals`.
+    - Implementado tratamento visual de erro via banner brutalista com `role="alert"`, ícone `AlertTriangle`, mensagem de erro amigável e botão acessível "TENTAR NOVAMENTE".
+    - Implementado tratamento visual de empty state contextual quando não há refeições registradas (`meals.length === 0`), com botão de ação rápida para registrar refeição.
+    - Indicador visual de carregamento brutalista padronizado em caixa destacada com texto em caixa alta.
+  - `frontend/src/pages/private/StatsPage.tsx`:
+    - Desestruturados estados `isLoading`, `isError`, `error` e `refetch` da query `mealStats`.
+    - Implementado tratamento de erro brutalista com `role="alert"` e botão de retry.
+    - Implementado empty state para períodos sem registros de refeição (`stats.daysLogged === 0`).
+    - Substituída a cor hex `#ccff00` por token semântico `hsl(var(--primary))` no gráfico de barras do Recharts.
+  - `frontend/src/mocks/handlers.ts`: adicionados handlers MSW para `GET /meals/today` e `GET /users/me/goals`.
+  - `frontend/src/pages/private/__tests__/StatsPage.test.tsx` e `frontend/src/pages/private/__tests__/DashboardPage.test.tsx`:
+    - Criadas/expandidas suítes unitárias cobrindo todos os estados assíncronos (`isLoading`, `isError`, `empty`, e sucesso com dados).
+- **Validação:**
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+  - Testes do frontend (`npm --prefix frontend test`): 33 testes passando (10 suítes, 0 falhas).
+  - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
+  - Frontend Build (`npm run build`): compilação de produção com código 0.
+
+### PC-33: Fontes self-hosted Montserrat e Inter com carregamento local (PERF-017)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - Instaladas dependências `@fontsource/montserrat` e `@fontsource/inter` no frontend.
+  - `frontend/src/styles/index.css`: substituído o `@import url(...)` externo do Google Fonts pelos arquivos de estilo locais de `@fontsource/inter` (pesos 300, 400, 500, 600, 700) e `@fontsource/montserrat` (pesos 700, 900).
+  - `frontend/index.html`: removidas as tags `<link rel="preconnect" ...>` e `<link href="https://fonts.googleapis.com/..." rel="stylesheet">`, eliminando o render-blocking externo e conexões de rede de terceiros.
+- **Validação:**
+  - Build do Vite (`npm run build`): fontes empacotadas como assets estáticos locais (`.woff2`) em `dist/assets/` em 675ms.
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+  - Testes do frontend (`npm --prefix frontend test`): 33 testes passando (10 suítes, 0 falhas).
+  - Auditoria de segurança (`npm audit --audit-level=high`): 0 vulnerabilidades.
+  - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
+
+### PC-34: Rede de testes de componentes para telas críticas (TST-011)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/pages/private/__tests__/DashboardPage.test.tsx`: criada suíte cobrindo carregamento, estado vazio, erro da API com botão de retry e renderização de refeições (4 testes).
+  - `frontend/src/components/onboarding/OnboardingFlow.test.tsx`: criada suíte cobrindo renderização inicial, validações de campos obrigatórios no passo 1, avanço de etapas e tratamento de erro de submissão da API (4 testes).
+  - `frontend/src/pages/private/__tests__/EditProfilePage.test.tsx`: criada suíte com sessão autenticada cobrindo renderização dos dados do perfil, validação de nome obrigatório no blur e submissão com feedback de sucesso (3 testes).
+  - `frontend/src/context/AuthContext.test.tsx`: criada suíte cobrindo estado desautenticado inicial, login via `setAuthSession`, logout via `logout`, e expiração/desautenticação sob evento `auth:unauthorized` (4 testes).
+  - `frontend/src/mocks/handlers.ts`: adicionados handlers para `PUT /users/me/onboarding`, `PUT /users/me` e `POST /users/me/preview-goals`.
+- **Validação:**
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+  - Testes do frontend (`npm --prefix frontend test`): 44 testes passando (13 suítes, 0 falhas).
+  - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
+  - Frontend Build (`npm run build`): compilação de produção com código 0.
+
+---
+
+## Checkpoint D — Fase 5, base (Concluído)
+
+- **Escopo do Sublote:** `PC-31, PC-25, PC-26, PC-27, PC-33, PC-34`
+- **Commits:**
+  - `87217d3`: `refactor: remover codigo morto e componentes ui orfaos (PC-31 1/2)`
+  - `2d2b989`: `chore: desinstalar dependencias orfas no frontend e backend (PC-31 2/2)`
+  - `d389446`: `fix: conformidade de tokens, cores semanticas e geometria brutalista (PC-25)`
+  - `ab52099`: `fix: acessibilidade no DatePickerInput e modal de refeicoes (PC-26)`
+  - `12cca61`: `feat: tratamento visual de isError e empty no dashboard e estatisticas (PC-27)`
+  - `54fdb2a`: `perf: fontes self-hosted montserrat e inter sem render-blocking (PC-33)`
+  - `5d41df1`: `test: expansao da suite de testes de componentes frontend (PC-34)`
+- **Validação Integrada Final:**
+  - `npm run test:strict`: 110 testes passando em 27 suítes no backend (código 0).
+  - `npm --prefix frontend test`: 44 testes passando em 13 suítes no frontend (código 0).
+  - `npm run lint`: conformidade estrita de ESLint e higiene de testes (código 0).
+  - `npm run build`: bundle de produção compilado com assets self-hosted woff2 em 871ms (código 0).
+  - `npm audit --audit-level=high`: 0 vulnerabilidades.
+- **Tag do Git:** `checkpoint/D`
+
+---
+
+## 8. RETOMADA 16/10/2026 (Sublote E)
+
+- **Contexto:** Retomada autônoma de execução em lote após conclusão dos Sublotes A, B, C e D. Árvore de trabalho limpa, tags e stashes verificados.
+- **Itens Concluídos:**
+  - **Sublote A (Rede de testes backend):** PC-01 (`c913dde`), PC-14 (`b19ae7b`), PC-18 (`d1c7f60`), PC-24 (`a3bc7c9`) — 100% concluído.
+  - **Sublote B (Backend robustez/performance):** PC-04 (`4dc33a7`), PC-07 (`08eacf9`), PC-08 (`741e8b3`), PC-17 (`44b63e1`), PC-11 (`bdf7135`), PC-02 (`c41e720`), PC-03 (`097244d`), PC-09 (`1ad29a3`), PC-10 (`ccb3b45`), PC-22 (`f2d8b58`), PC-23 (`6cdaf4b`) — 100% concluído (tag `checkpoint/B`).
+  - **Auditoria de Higiene de Testes:** Suíte unificada com `closeTestPool`, timeout global de 300s, modo estrito e verificação AST no lint (`d136737`).
+  - **Sublote C (Frontend Fase 4 e CI/docs):** PC-21 (`5ea6077`), PC-20 (`85c3261`), PC-12 (`d59b600`), PC-05 (`0119730`), PC-06 (`dd14e0e`), PC-15 (`eb3cf27`), PC-19 (`1829406`), PC-13 (`f6f70ff`), PC-16 (`c295ce6`) — 100% concluído (tag `checkpoint/C`).
+  - **Sublote D (Fase 5 base):** PC-31 (`87217d3`, `2d2b989`), PC-25 (`d389446`), PC-26 (`ab52099`), PC-27 (`12cca61`), PC-33 (`54fdb2a`), PC-34 (`5d41df1`) — 100% concluído (tag `checkpoint/D`).
+- **Itens Pulados/Falhos:** Nenhum item PC falhou ou foi pulado (CA-06 permanece pulado bloqueado por D-12 pós-merge).
+- **Sublote Alvo Desta Janela:** **Sublote E — Fase 5, estrutural (PC-32, PC-28, PC-29, PC-30)**
+- **Próximo Item Pendente:** **PC-32**
+- **Nova Linha de Base (100% Verde):**
+  - Backend Tests (`npm run test:strict`): 110 testes passando (27 suítes), 0 falhas, código 0.
+  - Frontend Tests (`npm --prefix frontend test`): 44 testes passando (13 suítes), 0 falhas, código 0.
+  - Lint Monorepo (`npm run lint`): Higiene de testes verificada + ESLint com 0 erros e 0 warnings, código 0.
+  - Frontend Build (`npm run build`): compilação de produção com código 0 (`tsc -b && vite build` em 8.98s).
+
+### PC-32: Escopo estrutural de tokens e componentes primitivos base reutilizáveis
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/styles/index.css`: centralizadas variáveis CSS `--border-width: 2px` e `--shadow-offset: 4px` no `:root` e `.dark`, e criadas classes componentes brutalistas padronizadas (`.brutalist-card`, `.brutalist-border`, `.brutalist-shadow`).
+  - `frontend/src/components/ui/card.tsx`: criado componente primitivo brutalista coeso com `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent` e `CardFooter` (geometria `rounded-none`, `border-2 border-border bg-card text-card-foreground`).
+  - `frontend/src/components/ui/badge.tsx`: criado componente primitivo brutalista `Badge` com CVA e variantes semânticas (`default`, `secondary`, `destructive`, `outline`) com estilo `rounded-none uppercase font-bold text-xs`.
+  - `frontend/src/components/ui/alert.tsx`: criado componente primitivo brutalista `Alert`, `AlertTitle` e `AlertDescription` com `role="alert"`, variantes semânticas e contorno geométrico.
+  - `frontend/src/components/ui/__tests__/primitives.test.tsx`: testes unitários criados cobrindo atributos ARIA, variantes e conformidade com geometria e tipografia brutalista.
+- **Validação:**
+  - Testes do frontend (`npm --prefix frontend test`): 47 testes passando (14 suítes, 0 falhas).
+  - Testes do backend (`npm run test:strict`): 110 testes passando (27 suítes, 0 falhas).
+  - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
+  - Frontend Build (`npm run build`): compilação de produção com código 0.
+### PC-28: Migração de useEffect e fetch manual para useQuery e useMutation
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/components/auth/LoginForm.tsx`: migrado para `useMutation` com TanStack Query v5 (`loginMutation`), com desativação e estado visual brutalista (`CARREGANDO...`) no botão durante `isPending`.
+  - `frontend/src/components/auth/RegisterForm.tsx`: migrado para `useMutation` (`registerMutation`) com tratamento de erro e feedback visual durante `isPending`.
+  - `frontend/src/components/onboarding/OnboardingFlow.tsx`: migrado para `useMutation` (`onboardingMutation`) integrando `completeUserOnboarding` com controle reativo de loading e erro.
+  - `frontend/src/pages/private/EditProfilePage.tsx`:
+    - Eliminado `useEffect` imperativo de fetch e chamadas manuais.
+    - Implementado `useQuery` com `getCurrentUserProfile` (`queryKey: ['currentUserProfile']`) e hidratação controlada de baseline.
+    - Implementado `useMutation` para `updateUserProfile` com invalidação de queries (`currentUserProfile`, `activeGoal`, `todayMeals`, `mealStats`).
+    - Implementado `useMutation` para `deleteUserAccount` (`deleteAccountMutation`).
+    - Padronizada a largura das caixas de senha nova e senha atual no desktop (`grid grid-cols-1 sm:grid-cols-2 gap-6`), equalizando o layout.
+- **Validação:**
+  - Testes do frontend (`npm --prefix frontend test`): 47 testes passando em 14 suítes (0 falhas).
+  - Testes do backend (`npm run test:strict`): 110 testes passando em 27 suítes (0 falhas).
+  - Lint Monorepo (`npm run lint`): 0 erros, 0 warnings.
+  - Frontend Build (`npm run build`): compilação de produção com código 0.
+
+### PC-29: Substituição de formulários complexos manuais por react-hook-form e Zod
+- **Status:** CORRIGIDO
+- **Ação:**
+  - Instaladas as dependências permitidas compatíveis com o stack existente: `react-hook-form@^7.54.2` e `@hookform/resolvers@^3.10.0` no `frontend/package.json`.
+  - `RegisterForm.tsx`: migrado para `useForm` com `zodResolver(registerSchema)`, eliminando múltiplos estados de `useState` e substituindo por registro de formulário, validação de regras de senha e confirmação, e exibição acessível de erros.
+  - `OnboardingFlow.tsx`: migrado para `useForm` com `zodResolver(onboardingFormSchema)`, integrando validação modular por etapa com `trigger`, eliminando `useState`s imperativos de campos e preservando dados entre os 3 passos.
+  - `EditProfilePage.tsx`: migrado para `useForm` com `zodResolver(editProfileSchema)`, centralizando validação de dados pessoais, medidas, metas, segurança (senha atual obrigatória na alteração de email/senha nova) e sincronização com `useQuery`/`useMutation`.
+  - Mantida padronização de largura rigorosamente simétrica entre a caixa de senha atual e de nova senha no desktop (`grid grid-cols-1 sm:grid-cols-2 gap-6`).
+- **Validação:**
+  - Testes unitários e de integração de frontend (`RegisterForm.test.tsx`, `OnboardingFlow.test.tsx`, `EditProfilePage.test.tsx`): 100% passando.
+  - Testes do frontend (`npm --prefix frontend test`): 47 testes passando em 14 suítes (0 falhas).
+  - Testes do backend (`npm run test:strict`): 110 testes passando em 27 suítes (0 falhas).
+  - Lint Monorepo (`npm run lint`): 0 erros.
+### PC-30: Decomposição de componentes monolíticos (EditProfilePage e NewMealModal)
+- **Status:** CORRIGIDO
+- **Ação:**
+  - `frontend/src/types/profile.ts`: isolados `editProfileSchema` e tipos `EditProfileFormInputs`.
+  - `frontend/src/components/profile/PersonalInfoSection.tsx`: extraído subcomponente coeso de informações pessoais (nome, e-mail com aviso de confirmação por senha, sexo biológico e data de nascimento via `DatePickerInput`).
+  - `frontend/src/components/profile/BiometricsSection.tsx`: extraído subcomponente de medidas corporais (peso, altura e gordura corporal opcional).
+  - `frontend/src/components/profile/RoutineGoalsSection.tsx`: extraído subcomponente de foco principal e nível de atividade física.
+  - `frontend/src/components/profile/SecuritySection.tsx`: extraído subcomponente de segurança e alteração de senha com larguras de inputs rigorosamente idênticas no desktop (`grid grid-cols-1 sm:grid-cols-2 gap-6`).
+  - `frontend/src/pages/private/EditProfilePage.tsx`: orquestrador enxuto reduzido de 737 para 276 linhas.
+  - `frontend/src/types/meal-modal.ts`: isolados tipos `MealItem`, `FoodOption` e função pura `calculateNutrients`.
+  - `frontend/src/components/meals/FoodSearchSelect.tsx`: extraído subcomponente de busca de alimentos via React-Select assíncrono com `CustomMenuList` e estilo brutalista.
+  - `frontend/src/components/meals/FoodQuantityForm.tsx`: extraído subcomponente de inserção de quantidade (unidades vs peso em gramas/ml, preview de macros e botão de inclusão).
+  - `frontend/src/components/meals/MealItemList.tsx`: extraído subcomponente de listagem de itens da refeição com contadores de macros e ação de remoção.
+  - `frontend/src/components/meals/MealModalFooter.tsx`: extraído subcomponente de rodapé com soma calórica e botões cancelar/salvar.
+  - `frontend/src/components/meals/NewMealModal.tsx`: orquestrador reduzido de 771 para 335 linhas.
+- **Validação:**
+  - Testes de componentes frontend (`EditProfilePage.test.tsx`, `NewMealModal.test.tsx`): 100% passando.
+  - Testes do frontend (`npm --prefix frontend test`): 47 testes passando em 14 suítes (0 falhas).
+  - Testes do backend (`npm run test:strict`): 110 testes passando em 27 suítes (0 falhas).
+  - Lint Monorepo (`npm run lint`): 0 erros.
+  - Frontend Build (`npm run build`): compilação de produção com código 0 em 800ms.
+
+---
+
+## CHECKPOINT E (2026-10-16)
+- **Sublote E (Fase 5 estrutural) CONCLUÍDO:**
+  - `PC-32` (`5446daa`): Escopo estrutural de tokens e componentes primitivos base (`Card`, `Badge`, `Alert` em `components/ui/`, tokens em `index.css`).
+  - `PC-28` (`0e6e900`): Migração de `useEffect` e fetch manual para `useQuery` e `useMutation` no TanStack Query v5 em `LoginForm`, `RegisterForm`, `OnboardingFlow`, `EditProfilePage`.
+  - `PC-29` (`1be4f47`): Substituição de formulários complexos manuais por `react-hook-form` integrado com resolvers Zod em `RegisterForm`, `OnboardingFlow`, `EditProfilePage`.
+  - `PC-30` (`8eae33c`): Decomposição de monolitos em subcomponentes coesos: `EditProfilePage` fatiada com `PersonalInfoSection`, `BiometricsSection`, `RoutineGoalsSection`, `SecuritySection` (com larguras de senha nova e atual rigorosamente idênticas no desktop); `NewMealModal` fatiada com `FoodSearchSelect`, `FoodQuantityForm`, `MealItemList`, `MealModalFooter`.
+- **Validação Completa (100% Verde):**
+  - Backend `test:strict`: 110 testes passando (27 suítes), 0 falhas, 0 leaks.
+  - Frontend `test`: 47 testes passando (14 suítes), 0 falhas.
+  - Lint `lint`: 0 erros no backend e frontend.
+  - Build `build`: compilação de produção bem-sucedida em 819ms.
+
+---
+
+## LINHA DE BASE — MIGRAÇÃO DE CORES (2026-10-20)
+- **Status Inicial:**
+  - `npm --prefix frontend test -- --run`: 118 testes aprovados em 21 arquivos (100% verde, código 0).
+  - `npm run lint`: 0 erros, código 0.
+  - `npm run build`: bundle de produção gerado com sucesso em 7.56s (código 0).
+  - Git working tree: limpa na branch `fase2`.
+
+
+
+

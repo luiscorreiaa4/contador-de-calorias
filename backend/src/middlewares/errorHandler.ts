@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { structuredLog } from '../config/logger.js';
 
 interface CustomError extends Error {
   statusCode?: number;
@@ -16,7 +17,7 @@ export function errorHandler(
   const message = statusCode === 500 ? 'Erro interno no servidor.' : err.message;
 
   if (statusCode === 500) {
-    console.error('Unhandled Server Error:', err);
+    structuredLog('error', 'unhandled_server_error', { error: err.message });
   }
 
   return res.status(statusCode).json({

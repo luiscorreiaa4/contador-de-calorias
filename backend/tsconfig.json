@@ -3,12 +3,16 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "rootDir": "./src",
-    "outDir": "./dist",
+    "noEmit": true,
+    "paths": {
+      "@caloriesync/shared": ["../shared/src/index.ts"],
+      "@caloriesync/shared/nutrition": ["../shared/src/nutrition/nutrients.ts"]
+    },
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "allowJs": true
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "tests/**/*"]
 }

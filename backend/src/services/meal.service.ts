@@ -1,46 +1,16 @@
 import * as MealModel from '../models/meal.model.js';
 import * as FoodModel from '../models/food.model.js';
-import { CreateMealDTO } from '../schemas/meal.schema.js';
-import { getSaoPauloDateString } from '../utils/date.js';
+import type { CreateMealDTO, CopyMealDTO } from '@caloriesync/shared';
+import { calculateItemNutrients } from '@caloriesync/shared/nutrition';
+import { getSaoPauloDateString, combineDateAndTimeInAppTz } from '../utils/date.js';
 
 interface CustomError extends Error {
   statusCode?: number;
 }
 
-function calculateItemNutrients(
-  item: { foodId: string; quantity: number; unit?: 'g' | 'ml' | 'un'; displayAmount?: number },
-  food: { id: string; base_unit: string; unit_weight?: number | string | null; serving_weight: number | string; calories: number | string; proteins: number | string; carbs: number | string; fats: number | string; }
-) {
-  let finalQuantity = Number(item.quantity);
-  let displayAmount = item.displayAmount ? Number(item.displayAmount) : undefined;
-  const unit = item.unit || food.base_unit || 'g';
+// Reexporta o cálculo nutricional compartilhado.
+export { calculateItemNutrients };
 
-  // Se a unidade for 'un' e houver peso por unidade cadastrado:
-  if (unit === 'un' && food.unit_weight) {
-    if (!displayAmount) {
-      displayAmount = finalQuantity;
-    }
-    // Converte para a quantidade real em gramas
-    finalQuantity = displayAmount * Number(food.unit_weight);
-  } else if (!displayAmount) {
-    displayAmount = finalQuantity;
-  }
-
-  // Base padrão de 100g ou 100ml
-  const servingWeight = Number(food.serving_weight) || 100;
-  const factor = finalQuantity / servingWeight;
-
-  return {
-    foodId: food.id,
-    quantity: finalQuantity,
-    unit,
-    displayAmount,
-    calories: Math.round(Number(food.calories) * factor * 10) / 10,
-    proteins: Math.round(Number(food.proteins) * factor * 10) / 10,
-    carbs: Math.round(Number(food.carbs) * factor * 10) / 10,
-    fats: Math.round(Number(food.fats) * factor * 10) / 10,
-  };
-}
 
 export async function createMeal(userId: string, data: CreateMealDTO) {
   const itemsData = [];
@@ -201,4 +171,31 @@ export async function getMealStats(userId: string, period: 'week' | 'month' = 'm
     averages,
     chartData
   };
+}
+
+export async function copyMealOrDay(userId: string, data: CopyMealDTO) {
+  if (data.sourceMealId) {
+    const sourceMeal = await MealModel.findMealById(userId, data.sourceMealId);
+    if (!sourceMeal) {
+      const error: CustomError = new Error('Refeição não encontrada ou não pertence a este usuário.');
+      error.statusCode = 404;
+      throw error;
+    }
+    const targetMealTime = combineDateAndTimeInAppTz(data.targetDate, new Date(sourceMeal.meal_time));
+    return MealModel.copyMeal(userId, data.sourceMealId, targetMealTime);
+  }
+
+  if (data.sourceDate) {
+    const meals = await getTodayMeals(userId, data.sourceDate);
+    if (!meals || meals.length === 0) {
+      const error: CustomError = new Error('Nenhuma refeição encontrada na data de origem para copiar.');
+      error.statusCode = 404;
+      throw error;
+    }
+    return MealModel.copyDayMeals(userId, meals, data.targetDate);
+  }
+
+  const error: CustomError = new Error('sourceMealId ou sourceDate deve ser informado.');
+  error.statusCode = 400;
+  throw error;
 }

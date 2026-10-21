@@ -1,8 +1,10 @@
+import { closeTestPool } from '../helpers/lifecycle.js';
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { getSslConfig } from '../../src/database/pool.js';
 
 describe('Database Pool SSL Configuration (CA-05 / D-19)', () => {
+  closeTestPool();
   it('deve desabilitar SSL fora de produção por padrão', () => {
     const originalEnv = process.env.NODE_ENV;
     process.env.NODE_ENV = 'development';

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
 import type { LoginFormData, FormErrors } from '../../types/auth';
 import { useAuth } from '../../context/AuthContext';
 import { loginUser } from '../../services/auth.service';
@@ -20,8 +21,24 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+
+  const loginMutation = useMutation({
+    mutationFn: (data: LoginFormData) => loginUser(data),
+    onSuccess: (response) => {
+      setAuthSession(response.user, response.token);
+      if (onSuccess) onSuccess();
+    },
+    onError: (err: unknown) => {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      if (errorMsg.includes('Failed to fetch') || errorMsg.includes('fetch')) {
+        setServerError('Não foi possível conectar ao servidor.');
+      } else {
+        setServerError(errorMsg || 'Erro ao realizar login. Tente novamente.');
+      }
+      setFormData((prev) => ({ ...prev, password: '' }));
+    },
+  });
 
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
@@ -31,26 +48,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setServerError(null);
     if (!validate()) return;
-    setIsLoading(true);
-    try {
-      const response = await loginUser(formData);
-      setAuthSession(response.user, response.token);
-      if (onSuccess) onSuccess();
-    } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : String(err);
-      if (errorMsg.includes('Failed to fetch') || errorMsg.includes('fetch')) {
-        setServerError('Não foi possível conectar ao servidor.');
-      } else {
-        setServerError(errorMsg || 'Erro ao realizar login. Tente novamente.');
-      }
-      setFormData(prev => ({ ...prev, password: '' }));
-    } finally {
-      setIsLoading(false);
-    }
+    loginMutation.mutate(formData);
   };
 
   return (
@@ -84,7 +86,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           />
         </div>
         {errors.email && (
-          <p id="login-email-error" className="text-xs font-bold text-red-500 dark:text-red-400 uppercase">
+          <p id="login-email-error" className="text-xs font-bold text-destructive uppercase">
             {errors.email}
           </p>
         )}
@@ -120,7 +122,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           </button>
         </div>
         {errors.password && (
-          <p id="login-password-error" className="text-xs font-bold text-red-500 dark:text-red-400 uppercase">
+          <p id="login-password-error" className="text-xs font-bold text-destructive uppercase">
             {errors.password}
           </p>
         )}
@@ -134,7 +136,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
             type="checkbox"
             checked={formData.rememberMe}
             onChange={(e) => setFormData({ ...formData, rememberMe: e.target.checked })}
-            className="w-4 h-4 rounded-none border-2 border-border bg-background accent-primary cursor-pointer"
+            className="w-4 h-4 rounded-none border-2 border-border bg-background accent-primary-ink cursor-pointer"
           />
           <Label htmlFor="remember-me" className="cursor-pointer select-none">
             Lembrar-me
@@ -143,15 +145,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
         <a
           href="#forgot-password"
           onClick={(e) => e.preventDefault()}
-          className="text-xs font-bold uppercase tracking-widest text-primary hover:text-primary/80 transition-colors focus:outline-none focus:underline"
+          className="text-xs font-bold uppercase tracking-widest text-primary-ink hover:text-primary-ink/80 transition-colors focus:outline-none focus:underline"
         >
           Esqueci minha senha
         </a>
       </div>
 
       {/* Submit */}
-      <Button type="submit" disabled={isLoading} className="w-full mt-4 group">
-        {isLoading ? (
+      <Button type="submit" disabled={loginMutation.isPending} className="w-full mt-4 group">
+        {loginMutation.isPending ? (
           <Loader2 className="w-5 h-5 animate-spin" />
         ) : (
           <>

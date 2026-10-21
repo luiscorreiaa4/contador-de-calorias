@@ -1,8 +1,11 @@
+import { closeTestPool } from './helpers/lifecycle.js';
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { createMealSchema } from '../src/schemas/meal.schema.js';
+import { createMealSchema } from '@caloriesync/shared';
+import { calculateItemNutrients } from '../src/services/meal.service.js';
 
 describe('Meal Schema Validation (createMealSchema)', () => {
+  closeTestPool();
   it('deve validar refeição com alimentos em gramas', () => {
     const data = {
       name: 'Almoço',
@@ -74,42 +77,32 @@ describe('Meal Schema Validation (createMealSchema)', () => {
 
 describe('Nutritional Factor Calculations', () => {
   it('calcula calorias e macros para 150g de frango (base 100g: 165 kcal, 31g prot)', () => {
-    const baseCalories = 165;
-    const baseProteins = 31;
-    const quantity = 150;
-    const servingWeight = 100;
-    const factor = quantity / servingWeight;
+    const result = calculateItemNutrients(
+      { foodId: 'food-1', quantity: 150, unit: 'g' },
+      { id: 'food-1', base_unit: 'g', serving_weight: 100, calories: 165, proteins: 31, carbs: 0, fats: 3.6 }
+    );
 
-    const calories = Math.round(baseCalories * factor * 10) / 10;
-    const proteins = Math.round(baseProteins * factor * 10) / 10;
-
-    assert.strictEqual(calories, 247.5);
-    assert.strictEqual(proteins, 46.5);
+    assert.strictEqual(result.calories, 247.5);
+    assert.strictEqual(result.proteins, 46.5);
   });
 
   it('calcula calorias para 250ml de leite (base 100ml: 60 kcal, 3.2g prot)', () => {
-    const baseCalories = 60;
-    const baseProteins = 3.2;
-    const quantity = 250;
-    const servingWeight = 100;
-    const factor = quantity / servingWeight;
+    const result = calculateItemNutrients(
+      { foodId: 'food-2', quantity: 250, unit: 'ml' },
+      { id: 'food-2', base_unit: 'ml', serving_weight: 100, calories: 60, proteins: 3.2, carbs: 5, fats: 3 }
+    );
 
-    const calories = Math.round(baseCalories * factor * 10) / 10;
-    const proteins = Math.round(baseProteins * factor * 10) / 10;
-
-    assert.strictEqual(calories, 150);
-    assert.strictEqual(proteins, 8);
+    assert.strictEqual(result.calories, 150);
+    assert.strictEqual(result.proteins, 8);
   });
 
   it('calcula 2 unidades de ovo (50g por unidade -> 100g, base 100g: 156 kcal)', () => {
-    const unitWeight = 50;
-    const displayAmount = 2;
-    const totalGrams = displayAmount * unitWeight;
-    const baseCalories = 156;
-    const servingWeight = 100;
-    const factor = totalGrams / servingWeight;
+    const result = calculateItemNutrients(
+      { foodId: 'food-3', quantity: 2, unit: 'un', displayAmount: 2 },
+      { id: 'food-3', base_unit: 'g', unit_weight: 50, serving_weight: 100, calories: 156, proteins: 12.6, carbs: 1.2, fats: 10.6 }
+    );
 
-    const calories = Math.round(baseCalories * factor * 10) / 10;
-    assert.strictEqual(calories, 156);
+    assert.strictEqual(result.quantity, 100);
+    assert.strictEqual(result.calories, 156);
   });
 });

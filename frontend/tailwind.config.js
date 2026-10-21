@@ -20,6 +20,7 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary) / <alpha-value>)",
           foreground: "hsl(var(--primary-foreground) / <alpha-value>)",
+          ink: "hsl(var(--primary-ink) / <alpha-value>)",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary) / <alpha-value>)",
@@ -28,6 +29,10 @@ export default {
         destructive: {
           DEFAULT: "hsl(var(--destructive) / <alpha-value>)",
           foreground: "hsl(var(--destructive-foreground) / <alpha-value>)",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning) / <alpha-value>)",
+          foreground: "hsl(var(--warning-foreground) / <alpha-value>)",
         },
         muted: {
           DEFAULT: "hsl(var(--muted) / <alpha-value>)",
@@ -54,8 +59,10 @@ export default {
       },
       boxShadow: {
         /* Sharp shadows to fit the brutalist aesthetic */
-        'hard': '4px 4px 0px 0px rgba(204, 255, 0, 0.2)', /* Neon green offset shadow */
-        'hard-hover': '6px 6px 0px 0px rgba(204, 255, 0, 0.4)',
+        'hard': '4px 4px 0px 0px hsl(var(--shadow) / var(--shadow-alpha))',
+        'hard-hover': '6px 6px 0px 0px hsl(var(--shadow) / var(--shadow-alpha-hover))',
+        'hard-fill': '4px 4px 0px 0px hsl(var(--shadow-fill) / var(--shadow-fill-alpha))',
+        'hard-fill-hover': '6px 6px 0px 0px hsl(var(--shadow-fill) / var(--shadow-fill-alpha-hover))',
       },
       animation: {
         "fade-in": "fadeIn 0.3s ease-out forwards",

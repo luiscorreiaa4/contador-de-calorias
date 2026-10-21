@@ -113,7 +113,7 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
             type="button"
             onClick={onClose}
             disabled={isLoading}
-            className="p-2 border-2 border-border bg-background text-foreground hover:bg-secondary transition-colors disabled:opacity-50 focus:outline-none focus:border-primary"
+            className="p-2 border-2 border-border bg-background text-foreground hover:bg-secondary transition-colors disabled:opacity-50 focus:outline-none focus:border-ring"
             aria-label="Fechar janela"
           >
             <X className="w-5 h-5" />
@@ -149,7 +149,7 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="SUA SENHA ATUAL"
-                  className={`w-full pl-10 pr-12 py-2.5 bg-background border-2 rounded-none text-sm font-medium text-foreground outline-none transition-colors min-h-[48px] ${error ? 'border-destructive bg-destructive/10 text-destructive focus:border-destructive' : 'border-border hover:border-primary/50 focus:border-primary focus:ring-0'}`}
+                  className={`w-full pl-10 pr-12 py-2.5 bg-background border-2 rounded-none text-sm font-medium text-foreground outline-none transition-colors min-h-[48px] ${error ? 'border-destructive bg-destructive/10 text-destructive focus:border-destructive' : 'border-border hover:border-foreground/60 focus:border-ring focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background'}`}
                   disabled={isLoading}
                   aria-invalid={!!error}
                   aria-describedby={error ? 'delete-password-error' : undefined}
@@ -182,7 +182,7 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
                 type="button"
                 onClick={onClose}
                 disabled={isLoading}
-                className="w-full sm:w-auto px-6 py-3 font-black uppercase tracking-widest text-xs text-foreground bg-background border-2 border-border hover:bg-secondary transition-colors focus:outline-none focus:border-primary disabled:opacity-50"
+                className="w-full sm:w-auto px-6 py-3 font-black uppercase tracking-widest text-xs text-foreground bg-background border-2 border-border hover:bg-secondary transition-colors focus:outline-none focus:border-ring disabled:opacity-50"
               >
                 CANCELAR
               </button>

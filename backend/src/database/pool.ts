@@ -1,11 +1,9 @@
 import pg from 'pg';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import { env } from '../config/env.js';
 
 const { Pool } = pg;
 
-const dbName = process.env.DB_NAME || 'contador_calorias';
+const dbName = env.DB_NAME;
 
 if (process.env.NODE_ENV === 'test' && !dbName.endsWith('_test')) {
   console.error('❌ ERRO CRÍTICO: Testes estão tentando rodar num banco que não termina com "_test"!');
@@ -25,15 +23,17 @@ export function getSslConfig() {
 }
 
 export const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432', 10),
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
+  host: env.DB_HOST,
+  port: Number(env.DB_PORT),
+  user: env.DB_USER,
+  password: env.DB_PASSWORD,
   database: dbName,
   ssl: getSslConfig(),
   max: 20, // Limite de 20 conexões simultâneas no pool
   idleTimeoutMillis: 30000, // Fecha conexões ociosas após 30 segundos
   connectionTimeoutMillis: 2000, // Retorna erro se demorar mais de 2s para conectar
+  allowExitOnIdle: env.NODE_ENV === 'test' && process.env.TEST_STRICT !== '1',
+  statement_timeout: 10000, // Aborta queries com mais de 10s (PERF-006)
 });
 
 pool.on('error', (err) => {

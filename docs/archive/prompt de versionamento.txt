@@ -1,0 +1,8 @@
+"Aja como um Gerente de Lançamento (Release Manager) e Arquiteto de Software. Nosso monorepo agora possui Web, Backend e futuramente Mobile, e gerenciar versões manualmente está inviável.
+
+Quero que você crie uma nova regra de sistema dentro da nossa pasta .agents/ (pode ser uma nova skill ou um arquivo de rule como version-control-rules.md, e registre no AGENTS.md) definindo estritamente como a IA deve gerenciar versionamentos daqui para frente. A regra deve ditar o seguinte workflow:
+
+Commits Semânticos Obrigatórios: Toda alteração de código gerada pela IA deve ser commitada seguindo o padrão 'Conventional Commits' (ex: feat:, fix:, chore:).
+Sincronia de Workspaces: Quando eu disser 'Vamos lançar a versão 1.1.0', a IA deve, autonomamente, encontrar todos os arquivos package.json (raiz, backend, frontend, mobile) e atualizar as versões de forma sincronizada.
+Documentação Automática: Sempre que fizermos um lançamento de versão, a IA deve criar ou anexar as mudanças no arquivo CHANGELOG.md e garantir que o README.md reflete o estado atual da arquitetura.
+Tratamento de Branches: Definir um fluxo onde funcionalidades novas devem ser feitas em branches isoladas (ex: feature/nova-tela) e, após os testes automatizados passarem (o comando lint e test), fazer o merge.

@@ -1,48 +1,67 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { getMealStats } from '../../services/meal.service';
 import { getLocalDateString } from '../../utils/date';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from 'recharts';
-import { TrendingUp, Target, Info } from 'lucide-react';
+import { TrendingUp, Target, Info, AlertTriangle, ArrowLeft } from 'lucide-react';
 
-export const StatsPage: React.FC = () => {
+export const StatsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
+  const Heading = embedded ? 'h2' : 'h1';
   const [period, setPeriod] = useState<'week' | 'month'>('week');
   const clientDate = getLocalDateString();
 
-  const { data: stats, isLoading } = useQuery({
+  const {
+    data: stats,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ['mealStats', period, clientDate],
     queryFn: ({ signal }) => getMealStats(period, clientDate, signal),
     staleTime: 1000 * 60 * 5,
   });
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 py-8 space-y-10">
-      <div className="flex flex-col md:flex-row md:items-end justify-between border-b-2 border-border pb-6 gap-6">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-2">
-            Estatísticas
-          </p>
-          <h1 className="text-3xl sm:text-5xl font-heading font-black text-foreground uppercase tracking-tighter">
-            HISTÓRICO E TENDÊNCIAS
-          </h1>
+    <div className={embedded ? "space-y-8" : "w-full max-w-5xl mx-auto px-4 py-8 space-y-10"}>
+      <div className="border-b-2 border-border pb-6 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary-ink mb-2">
+              Estatísticas
+            </p>
+            <Heading className="text-3xl sm:text-5xl font-heading font-black text-foreground uppercase tracking-tighter">
+              ALIMENTAÇÃO
+            </Heading>
+          </div>
+          <Link
+            to="/"
+            aria-label="Voltar ao dashboard"
+            className="self-start sm:self-auto shrink-0 flex items-center justify-center w-12 h-12 border-2 border-border bg-background hover:bg-primary hover:text-primary-foreground transition-colors text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            <ArrowLeft className="w-5 h-5" aria-hidden="true" />
+          </Link>
         </div>
         
-        <div className="flex gap-4 border-2 border-border p-2 bg-background w-full md:w-auto">
+        <div className="flex gap-4 border-2 border-border p-2 bg-background w-full md:w-fit md:ml-auto">
           <button
+            aria-pressed={period === 'week'}
             onClick={() => setPeriod('week')}
-            className={`flex-1 md:flex-none py-3 px-6 text-xs font-black uppercase tracking-widest transition-all focus:outline-none ${
+            className={`flex-1 md:flex-none py-3 px-6 text-xs font-black uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
               period === 'week' 
-                ? 'bg-primary text-primary-foreground border-2 border-transparent shadow-[2px_2px_0_0_#000] dark:shadow-[2px_2px_0_0_#fff]' 
+                ? 'bg-primary text-primary-foreground border-2 border-black shadow-hard-fill' 
                 : 'bg-background text-foreground border-2 border-transparent hover:border-border'
             }`}
           >
             ÚLTIMOS 7 DIAS
           </button>
           <button
+            aria-pressed={period === 'month'}
             onClick={() => setPeriod('month')}
-            className={`flex-1 md:flex-none py-3 px-6 text-xs font-black uppercase tracking-widest transition-all focus:outline-none ${
+            className={`flex-1 md:flex-none py-3 px-6 text-xs font-black uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
               period === 'month' 
-                ? 'bg-primary text-primary-foreground border-2 border-transparent shadow-[2px_2px_0_0_#000] dark:shadow-[2px_2px_0_0_#fff]' 
+                ? 'bg-primary text-primary-foreground border-2 border-black shadow-hard-fill' 
                 : 'bg-background text-foreground border-2 border-transparent hover:border-border'
             }`}
           >
@@ -55,14 +74,46 @@ export const StatsPage: React.FC = () => {
         <div className="flex items-center justify-center h-64 border-2 border-border border-dashed bg-card opacity-50">
           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground animate-pulse">CARREGANDO ESTATÍSTICAS...</p>
         </div>
+      ) : isError ? (
+        <div
+          role="alert"
+          className="bg-destructive/10 border-2 border-destructive p-8 shadow-hard flex flex-col items-center justify-center text-center gap-4"
+        >
+          <AlertTriangle className="w-8 h-8 text-destructive" aria-hidden="true" />
+          <div>
+            <h3 className="text-base font-heading font-black text-destructive uppercase tracking-wide">
+              FALHA AO CARREGAR ESTATÍSTICAS
+            </h3>
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">
+              {error instanceof Error ? error.message : 'NÃO FOI POSSÍVEL CONSULTAR SEU HISTÓRICO NO MOMENTO.'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="mt-2 py-3 px-6 bg-destructive text-destructive-foreground font-black uppercase tracking-widest text-xs border-2 border-destructive hover:opacity-90 focus:outline-none"
+          >
+            TENTAR NOVAMENTE
+          </button>
+        </div>
+      ) : stats && stats.daysLogged === 0 ? (
+        <div className="bg-card border-2 border-border border-dashed p-12 text-center flex flex-col items-center justify-center">
+          <TrendingUp className="w-10 h-10 text-muted-foreground mb-4 opacity-50" aria-hidden="true" />
+          <p className="text-base font-heading font-black uppercase tracking-tight text-foreground mb-1">
+            NENHUM HISTÓRICO REGISTRADO NESTE PERÍODO
+          </p>
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground max-w-md">
+            VOCÊ AINDA NÃO REGISTROU NENHUMA REFEIÇÃO NOS {period === 'week' ? 'ÚLTIMOS 7 DIAS' : 'ÚLTIMOS 30 DIAS'}. REGISTRE SUAS REFEIÇÕES NO DASHBOARD PARA VER SUAS TENDÊNCIAS.
+          </p>
+        </div>
       ) : stats ? (
         <div className="space-y-10">
           
-          <div className="bg-primary/10 border-2 border-primary/20 p-4 flex items-start gap-4">
-            <Info className="w-6 h-6 text-primary shrink-0" />
+          <div className="bg-primary/10 border-2 border-border p-4 flex items-start gap-4">
+            <Info className="w-6 h-6 text-primary-ink shrink-0" />
             <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-foreground leading-relaxed">
-              AS MÉDIAS ABAIXO CONSIDERAM <strong className="text-primary">APENAS OS DIAS EM QUE HOUVE PELO MENOS UMA REFEIÇÃO REGISTRADA</strong>.<br className="hidden sm:block" /> 
-              NESTE PERÍODO DE {stats.totalDays} DIAS, VOCÊ REGISTROU REFEIÇÕES EM <strong className="text-primary">{stats.daysLogged} DIAS</strong>.
+              AS MÉDIAS ABAIXO CONSIDERAM <strong className="text-primary-ink">APENAS OS DIAS EM QUE HOUVE PELO MENOS UMA REFEIÇÃO REGISTRADA</strong>.<br className="hidden sm:block" /> 
+              NESTE PERÍODO DE {stats.totalDays} DIAS, VOCÊ REGISTROU REFEIÇÕES EM <strong className="text-primary-ink">{stats.daysLogged} DIAS</strong>.
             </p>
           </div>
 
@@ -70,10 +121,10 @@ export const StatsPage: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="bg-card border-2 border-border p-6 shadow-hard group">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-[11px] font-bold text-muted-foreground group-hover:text-primary transition-colors uppercase tracking-widest">
+                <h3 className="text-[11px] font-bold text-muted-foreground group-hover:text-primary-ink transition-colors uppercase tracking-widest">
                   MÉDIA DE CONSUMO
                 </h3>
-                <div className="p-2 bg-primary text-primary-foreground">
+                <div className="p-2 bg-primary text-primary-foreground border-2 border-black shadow-hard-fill">
                   <TrendingUp className="w-5 h-5" />
                 </div>
               </div>
@@ -101,7 +152,7 @@ export const StatsPage: React.FC = () => {
 
             <div className="bg-card border-2 border-border p-6 shadow-hard group">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-[11px] font-bold text-muted-foreground group-hover:text-primary transition-colors uppercase tracking-widest">
+                <h3 className="text-[11px] font-bold text-muted-foreground group-hover:text-primary-ink transition-colors uppercase tracking-widest">
                   MÉDIA DA META
                 </h3>
                 <div className="p-2 border-2 border-border bg-background text-foreground group-hover:border-foreground transition-colors">
@@ -175,7 +226,7 @@ export const StatsPage: React.FC = () => {
                       borderRadius: '0px', 
                       border: '2px solid hsl(var(--border))', 
                       backgroundColor: 'hsl(var(--card))',
-                      boxShadow: '4px 4px 0px 0px rgba(0,0,0,1)',
+                      boxShadow: '4px 4px 0px 0px hsl(var(--shadow) / var(--shadow-alpha))',
                       textTransform: 'uppercase',
                       padding: '12px'
                     }}
@@ -203,7 +254,7 @@ export const StatsPage: React.FC = () => {
                       label={{ position: 'top', value: 'MÉDIA DA META', fill: 'hsl(var(--foreground))', fontSize: 10, fontWeight: 'bold', letterSpacing: '0.1em' }}
                     />
                   )}
-                  <Bar dataKey="consumed_calories" fill="#ccff00" radius={[0, 0, 0, 0]} maxBarSize={60} />
+                  <Bar dataKey="consumed_calories" fill="hsl(var(--primary))" stroke="hsl(var(--foreground))" strokeWidth={2} radius={[0, 0, 0, 0]} maxBarSize={60} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
