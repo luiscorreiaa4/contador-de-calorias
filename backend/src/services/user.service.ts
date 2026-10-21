@@ -520,7 +520,17 @@ export async function addBodyMeasurement(
   userId: string,
   data: CreateMeasurementDTO
 ): Promise<HistoryModel.BodyMeasurement> {
-  const measuredAt = data.measured_at ? new Date(data.measured_at) : new Date();
+  let measuredAt: Date;
+  if (data.measured_at) {
+    const trimmed = data.measured_at.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      measuredAt = new Date(`${trimmed}T12:00:00-03:00`);
+    } else {
+      measuredAt = new Date(trimmed);
+    }
+  } else {
+    measuredAt = new Date();
+  }
   return HistoryModel.addBodyMeasurement(userId, data.weight, data.body_fat ?? null, measuredAt);
 }
 

@@ -63,7 +63,7 @@ export async function updateUser(
     passwordHash?: string;
     goal?: string;
     sex?: string;
-    birthDate?: string;
+    birthDate?: string | null;
     weight?: number | null;
     height?: number | null;
     body_fat?: number | null;

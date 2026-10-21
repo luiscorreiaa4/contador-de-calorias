@@ -9,16 +9,24 @@ import type { UserProfile } from '../../services/auth.service';
 
 function RoutineForm({ user }: { user: UserProfile }) {
   const mutation = useProfileUpdate();
+  const parsedActivity = routineSchema.shape.activityLevel.safeParse(user.activity_level);
+  const isUnknownActivity = !!user.activity_level && !parsedActivity.success;
+
   const { control, setValue, handleSubmit, reset, formState: { errors, isDirty } } = useForm<RoutineFormInputs>({
     resolver: zodResolver(routineSchema),
     defaultValues: {
       goal: user.goal,
-      activityLevel: routineSchema.shape.activityLevel.safeParse(user.activity_level).data || 'sedentario',
+      activityLevel: parsedActivity.data || 'sedentario',
     },
   });
   const values = useWatch({ control });
   return <form noValidate onSubmit={handleSubmit(data => mutation.mutate({ goal: data.goal, activity_level: data.activityLevel }, { onSuccess: () => reset(data) }))} className="border-2 border-border bg-card p-6 shadow-hard space-y-6">
     <p className="text-muted-foreground">Seu objetivo e sua atividade física orientam o cálculo das metas automáticas.</p>
+    {isUnknownActivity && (
+      <div role="alert" className="border-2 border-border bg-warning/20 p-4 text-xs font-bold uppercase text-foreground">
+        Atenção: o nível de atividade atual ('{user.activity_level}') não é reconhecido pelo sistema. Por favor, selecione uma das opções válidas abaixo para atualizar sua rotina.
+      </div>
+    )}
     <RoutineGoalsSection goalValue={values.goal || user.goal} activityLevelValue={values.activityLevel || 'sedentario'} errors={errors}
       onSelectGoal={value => setValue('goal', routineSchema.shape.goal.parse(value), { shouldDirty: true })}
       onSelectActivityLevel={value => setValue('activityLevel', routineSchema.shape.activityLevel.parse(value), { shouldDirty: true })} />

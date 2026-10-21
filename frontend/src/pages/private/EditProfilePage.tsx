@@ -30,8 +30,9 @@ function PersonalInfoForm({ user }: { user: UserProfile }) {
       return;
     }
     mutation.mutate({
-      name: data.name, sex: data.sex,
-      ...(data.birthDate ? { birthDate: data.birthDate } : {}),
+      name: data.name,
+      sex: data.sex,
+      birthDate: data.birthDate?.trim() ? data.birthDate.trim() : null,
       ...(emailChanged ? { email: data.email, currentPassword: data.currentPassword } : {}),
     }, { onSuccess: () => reset({ ...data, currentPassword: '' }) });
   };

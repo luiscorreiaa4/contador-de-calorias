@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { parseAndValidateBirthDate } from '@caloriesync/shared';
 
 const profileFields = z
   .object({
@@ -8,16 +9,7 @@ const profileFields = z
     sex: z.enum(['masculino', 'feminino', 'prefiro_nao_responder']),
     birthDate: z.string().optional().refine((val) => {
       if (!val || !val.trim()) return true;
-      if (val.length < 10) return false;
-      const parts = val.split('/');
-      if (parts.length !== 3) return false;
-      const day = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10);
-      const year = parseInt(parts[2], 10);
-      if (isNaN(day) || isNaN(month) || isNaN(year)) return false;
-      if (month < 1 || month > 12) return false;
-      if (year < 1900 || year > new Date().getFullYear()) return false;
-      return true;
+      return parseAndValidateBirthDate(val) !== null;
     }, 'DATA DE NASCIMENTO INVÁLIDA.'),
     weight: z.string().min(1, 'INFORME SEU PESO.'),
     height: z.string().min(1, 'INFORME SUA ALTURA.'),

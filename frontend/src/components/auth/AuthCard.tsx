@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { Flame } from 'lucide-react';
 import type { AuthMode } from '../../types/auth';
@@ -21,10 +21,33 @@ export const AuthCard: React.FC<AuthCardProps> = ({ initialMode }) => {
   const [mode, setMode] = useState<AuthMode>(defaultMode);
   const [isSuccessMessage, setIsSuccessMessage] = useState<string | null>(null);
 
-  const switchMode = (newMode: AuthMode) => {
+  const loginTabRef = useRef<HTMLButtonElement>(null);
+  const registerTabRef = useRef<HTMLButtonElement>(null);
+
+  const switchMode = (newMode: AuthMode, focus = false) => {
     setMode(newMode);
     if (navigate) {
       navigate(newMode === 'register' ? '/cadastro' : '/login');
+    }
+    if (focus) {
+      if (newMode === 'login') {
+        loginTabRef.current?.focus();
+      } else {
+        registerTabRef.current?.focus();
+      }
+    }
+  };
+
+  const handleTabKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      e.preventDefault();
+      switchMode(mode === 'login' ? 'register' : 'login', true);
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      switchMode('login', true);
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      switchMode('register', true);
     }
   };
 
@@ -63,16 +86,19 @@ export const AuthCard: React.FC<AuthCardProps> = ({ initialMode }) => {
         <div
           role="tablist"
           aria-label="Opções de acesso"
+          onKeyDown={handleTabKeyDown}
           className="flex border-b-2 border-border bg-background"
         >
           <button
+            ref={loginTabRef}
             id="tab-login"
             role="tab"
             type="button"
             aria-selected={mode === 'login'}
             aria-controls="panel-auth"
+            tabIndex={mode === 'login' ? 0 : -1}
             onClick={() => switchMode('login')}
-            className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-all duration-200 border-r-2 border-border ${
+            className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-all duration-200 border-r-2 border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset ${
               mode === 'login'
                 ? 'bg-primary text-primary-foreground'
                 : 'text-muted-foreground hover:bg-secondary hover:text-secondary-foreground'
@@ -82,13 +108,15 @@ export const AuthCard: React.FC<AuthCardProps> = ({ initialMode }) => {
           </button>
 
           <button
+            ref={registerTabRef}
             id="tab-register"
             role="tab"
             type="button"
             aria-selected={mode === 'register'}
             aria-controls="panel-auth"
+            tabIndex={mode === 'register' ? 0 : -1}
             onClick={() => switchMode('register')}
-            className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-all duration-200 ${
+            className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset ${
               mode === 'register'
                 ? 'bg-primary text-primary-foreground'
                 : 'text-muted-foreground hover:bg-secondary hover:text-secondary-foreground'

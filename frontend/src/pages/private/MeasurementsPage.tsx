@@ -20,7 +20,11 @@ import {
 import { Scale, TrendingDown, TrendingUp, ArrowLeft, Plus, AlertTriangle, Calendar } from 'lucide-react';
 
 const measurementFormSchema = createMeasurementSchema.extend({
-  measured_at: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'INFORME UMA DATA VÁLIDA.').refine(value => !Number.isNaN(Date.parse(value)), 'INFORME UMA DATA VÁLIDA.'),
+  measured_at: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'INFORME UMA DATA VÁLIDA.')
+    .refine(value => !Number.isNaN(Date.parse(value)), 'INFORME UMA DATA VÁLIDA.')
+    .refine(value => value <= getLocalDateString(), 'A DATA DA MEDIÇÃO NÃO PODE SER NO FUTURO.'),
 });
 const decimalValue = (value: string) => value.trim() ? Number(value.replace(',', '.')) : undefined;
 
@@ -60,7 +64,7 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
   });
 
   const onSubmit = (data: z.infer<typeof measurementFormSchema>) => {
-    mutation.mutate({ ...data, measured_at: new Date(data.measured_at).toISOString() });
+    mutation.mutate({ ...data, measured_at: `${data.measured_at}T12:00:00-03:00` });
   };
 
 

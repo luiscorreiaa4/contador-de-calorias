@@ -168,8 +168,9 @@ export const OnboardingFlow: React.FC = () => {
           <h3 className="text-sm font-heading font-black text-foreground uppercase tracking-tight border-l-4 border-foreground pl-3">INFORMAÇÕES BÁSICAS</h3>
           
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">SEXO BIOLÓGICO</label>
+            <label htmlFor="onboarding-sex" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">SEXO BIOLÓGICO</label>
             <select
+              id="onboarding-sex"
               {...register('sex')}
               className={`${inputBase} !pl-4 cursor-pointer ${errors.sex ? '!border-destructive bg-destructive/10' : ''}`}
             >
@@ -182,7 +183,7 @@ export const OnboardingFlow: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">DATA DE NASCIMENTO</label>
+            <label htmlFor="onboarding-birth-date" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">DATA DE NASCIMENTO</label>
             <DatePickerInput
               id="onboarding-birth-date"
               value={formValues.birthDate}
@@ -231,10 +232,11 @@ export const OnboardingFlow: React.FC = () => {
           <h3 className="text-sm font-heading font-black text-foreground uppercase tracking-tight border-l-4 border-foreground pl-3">SUAS MEDIDAS CORPORAIS</h3>
           
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">PESO ATUAL (KG)</label>
+            <label htmlFor="onboarding-weight" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">PESO ATUAL (KG)</label>
             <div className="relative">
               <Weight className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input 
+                id="onboarding-weight"
                 type="number" 
                 step="0.1" 
                 {...register('weight')}
@@ -246,10 +248,11 @@ export const OnboardingFlow: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">ALTURA (CM)</label>
+            <label htmlFor="onboarding-height" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">ALTURA (CM)</label>
             <div className="relative">
               <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input 
+                id="onboarding-height"
                 type="number" 
                 {...register('height')}
                 placeholder="EX: 175" 
@@ -260,12 +263,13 @@ export const OnboardingFlow: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+            <label htmlFor="onboarding-body-fat" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
               PERCENTUAL DE GORDURA (%) <span className="text-muted-foreground opacity-50 ml-1">(OPCIONAL)</span>
             </label>
             <div className="relative">
               <ActivitySquare className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input 
+                id="onboarding-body-fat"
                 type="number" 
                 step="0.1" 
                 {...register('bodyFat')}

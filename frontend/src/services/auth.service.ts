@@ -29,7 +29,7 @@ export interface UpdateProfileData {
   email?: string;
   goal?: string;
   sex?: string;
-  birthDate?: string;
+  birthDate?: string | null;
   weight?: number;
   height?: number;
   body_fat?: number | null;

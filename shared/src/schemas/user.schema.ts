@@ -78,9 +78,11 @@ export const birthDateSchema = z
   });
 
 export const optionalBirthDateSchema = z
-  .string()
+  .union([z.string(), z.null()])
+  .optional()
   .transform((val, ctx) => {
-    if (!val || !val.trim()) return undefined;
+    if (val === undefined) return undefined;
+    if (val === null || (typeof val === 'string' && !val.trim())) return null;
     const normalized = parseAndValidateBirthDate(val);
     if (!normalized) {
       ctx.addIssue({
@@ -90,8 +92,7 @@ export const optionalBirthDateSchema = z
       return z.NEVER;
     }
     return normalized;
-  })
-  .optional();
+  });
 
 export const measuredAtSchema = z
   .string()
