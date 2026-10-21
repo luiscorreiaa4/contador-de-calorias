@@ -12,12 +12,21 @@ export async function list(query: string = '', page: number = 1, limit: number =
 }
 
 export async function createCustom(userId: string, data: CreateCustomFoodDTO) {
-  return FoodModel.createCustomFood(userId, data);
+  try {
+    return await FoodModel.createCustomFood(userId, data);
+  } catch (error: unknown) {
+    const pgErr = error as { code?: string };
+    if (pgErr?.code === '23505') {
+      const customErr: CustomError = new Error('Você já possui um alimento ativo cadastrado com este nome.');
+      customErr.statusCode = 409;
+      throw customErr;
+    }
+    throw error;
+  }
 }
 
-
-export async function getById(id: string) {
-  const food = await FoodModel.findById(id);
+export async function getById(id: string, userId?: string) {
+  const food = await FoodModel.findById(id, userId);
   if (!food) {
     const error: CustomError = new Error('Alimento não encontrado.');
     error.statusCode = 404;
@@ -35,7 +44,7 @@ export async function getFavorites(userId: string) {
 }
 
 export async function addFavorite(userId: string, foodId: string) {
-  await getById(foodId); // Garante que o alimento existe (ou joga 404)
+  await getById(foodId, userId); // Garante que o alimento existe e é acessível ao usuário (ou joga 404)
   await FoodModel.addFavoriteFood(userId, foodId);
   return true;
 }

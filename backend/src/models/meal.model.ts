@@ -177,10 +177,13 @@ export async function findMealById(userId: string, mealId: string): Promise<Meal
 
 export async function copyMeal(
   userId: string,
-  sourceMealId: string,
+  sourceMealOrId: string | Meal,
   targetMealTime: Date
 ): Promise<Meal> {
-  const sourceMeal = await findMealById(userId, sourceMealId);
+  const sourceMeal = typeof sourceMealOrId === 'string'
+    ? await findMealById(userId, sourceMealOrId)
+    : sourceMealOrId;
+
   if (!sourceMeal) {
     const error: Error & { statusCode?: number } = new Error('Refeição não encontrada ou não pertence a este usuário.');
     error.statusCode = 404;

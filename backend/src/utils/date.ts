@@ -29,7 +29,31 @@ export function getTimeInAppTz(date: Date): string {
   return saoPauloTimeFormatter.format(date);
 }
 
+export function getTimezoneOffsetForDate(date: Date = new Date(), timeZone: string = APP_TIMEZONE): string {
+  const parts = new Intl.DateTimeFormat('en-US', { timeZone, timeZoneName: 'longOffset' }).formatToParts(date);
+  const tzPart = parts.find((p) => p.type === 'timeZoneName')?.value || 'GMT-03:00';
+  return tzPart.replace('GMT', '');
+}
+
 export function combineDateAndTimeInAppTz(dateStr: string, timeDate: Date): Date {
   const timeStr = getTimeInAppTz(timeDate);
-  return new Date(`${dateStr}T${timeStr}-03:00`);
+  const offset = getTimezoneOffsetForDate(timeDate);
+  return new Date(`${dateStr}T${timeStr}${offset}`);
+}
+
+export function getDayBoundariesInAppTz(dateStr: string): { startIso: string; endIso: string } {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const nextDay = new Date(Date.UTC(year, month - 1, day + 1, 12, 0, 0));
+  const nextDateStr = getSaoPauloDateString(nextDay);
+
+  const startRef = new Date(`${dateStr}T12:00:00Z`);
+  const nextRef = new Date(`${nextDateStr}T12:00:00Z`);
+
+  const startOffset = getTimezoneOffsetForDate(startRef);
+  const endOffset = getTimezoneOffsetForDate(nextRef);
+
+  return {
+    startIso: `${dateStr}T00:00:00${startOffset}`,
+    endIso: `${nextDateStr}T00:00:00${endOffset}`,
+  };
 }

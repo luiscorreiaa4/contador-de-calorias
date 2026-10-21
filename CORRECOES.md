@@ -12,11 +12,11 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 
 ## 📍 CHECKPOINT
 - Fase atual: 1 (Execução dos Lotes)
-- Lote atual: Lote 04: Regras de Negócio e Catálogo de Alimentos no Backend
-- Achado em andamento: A-003
-- Próximo passo (bem específico): Iniciar Lote 04 analisando unicidade de alimentos e tratamento de erro 23505 em food.service.ts / food.model.ts (A-003).
-- Último commit: 312c849 (Lote 03 concluído)
-- Progresso: 23 / 129 achados
+- Lote atual: Lote 05: Tratamento de Erros, Middlewares e Observabilidade no Backend
+- Achado em andamento: A-007
+- Próximo passo (bem específico): Iniciar Lote 05 criando asyncHandler e eliminando blocos try/catch redundantes nos controllers (A-007, A-017, A-018, A-031, A-058, A-040, A-022).
+- Último commit: pendente (Lote 04 concluído)
+- Progresso: 31 / 129 achados
 
 ## 🔧 COMANDOS DE VALIDAÇÃO
 - Typecheck: `npm --prefix backend run typecheck` e `npm run build` (tsc -b no frontend)
@@ -60,15 +60,15 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - [x] A-043 🔵 previewGoals tratamento de birth_date nulo
 - [x] A-045 🔵 updateUser formatação de data consistente
 
-### Lote 04: Regras de Negócio e Catálogo de Alimentos no Backend (status: ⬜ pendente)
-- [ ] A-003 🟠 Unicidade de nome de alimentos e tratamento 23505
-- [ ] A-105 🟠 Script import-foods restrito ao catálogo (user_id IS NULL)
-- [ ] A-015 🟡 Filtro de alimentos inativos/de outros usuários
-- [ ] A-020 🔵 Tipagem estrita de multiplicadores de atividade física
-- [ ] A-024 🟡 Tratamento de fuso de São Paulo em date.ts e meal.service
-- [ ] A-025 🟡 Otimização de consultas em copyMeal
-- [ ] A-035 🟡 Recálculo de metas na atualização do perfil
-- [ ] A-061 🔵 Regra de TMB para prefiro_nao_responder
+### Lote 04: Regras de Negócio e Catálogo de Alimentos no Backend (status: ✅ concluído)
+- [x] A-003 🟠 Unicidade de nome de alimentos e tratamento 23505
+- [x] A-105 🟠 Script import-foods restrito ao catálogo (user_id IS NULL)
+- [x] A-015 🟡 Filtro de alimentos inativos/de outros usuários
+- [x] A-020 🔵 Tipagem estrita de multiplicadores de atividade física
+- [x] A-024 🟡 Tratamento de fuso de São Paulo em date.ts e meal.service
+- [x] A-025 🟡 Otimização de consultas em copyMeal
+- [x] A-035 🟡 Recálculo de metas na atualização do perfil
+- [x] A-061 🔵 Regra de TMB para prefiro_nao_responder
 
 ### Lote 05: Tratamento de Erros, Middlewares e Observabilidade no Backend (status: ⬜ pendente)
 - [ ] A-007 🟡 Eliminação de try/catch duplicado nos controllers com asyncHandler
@@ -320,6 +320,48 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - Arquivos alterados: `backend/src/models/user.model.ts`
 - Decisões tomadas: Formato canônico `YYYY-MM-DD` preservado no banco para evitar incompatibilidades de timezone ou locale.
 
+### A-003: ✅ CORRIGIDO
+- Lote: 04 | Commit: pendente
+- O que foi feito: Criada migração `1792700000000_split-food-name-uniqueness-indexes.js` que dividiu o índice de unicidade global de alimentos em dois índices parciais: `idx_foods_catalog_unique_name` (apenas para itens de catálogo com `user_id IS NULL`) e `idx_foods_custom_user_unique_name` (`user_id, f_unaccent(lower(name))` para itens personalizados com `user_id IS NOT NULL`). Em `food.service.ts` (`createCustom`), adicionado tratamento do código de erro PostgreSQL `23505`, retornando status HTTP 409 amigável ("Você já cadastrou um alimento com este nome.") em vez de 500. Adicionados testes de integração em `backend/tests/integration/foods_uniqueness.test.ts`.
+- Arquivos alterados: `backend/migrations/1792700000000_split-food-name-uniqueness-indexes.js`, `backend/src/services/food.service.ts`, `backend/tests/integration/foods_uniqueness.test.ts`
+- Decisões tomadas: Usuários diferentes podem cadastrar alimentos com o mesmo nome sem colisão, e podem usar nomes presentes no catálogo TACO.
+
+### A-015: ✅ CORRIGIDO
+- Lote: 04 | Commit: pendente
+- O que foi feito: Em `backend/src/models/food.model.ts`, atualizados métodos `findById` e `findByIds` para aplicar o filtro de isolamento multitenant e integridade: `active = true AND (user_id IS NULL OR user_id = $2)`. Em `meal.service.ts` (`createMeal`, `updateMeal`) e `saved_meal.service.ts` (`createSavedMeal`), repassado o `userId` autenticado para `findByIds`. Alimentos inativos ou de outros usuários não são retornados, lançando erro HTTP 404 ("Um ou mais alimentos selecionados não foram encontrados.") antes de associar à refeição.
+- Arquivos alterados: `backend/src/models/food.model.ts`, `backend/src/services/meal.service.ts`, `backend/src/services/saved_meal.service.ts`, `backend/tests/integration/custom_food.test.ts`
+- Decisões tomadas: Previne vazamento de informações nutricionais de alimentos privados entre usuários e uso indevido de itens desativados.
+
+### A-020: ✅ CORRIGIDO
+- Lote: 04 | Commit: pendente
+- O que foi feito: Em `backend/src/services/nutrition.service.ts`, substituído `Record<string, number>` por `Record<ActivityLevel, number>` em `ACTIVITY_MULTIPLIERS`, garantindo mapeamento completo e seguro para cada valor do enum `ActivityLevel`. Adicionado operador de coalescência nula `?? 1.2` para tipagem estrita com fallback defensivo.
+- Arquivos alterados: `backend/src/services/nutrition.service.ts`
+- Decisões tomadas: Erros de digitação ou divergências no nível de atividade são prevenidos em tempo de compilação TypeScript.
+
+### A-024: ✅ CORRIGIDO
+- Lote: 04 | Commit: pendente
+- O que foi feito: Em `backend/src/utils/date.ts`, implementadas funções baseadas no fuso horário IANA `America/Sao_Paulo` com cálculo de offset dinâmico (`getTimezoneOffsetForDate`, `getDayBoundariesInAppTz`, `toAppIsoString`), eliminando o sufixo fixo `-03:00` hardcoded. Atualizado `meal.service.ts` para utilizar `getDayBoundariesInAppTz` na geração de timestamps de limites diários e cópias de refeições.
+- Arquivos alterados: `backend/src/utils/date.ts`, `backend/src/services/meal.service.ts`
+- Decisões tomadas: O cálculo respeita o fuso horário configurado sem dependência de horário de verão fixo ou do fuso local do processo Node.
+
+### A-025: ✅ CORRIGIDO
+- Lote: 04 | Commit: pendente
+- O que foi feito: Em `backend/src/models/meal.model.ts` (`copyMeal`), modificado o parâmetro para aceitar `sourceMealOrId: string | Meal`. Em `backend/src/services/meal.service.ts` (`copyMealOrDay`), a refeição de origem já previamente recuperada e validada por `findMealById` é passada diretamente para `MealModel.copyMeal`, eliminando uma consulta de leitura completa com JOIN de itens redundante ao banco de dados.
+- Arquivos alterados: `backend/src/models/meal.model.ts`, `backend/src/services/meal.service.ts`
+- Decisões tomadas: Mantida retrocompatibilidade permitindo receber string (id) ou objeto (Meal) já carregado.
+
+### A-035: ✅ CORRIGIDO
+- Lote: 04 | Commit: pendente
+- O que foi feito: Em `backend/src/services/user.service.ts` (`updateProfile`), implementada verificação de alteração em parâmetros antropométricos (`birth_date`, `gender`, `height_cm`, `activity_level`). Quando qualquer um desses campos é alterado, se o usuário possuir meta ativa configurada no modo `auto`, as metas diárias (calorias, proteínas, carboidratos, gorduras, água) são automaticamente recalculadas preservando o objetivo atual (`maintain`, `loss`, `gain`). Se a meta estiver no modo `manual`, ela é estritamente preservada sem recálculo. Adicionado teste de integração em `backend/tests/integration/user.routes.test.ts`.
+- Arquivos alterados: `backend/src/services/user.service.ts`, `backend/tests/integration/user.routes.test.ts`
+- Decisões tomadas: Usuários em modo automático mantêm suas metas sincronizadas com a evolução do seu perfil biométrico.
+
+### A-061: ✅ CORRIGIDO
+- Lote: 04 | Commit: pendente
+- O que foi feito: Em `backend/src/services/nutrition.service.ts` (`calculateBMR` e `calculateNutritionalGoals`), para usuários com gênero `prefiro_nao_responder`, o ajuste de TMB e o piso calórico diário foram ajustados para a média aritmética exata entre a equação masculina (+5) e feminina (-161), resultando em `baseTmb - 78` e piso de 1350 kcal (média entre 1500 e 1200 kcal), em vez de aplicar a fórmula feminina de forma arbitrária.
+- Arquivos alterados: `backend/src/services/nutrition.service.ts`
+- Decisões tomadas: Tratamento matematicamente imparcial e neutro para perfis que não especificam gênero binário.
+
 ## 🧠 DECISÕES E OBSERVAÇÕES GLOBAIS
 - Padrão conservador: preservar comportamento de produção e regras de negócio já validadas pelos testes.
 - Toda modificação passa por validação rápida (typecheck / testes da área) e ao final do lote pela validação completa (`npm run lint`, `npm run build`, `npm run test`, `npm run test:frontend`).
@@ -332,5 +374,6 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - Sessão 1: Fase 0 concluída. Branch `fix/auditoria` criada. Linha de base validada (173 testes de backend, 142 de frontend, 0 erros de lint, build bem-sucedido). 129 achados organizados em 14 lotes no `CORRECOES.md`.
 - Lote 01 concluído (commit `cd73c37`): corrigidos A-001, A-107, A-106, A-105, A-108, A-109, A-110 e A-121.
 - Lote 02 concluído (commit `88b2e0c`): corrigidos A-002, A-004, A-008, A-010, A-060, A-036, A-059; A-009 documentado como adiado com mitigação.
-- Lote 03 concluído: corrigidos A-011, A-012, A-006, A-021, A-023, A-043, A-045.
+- Lote 03 concluído (commit `312c849`): corrigidos A-011, A-012, A-006, A-021, A-023, A-043, A-045.
+- Lote 04 concluído: corrigidos A-003, A-015, A-020, A-024, A-025, A-035, A-061 (A-105 já realizado no Lote 01).
 

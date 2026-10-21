@@ -13,7 +13,7 @@ export async function listSavedMeals(userId: string) {
 export async function createSavedMeal(userId: string, data: CreateSavedMealDTO) {
   // Otimização: Fetch all foods at once (evitar N+1 queries)
   const foodIds = [...new Set(data.items.map(item => item.foodId))];
-  const foods = await FoodModel.findByIds(foodIds);
+  const foods = await FoodModel.findByIds(foodIds, userId);
   const foodsMap = new Map(foods.map(f => [f.id, f]));
 
   for (const item of data.items) {

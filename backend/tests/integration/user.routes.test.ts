@@ -138,6 +138,28 @@ describe('User Routes (Integration - E2E)', () => {
     assert.match(res.body.message, /Onboarding já foi concluído/i);
   });
 
+  it('PUT /api/users/me - deve recalcular metas automaticamente quando peso for alterado e meta for auto (A-035)', async () => {
+    const initialGoal = await request(app)
+      .get('/api/users/me/goals')
+      .set('Authorization', `Bearer ${userToken}`);
+    const initialCalories = Number(initialGoal.body.data.calories);
+
+    // Atualiza peso de 80 para 95 kg
+    const updateRes = await request(app)
+      .put('/api/users/me')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ weight: 95 });
+    assert.strictEqual(updateRes.status, 200);
+
+    const updatedGoal = await request(app)
+      .get('/api/users/me/goals')
+      .set('Authorization', `Bearer ${userToken}`);
+    const updatedCalories = Number(updatedGoal.body.data.calories);
+
+    assert.strictEqual(updatedGoal.body.data.mode, 'auto');
+    assert.ok(updatedCalories > initialCalories, `Calorias recalculadas (${updatedCalories}) devem ser maiores que as iniciais (${initialCalories})`);
+  });
+
   it('POST /api/users/me/preview-goals - deve calcular prévia de metas energéticas', async () => {
     const res = await request(app)
       .post('/api/users/me/preview-goals')

@@ -2,7 +2,7 @@ import * as MealModel from '../models/meal.model.js';
 import * as FoodModel from '../models/food.model.js';
 import type { CreateMealDTO, CopyMealDTO } from '@caloriesync/shared';
 import { calculateItemNutrients } from '@caloriesync/shared/nutrition';
-import { getSaoPauloDateString, combineDateAndTimeInAppTz } from '../utils/date.js';
+import { getSaoPauloDateString, combineDateAndTimeInAppTz, getDayBoundariesInAppTz } from '../utils/date.js';
 
 interface CustomError extends Error {
   statusCode?: number;
@@ -17,7 +17,7 @@ export async function createMeal(userId: string, data: CreateMealDTO) {
   
   // Otimização: Fetch all foods at once (evitar N+1 queries)
   const foodIds = [...new Set(data.items.map(item => item.foodId))];
-  const foods = await FoodModel.findByIds(foodIds);
+  const foods = await FoodModel.findByIds(foodIds, userId);
   const foodsMap = new Map(foods.map(f => [f.id, f]));
   
   for (const item of data.items) {
@@ -42,13 +42,7 @@ export async function getTodayMeals(userId: string, dateStr?: string) {
     targetDate = getSaoPauloDateString();
   }
 
-  const [year, month, day] = targetDate.split('-').map(Number);
-  const nextDay = new Date(Date.UTC(year, month - 1, day + 1, 12, 0, 0));
-  const nextDateStr = getSaoPauloDateString(nextDay);
-
-  const startIso = `${targetDate}T00:00:00-03:00`;
-  const endIso = `${nextDateStr}T00:00:00-03:00`;
-
+  const { startIso, endIso } = getDayBoundariesInAppTz(targetDate);
   return MealModel.findMealsByUserAndDate(userId, startIso, endIso);
 }
 
@@ -57,7 +51,7 @@ export async function updateMeal(userId: string, mealId: string, data: CreateMea
   
   // Otimização: Fetch all foods at once (evitar N+1 queries)
   const foodIds = [...new Set(data.items.map(item => item.foodId))];
-  const foods = await FoodModel.findByIds(foodIds);
+  const foods = await FoodModel.findByIds(foodIds, userId);
   const foodsMap = new Map(foods.map(f => [f.id, f]));
   
   for (const item of data.items) {
@@ -182,7 +176,7 @@ export async function copyMealOrDay(userId: string, data: CopyMealDTO) {
       throw error;
     }
     const targetMealTime = combineDateAndTimeInAppTz(data.targetDate, new Date(sourceMeal.meal_time));
-    return MealModel.copyMeal(userId, data.sourceMealId, targetMealTime);
+    return MealModel.copyMeal(userId, sourceMeal, targetMealTime);
   }
 
   if (data.sourceDate) {

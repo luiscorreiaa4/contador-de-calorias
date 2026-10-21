@@ -268,6 +268,62 @@ export async function updateProfile(userId: string, data: UpdateUserDTO): Promis
       );
     }
 
+    // A-035: Se houve alteração em campos antropométricos/metas e a meta ativa for 'auto', recalcular metas
+    const hasAntroChanges =
+      data.weight !== undefined ||
+      data.height !== undefined ||
+      data.body_fat !== undefined ||
+      data.goal !== undefined ||
+      data.activity_level !== undefined ||
+      data.sex !== undefined ||
+      data.birthDate !== undefined;
+
+    if (hasAntroChanges && updatedUser.onboarding_completed) {
+      const todayStr = getSaoPauloDateString();
+      const activeGoal = await HistoryModel.getActiveGoal(userId, todayStr);
+      // Recalcula apenas se o usuário usa meta no modo 'auto' (ou se ainda não tem meta registrada)
+      if (!activeGoal || activeGoal.mode === 'auto') {
+        if (
+          (updatedUser.sex === 'masculino' || updatedUser.sex === 'feminino' || updatedUser.sex === 'prefiro_nao_responder') &&
+          updatedUser.goal &&
+          updatedUser.weight != null &&
+          updatedUser.height != null &&
+          (updatedUser.activity_level === 'sedentario' ||
+            updatedUser.activity_level === 'pouco_ativo' ||
+            updatedUser.activity_level === 'moderadamente_ativo' ||
+            updatedUser.activity_level === 'muito_ativo' ||
+            updatedUser.activity_level === 'extremamente_ativo') &&
+          updatedUser.birth_date
+        ) {
+          const profileForCalc: NutritionService.UserProfile = {
+            sex: updatedUser.sex,
+            birthDate: String(updatedUser.birth_date),
+            goal: updatedUser.goal,
+            weight: Number(updatedUser.weight),
+            height: Number(updatedUser.height),
+            body_fat: updatedUser.body_fat != null ? Number(updatedUser.body_fat) : null,
+            activity_level: updatedUser.activity_level,
+          };
+
+          const newTargets = NutritionService.calculateEnergyTargets(profileForCalc);
+          await HistoryModel.insertGoal(
+            userId,
+            todayStr,
+            newTargets.suggestedCalories,
+            newTargets.suggestedMacros.proteins,
+            newTargets.suggestedMacros.carbs,
+            newTargets.suggestedMacros.fats,
+            'auto',
+            client
+          );
+          await client.query(
+            `UPDATE users SET daily_calories_goal = $1, daily_proteins_goal = $2 WHERE id = $3`,
+            [newTargets.suggestedCalories, newTargets.suggestedMacros.proteins, userId]
+          );
+        }
+      }
+    }
+
     await client.query('COMMIT');
     return updatedUser;
   } catch (error) {

@@ -105,14 +105,26 @@ export async function searchFoods(
   }
 }
 
-export async function findById(id: string): Promise<Food | null> {
-  const result = await pool.query<Food>(`SELECT ${FOOD_COLUMNS} FROM foods WHERE id = $1`, [id]);
+export async function findById(id: string, userId?: string): Promise<Food | null> {
+  let query = `SELECT ${FOOD_COLUMNS} FROM foods WHERE id = $1 AND active = true`;
+  const params: unknown[] = [id];
+  if (userId) {
+    query += ` AND (user_id IS NULL OR user_id = $2)`;
+    params.push(userId);
+  }
+  const result = await pool.query<Food>(query, params);
   return result.rows[0] ?? null;
 }
 
-export async function findByIds(ids: string[]): Promise<Food[]> {
+export async function findByIds(ids: string[], userId?: string): Promise<Food[]> {
   if (ids.length === 0) return [];
-  const result = await pool.query<Food>(`SELECT ${FOOD_COLUMNS} FROM foods WHERE id = ANY($1::uuid[])`, [ids]);
+  let query = `SELECT ${FOOD_COLUMNS} FROM foods WHERE id = ANY($1::uuid[]) AND active = true`;
+  const params: unknown[] = [ids];
+  if (userId) {
+    query += ` AND (user_id IS NULL OR user_id = $2)`;
+    params.push(userId);
+  }
+  const result = await pool.query<Food>(query, params);
   return result.rows;
 }
 
