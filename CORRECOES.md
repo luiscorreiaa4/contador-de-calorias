@@ -15,7 +15,7 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - Lote atual: Lote 04: Regras de Negócio e Catálogo de Alimentos no Backend
 - Achado em andamento: A-003
 - Próximo passo (bem específico): Iniciar Lote 04 analisando unicidade de alimentos e tratamento de erro 23505 em food.service.ts / food.model.ts (A-003).
-- Último commit: pendente (Lote 03 concluído, pronto para commit)
+- Último commit: 312c849 (Lote 03 concluído)
 - Progresso: 23 / 129 achados
 
 ## 🔧 COMANDOS DE VALIDAÇÃO
@@ -279,43 +279,43 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - Decisões tomadas: Adiado para futura introdução de infraestrutura de refresh tokens com Redis ou coluna `token_version`.
 
 ### A-011: ✅ CORRIGIDO
-- Lote: 03 | Commit: pendente
+- Lote: 03 | Commit: 312c849
 - O que foi feito: Atualizados `dateQuerySchema` e `statsQuerySchema` em `shared/src/schemas/common.schema.ts` para usar `z.string().date()` do Zod, validando datas válidas de calendário e rejeitando com 400 dias impossíveis (como 2026-02-31 e 2026-13-45) antes de tocar o banco de dados. Adicionados testes unitários em `backend/tests/user.test.ts`.
 - Arquivos alterados: `shared/src/schemas/common.schema.ts`, `backend/tests/user.test.ts`
 - Decisões tomadas: Rejeição imediata via middleware Zod previne que erros Postgres 22007 estourem como 500.
 
 ### A-012: ✅ CORRIGIDO
-- Lote: 03 | Commit: pendente
+- Lote: 03 | Commit: 312c849
 - O que foi feito: Criada função compartilhada `parseAndValidateBirthDate` e schemas `birthDateSchema`, `optionalBirthDateSchema` e `measuredAtSchema` em `shared/src/schemas/user.schema.ts`. `birthDate` agora valida limites de idade (1-130 anos), rejeita datas inexistentes no calendário e futuras, suportando formatos ISO e brasileiro (DD/MM/AAAA) com normalização automática para YYYY-MM-DD. `measured_at` agora rejeita strings arbitrárias e datas futuras (com tolerância de 5min de relógio).
 - Arquivos alterados: `shared/src/schemas/user.schema.ts`, `backend/tests/user.test.ts`
 - Decisões tomadas: Suporte e normalização de ambos os formatos (ISO e DD/MM/AAAA) garantem compatibilidade com os formulários de onboarding/perfil existentes e testes.
 
 ### A-006: ✅ CORRIGIDO
-- Lote: 03 | Commit: pendente
+- Lote: 03 | Commit: 312c849
 - O que foi feito: Em `backend/src/models/history.model.ts` (`addBodyMeasurement`), adicionada checagem transacional que verifica se existe medição com `measured_at > dateToUse`. A atualização de `users.weight` e `body_fat` só é executada se a medição inserida for a mais recente do usuário. Adicionado teste de integração em `backend/tests/integration/user_measurements.test.ts`.
 - Arquivos alterados: `backend/src/models/history.model.ts`, `backend/tests/integration/user_measurements.test.ts`
 - Decisões tomadas: Medições retroativas são gravadas com sucesso no histórico para acompanhamento da evolução, sem distorcer o perfil e metas atuais.
 
 ### A-021: ✅ CORRIGIDO
-- Lote: 03 | Commit: pendente
+- Lote: 03 | Commit: 312c849
 - O que foi feito: Substituída coerção booleana `|| null` e `!value` por verificações explícitas de nullish coalescing (`!= null`, `?? null`, `!== undefined`) em `user.service.ts` (`body_fat`), `nutrients.ts` (`displayAmount`, `serving_weight`) e `saved_meal.model.ts` (`unit_weight`, `display_amount`), impedindo que o valor numérico 0 seja corrompido para `null` ou `undefined`.
 - Arquivos alterados: `backend/src/services/user.service.ts`, `shared/src/nutrition/nutrients.ts`, `backend/src/models/saved_meal.model.ts`, `backend/tests/unit/nutrition.service.test.ts`
 - Decisões tomadas: Valores numéricos zero são dados válidos e devem ser preservados integralmente.
 
 ### A-023: ✅ CORRIGIDO
-- Lote: 03 | Commit: pendente
+- Lote: 03 | Commit: 312c849
 - O que foi feito: Em `shared/src/nutrition/nutrients.ts` (`calculateItemNutrients`), quando a unidade for `'un'` e o alimento não possuir `unit_weight`, o cálculo agora utiliza `food.serving_weight` (ou 100g de porção padrão) como fallback em vez de tratar quantidade em gramas (evitando que 2 unidades virem 2g). Adicionado teste unitário em `backend/tests/unit/nutrition.service.test.ts`.
 - Arquivos alterados: `shared/src/nutrition/nutrients.ts`, `backend/tests/unit/nutrition.service.test.ts`
 - Decisões tomadas: Fallback conservador para porção/porção padrão evita subestimação calórica grosseira.
 
 ### A-043: ✅ CORRIGIDO
-- Lote: 03 | Commit: pendente
+- Lote: 03 | Commit: 312c849
 - O que foi feito: Em `backend/src/services/user.service.ts` (`previewGoals`), adicionada validação antecipada exigindo `birthDate` e dados essenciais do perfil antes do cálculo energético, respondendo com HTTP 422 ("Informe a data de nascimento para calcular as metas.") em vez de calcular idade com string vazia e gerar macros `NaN`. Adicionado teste de integração em `backend/tests/integration/user.routes.test.ts`.
 - Arquivos alterados: `backend/src/services/user.service.ts`, `backend/tests/integration/user.routes.test.ts`
 - Decisões tomadas: Retorno 422 informa claramente a pendência cadastral em vez de mascarar com NaN/null.
 
 ### A-045: ✅ CORRIGIDO
-- Lote: 03 | Commit: pendente
+- Lote: 03 | Commit: 312c849
 - O que foi feito: Em `backend/src/models/user.model.ts` (`updateUser`), padronizada a normalização de `birthDate` para formato ISO YYYY-MM-DD suportando strings ISO completas e nulos, alinhando com a validação estrita já executada no schema compartilhado.
 - Arquivos alterados: `backend/src/models/user.model.ts`
 - Decisões tomadas: Formato canônico `YYYY-MM-DD` preservado no banco para evitar incompatibilidades de timezone ou locale.
