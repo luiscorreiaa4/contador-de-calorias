@@ -98,7 +98,7 @@ export const routes: RouteObject[] = [
             element: <SectionLayout title="Configurações" description="Gerencie lembretes, segurança e os dados da sua conta." links={[
               { to: '/configuracoes/notificacoes', label: 'Notificações' },
               { to: '/configuracoes/seguranca', label: 'Segurança' },
-              { to: '/configuracoes/privacidade', label: 'Privacidade e dados' },
+              { to: '/configuracoes/privacidade', label: 'Privacidade e dados', shortLabel: 'Privacidade' },
             ]} />,
             children: [
               { index: true, element: <Navigate to="notificacoes" replace /> },

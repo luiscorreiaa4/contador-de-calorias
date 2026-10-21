@@ -119,16 +119,16 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
         </div>
 
         {/* Filtros de período */}
-        <div className="flex gap-2 border-2 border-border p-2 bg-background w-full md:w-fit md:ml-auto">
+        <div className="border-2 border-border p-1 bg-card shadow-hard grid grid-cols-3 w-full sm:w-fit sm:inline-flex sm:ml-auto gap-1">
           {(['30d', '90d', 'all'] as const).map((p) => (
             <button
               key={p}
               aria-pressed={period === p}
               onClick={() => setPeriod(p)}
-              className={`flex-1 md:flex-none py-2 px-5 text-xs font-black uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+              className={`flex items-center justify-center text-center py-2.5 px-2 sm:px-6 text-xs font-black uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                 period === p
-                  ? 'bg-primary text-primary-foreground border-2 border-black shadow-hard-fill'
-                  : 'bg-background text-foreground border-2 border-transparent hover:border-border'
+                  ? 'border-2 border-black bg-primary text-primary-foreground shadow-hard-fill'
+                  : 'bg-card text-foreground border-2 border-transparent hover:bg-secondary'
               }`}
             >
               {p === '30d' ? '30 DIAS' : p === '90d' ? '90 DIAS' : 'TUDO'}

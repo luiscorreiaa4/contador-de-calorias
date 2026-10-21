@@ -1,0 +1,177 @@
+MODO AUTÔNOMO — NAVEGAÇÃO MOBILE + RENOMEAÇÃO "DASHBOARD" → "DIÁRIO" (CalorieSync)
+ESCOPO: SOMENTE frontend/ e docs/ (e .agents/rules/style-rules.md, AGENTS.md só onde indicado).
+NÃO altere backend, migrações, banco, contratos de API nem regras de negócio.
+Este prompt substitui o passo "propor plano e aguardar aprovação" do ROADMAP §1. Não peça
+aprovação, não pare para perguntar. É IDEMPOTENTE: se docs/NAV_MIGRATION.md já existir, é uma
+retomada; continue pelos itens não marcados.
+
+OBJETIVO
+1. Renomear a tela "Dashboard" para "Diário" (texto, código, testes e docs).
+2. Criar uma barra de navegação inferior fixa no mobile (tipo Instagram/WhatsApp), sem swipe.
+3. Padronizar os submenus de página com uma barra segmentada única (Evolução|Metas e Configurações).
+4. Garantir uma fonte única dos destinos de navegação, para nada divergir entre mobile e desktop.
+
+DECISÕES DE PRODUTO (já tomadas; não pergunte)
+N1. Barra inferior (visível abaixo do breakpoint md, 4 slots): [DIÁRIO] [PROGRESSO] [+ NOVA] [CONTA].
+    - DIÁRIO = tela inicial (antigo Dashboard).
+    - PROGRESSO = Evolução e Metas; ativa em qualquer uma das duas rotas.
+    - "+" (centro) = abre o modal de Nova Refeição em QUALQUER tela. Não é uma rota.
+    - CONTA = nova tela-hub /conta com: cartão do usuário (iniciais, nome, e-mail), linhas grandes
+      para Perfil e Configurações, o alternador de tema existente e "Sair da conta". Ativa em
+      /conta, /perfil e /configuracoes (e subrotas).
+N2. Menu do desktop (dropdown do avatar no header) NÃO muda de comportamento. No mobile (< md) o
+    gatilho do dropdown é removido do header, pois a tela /conta o substitui; o logo permanece.
+N3. Barra segmentada (um único componente, mobile e desktop): container fechado
+    bg-card border-2 border-border; abas com flex-1 min-w-0, altura mínima 44px (min-h-11),
+    texto em caixa alta; aba ativa = bg-primary text-primary-foreground border-2 border-black
+    font-bold + aria-current="page"; aba inativa = text-foreground. Em Configurações: grade
+    proporcional SEM rolagem horizontal; use rótulo curto (shortLabel) quando o nome completo for
+    longo (ex.: "PRIVACIDADE" em vez de "PRIVACIDADE E DADOS"); título completo fica no cabeçalho
+    da página. Se cada aba for uma rota, é <nav aria-label="..."> com links (não role="tablist").
+N4. Rename: "Diário" é o nome da tela. O subtítulo "PAINEL DE PERFORMANCE" vira "SEU DIA EM NÚMEROS".
+    Não crie título dinâmico "HOJE": o navegador de datas existente cumpre esse papel (se ele não
+    indicar HOJE/ONTEM, apenas registre como sugestão no relatório).
+N5. Sem swipe entre abas. Sem dependências novas.
+
+REGRAS TÉCNICAS DA BARRA INFERIOR
+- Posição: fixed bottom-0 inset-x-0; bg-card; border-t-2 border-border; padding inferior
+  env(safe-area-inset-bottom). Confirme que o index.html tem viewport-fit=cover no meta viewport
+  (acrescente se faltar).
+- Conteúdo: o contêiner principal das telas recebe padding-bottom que cubra a barra + safe area
+  apenas no mobile (ex.: pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0). A barra não pode
+  cobrir a última refeição nem os botões finais.
+- Camadas: a barra fica ABAIXO de modais e menus; confira a escala de z-index real do projeto
+  (overlay/conteúdo do Dialog do Radix) e escolha um valor menor sem criar valores arbitrários.
+- Cada slot: ícone (lucide, os já usados) + rótulo curto sempre visível, caixa alta, alvo >= 44px.
+  Slot ativo: bg-primary text-primary-foreground border-2 border-black font-bold e
+  aria-current="page". O "+" é um bloco neon quadrado com border-2 border-black, levemente acima
+  da barra, com aria-label "Nova refeição" e a sombra brutalista neutra já existente.
+- Esconder a barra enquanto um campo de texto/select (incluindo o input do react-select) estiver
+  em foco, para não subir junto com o teclado. Use focusin/focusout no document; sem mudar o
+  padding do conteúdo (para não causar salto de layout).
+- Só renderizar abaixo de md (classes md:hidden). Sem JS de largura de tela.
+- Cores: SOMENTE tokens (CORES.md e .agents/rules/style-rules.md). npm --prefix frontend run
+  check:colors deve continuar com 0 violações.
+
+REGRA DA FONTE ÚNICA
+- Crie um módulo único de navegação (ex.: frontend/src/navigation/nav-items.ts) com os destinos:
+  id, rótulo, shortLabel, ícone, rota e padrões de rota para "ativo". A barra inferior, o menu do
+  desktop e a tela /conta consomem esse módulo. Nenhuma lista de destinos duplicada em
+  componente. Rotas e paths NÃO mudam, exceto o que o rename exigir (ver Fase 2) e a nova /conta.
+
+VALIDAÇÃO (use só estes comandos; nunca tsx/npx soltos; use os scripts que existirem no
+package.json e no AGENTS.md)
+- npm --prefix frontend test -- --run
+- npm run lint
+- npm run build
+- npm --prefix frontend run check:colors
+Limite a saída de cada comando (ex.: | Select-Object -Last 40) e leia o resto só se falhar.
+Comandos que possam demorar rodam sob timeout. Backend: rode npm run test apenas no Passo 0 e na
+Fase 6; entre elas não é tocado.
+
+FASE 0 — VERIFICAR O TRABALHO ANTERIOR E CRIAR A BRANCH
+a) git status deve estar limpo; se não, PARE e reporte. Registre a branch atual (git branch
+   --show-current) como BRANCH_BASE.
+b) Verifique que os ciclos anteriores estão concluídos. Leia docs/AGENT_LOG.md, docs/ROADMAP.md,
+   docs/BACKLOG.md, docs/COLOR_MIGRATION.md (se existir), git log --oneline -60 e git tag --list
+   "checkpoint/*". Monte em docs/AGENT_LOG.md a seção "VERIFICAÇÃO PRÉ-NAVEGAÇÃO <data>" com:
+   - status de todos os itens CA-xx e PC-xx ([CORRIGIDO] ou pendente/pulado) e checkpoints A–E;
+   - se a migração de cores está completa (COLOR_MIGRATION.md sem [ ] nem PENDENTE) e se
+     check:colors existe e dá 0 violações;
+   - se há stash "falha <ID>" (git stash list).
+c) Rode a validação completa (inclui npm run test do backend) e registre a linha de base.
+d) CRITÉRIOS DE PARADA (PARE e reporte, sem criar branch): linha de base não verde; PC-21
+   (roteador) não concluído; check:colors inexistente ou com violações. Qualquer outro item
+   pendente ou pulado NÃO bloqueia: apenas liste no relatório final, e se um item pendente tocar
+   os mesmos arquivos desta tarefa, registre o risco.
+e) Se passou: crie e entre na branch nova a partir do HEAD atual: git switch -c feat/navegacao-mobile
+   (se já existir, apenas git switch feat/navegacao-mobile e retome). Esta é a ÚNICA troca de
+   branch permitida. Nunca volte para a BRANCH_BASE, nunca faça merge, nunca push.
+   Registre no AGENT_LOG.md a BRANCH_BASE e o hash de partida.
+
+FASE 1 — DESCOBERTA (somente leitura; nenhum commit de código)
+Crie docs/NAV_MIGRATION.md com a seção "Como é hoje" preenchida a partir do CÓDIGO REAL (não
+presuma): arquivo do roteador e todas as rotas; componente(s) da tela hoje chamada Dashboard;
+header e menu do avatar (itens e destinos); componentes e telas de Evolução, Metas, Perfil,
+Configurações e seus submenus atuais (e onde Notificações/Segurança/Privacidade vivem: abas de
+Configurações ou telas próprias); como a tela Dashboard abre o NewMealModal (props, data
+selecionada, invalidação de queries, carregamento lazy); layout/shell que envolve as telas;
+ThemeToggle e a função de logout; meta viewport do index.html; escala de z-index e breakpoints;
+utilitários de data do frontend.
+Depois escreva "Como fica": o mapeamento destino -> rota -> slot da barra, aplicando N1..N5.
+Se algo do código real contradisser uma decisão (ex.: Notificações já é rota própria), siga a
+opção que menos altera comportamento e registre em "Decisões do agente".
+Ao fim, monte a CHECKLIST de arquivos a tocar (caminho | ação | status [ ]).
+
+FASE 2 — RENOMEAÇÃO "DASHBOARD" → "DIÁRIO" (um commit, ANTES do resto)
+a) Faça um grep sem diferenciar maiúsculas de "dashboard" em frontend/, docs/, .agents/ e
+   AGENTS.md/README.md. Classifique cada ocorrência: texto de UI, identificador/arquivo, rota,
+   teste, documentação, histórica/externa.
+b) Renomeie: textos de UI para "Diário"; o componente/arquivo para DiaryPage (e arquivos
+   correlatos coerentes) usando git mv (nunca rm), atualizando imports; testes e seus textos;
+   o subtítulo conforme N4. Rotas: se existir um path com "dashboard", troque por "/diario" e
+   mantenha um redirecionamento do path antigo; se a tela inicial for "/", NÃO mude a rota.
+   Docs vivos (SPEC, ARCHITECTURE, README, ROADMAP, BACKLOG, TESTING, .agents/rules e skills)
+   são atualizados. NÃO reescreva docs/reviews/** nem docs/archive/** (históricos) nem logs.
+c) Verificação: grep final em frontend/, README e docs vivos retorna zero "dashboard" fora de
+   exceções documentadas (histórico e nomes de bibliotecas, listados em NAV_MIGRATION.md).
+d) Valide tudo e faça commit: "refactor(ui): renomeia Dashboard para Diário".
+
+FASE 3 — MÓDULO DE NAVEGAÇÃO (fonte única)
+Crie o módulo (regra acima) + utilitário de "rota ativa" (ex.: matchPath) coberto por testes:
+PROGRESSO ativo em Evolução e Metas; CONTA ativo em /conta, /perfil, /configuracoes e subrotas;
+DIÁRIO ativo na tela inicial. Commit: "feat(nav): módulo único de destinos de navegação".
+
+FASE 4 — BARRA SEGMENTADA
+Crie o componente SegmentedNav (acessível, N3). Substitua os submenus atuais de Evolução|Metas
+e de Configurações por ele (um componente para mobile e desktop). Remova o código dos submenus
+antigos que ficar sem uso (git rm, provando antes que não é importado) e as classes órfãs.
+Testes: aba ativa por rota, aria-current, links, rótulo curto, ausência de overflow por
+construção (min-w-0/truncate). Commit: "feat(ui): barra segmentada única para submenus".
+
+FASE 5 — BARRA INFERIOR, MODAL GLOBAL E CONTA
+a) Eleve a abertura do modal de Nova Refeição para um host único no layout (contexto/hook
+   pequeno, ex.: useNewMealModal().open({ date? })) mantendo o carregamento lazy e a MESMA
+   lógica do modal e de invalidação de queries. Na tela Diário, o "+" usa a data selecionada; nas
+   demais, a data de hoje (reuse o utilitário de data do frontend; proibido toISOString para
+   datas de calendário). Os botões "Nova refeição" já existentes na tela passam a usar o mesmo host.
+b) Crie BottomNav (regras acima), o padding do contêiner principal e o viewport-fit=cover.
+c) Crie a tela /conta (N1), a rota (protegida como as demais) e o ajuste do header (N2).
+d) Aba "Progresso" navega para a última aba visitada (Evolução ou Metas) se for trivial de
+   fazer sem estado novo; senão, para Evolução.
+e) Testes (Vitest + RTL, MemoryRouter/MSW existentes): BottomNav renderiza 4 slots; aria-current
+   correto por rota; "+" abre o modal em qualquer rota; barra some com input em foco;
+   itens vêm do módulo único; /conta mostra Perfil, Configurações, tema e Sair (Sair chama o
+   logout existente). Commit(s): "feat(nav): barra inferior mobile, modal global e tela Conta".
+
+FASE 6 — AUDITORIA FINAL (obrigatória, com evidência no docs/NAV_MIGRATION.md)
+a) check:colors = 0 violações; lint, build e testes do frontend verdes; npm run test do backend
+   verde (nada mudou lá).
+b) Greps de segunda via: "dashboard" (zero fora das exceções), listas de destinos duplicadas
+   (procure rótulos "Evolução", "Metas", "Perfil", "Configurações" em componentes fora do módulo
+   único, tela /conta e testes), submenus antigos órfãos, rgba/hex soltos, z-index arbitrário.
+c) Revisão por leitura em 360px, 390px e 768px (breakpoint): nenhum elemento com largura fixa
+   que estoure; min-w-0/truncate onde há texto; padding do conteúdo cobre a barra; a barra some
+   no md. Registre o que foi checado.
+d) Acessibilidade por código: dois landmarks <nav> com aria-label distintos; apenas um visível
+   por breakpoint; foco visível nos slots (anel com offset); alvos >= 44px.
+e) Documentação: docs/SPEC.md (navegação e telas), docs/ARCHITECTURE.md (módulo de navegação e
+   host do modal), .agents/rules/style-rules.md (usar SegmentedNav/BottomNav; novos destinos
+   entram só no módulo único), AGENTS.md (nada novo de comando; só se citar "Dashboard"),
+   docs/ROADMAP.md (registre uma linha "UX: navegação mobile e renomeação para Diário" [x]).
+f) Marque todos os itens da CHECKLIST do NAV_MIGRATION.md. Se algum ficar PENDENTE, NÃO declare
+   sucesso.
+
+LIMITES INEGOCIÁVEIS
+- Nunca: git push, merge, rebase, reset --hard, clean, branch -D, stash drop/clear. Nunca troque
+  de branch além da criação/entrada em feat/navegacao-mobile.
+- Nunca: rm/rmdir/del/Remove-Item, npm install -g, DROP/TRUNCATE/DELETE em massa.
+- Nenhuma dependência nova. Não toque em backend/, migrações nem banco.
+- Commits semânticos pequenos ("feat(nav): ...", "refactor(ui): ..."), com testes e docs juntos.
+- Se der erro ou o contexto encerrar, o estado está em docs/NAV_MIGRATION.md e no git log: uma
+  nova janela com este mesmo prompt retoma.
+
+AO TERMINAR, PARE e entregue: resultado da verificação pré-navegação (itens pendentes dos ciclos
+anteriores); hashes dos commits; decisões do agente (divergências entre N1..N5 e o código real);
+exceções; sugestões não implementadas (ex.: indicar HOJE/ONTEM no navegador de datas); e a lista
+de telas para QA manual em 360px e 390px, claro e escuro, incluindo Tab no teclado.

@@ -44,14 +44,14 @@ export const StatsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }
           </Link>
         </div>
         
-        <div className="flex gap-4 border-2 border-border p-2 bg-background w-full md:w-fit md:ml-auto">
+        <div className="border-2 border-border p-1 bg-card shadow-hard grid grid-cols-2 w-full sm:w-fit sm:inline-flex sm:ml-auto gap-1">
           <button
             aria-pressed={period === 'week'}
             onClick={() => setPeriod('week')}
-            className={`flex-1 md:flex-none py-3 px-6 text-xs font-black uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+            className={`flex items-center justify-center text-center py-2.5 px-3 sm:px-6 text-xs font-black uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
               period === 'week' 
                 ? 'bg-primary text-primary-foreground border-2 border-black shadow-hard-fill' 
-                : 'bg-background text-foreground border-2 border-transparent hover:border-border'
+                : 'bg-card text-foreground border-2 border-transparent hover:bg-secondary'
             }`}
           >
             ÚLTIMOS 7 DIAS
@@ -59,10 +59,10 @@ export const StatsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }
           <button
             aria-pressed={period === 'month'}
             onClick={() => setPeriod('month')}
-            className={`flex-1 md:flex-none py-3 px-6 text-xs font-black uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+            className={`flex items-center justify-center text-center py-2.5 px-3 sm:px-6 text-xs font-black uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
               period === 'month' 
                 ? 'bg-primary text-primary-foreground border-2 border-black shadow-hard-fill' 
-                : 'bg-background text-foreground border-2 border-transparent hover:border-border'
+                : 'bg-card text-foreground border-2 border-transparent hover:bg-secondary'
             }`}
           >
             ÚLTIMOS 30 DIAS

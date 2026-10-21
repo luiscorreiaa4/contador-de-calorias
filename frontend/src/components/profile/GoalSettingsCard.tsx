@@ -70,7 +70,7 @@ function GoalForm({ goal, preview, date }: { goal: UserGoal; preview: EnergyTarg
     mutation.mutate(payload);
   };
   return <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-    <div className="flex flex-wrap gap-3" role="group" aria-label="Modo das metas">
+    <div className="border-2 border-border p-1 bg-card shadow-hard grid grid-cols-2 w-full sm:w-fit sm:inline-flex gap-1" role="group" aria-label="Modo das metas">
       {(['auto', 'manual'] as const).map(mode => (
         <button
           key={mode}
@@ -78,7 +78,11 @@ function GoalForm({ goal, preview, date }: { goal: UserGoal; preview: EnergyTarg
           disabled={mutation.isPending}
           aria-pressed={selectedMode === mode}
           onClick={() => chooseMode(mode)}
-          className={`border-2 border-border px-5 py-3 font-black text-xs uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50 ${selectedMode === mode ? 'bg-primary text-primary-foreground border-black' : 'bg-background hover:bg-secondary'}`}
+          className={`flex items-center justify-center text-center px-4 py-2.5 font-black text-xs uppercase transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50 ${
+            selectedMode === mode
+              ? 'border-2 border-black bg-primary text-primary-foreground shadow-hard-fill'
+              : 'border-2 border-transparent text-foreground hover:bg-secondary'
+          }`}
         >
           {mode === 'auto' ? 'AUTOMÁTICO' : 'MANUAL'}
         </button>
