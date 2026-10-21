@@ -7,6 +7,7 @@ import type { UserProfile } from '../services/auth.service';
 describe('AuthContext Component & State (PC-34 / TST-011)', () => {
   beforeEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
   });
 
   const mockUser: UserProfile = {
@@ -151,5 +152,23 @@ describe('AuthContext Component & State (PC-34 / TST-011)', () => {
 
     expect(sessionStorage.getItem('auth_token')).toBeNull();
     expect(result.current.isAuthenticated).toBe(false);
+  });
+
+  it('persiste o token renovado após troca de senha ou e-mail (A8)', () => {
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    act(() => {
+      result.current.setAuthSession(mockUser, 'token-antigo', false);
+    });
+
+    act(() => {
+      result.current.updateUserSession({ ...mockUser, name: 'Nome Atualizado' }, 'token-renovado');
+    });
+
+    expect(result.current.token).toBe('token-renovado');
+    expect(result.current.user?.name).toBe('Nome Atualizado');
+    expect(sessionStorage.getItem('auth_token')).toBe('token-renovado');
+    expect(localStorage.getItem('auth_token')).toBeNull();
+    expect(JSON.parse(sessionStorage.getItem('user_session') || '{}').name).toBe('Nome Atualizado');
   });
 });

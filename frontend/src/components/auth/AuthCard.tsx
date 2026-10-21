@@ -51,19 +51,20 @@ export const AuthCard: React.FC<AuthCardProps> = ({ initialMode }) => {
     }
   };
 
-  const handleAuthSuccess = () => {
-    if (mode === 'login') {
-      setIsSuccessMessage('Login efetuado com sucesso! Redirecionando...');
-      if (navigate) {
-        navigate('/');
-      }
-    } else {
-      setIsSuccessMessage('Conta criada com sucesso! Redirecionando...');
-      if (navigate) {
-        navigate('/');
-      }
+  const handleAuthSuccess = (email?: string) => {
+    if (mode === 'register') {
+      // A4/A6: cadastro responde 202 sem sessão; segue para a verificação do e-mail.
+      navigate('/verificar-email', { state: { email, codeSent: true } });
+      return;
     }
+
+    setIsSuccessMessage('Login efetuado com sucesso! Redirecionando...');
+    navigate('/');
     setTimeout(() => setIsSuccessMessage(null), 4000);
+  };
+
+  const handleEmailNotVerified = (email: string, rememberMe: boolean) => {
+    navigate('/verificar-email', { state: { email, codeSent: true, rememberMe } });
   };
 
   return (
@@ -138,7 +139,10 @@ export const AuthCard: React.FC<AuthCardProps> = ({ initialMode }) => {
           {/* Tab Panels */}
           <div id="panel-auth" role="tabpanel" tabIndex={0} className="focus:outline-none">
             {mode === 'login' ? (
-              <LoginForm onSuccess={handleAuthSuccess} />
+              <LoginForm
+                onSuccess={handleAuthSuccess}
+                onEmailNotVerified={handleEmailNotVerified}
+              />
             ) : (
               <RegisterForm onSuccess={handleAuthSuccess} />
             )}

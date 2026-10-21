@@ -13,6 +13,15 @@ import { SectionLayout } from './components/layout/SectionLayout';
 const LoginPage = lazy(() =>
   import('./pages/public/LoginPage').then((m) => ({ default: m.LoginPage }))
 );
+const VerifyEmailPage = lazy(() =>
+  import('./pages/public/VerifyEmailPage').then((m) => ({ default: m.VerifyEmailPage }))
+);
+const ForgotPasswordPage = lazy(() =>
+  import('./pages/public/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage }))
+);
+const ResetPasswordPage = lazy(() =>
+  import('./pages/public/ResetPasswordPage').then((m) => ({ default: m.ResetPasswordPage }))
+);
 const OnboardingFlow = lazy(() =>
   import('./components/onboarding/OnboardingFlow').then((m) => ({
     default: m.OnboardingFlow,
@@ -111,6 +120,10 @@ export const routes: RouteObject[] = [
           { path: 'diario/:date', element: <DashboardPage /> },
         ],
       },
+      // Telas públicas de autenticação por e-mail (acessíveis também fora do login).
+      { path: 'verificar-email', element: <VerifyEmailPage /> },
+      { path: 'esqueci-senha', element: <ForgotPasswordPage /> },
+      { path: 'redefinir-senha', element: <ResetPasswordPage /> },
       // Páginas legais públicas (acessíveis mesmo autenticado).
       { path: 'termos', element: <TermsPage /> },
       { path: 'privacidade', element: <PrivacyPage /> },

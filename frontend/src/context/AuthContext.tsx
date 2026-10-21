@@ -54,7 +54,7 @@ interface AuthContextType {
   token: string | null;
   isLoadingProfile: boolean;
   setAuthSession: (user: UserProfile, token: string, rememberMe?: boolean) => void;
-  updateUserSession: (user: UserProfile) => void;
+  updateUserSession: (user: UserProfile, refreshedToken?: string) => void;
   logout: () => void;
 }
 
@@ -86,14 +86,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const updateUserSession = useCallback((userData: UserProfile) => {
+  const updateUserSession = useCallback((userData: UserProfile, refreshedToken?: string) => {
     setUser(userData);
     const serialized = JSON.stringify(sanitizeUserSession(userData));
-    if (sessionStorage.getItem('auth_token')) {
-      sessionStorage.setItem('user_session', serialized);
-    } else {
-      localStorage.setItem('user_session', serialized);
+    // Mantém o mesmo tipo de armazenamento escolhido no login e persiste o token
+    // renovado após troca de senha/e-mail (A8).
+    const storage = sessionStorage.getItem('auth_token') !== null ? sessionStorage : localStorage;
+    if (refreshedToken) {
+      setToken(refreshedToken);
+      storage.setItem('auth_token', refreshedToken);
     }
+    storage.setItem('user_session', serialized);
   }, []);
 
   const logout = useCallback(() => {

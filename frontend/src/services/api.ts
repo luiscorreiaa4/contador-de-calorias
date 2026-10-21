@@ -4,6 +4,23 @@ export interface ApiResponse<T> {
   success: boolean;
   data?: T;
   message?: string;
+  code?: string;
+}
+
+/**
+ * Erro de API com status HTTP e código de negócio (ex.: EMAIL_NOT_VERIFIED).
+ * Permite que as telas reajam a fluxos específicos sem comparar mensagens.
+ */
+export class ApiError extends Error {
+  readonly status: number;
+  readonly code?: string;
+
+  constructor(message: string, status: number, code?: string) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.code = code;
+  }
 }
 
 export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
@@ -34,7 +51,7 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
   if (!response.ok || !json?.success) {
     const isUnauthorized =
       response.status === 401 ||
-      (json as { code?: string })?.code === 'USER_NOT_FOUND' ||
+      json?.code === 'USER_NOT_FOUND' ||
       (response.status === 404 && json?.message === 'Usuário não encontrado.');
 
     if (isUnauthorized) {
@@ -53,7 +70,7 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
         ? `Serviço temporariamente indisponível (${response.status}). Tente novamente mais tarde.`
         : `Erro na requisição (${response.status}).`);
 
-    throw new Error(errorMessage);
+    throw new ApiError(errorMessage, response.status, json?.code);
   }
 
   return json.data as T;

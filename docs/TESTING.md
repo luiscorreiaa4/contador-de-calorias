@@ -40,8 +40,8 @@ Abaixo está o status real verificado através da execução direta dos comandos
 
 | Camada | Ferramenta / Runner | Total de Testes | Status Atual | Detalhes / Observações |
 | :--- | :--- | :--- | :--- | :--- |
-| **Backend** | `node:test` + `node:assert` + `supertest` via `tsx --test` | **204 testes em 44 suítes** | ✅ **204 PASSOU / 0 FALHOU** (~27s) | Roda exclusivamente contra o banco `contador_calorias_test` com trava `_test` e limpeza via `cleanupTestData`. |
-| **Frontend** | `Vitest 5.0.3` + `React Testing Library` + `MSW 2.15.0` + `@vitest/coverage-v8` | **152 testes em 22 arquivos** | ✅ **152 PASSOU / 0 FALHOU** (~12s) | Suporte completo a relatório de cobertura v8 via `npm --prefix frontend run test:coverage`. |
+| **Backend** | `node:test` + `node:assert` + `supertest` via `tsx --test` | **237 testes em 48 suítes** | ✅ **237 PASSOU / 0 FALHOU** (~39s) | Roda exclusivamente contra o banco `contador_calorias_test` com trava `_test` e limpeza via `cleanupTestData`. |
+| **Frontend** | `Vitest 5.0.3` + `React Testing Library` + `MSW 2.15.0` + `@vitest/coverage-v8` | **175 testes em 25 arquivos** | ✅ **175 PASSOU / 0 FALHOU** (~18s) | Suporte completo a relatório de cobertura v8 via `npm --prefix frontend run test:coverage`. |
 | **Linter** | `ESLint 10` + `check-test-hygiene.mjs` + `check:colors` | Monorepo completo | ✅ **0 Erros / 1 Warning** | Higiene de testes, guarda AST de pool, guarda de cores semânticas e regras de código sem apontamentos. |
 | **Build** | `tsc -b && vite build` | Frontend | ✅ **Compilação com Sucesso** | Code-splitting por rota com chunks separados de vendor (`react-vendor`, `tanstack-vendor`, `chart-vendor`, etc.). |
 
@@ -49,7 +49,9 @@ Abaixo está o status real verificado através da execução direta dos comandos
 1. **Unitários (`tests/unit/`):**
    - `nutrition.service.test.ts`: Validação matemática de cálculo de TMB (Mifflin-St Jeor, Katch-McArdle com LBM), TDEE, superávit/déficit e distribuição de macros para IMC alto conforme D-15.
    - `meal.test.ts`: Cálculos nutricionais proporcionais de itens (`calculateItemNutrients`) para porções em gramas, ml e unidades.
-   - `auth_middleware.test.ts`: Rejeição de segredos legados/fallback (`fallback_jwt_secret`), autenticação estrita com `env.JWT_SECRET` e cabeçalhos ausentes.
+   - `auth.middleware.test.ts`: Claim `tv` obrigatório, divergência de `token_version`, usuário removido e cabeçalhos ausentes (BL-12 / A8).
+   - `authTokens.test.ts`: Geração de código, HMAC-SHA256 com pepper, token base64url, SHA-256, comparação em tempo constante e normalização de e-mail (BL-12/BL-05).
+   - `mailer.test.ts`: `MemoryMailer`, templates pt-BR e ausência de segredos nos conteúdos (D-21/A10).
    - `date.util.test.ts`: Conformidade de datas civis e fuso horário `America/Sao_Paulo` (D-01).
    - `db_cleanup.test.ts`: Trava de segurança de runtime checando `_test` e padrão `tester-%` (D-11 / PC-14).
    - `input.limits.test.ts`: Validação de tetos de payload e sanitização Zod (CA-11).
@@ -69,6 +71,8 @@ Abaixo está o status real verificado através da execução direta dos comandos
    - `health.routes.test.ts`: Probe ativo de saúde do banco de dados no contrato `{ success, data }` com timeout dedicado (PC-11 / A-040).
    - `meal_items_batch.test.ts`: Inserção multi-row em lote de itens de refeição (PC-22 / D-14).
    - `auth_rate_limit.test.ts`: Rate limiting de autenticação por IP e por e-mail com limite global (BL-01 / SEC-006 / A-117).
+   - `auth_email_verification.test.ts`: Cadastro 202 sem sessão, hard gate 403 `EMAIL_NOT_VERIFIED`, código expirado/5 tentativas/uso único, reenvio com cooldown e teto, conta verificada e troca de e-mail (BL-12 / A1–A6).
+   - `auth_password_reset.test.ts`: Resposta genérica, token de uso único/expirado, política de senha, incremento de `token_version` e ausência de auto-login (BL-05 / A3/A4/A7/A8).
    - `foods_uniqueness.test.ts`: Índices parciais de unicidade multi-tenant em catálogo e personalizados (A-003 / BL-09 / A-118).
    - `user_measurements.test.ts`: Evolução de medidas corporais, ordenação cronológica e não-sobrescrita retroativa (BL-21 / FEAT-C04 / A-119).
    - `request_logging.test.ts`: Logging estruturado assíncrono com correlation ID e sincronização determinística (BL-08 / ARCH-020 / A-120).
@@ -83,14 +87,17 @@ Abaixo está o status real verificado através da execução direta dos comandos
 3. `src/tests/api.test.ts`: Resiliência contra respostas não-JSON e disparo de evento `auth:unauthorized` sob 401.
 4. `src/tests/auth_storage.test.tsx`: Sanitização do `localStorage`, privacidade de biometrias e hidratação segura (A-129).
 5. `src/tests/LoginPage.test.tsx`: Renderização da tela de login e alternância de abas.
-6. `src/components/auth/LoginForm.test.tsx`: Renderização, preenchimento, submissão e tratamento de erros via MSW.
-7. `src/components/auth/RegisterForm.test.tsx`: Validação de senha forte, termos LGPD, conflito de e-mail e cadastro.
+6. `src/components/auth/LoginForm.test.tsx`: Renderização, preenchimento, submissão, erro 401 genérico, encaminhamento 403 `EMAIL_NOT_VERIFIED` e link de recuperação.
+7. `src/components/auth/RegisterForm.test.tsx`: Validação de senha forte, termos LGPD, resposta 202 genérica e ausência de sessão antes da verificação.
 8. `src/components/meals/NewMealModal.test.tsx`: Autocomplete, paginação, combos salvos, edição inline e alimentos customizados.
 9. `src/pages/private/__tests__/DashboardPage.test.tsx`: Resumo de calorias, expansão de macros, estados vazios e registro de refeições.
 10. `src/pages/private/__tests__/StatsPage.test.tsx`: Renderização de métricas e gráficos nutricionais via Recharts.
 11. `src/pages/private/__tests__/SettingsSeparation.test.tsx`: Isolamento das tarefas de perfil, rotina, segurança e privacidade.
 12. `src/pages/public/__tests__/LegalPage.test.tsx`: Páginas públicas de Termos de Uso, Política de Privacidade e Segurança.
 13. `src/styles/tokens.contrast.test.ts`: Validação WCAG AA de contraste para todos os tokens de cores no modo claro e escuro.
+14. `src/pages/public/VerifyEmailPage.test.tsx`: Estado do router sem persistência de e-mail, campo `autocomplete="one-time-code"`, contagem de 60 s, código inválido, verificação com sessão e reenvio (BL-12).
+15. `src/pages/public/ForgotPasswordPage.test.tsx`: Validação local de e-mail e resposta genérica idêntica para conta existente ou inexistente (BL-05 / A4).
+16. `src/pages/public/ResetPasswordPage.test.tsx`: Leitura do token no fragmento, limpeza da URL, senha forte/confirmação, sucesso sem sessão (e encerramento da sessão local antiga) e token inválido/expirado (BL-05 / A3).
 
 ---
 

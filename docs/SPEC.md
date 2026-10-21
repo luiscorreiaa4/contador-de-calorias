@@ -6,22 +6,40 @@ Este documento descreve detalhadamente os Requisitos Funcionais (RFs) e as regra
 
 ## 1. Requisitos Funcionais (RFs)
 
-### RF-001: Autenticação, Gestão de Conta e Sessão [CONFIRMADO]
-- **Endpoints:**
-  - `POST /api/users/register`: Cadastro com nome, e-mail e senha forte (mínimo 8 caracteres, contendo ao menos uma letra e um número).
-  - `POST /api/users/login`: Autenticação por e-mail e senha.
-  - `GET /api/users/profile`: Obtenção dos dados cadastrais do usuário logado (excluindo hash de senha).
-  - `PUT /api/users/profile`: Atualização de dados cadastrais, biometria e credenciais.
-  - `DELETE /api/users/account`: Exclusão definitiva de conta mediante confirmação com a senha atual.
+### RF-001: Autenticação, Confirmação de E-mail, Recuperação de Senha e Sessão [CONFIRMADO]
+- **Endpoints públicos de autenticação (`/api/auth/*`, todos com `Cache-Control: no-store`):**
+  - `POST /api/auth/register`: Cadastro com nome, e-mail e senha forte. Responde **202** genérico,
+    sem JWT. Conta já verificada não é alterada; o dono recebe um aviso por e-mail.
+  - `POST /api/auth/verify-email`: Valida o código de 6 dígitos, marca `email_verified_at` e
+    devolve **200** com `{ user, token }`.
+  - `POST /api/auth/resend-code`: Reemite o código para conta existente e não verificada; resposta
+    **202** genérica.
+  - `POST /api/auth/login`: Autentica e devolve **200** com `{ user, token }` somente para conta
+    verificada. Senha correta + conta não verificada devolve **403** com
+    `code: "EMAIL_NOT_VERIFIED"` e dispara um novo código (respeitando o cooldown).
+  - `POST /api/auth/forgot-password`: Gera link de reset apenas para conta existente e verificada;
+    resposta **202** genérica.
+  - `POST /api/auth/reset-password`: Atualiza a senha na mesma transação em que consome o token e
+    incrementa `token_version`; resposta **200** sem sessão.
+- **Endpoints autenticados de conta:**
+  - `GET /api/users/me`: Dados cadastrais do usuário logado (sem hash de senha).
+  - `PUT /api/users/me`: Atualização de dados cadastrais, biometria e credenciais.
+  - `DELETE /api/users/me`: Exclusão definitiva mediante confirmação com a senha atual.
+  - `PUT /api/users/me/onboarding`: Conclusão única do onboarding.
 - **Regras de Negócio:**
   - **Criptografia:** Senhas são protegidas com `bcrypt` (fator de custo 10 em desenvolvimento/produção; custo 1 em ambiente de testes para agilidade).
-  - **Política de Senha Forte (PC-08 / SEC-004):** O cadastro e a alteração de credenciais exigem senha com no mínimo 8 caracteres, no máximo 72 caracteres, e obrigatoriedade de ao menos uma letra e um número (`/(?=.*[a-zA-Z])(?=.*[0-9])/`).
-  - **Mitigação de Timing Attack no Login (PC-08 / SEC-005):** Caso o e-mail não seja encontrado no banco durante a autenticação (`POST /api/users/login`), uma verificação `bcrypt.compare` contra um hash dummy pré-computado é executada antes do retorno de erro 401, equalizando o tempo de resposta e prevenindo a enumeração de contas válidas por análise de temporização.
-  - **Tokens JWT:** Sessão autenticada via token Bearer assinado com `JWT_SECRET` (mínimo de 32 caracteres) e validade configurada por `JWT_EXPIRES_IN` (padrão documentado `7d`).
-  - **Alteração Segura de E-mail ou Senha:** Caso o usuário altere seu e-mail ou defina uma nova senha, o envio da senha atual (`currentPassword`) é mandatório.
-  - **Exclusão com Cascata:** A exclusão de um usuário dispara remoção física imediata em todas as tabelas dependentes (`meals`, `meal_items`, `body_measurements`, `user_goals`) por integridade referencial `ON DELETE CASCADE`.
+  - **Política de Senha Forte (PC-08 / SEC-004):** O cadastro, a redefinição e a alteração de credenciais exigem senha com no mínimo 8 caracteres, no máximo 72 caracteres, e obrigatoriedade de ao menos uma letra e um número (`/(?=.*[a-zA-Z])(?=.*[0-9])/`).
+  - **Mitigação de Timing Attack no Login (PC-08 / SEC-005):** Caso o e-mail não seja encontrado no banco durante `POST /api/auth/login`, uma verificação `bcrypt.compare` contra um hash dummy pré-computado é executada antes do retorno 401, equalizando o tempo de resposta e prevenindo a enumeração de contas por temporização.
+  - **Tokens JWT com revogação (A8):** A sessão usa token Bearer HS256 assinado com `JWT_SECRET` (mínimo de 32 caracteres), validade configurável por `JWT_EXPIRES_IN` (padrão `7d`) e claim `tv` (`token_version`). O middleware consulta `users.token_version` no banco e rejeita com 401 quando o usuário não existe ou o valor diverge. Troca autenticada de senha ou e-mail incrementa a versão e devolve um token novo.
+  - **Confirmação de e-mail (BL-12 / A2):** Código de 6 dígitos gerado com `crypto.randomInt`, válido por 15 minutos, com no máximo 5 tentativas por código, uso único e emissão de novo código invalidando os anteriores. Persistência apenas do HMAC-SHA256 com `AUTH_TOKEN_PEPPER`; comparação em tempo constante. Reenvio com cooldown de 60 s e teto de 5 envios por hora por e-mail.
+  - **Recuperação de senha (BL-05 / A3):** Token de 32 bytes aleatórios em base64url, persistido apenas como SHA-256, válido por 30 minutos e de uso único. O link usa o fragmento `${APP_BASE_URL}/redefinir-senha#token=...`, que não é enviado ao servidor em navegações; o frontend lê o token, limpa a URL com `history.replaceState` e o envia no corpo do POST.
+  - **Sem enumeração de contas (A4):** `register`, `resend-code` e `forgot-password` respondem sempre o mesmo status e a mesma mensagem, exista ou não a conta. O envio de e-mail ocorre sem `await` após o commit e falhas são registradas sem segredos.
+  - **Alteração Segura de E-mail ou Senha:** Caso o usuário altere seu e-mail ou defina uma nova senha, o envio da senha atual (`currentPassword`) é mandatório. A troca de e-mail zera `email_verified_at`, incrementa `token_version` e emite novo código de verificação para o endereço novo.
+  - **Limites de autenticação (A9):** Reset por e-mail: 5/hora; `verify-email`: 10 tentativas/15 min por IP; `reset-password`: 10/hora por IP; reenvio de código: 10/15 min por IP. A chave dos limitadores fica isolada em uma única função.
+  - **E-mails transacionais (A10):** Interface `Mailer` com `SmtpMailer` (nodemailer) e `MemoryMailer` (testes), escolhida por `MAIL_TRANSPORT`; `NODE_ENV=test` força memória. Proibido registrar código, token, URL de reset ou senha em logs.
+  - **Exclusão com Cascata:** A exclusão de um usuário dispara remoção física imediata em todas as tabelas dependentes (`meals`, `meal_items`, `body_measurements`, `user_goals`, `email_verification_codes`, `password_reset_tokens`) por integridade referencial `ON DELETE CASCADE`.
   - **Execução Única de Onboarding (PC-07 / SEC-008):** O endpoint `PUT /api/users/me/onboarding` só pode ser concluído uma única vez. Se `onboarding_completed === true`, requisições subsequentes são bloqueadas com status `400 Bad Request` ("Onboarding já foi concluído para este usuário."), impedindo poluição da tabela `body_measurements` e recalculações espúrias. Atualizações posteriores de medidas corporais devem ocorrer via `PUT /api/users/me`.
-  - **Proteção e Privacidade de Dados de Saúde no Cliente (PC-19 / SEC-018):** O armazenamento local persistente (`localStorage.getItem('user_session')`) é estritamente restrito a metadados de sessão não sensíveis (`id`, `name`, `email`, `onboarding_completed`). Dados de saúde, biometria e metas nutricionais (peso, altura, % de gordura, sexo, data de nascimento, calorias e macronutrientes) são mantidos exclusivamente em memória de execução do cliente React e hidratados via `GET /api/users/me`, impedindo o armazenamento em texto plano de dados sensíveis protegidos pela LGPD.
+  - **Proteção e Privacidade de Dados de Saúde no Cliente (PC-19 / SEC-018):** O armazenamento local persistente (`localStorage.getItem('user_session')`) é estritamente restrito a metadados de sessão não sensíveis (`id`, `name`, `email`, `onboarding_completed`). Dados de saúde, biometria e metas nutricionais (peso, altura, % de gordura, sexo, data de nascimento, calorias e macronutrientes) são mantidos exclusivamente em memória de execução do cliente React e hidratados via `GET /api/users/me`, impedindo o armazenamento em texto plano de dados sensíveis protegidos pela LGPD. E-mail e código de verificação nunca são gravados em `localStorage`/`sessionStorage`.
 
 ---
 
@@ -177,9 +195,14 @@ Regras de negócio de saúde aplicadas exclusivamente para geração de metas au
    {
      "success": boolean,
      "data"?: any,
-     "message"?: string
+     "message"?: string,
+     "code"?: string
    }
    ```
+   `code` é opcional e carrega códigos de negócio estáveis consumidos pelo cliente, como
+   `EMAIL_NOT_VERIFIED`, `INVALID_VERIFICATION_CODE`, `INVALID_RESET_TOKEN` e `USER_NOT_FOUND`.
+   Códigos HTTP adicionais do fluxo de autenticação: `202 Accepted` para respostas genéricas sem
+   corpo de sessão e `403 Forbidden` para credencial válida com e-mail ainda não confirmado.
 2. **Hierarquia de Erros Tipados (`AppError`):**
    - Classes dedicadas estendendo `AppError`: `ValidationError` (400), `UnauthorizedError` (401), `NotFoundError` (404), `ConflictError` (409).
    - Encaminhamento assíncrono via `asyncHandler` para o Express 4 delegar ao `next(err)`.

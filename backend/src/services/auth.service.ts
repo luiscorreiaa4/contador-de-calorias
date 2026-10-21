@@ -129,6 +129,11 @@ async function overwriteAndIssueCode(user: User, name: string, passwordHash: str
   try {
     await client.query('BEGIN');
     updated = await AuthModel.overwriteUnverifiedUser(user.id, name, passwordHash, client);
+    if (updated) {
+      // A4: um novo cadastro invalida os códigos anteriores mesmo quando o
+      // reenvio é suprimido pelo cooldown/teto (o envio respeita os limites).
+      await AuthModel.invalidateVerificationCodes(user.id, client);
+    }
     await client.query('COMMIT');
     finished = true;
   } catch (error) {

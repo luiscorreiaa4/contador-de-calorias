@@ -181,24 +181,72 @@ Sem imagens remotas, sem pixel, sem rastreamento. Proibido logar código/token/U
 | `backend/tests/integration/auth_email_verification.test.ts` | BL-12 | [x] |
 | `backend/tests/integration/auth_password_reset.test.ts` | BL-05 | [x] |
 | `backend/tests/unit/auth.middleware.test.ts` | `tv` e usuário removido | [x] |
-| `frontend/src/pages/public/VerifyEmailPage.tsx` | tela de código | [ ] |
-| `frontend/src/pages/public/ForgotPasswordPage.tsx` | pedido genérico | [ ] |
-| `frontend/src/pages/public/ResetPasswordPage.tsx` | link com fragmento | [ ] |
-| `frontend/src/components/auth/LoginForm.tsx` | 403 e link de reset | [ ] |
-| `frontend/src/components/auth/RegisterForm.tsx` | 202 e navegação | [ ] |
-| `frontend/src/services/auth.service.ts` | endpoints `/auth` | [ ] |
-| `frontend/src/services/api.ts` | `ApiError` | [ ] |
-| `frontend/src/context/AuthContext.tsx` | token novo após troca de senha | [ ] |
-| `frontend/src/router.tsx` | rotas públicas | [ ] |
-| `frontend/index.html` | `referrer: no-referrer` | [ ] |
-| `frontend/src/**/__tests__` | testes das telas | [ ] |
-| `docs/EMAIL_SETUP.md` | passo a passo humano (Resend/DNS) | [ ] |
-| `docs/SPEC.md` / `ARCHITECTURE.md` / `TESTING.md` | atualizar contratos | [ ] |
-| `README.md` / `AGENTS.md` / `.agents/rules` | Mailpit e regras | [ ] |
-| `docs/ROADMAP.md` / `docs/BACKLOG.md` | marcar BL-12/BL-05 | [ ] |
+| `frontend/src/pages/public/VerifyEmailPage.tsx` | tela de código | [x] |
+| `frontend/src/pages/public/ForgotPasswordPage.tsx` | pedido genérico | [x] |
+| `frontend/src/pages/public/ResetPasswordPage.tsx` | link com fragmento | [x] |
+| `frontend/src/components/auth/LoginForm.tsx` | 403 e link de reset | [x] |
+| `frontend/src/components/auth/RegisterForm.tsx` | 202 e navegação | [x] |
+| `frontend/src/services/auth.service.ts` | endpoints `/auth` | [x] |
+| `frontend/src/services/api.ts` | `ApiError` | [x] |
+| `frontend/src/context/AuthContext.tsx` | token novo após troca de senha | [x] |
+| `frontend/src/router.tsx` | rotas públicas | [x] |
+| `frontend/index.html` | `referrer: no-referrer` | [x] |
+| `frontend/src/**/__tests__` | testes das telas | [x] |
+| `docs/EMAIL_SETUP.md` | passo a passo humano (Resend/DNS) | [x] |
+| `docs/SPEC.md` / `ARCHITECTURE.md` / `TESTING.md` | atualizar contratos | [x] |
+| `README.md` / `AGENTS.md` / `.agents/rules` | Mailpit e regras | [x] |
+| `docs/ROADMAP.md` | marcar BL-12/BL-05 | [x] |
 
 ---
 
 ## 4. Evidências de validação
 
-Preenchido na Fase 7.
+Execução final em **2026-10-21**, a partir da raiz do monorepo. Todas as suítes rodaram
+contra o banco isolado `contador_calorias_test` (nome terminado em `_test`).
+
+| Comando | Resultado |
+| --- | --- |
+| `npm run test:strict` | **237 testes / 48 suítes, 237 passaram, 0 falharam** (26,3 s); pool encerrado sem handles pendentes. |
+| `npm --prefix frontend test -- --run` | **25 arquivos / 175 testes, 0 falhas** (22,1 s). |
+| `npm run lint` | **0 erros**; 1 warning pré-existente de React Compiler em `OnboardingFlow.tsx:73` (`watch()`), sem relação com esta entrega. |
+| `npm run build` | `tsc -b && vite build` concluído com sucesso (2.578 módulos). |
+| `npm --prefix frontend run check:colors` | **0 violações** de tokens semânticos. |
+| `npm run test:backend:file tests/integration/auth_email_verification.test.ts` | 10/10 testes (inclui sobrescrita de conta não verificada e invalidação do código anterior). |
+| `npm run test:backend:file tests/integration/user.routes.test.ts` | 20/20 testes (cadastro 202, hard gate 403, verificação e perfil). |
+| `npm run test:frontend:file src/pages/public/ResetPasswordPage.test.tsx` | 6/6 testes (token no fragmento, limpeza da URL, logout local após reset). |
+| `npm run test:frontend:file src/components/auth/LoginForm.test.tsx` | 6/6 testes (403 `EMAIL_NOT_VERIFIED` preservando a escolha de "lembrar-me"). |
+
+### 4.1 Migrações e dados de desenvolvimento
+
+- `1792800000000_auth-email-verification.js` aplicada em **dev** e **test**; nenhuma migração
+  anterior foi editada (D-13).
+- As duas contas de teste documentadas em `AGENTS.md` (`teste@teste.com` e
+  `test@example.com`) foram marcadas como verificadas **manualmente apenas no banco de
+  desenvolvimento**, para preservar o fluxo de inspeção de navegador já documentado. Isso não
+  altera a regra A12: contas reais anteriores à migração permanecem não verificadas e passam
+  pelo hard gate no próximo login.
+
+### 4.2 Auditoria A1–A12
+
+| Item | Evidência |
+| --- | --- |
+| A1 | `auth.service.login` responde 403 `EMAIL_NOT_VERIFIED` antes de assinar JWT; teste de integração dedicado. |
+| A2 | Código `randomInt` de 6 dígitos, HMAC-SHA256, TTL 15 min, 5 tentativas, uso único, cooldown 60 s e teto 5/h nas tabelas; testes de tentativas, cooldown e teto. |
+| A3 | Token de 32 bytes base64url, SHA-256 no banco, TTL 30 min, uso único e link com fragmento; teste de reset e limpeza da URL no frontend. |
+| A4 | `register`/`resend-code`/`forgot-password` com resposta 202 idêntica; e-mail assíncrono após commit; novo cadastro não verificado invalida códigos anteriores. |
+| A5 | Login não verificado dispara código respeitando limites e retorna 403 com `code`. |
+| A6 | Cadastro 202 sem `data`/JWT; sessão somente em `verify-email` ou login verificado. |
+| A7 | Reset atualiza hash, consome token e incrementa `token_version` na mesma transação; sem auto-login e com e-mail de aviso após commit. |
+| A8 | JWT com `tv`; middleware consulta `token_version`; troca autenticada de senha/e-mail revoga sessões e devolve token novo. |
+| A9 | Limitadores por IP nas rotas e tetos por e-mail nas tabelas; chave centralizada em `authRateLimitKey`. |
+| A10 | `Mailer` + `SmtpMailer` + `MemoryMailer`, escolha por env; templates pt-BR sem rastreamento e sem segredos em logs. |
+| A11 | Normalização `trim` + minúsculas e `Cache-Control: no-store` em todo `/api/auth/*`. |
+| A12 | Migração não preenche `email_verified_at`; contas legadas continuam sujeitas ao 403 até verificarem. |
+
+### 4.3 Fora de escopo / pendências conscientes
+
+- Login social (OAuth2) e Turnstile continuam no roadmap (Fase 6).
+- Cookies `HttpOnly` + refresh tokens continuam previstos para a Fase 8 (D-02).
+- Inspeção visual no navegador não foi executada; a validação desta entrega é automatizada,
+  conforme a regra de evitar browser para alterações simples.
+

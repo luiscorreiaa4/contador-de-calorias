@@ -52,7 +52,9 @@ describe('User Routes (Integration - E2E)', () => {
   });
 
   it('POST /api/auth/register - deve responder 202 genérico para e-mail já cadastrado (A4)', async () => {
-    const uppercaseEmail = testEmail.toUpperCase();
+    const duplicateEmail = `tester-user-duplicate-${Date.now()}@example.com`;
+    await createVerifiedUser({ email: duplicateEmail, password: testPassword });
+    const uppercaseEmail = duplicateEmail.toUpperCase();
     const response = await request(app).post('/api/auth/register').send({
       name: 'Integração Tester',
       email: uppercaseEmail,

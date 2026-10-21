@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import type { LoginFormData, FormErrors } from '../../types/auth';
 import { useAuth } from '../../context/AuthContext';
 import { loginUser } from '../../services/auth.service';
+import { ApiError } from '../../services/api';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Button } from '../ui/button';
 
 interface LoginFormProps {
   onSuccess?: () => void;
+  onEmailNotVerified?: (email: string, rememberMe: boolean) => void;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
+export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onEmailNotVerified }) => {
   const { setAuthSession } = useAuth();
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
@@ -30,6 +33,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       if (onSuccess) onSuccess();
     },
     onError: (err: unknown) => {
+      if (err instanceof ApiError && err.code === 'EMAIL_NOT_VERIFIED') {
+        onEmailNotVerified?.(formData.email.trim(), formData.rememberMe);
+        return;
+      }
+
       const errorMsg = err instanceof Error ? err.message : String(err);
       if (errorMsg.includes('Failed to fetch') || errorMsg.includes('fetch')) {
         setServerError('Não foi possível conectar ao servidor.');
@@ -142,18 +150,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
             Lembrar-me
           </Label>
         </div>
-        <a
-          href="#forgot-password"
-          onClick={(e) => {
-            e.preventDefault();
-            setServerError(
-              'A recuperação de senha via e-mail está temporariamente indisponível. Para redefinir seu acesso, entre em contato com o suporte.'
-            );
-          }}
-          className="text-xs font-bold uppercase tracking-widest text-primary-ink hover:text-primary-ink/80 transition-colors focus:outline-none focus:underline"
+        <Link
+          to="/esqueci-senha"
+          className="text-xs font-bold uppercase tracking-widest text-primary-ink hover:text-primary-ink/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           Esqueci minha senha
-        </a>
+        </Link>
       </div>
 
       {/* Submit */}

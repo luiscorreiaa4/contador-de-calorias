@@ -6,7 +6,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { RegisterFormData } from '../../types/auth';
-import { useAuth } from '../../context/AuthContext';
 import { registerUser } from '../../services/auth.service';
 import { registerUserSchema } from '@caloriesync/shared';
 import { Input } from '../ui/input';
@@ -48,11 +47,10 @@ const registerSchema = registerUserSchema
 type RegisterFormInputs = z.infer<typeof registerSchema>;
 
 interface RegisterFormProps {
-  onSuccess?: () => void;
+  onSuccess?: (email: string) => void;
 }
 
 export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
-  const { setAuthSession } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -75,9 +73,9 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
 
   const registerMutation = useMutation({
     mutationFn: (data: RegisterFormData) => registerUser(data),
-    onSuccess: (response) => {
-      setAuthSession(response.user, response.token);
-      if (onSuccess) onSuccess();
+    onSuccess: (_result, variables) => {
+      // 202 genérico: a conta existe, mas só recebe sessão após verificar o e-mail.
+      if (onSuccess) onSuccess(variables.email.trim());
     },
     onError: (err: unknown) => {
       const errorMsg = err instanceof Error ? err.message : String(err);

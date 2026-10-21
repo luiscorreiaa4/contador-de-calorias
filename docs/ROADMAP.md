@@ -22,14 +22,15 @@ Este documento registra o planejamento estratégico e a evolução do **CalorieS
 - **Fase 4.5: Produtividade do Diário:** Navegação histórica por data, cópia rápida de refeições, histórico de recentes/favoritos e refeições prontas/combos salvos.
 - **Fase 5: Design Brutalista e Refatoração:** Migração completa para tokens semânticos e CSS variables (Neo-Brutalismo de Tinta), conformidade de acessibilidade (WCAG AA), formulários com `react-hook-form` + Zod e decomposição de componentes.
 - **Fase 5.5: Pacote Compartilhado (`shared`):** Contratos DTO, schemas Zod e cálculos matemáticos compartilhados como fonte única entre backend e frontend.
+- **Fase 6 (parcial): Autenticação por e-mail:** Confirmação de cadastro por código de 6 dígitos (BL-12) e recuperação de senha por link de uso único (BL-05), com hard gate no login, revogação por `token_version`, Mailpit/Mailer plugável e telas públicas de verificação e redefinição.
 
 ---
 
 ## 3. Próximos Ciclos de Desenvolvimento ⏳
 
 ### ⏳ Fase 6: Autenticação Avançada e Recuperação de Acesso
-- [ ] Confirmação de e-mail em duas etapas (código OTP ou link de verificação).
-- [ ] Fluxo de recuperação de senha ("Esqueci minha senha") com envio de e-mail e token temporário assinado (expiração de 30 minutos).
+- [x] Confirmação de e-mail em duas etapas (código OTP de 6 dígitos, BL-12).
+- [x] Fluxo de recuperação de senha ("Esqueci minha senha") com envio de e-mail e token temporário de 30 minutos (BL-05).
 - [ ] Login social (OAuth2 via Google e Apple) integrado à autenticação do backend.
 - [ ] Proteção contra automação maliciosa nas rotas públicas de autenticação (ex: Cloudflare Turnstile).
 

@@ -44,6 +44,56 @@ describe('Confirmação de e-mail (BL-12 / D-21)', () => {
     assert.ok(message, 'e-mail de verificação deve ser enviado');
     assert.match(message.subject, /confirme seu e-mail/i);
     assert.match(verificationCodeFor(email), /^\d{6}$/);
+    assert.strictEqual(response.headers['cache-control'], 'no-store');
+  });
+
+  it('novo cadastro em conta não verificada sobrescreve a senha e invalida o código anterior (A4)', async () => {
+    const email = `tester-verif-overwrite-${Date.now()}@example.com`;
+    const newPassword = 'outraSenha456';
+
+    await AuthService.register(registerPayload(email, 'Primeiro Nome'));
+    const firstCode = verificationCodeFor(email);
+    clearMailbox();
+
+    await AuthService.register({ ...registerPayload(email, 'Segundo Nome'), password: newPassword });
+
+    assert.strictEqual(
+      lastEmailTo(email),
+      undefined,
+      'cooldown deve suprimir o novo envio imediatamente após o primeiro'
+    );
+
+    await assert.rejects(
+      () => AuthService.verifyEmail({ email, code: firstCode }),
+      (error: { statusCode?: number; code?: string }) => {
+        assert.strictEqual(error.statusCode, 400);
+        assert.strictEqual(error.code, 'INVALID_VERIFICATION_CODE');
+        return true;
+      },
+      'código anterior deve ser invalidado mesmo sem novo envio'
+    );
+
+    // Passado o cooldown, o reenvio emite um código novo que confirma a conta
+    // com a senha definida no segundo cadastro.
+    await pool.query(
+      `UPDATE email_verification_codes
+          SET created_at = CURRENT_TIMESTAMP - INTERVAL '61 seconds'
+        WHERE user_id = (SELECT id FROM users WHERE email = $1)`,
+      [email]
+    );
+    const resend = await request(app).post('/api/auth/resend-code').send({ email });
+    assert.strictEqual(resend.status, 202);
+
+    const newCode = verificationCodeFor(email);
+    const verified = await request(app)
+      .post('/api/auth/verify-email')
+      .send({ email, code: newCode });
+    assert.strictEqual(verified.status, 200);
+
+    const login = await request(app)
+      .post('/api/auth/login')
+      .send({ email, password: newPassword });
+    assert.strictEqual(login.status, 200);
   });
 
   it('código errado conta tentativas e a 5ª falha invalida o código (A2)', async () => {

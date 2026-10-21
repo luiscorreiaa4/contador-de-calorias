@@ -9,10 +9,10 @@ Aplicação web para acompanhamento nutricional, registro de refeições e anál
 - **Catálogo de alimentos:** busca sem distinção de acentos ou maiúsculas, ordenação por similaridade e cadastro de alimentos personalizados.
 - **Metas nutricionais:** cálculo automático a partir dos dados corporais, objetivo e atividade física, com opção de ajuste manual e histórico de vigência.
 - **Evolução:** gráficos de consumo alimentar em períodos de 7 e 30 dias e acompanhamento de peso e gordura corporal.
-- **Conta e privacidade:** gestão de perfil, alteração de senha, exportação de dados e exclusão da conta.
+- **Conta e privacidade:** confirmação de e-mail no cadastro, recuperação de senha por link, gestão de perfil, alteração de senha, exportação de dados e exclusão da conta.
 - **Experiência web:** recursos de PWA, cache de assets e navegação, indicação de conexão offline e infraestrutura de suporte a notificações push.
 
-O projeto está em desenvolvimento. Confirmação de e-mail, recuperação de senha, login social e revogação de sessão com refresh tokens permanecem pendentes na documentação. O [roadmap](docs/ROADMAP.md) e a [especificação](docs/SPEC.md) detalham os requisitos que orientam os próximos passos.
+O projeto está em desenvolvimento. Login social, proteção antiautomação nas rotas públicas e revogação de sessão com refresh tokens permanecem pendentes na documentação. O [roadmap](docs/ROADMAP.md) e a [especificação](docs/SPEC.md) detalham os requisitos que orientam os próximos passos.
 
 ## Tecnologias
 
@@ -22,7 +22,8 @@ O projeto está em desenvolvimento. Confirmação de e-mail, recuperação de se
 | Interface | Tailwind CSS 3, Radix UI, Recharts e Lucide React |
 | Dados e formulários | TanStack Query 5, React Hook Form e Zod 3 |
 | Backend | Node.js 24, Express 4 e TypeScript 5, com execução via `tsx` |
-| Autenticação e proteção HTTP | JWT, bcrypt, Helmet, CORS e rate limiting |
+| Autenticação e proteção HTTP | JWT com `token_version`, bcrypt, verificação de e-mail por código, reset por link, Helmet, CORS e rate limiting |
+| E-mail transacional | SMTP via `nodemailer` (Mailpit em desenvolvimento) e caixa em memória nos testes |
 | Banco de dados | PostgreSQL 14+, driver `pg` e migrações com `node-pg-migrate` |
 | Testes | Node Test Runner e Supertest no backend; Vitest, Testing Library e MSW no frontend |
 
@@ -78,21 +79,29 @@ DATABASE_URL=postgresql://postgres:substitua_pela_senha_local@localhost:5432/con
 JWT_SECRET=substitua_por_uma_chave_aleatoria_de_pelo_menos_32_caracteres
 JWT_EXPIRES_IN=7d
 CORS_ORIGIN=http://localhost:5173
+
+APP_BASE_URL=http://localhost:5173
+MAIL_FROM="CalorieSync <no-reply@caloriesync.local>"
+MAIL_TRANSPORT=smtp
+MAIL_SMTP_HOST=localhost
+MAIL_SMTP_PORT=1025
+MAIL_SMTP_SECURE=false
+AUTH_TOKEN_PEPPER=substitua_por_outra_chave_aleatoria_de_pelo_menos_32_caracteres
 ```
 
-Substitua os valores de exemplo antes de iniciar a API. Mantenha `DATABASE_URL` coerente com os campos `DB_*`; a chave `JWT_SECRET` precisa ter pelo menos 32 caracteres.
+Substitua os valores de exemplo antes de iniciar a API. Mantenha `DATABASE_URL` coerente com os campos `DB_*`; `JWT_SECRET` e `AUTH_TOKEN_PEPPER` precisam ter pelo menos 32 caracteres e ser diferentes entre si.
 
 ### 3. Preparar o banco de dados
 
 **Com Docker Compose**
 
-Com o Docker em execução, inicie o PostgreSQL:
+Com o Docker em execução, inicie o PostgreSQL e o Mailpit:
 
 ```bash
 npm run docker:up
 ```
 
-A configuração documentada utiliza volume persistente e cria também o banco de testes. Se a porta `5432` já estiver ocupada, defina `DB_PORT=5433` em `backend/.env` antes de iniciar o container e ajuste a porta em `DATABASE_URL`.
+A configuração documentada utiliza volume persistente e cria também o banco de testes. O Mailpit captura os e-mails de confirmação e recuperação em `http://localhost:8025` (SMTP em `localhost:1025`). Se a porta `5432` já estiver ocupada, defina `DB_PORT=5433` em `backend/.env` antes de iniciar o container e ajuste a porta em `DATABASE_URL`.
 
 Para encerrar o container:
 
@@ -127,6 +136,7 @@ npm run dev:all
 | --- | --- |
 | Frontend | [localhost:5173](http://localhost:5173) |
 | API | [localhost:3001/api](http://localhost:3001/api) |
+| Mailpit (e-mails de teste) | [localhost:8025](http://localhost:8025) |
 
 ## Configuração de ambiente
 
@@ -145,10 +155,18 @@ As variáveis do backend ficam em `backend/.env`. Os campos de conexão devem se
 | `JWT_SECRET` | Chave de assinatura de sessão; obrigatória, com no mínimo 32 caracteres |
 | `JWT_EXPIRES_IN` | Validade configurável do token (ex: `7d`), aplicada na geração da sessão JWT |
 | `CORS_ORIGIN` | Origem autorizada para o frontend; localmente, `http://localhost:5173` |
+| `APP_BASE_URL` | URL pública do frontend usada no link de redefinição de senha; HTTPS em produção |
+| `MAIL_FROM` | Remetente dos e-mails transacionais, com domínio verificado no provedor |
+| `MAIL_TRANSPORT` | `smtp` para envio real ou `memory` para caixa em memória; testes forçam `memory` |
+| `MAIL_SMTP_HOST` | Host SMTP; em desenvolvimento, `localhost` (Mailpit) |
+| `MAIL_SMTP_PORT` | Porta SMTP; Mailpit em `1025`; provedores normalmente usam `587` ou `465` |
+| `MAIL_SMTP_USER` / `MAIL_SMTP_PASS` | Credenciais SMTP do provedor; vazias no Mailpit local |
+| `MAIL_SMTP_SECURE` | `true` para TLS direto (porta 465) ou `false` com STARTTLS (porta 587) |
+| `AUTH_TOKEN_PEPPER` | Pepper HMAC dos códigos de verificação; mínimo 32 caracteres e diferente de `JWT_SECRET` |
 | `DB_SSL_CA` | Certificado de autoridade certificadora para conexões SSL, quando necessário |
 | `TRUST_PROXY` | Número de saltos de proxy confiáveis em ambientes com proxy reverso |
 
-As decisões de SSL e proxy estão descritas no [backlog, decisão D-19](docs/BACKLOG.md#d-19).
+As decisões de SSL e proxy estão descritas em [decisões de arquitetura, D-19](docs/DECISOES.md). O passo a passo de Mailpit, DNS/SPF/DKIM/DMARC e provedores SMTP está em [configuração de e-mail](docs/EMAIL_SETUP.md).
 
 ## Comandos de desenvolvimento
 
@@ -206,6 +224,7 @@ O backend segue o fluxo `routes → controllers → services → models`, com SQ
 | Metas | Objetivo e rotina (`/metas/rotina`), calorias e macros (`/metas/diarias`) |
 | Perfil | Dados pessoais (`/perfil`) |
 | Configurações | Notificações, segurança e privacidade (`/configuracoes/...`) |
+| Autenticação pública | Login (`/login`), cadastro (`/cadastro`), verificação de e-mail (`/verificar-email`), recuperação (`/esqueci-senha`) e redefinição (`/redefinir-senha`) |
 
 O [guia de navegação](docs/UX_NAVIGATION.md) detalha as responsabilidades das telas e os redirecionamentos de URLs anteriores.
 
@@ -218,9 +237,10 @@ O [guia de navegação](docs/UX_NAVIGATION.md) detalha as responsabilidades das 
 | [Navegação](docs/UX_NAVIGATION.md) | Organização das áreas e responsabilidades das páginas |
 | [Migrações](docs/MIGRATIONS.md) | Versionamento e manutenção do esquema de banco |
 | [Testes](docs/TESTING.md) | Comandos, convenções e estratégia de testes |
+| [E-mail transacional](docs/EMAIL_SETUP.md) | Mailpit local, SMTP em produção, DNS e diagnóstico |
 | [Identidade visual](docs/CORES.md) | Paleta, tokens semânticos e critérios de contraste |
 | [Roadmap](docs/ROADMAP.md) | Fases de desenvolvimento e marcos do produto |
-| [Backlog](docs/BACKLOG.md) | Fonte consolidada de pendências e decisões de arquitetura |
+| [Decisões](docs/DECISOES.md) | Decisões de arquitetura e produto (D-xx) |
 | [Performance](docs/PERFORMANCE_BASELINE.md) | Medições e referências de desempenho |
 
 Relatórios de revisão estão em `docs/reviews/`; registros históricos ficam em `docs/archive/`.

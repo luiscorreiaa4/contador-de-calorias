@@ -2,32 +2,124 @@ import { http, HttpResponse } from 'msw';
 
 const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
+const GENERIC_EMAIL_MESSAGE =
+  'Se os dados estiverem corretos, enviaremos uma mensagem para o e-mail informado.';
+
+const testUser = {
+  id: '1',
+  name: 'Test User',
+  email: 'test@example.com',
+  goal: 'manter_peso',
+  sex: 'masculino',
+  birth_date: '1990-01-01',
+  weight: 75,
+  height: 175,
+  body_fat: 15,
+  activity_level: 'moderadamente_ativo',
+  daily_calories_goal: 2200,
+  daily_proteins_goal: 150,
+  onboarding_completed: true,
+  email_verified_at: '2026-01-01T00:00:00Z',
+  token_version: 0,
+  created_at: '2026-01-01T00:00:00Z',
+  updated_at: '2026-01-01T00:00:00Z',
+};
+
 export const handlers = [
-  http.post(`${baseURL}/users/login`, async ({ request }) => {
+  http.post(`${baseURL}/auth/login`, async ({ request }) => {
     const body = await request.json() as { email?: string; password?: string };
+
+    if (body.email === 'unverified@example.com' && body.password === 'senha123') {
+      return HttpResponse.json(
+        {
+          success: false,
+          code: 'EMAIL_NOT_VERIFIED',
+          message: 'Confirme seu e-mail para entrar.',
+        },
+        { status: 403 }
+      );
+    }
+
     if (body.email === 'test@example.com' && body.password === 'senha123') {
       return HttpResponse.json({
         success: true,
+        message: 'Login realizado com sucesso!',
         data: {
-          user: { id: '1', name: 'Test User', email: 'test@example.com' },
-          token: 'fake-token'
-        }
+          user: testUser,
+          token: 'fake-token',
+        },
       });
     }
-    return HttpResponse.json({ success: false, message: 'Credenciais inválidas' }, { status: 400 });
+
+    return HttpResponse.json(
+      { success: false, message: 'E-mail ou senha incorretos.' },
+      { status: 401 }
+    );
   }),
-  
-  http.post(`${baseURL}/users/register`, async ({ request }) => {
-    const body = await request.json() as { email?: string; name?: string };
-    if (body.email === 'test@example.com') {
-      return HttpResponse.json({ success: false, message: 'Email já em uso' }, { status: 400 });
+
+  http.post(`${baseURL}/auth/register`, async () => {
+    // A4/A6: sempre 202 genérico, sem revelar existência da conta e sem sessão.
+    return HttpResponse.json(
+      { success: true, message: GENERIC_EMAIL_MESSAGE },
+      { status: 202 }
+    );
+  }),
+
+  http.post(`${baseURL}/auth/verify-email`, async ({ request }) => {
+    const body = await request.json() as { email?: string; code?: string };
+
+    if (body.code !== '123456') {
+      return HttpResponse.json(
+        {
+          success: false,
+          code: 'INVALID_VERIFICATION_CODE',
+          message: 'Código inválido ou expirado.',
+        },
+        { status: 400 }
+      );
     }
+
     return HttpResponse.json({
       success: true,
+      message: 'E-mail verificado com sucesso!',
       data: {
-        user: { id: '1', name: body.name, email: body.email },
-        token: 'fake-token'
-      }
+        user: { ...testUser, email: body.email ?? testUser.email },
+        token: 'verified-token',
+      },
+    });
+  }),
+
+  http.post(`${baseURL}/auth/resend-code`, () => {
+    return HttpResponse.json(
+      { success: true, message: GENERIC_EMAIL_MESSAGE },
+      { status: 202 }
+    );
+  }),
+
+  http.post(`${baseURL}/auth/forgot-password`, () => {
+    return HttpResponse.json(
+      { success: true, message: GENERIC_EMAIL_MESSAGE },
+      { status: 202 }
+    );
+  }),
+
+  http.post(`${baseURL}/auth/reset-password`, async ({ request }) => {
+    const body = await request.json() as { token?: string; password?: string };
+
+    if (!body.token || body.token.startsWith('invalid')) {
+      return HttpResponse.json(
+        {
+          success: false,
+          code: 'INVALID_RESET_TOKEN',
+          message: 'Link inválido ou expirado.',
+        },
+        { status: 400 }
+      );
+    }
+
+    return HttpResponse.json({
+      success: true,
+      message: 'Senha redefinida com sucesso. Entre com a nova senha.',
     });
   }),
   
@@ -375,23 +467,7 @@ export const handlers = [
   http.get(`${baseURL}/users/me`, () => {
     return HttpResponse.json({
       success: true,
-      data: {
-        id: '1',
-        name: 'Test User',
-        email: 'test@example.com',
-        goal: 'manter_peso',
-        sex: 'masculino',
-        birth_date: '1990-01-01',
-        weight: 75,
-        height: 175,
-        body_fat: 15,
-        activity_level: 'moderadamente_ativo',
-        daily_calories_goal: 2200,
-        daily_proteins_goal: 150,
-        onboarding_completed: true,
-        created_at: '2026-01-01T00:00:00Z',
-        updated_at: '2026-01-01T00:00:00Z',
-      },
+      data: testUser,
     });
   }),
 
