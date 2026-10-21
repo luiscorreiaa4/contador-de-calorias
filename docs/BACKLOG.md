@@ -154,6 +154,8 @@ O planejamento por fases está em [ROADMAP.md](file:///c:/Users/Luis/Documents/C
 | **BL-26** | Feature | Suporte a PWA, manifesto web e modo offline com sincronização em segundo plano | FEAT-C08 | Médio | G | 2 | — | **[CORRIGIDO]** manifesto PWA, icons, service worker com estratégias de cache para assets/navegação e banner de detecção de modo offline | Econômico | — |
 | **BL-27** | Feature | Notificações push na web para lembretes de registro de refeições | FEAT-C09 | Baixo | M | 2 | — | **[PARCIAL / STUB]** rotas `/api/push`, tabela `push_subscriptions`, suporte a chaves VAPID e serviço no frontend; disparo automático em produção documentado para worker/broker externo | Econômico | — |
 | **BL-28** | Feature | Distribuição de metas nutricionais específicas por tipo de refeição | FEAT-C10 | Baixo | M | 2 | — | **[CONFIRMADO]** metas são apenas diárias globais | Econômico | — |
+| **BL-29** | Refatoração | Expurgo de colunas legadas `users.daily_*_goal` via migração estrutural dedicada | A-064 | Baixo | P | 2 | Futura | **[ADIADO]** colunas legadas coexistem de forma segura com `user_goals`; remoção física programada para janela de migração estrutural | Econômico | — |
+| **BL-30** | Arquitetura | Decomposição modular do `NewMealModal` em `MealComposer`, `SavedComboPicker` e hook `useMealForm` | A-091 | Médio | M | 4 | Futura | **[ADIADO]** componente estabilizado com bugs corrigidos e 13 testes passando; decomposição modular programada em ciclo isolado | Forte + diff | — |
 
 ---
 
