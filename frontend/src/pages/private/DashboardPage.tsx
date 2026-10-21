@@ -11,7 +11,8 @@ const NewMealModal = React.lazy(() =>
 );
 import { getTodayMeals, deleteMeal, copyMeal, type Meal } from '../../services/meal.service';
 import { getActiveGoal } from '../../services/goals.service';
-import { getLocalDateString, isValidLocalDateString, addDaysToDateString, parseLocalDateString } from '../../utils/date';
+import { getLocalDateString, isValidLocalDateString, addDaysToDateString, parseLocalDateOrToday } from '../../utils/date';
+import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 
 export const DashboardPage: React.FC = () => {
   const queryClient = useQueryClient();
@@ -51,8 +52,12 @@ export const DashboardPage: React.FC = () => {
 
   const meals = todayMeals || [];
 
-  // Buscar meta do dia
-  const { data: activeGoal } = useQuery({
+  // Buscar meta do dia com tratamento de erro (A-098)
+  const {
+    data: activeGoal,
+    isError: isActiveGoalError,
+    refetch: refetchActiveGoal,
+  } = useQuery({
     queryKey: ['active-goal', selectedDate],
     queryFn: () => getActiveGoal(selectedDate),
   });
@@ -90,12 +95,11 @@ export const DashboardPage: React.FC = () => {
     },
   });
 
-  // Metas do dia
+  // Metas do dia sem valores inventados (A-095)
   const dailyCaloriesGoal = Number(activeGoal?.calories) || Number(user?.daily_calories_goal) || 2000;
   const dailyProteinsGoal = Number(activeGoal?.proteins) || Number(user?.daily_proteins_goal) || 100;
-  // Fallbacks if not set
-  const dailyCarbsGoal = Number(activeGoal?.carbs) || 250;
-  const dailyFatsGoal = Number(activeGoal?.fats) || 65;
+  const dailyCarbsGoal = activeGoal?.carbs != null && Number(activeGoal.carbs) > 0 ? Number(activeGoal.carbs) : null;
+  const dailyFatsGoal = activeGoal?.fats != null && Number(activeGoal.fats) > 0 ? Number(activeGoal.fats) : null;
 
   const consumedCalories = meals.reduce((acc, meal) => acc + Number(meal.total_calories || 0), 0);
   const consumedProteins = meals.reduce((acc, meal) => acc + Number(meal.total_proteins || 0), 0);
@@ -104,10 +108,10 @@ export const DashboardPage: React.FC = () => {
 
   const caloriesPercent = Math.min((consumedCalories / dailyCaloriesGoal) * 100, 100);
   const proteinsPercent = Math.min((consumedProteins / dailyProteinsGoal) * 100, 100);
-  const carbsPercent = Math.min((consumedCarbs / dailyCarbsGoal) * 100, 100);
-  const fatsPercent = Math.min((consumedFats / dailyFatsGoal) * 100, 100);
+  const carbsPercent = dailyCarbsGoal !== null ? Math.min((consumedCarbs / dailyCarbsGoal) * 100, 100) : 0;
+  const fatsPercent = dailyFatsGoal !== null ? Math.min((consumedFats / dailyFatsGoal) * 100, 100) : 0;
 
-  const selectedDateLabel = parseLocalDateString(selectedDate).toLocaleDateString('pt-BR', {
+  const selectedDateLabel = parseLocalDateOrToday(selectedDate).toLocaleDateString('pt-BR', {
     weekday: 'long',
     day: '2-digit',
     month: 'long',
@@ -173,6 +177,25 @@ export const DashboardPage: React.FC = () => {
           <ChevronRight className="w-4 h-4" aria-hidden="true" />
         </button>
       </div>
+
+      {/* Alerta de erro ao carregar meta (A-098) */}
+      {isActiveGoalError && (
+        <div role="alert" className="p-4 border-2 border-border bg-destructive/10 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="w-5 h-5 text-destructive shrink-0" aria-hidden="true" />
+            <p className="text-xs font-bold uppercase tracking-wider text-destructive">
+              NÃO FOI POSSÍVEL CARREGAR SUAS METAS DO DIA.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => refetchActiveGoal()}
+            className="px-3 py-1.5 border-2 border-border bg-background text-foreground font-black text-xs uppercase hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      )}
 
       {/* Daily Metrics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -241,7 +264,9 @@ export const DashboardPage: React.FC = () => {
             <div>
               <div className="flex items-baseline gap-1">
                 <span className="text-4xl font-heading font-black text-foreground tracking-tighter">{consumedCarbs.toFixed(0)}</span>
-                <span className="text-sm font-bold text-muted-foreground">/{dailyCarbsGoal.toFixed(0)}g</span>
+                <span className="text-sm font-bold text-muted-foreground">
+                  {dailyCarbsGoal !== null ? `/${dailyCarbsGoal.toFixed(0)}g` : '/—'}
+                </span>
               </div>
             </div>
             <div className="w-full bg-background border-2 border-border h-3 mt-4 overflow-hidden">
@@ -258,7 +283,9 @@ export const DashboardPage: React.FC = () => {
             <div>
               <div className="flex items-baseline gap-1">
                 <span className="text-4xl font-heading font-black text-foreground tracking-tighter">{consumedFats.toFixed(0)}</span>
-                <span className="text-sm font-bold text-muted-foreground">/{dailyFatsGoal.toFixed(0)}g</span>
+                <span className="text-sm font-bold text-muted-foreground">
+                  {dailyFatsGoal !== null ? `/${dailyFatsGoal.toFixed(0)}g` : '/—'}
+                </span>
               </div>
             </div>
             <div className="w-full bg-background border-2 border-border h-3 mt-4 overflow-hidden">
@@ -394,7 +421,7 @@ export const DashboardPage: React.FC = () => {
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
                       <button
                         type="button"
                         onClick={() => {
@@ -489,108 +516,51 @@ export const DashboardPage: React.FC = () => {
         </React.Suspense>
       )}
 
-      {/* Delete Meal Confirm Modal */}
-      {isDeleteModalOpen && mealToDelete && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-background/90 backdrop-blur-sm">
-          <div
-            role="dialog"
-            aria-modal="true"
-            className="w-full max-w-md bg-card border-2 border-border shadow-hard overflow-hidden"
-          >
-            <div className="p-6 border-b-2 border-border">
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-destructive text-destructive-foreground shrink-0 border-2 border-transparent">
-                  <AlertTriangle className="w-6 h-6" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-heading font-black text-foreground uppercase tracking-tight mb-2">
-                    EXCLUIR REFEIÇÃO
-                  </h2>
-                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-relaxed">
-                    VOCÊ VAI DELETAR: <strong className="text-foreground">{mealToDelete.name}</strong>. ESSA AÇÃO NÃO PODE SER DESFEITA.
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center justify-end gap-4 p-4 bg-background">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsDeleteModalOpen(false);
-                  setMealToDelete(null);
-                }}
-                disabled={deleteMealMutation.isPending}
-                className="px-4 py-2 font-bold uppercase tracking-widest text-xs text-foreground hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background border-2 border-transparent"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={() => deleteMealMutation.mutate(mealToDelete.id)}
-                disabled={deleteMealMutation.isPending}
-                className="px-6 py-2 bg-destructive text-destructive-foreground font-black uppercase tracking-widest text-xs flex items-center gap-2 hover:bg-destructive/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-              >
-                {deleteMealMutation.isPending ? 'Excluindo...' : 'Sim, Excluir'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* Copy Yesterday's Meals Confirm Modal */}
-      {isCopyModalOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-background/90 backdrop-blur-sm">
-          <div
-            role="dialog"
-            aria-modal="true"
-            className="w-full max-w-md bg-card border-2 border-border shadow-hard overflow-hidden"
-          >
-            <div className="p-6 border-b-2 border-border">
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-primary text-primary-foreground shrink-0 border-2 border-black shadow-hard-fill">
-                  <Copy className="w-6 h-6" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-heading font-black text-foreground uppercase tracking-tight mb-2">
-                    COPIAR REFEIÇÕES DE ONTEM
-                  </h2>
-                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-relaxed">
-                    DESEJA COPIAR TODAS AS REFEIÇÕES DO DIA ANTERIOR PARA O DIA SELECIONADO? AS REFEIÇÕES SERÃO DUPLICADAS.
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center justify-end gap-4 p-4 bg-background">
-              <button
-                type="button"
-                onClick={() => setIsCopyModalOpen(false)}
-                disabled={copyMealMutation.isPending}
-                className="px-4 py-2 font-bold uppercase tracking-widest text-xs text-foreground hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background border-2 border-transparent"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (copyMealMutation.isPending) return;
-                  const yesterday = addDaysToDateString(selectedDate, -1);
-                  copyMealMutation.mutate(
-                    { sourceDate: yesterday, targetDate: selectedDate },
-                    {
-                      onSettled: () => {
-                        setIsCopyModalOpen(false);
-                      },
-                    }
-                  );
-                }}
-                disabled={copyMealMutation.isPending}
-                className="px-6 py-2 bg-primary text-primary-foreground border-2 border-black shadow-hard-fill font-black uppercase tracking-widest text-xs flex items-center gap-2 hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {copyMealMutation.isPending ? 'Copiando...' : 'Sim, Copiar'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Delete Meal Confirm Modal (A-096) */}
+      <ConfirmDialog
+        isOpen={isDeleteModalOpen && !!mealToDelete}
+        title="EXCLUIR REFEIÇÃO"
+        description={
+          <>
+            VOCÊ VAI DELETAR: <strong className="text-foreground">{mealToDelete?.name}</strong>. ESSA AÇÃO NÃO PODE SER DESFEITA.
+          </>
+        }
+        confirmLabel="Sim, Excluir"
+        cancelLabel="Cancelar"
+        variant="destructive"
+        isLoading={deleteMealMutation.isPending}
+        onConfirm={() => {
+          if (mealToDelete) deleteMealMutation.mutate(mealToDelete.id);
+        }}
+        onCancel={() => {
+          setIsDeleteModalOpen(false);
+          setMealToDelete(null);
+        }}
+      />
+
+      {/* Copy Yesterday's Meals Confirm Modal (A-096) */}
+      <ConfirmDialog
+        isOpen={isCopyModalOpen}
+        title="COPIAR REFEIÇÕES DE ONTEM"
+        description="DESEJA COPIAR TODAS AS REFEIÇÕES DO DIA ANTERIOR PARA O DIA SELECIONADO? AS REFEIÇÕES SERÃO DUPLICADAS."
+        confirmLabel="Sim, Copiar"
+        cancelLabel="Cancelar"
+        variant="primary"
+        isLoading={copyMealMutation.isPending}
+        onConfirm={() => {
+          if (copyMealMutation.isPending) return;
+          const yesterday = addDaysToDateString(selectedDate, -1);
+          copyMealMutation.mutate(
+            { sourceDate: yesterday, targetDate: selectedDate },
+            {
+              onSettled: () => {
+                setIsCopyModalOpen(false);
+              },
+            }
+          );
+        }}
+        onCancel={() => setIsCopyModalOpen(false)}
+      />
     </div>
   );
 };

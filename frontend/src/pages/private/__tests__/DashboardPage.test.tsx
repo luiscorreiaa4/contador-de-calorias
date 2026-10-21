@@ -6,12 +6,12 @@ import { render } from '../../../tests/setup/test-utils';
 import { DashboardPage } from '../DashboardPage';
 import { server } from '../../../mocks/server';
 import { http, HttpResponse } from 'msw';
-import { getLocalDateString, addDaysToDateString, parseLocalDateString } from '../../../utils/date';
+import { getLocalDateString, addDaysToDateString, parseLocalDateOrToday } from '../../../utils/date';
 
 const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 function formatDateLabel(dateStr: string): string {
-  return parseLocalDateString(dateStr).toLocaleDateString('pt-BR', {
+  return parseLocalDateOrToday(dateStr).toLocaleDateString('pt-BR', {
     weekday: 'long',
     day: '2-digit',
     month: 'long',
