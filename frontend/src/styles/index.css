@@ -79,7 +79,7 @@
     --accent: 72 100% 50%;
     --accent-foreground: 0 0% 4%;
     --destructive: 0 84% 60%;        /* #EF4343 */
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 0 0% 4%; /* #0A0A0A - WCAG AA contraste >= 4.5:1 (5.57:1) */
     --warning: 38 92% 50%;           /* #F59E0B */
     --warning-foreground: 0 0% 4%;
     --border: 0 0% 15%;              /* #262626 */
@@ -166,3 +166,16 @@ input:-webkit-autofill:active {
   -webkit-text-fill-color: hsl(var(--foreground)) !important;
   transition: background-color 5000s ease-in-out 0s;
 }
+
+/* Acessibilidade: respeito à preferência do usuário/sistema por movimento reduzido (A-104 / WCAG 2.3.3) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+

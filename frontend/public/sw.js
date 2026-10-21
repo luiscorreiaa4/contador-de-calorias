@@ -1,4 +1,5 @@
-const CACHE_NAME = 'caloriesync-cache-v1';
+const CACHE_VERSION = 'v2';
+const CACHE_NAME = `caloriesync-cache-${CACHE_VERSION}`;
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -41,6 +42,27 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  const isNavigation = event.request.mode === 'navigate' || event.request.destination === 'document';
+
+  // Network-First para documentos e rotas de navegação (A-101): previne que o app shell fique preso no cache
+  if (isNavigation) {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+            const clone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return networkResponse;
+        })
+        .catch(() =>
+          caches.match(event.request).then((cached) => cached || caches.match('/') || caches.match('/index.html'))
+        )
+    );
+    return;
+  }
+
+  // Stale-While-Revalidate / Cache-First com atualização em background para assets estáticos
   event.respondWith(
     caches.match(event.request).then((cached) => {
       const fetchPromise = fetch(event.request)
@@ -51,7 +73,7 @@ self.addEventListener('fetch', (event) => {
           }
           return networkResponse;
         })
-        .catch(() => cached || caches.match('/'));
+        .catch(() => cached);
 
       return cached || fetchPromise;
     })
@@ -71,11 +93,15 @@ self.addEventListener('push', (event) => {
     }
   }
 
+  // Respeita silêncio ou redução de movimento/vibração (A-104)
+  const shouldVibrate = !data.silent && !data.reduceMotion;
+
   const options = {
     body: data.body,
     icon: '/favicon.svg',
     badge: '/favicon.svg',
-    vibrate: [100, 50, 100],
+    vibrate: shouldVibrate ? [100, 50, 100] : undefined,
+    silent: !shouldVibrate,
     data: {
       url: data.url || '/',
     },
@@ -86,7 +112,9 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const targetUrl = event.notification.data?.url || '/';
+  // Normaliza URL relativa com a origem atual para comparação correta com client.url absoluto (A-102)
+  const rawTargetUrl = event.notification.data?.url || '/';
+  const targetUrl = new URL(rawTargetUrl, self.location.origin).href;
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {

@@ -12,12 +12,12 @@ const args = process.argv.slice(2);
 function isAllowedLiteralFile(filePath) {
   const norm = filePath.replace(/\\/g, '/');
   return (
-    norm.endsWith('index.css') ||
     norm.endsWith('src/styles/index.css') ||
+    norm.endsWith('index.css') ||
     norm.endsWith('tailwind.config.js') ||
-    norm.includes('/public/') ||
-    norm.startsWith('public/') ||
-    norm.endsWith('index.html')
+    norm.endsWith('index.html') ||
+    norm.endsWith('public/favicon.svg') ||
+    norm.endsWith('public/manifest.webmanifest')
   );
 }
 
@@ -115,6 +115,7 @@ const prohibitedRules = [
 ];
 
 let totalViolations = 0;
+const suppressions = [];
 
 for (const filePath of targetFiles) {
   if (!fs.existsSync(filePath)) continue;
@@ -126,8 +127,9 @@ for (const filePath of targetFiles) {
     const line = lines[i];
     const prevLine = i > 0 ? lines[i - 1] : '';
 
-    // Verifica exceção autorizada
+    // Verifica e registra exceção autorizada
     if (line.includes('color-guard-allow:') || prevLine.includes('color-guard-allow:')) {
+      suppressions.push({ file: relPath, line: i + 1, directive: (line.includes('color-guard-allow:') ? line : prevLine).trim() });
       continue;
     }
 
@@ -140,10 +142,18 @@ for (const filePath of targetFiles) {
   }
 }
 
+if (suppressions.length > 0) {
+  console.log(`\n[check:colors] ${suppressions.length} supressão(ões) autorizada(s) encontrada(s):`);
+  for (const s of suppressions) {
+    console.log(`  - ${s.file}:${s.line} -> ${s.directive}`);
+  }
+}
+
 if (totalViolations > 0) {
   console.error(`\n[check:colors] ${totalViolations} violações encontradas.`);
   process.exit(1);
 } else {
-  console.log('[check:colors] 0 violações encontradas. Todas as cores seguem os tokens semânticos.');
+  const note = suppressions.length > 0 ? ` (${suppressions.length} supressões auditadas)` : '';
+  console.log(`[check:colors] 0 violações encontradas${note}. Todas as cores seguem os tokens semânticos.`);
   process.exit(0);
 }
