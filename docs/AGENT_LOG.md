@@ -28,7 +28,7 @@ Registro cronológico de linhas de base, migrações e decisões operacionais.
 
 | Arquivo | Conteúdo | Aplicada em dev | Aplicada em test |
 | --- | --- | --- | --- |
-| `backend/migrations/1792800000000_auth-email-verification.js` | `users.email_verified_at`, `users.token_version`, `email_verification_codes`, `password_reset_tokens` e índices | [ ] | [ ] |
+| `backend/migrations/1792800000000_auth-email-verification.js` | `users.email_verified_at`, `users.token_version`, `email_verification_codes`, `password_reset_tokens` e índices | [x] | [x] |
 
 ---
 

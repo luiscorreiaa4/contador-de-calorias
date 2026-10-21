@@ -15,5 +15,18 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
 
+  # BL-12 / BL-05 / D-21 — captura de e-mails em desenvolvimento.
+  # UI: http://localhost:8025 | SMTP: localhost:1025 (sem autenticação em dev).
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: caloriesync_mailpit
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
 volumes:
   postgres_data:
