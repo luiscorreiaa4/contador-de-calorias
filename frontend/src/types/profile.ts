@@ -20,45 +20,6 @@ const profileFields = z
     confirmNewPassword: z.string().optional().default(''),
   });
 
-export const editProfileSchema = profileFields.refine(
-    (data) => {
-      if (data.newPassword && data.newPassword.length > 0) {
-        return data.newPassword.length >= 8 && /(?=.*[a-zA-Z])(?=.*[0-9])/.test(data.newPassword);
-      }
-      return true;
-    },
-    {
-      message: 'A NOVA SENHA DEVE TER NO MÍNIMO 8 CARACTERES COM LETRA E NÚMERO.',
-      path: ['newPassword'],
-    }
-  )
-  .refine(
-    (data) => {
-      if (data.newPassword && data.newPassword.length > 0) {
-        return data.newPassword === data.confirmNewPassword;
-      }
-      return true;
-    },
-    {
-      message: 'AS SENHAS NÃO COINCIDEM.',
-      path: ['confirmNewPassword'],
-    }
-  )
-  .refine(
-    (data) => {
-      if (data.newPassword && data.newPassword.length > 0) {
-        return !!data.currentPassword && data.currentPassword.trim().length > 0;
-      }
-      return true;
-    },
-    {
-      message: 'INFORME SUA SENHA ATUAL PARA ALTERAR A SENHA.',
-      path: ['currentPassword'],
-    }
-  );
-
-export type EditProfileFormInputs = z.infer<typeof editProfileSchema>;
-
 export const personalInfoSchema = profileFields
   .pick({ name: true, email: true, sex: true, birthDate: true, currentPassword: true });
 export type PersonalInfoFormInputs = z.infer<typeof personalInfoSchema>;

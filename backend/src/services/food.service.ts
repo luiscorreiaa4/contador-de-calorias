@@ -25,7 +25,7 @@ export async function createCustom(userId: string, data: CreateCustomFoodDTO) {
   }
 }
 
-export async function getById(id: string, userId?: string) {
+async function getById(id: string, userId?: string) {
   const food = await FoodModel.findById(id, userId);
   if (!food) {
     const error: CustomError = new Error('Alimento não encontrado.');
@@ -59,6 +59,3 @@ export async function removeFavorite(userId: string, foodId: string) {
   return true;
 }
 
-export async function getFavoriteIds(userId: string) {
-  return FoodModel.getFavoriteFoodIds(userId);
-}
