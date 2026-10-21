@@ -105,7 +105,10 @@ describe('Separação das tarefas de perfil e configurações', () => {
       return HttpResponse.json({ success: true, data: body });
     }));
     render(<MemoryRouter><GoalSettingsCard /></MemoryRouter>);
-    await userEvent.click(await screen.findByRole('button', { name: /^manual$/i }));
+    await screen.findByRole('button', { name: /^manual$/i });
+    expect(screen.queryByRole('button', { name: /aplicar metas/i })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: /^manual$/i }));
+    expect(screen.getByRole('button', { name: /aplicar metas/i })).toBeInTheDocument();
     const calories = screen.getByLabelText(/calorias/i);
     await userEvent.clear(calories);
     await userEvent.type(calories, '1950');
@@ -113,7 +116,7 @@ describe('Separação das tarefas de perfil e configurações', () => {
     await waitFor(() => expect(requests).toEqual([{ calories: 1950, proteins: 150, carbs: 220, fats: 70, mode: 'manual' }]));
   });
 
-  it('só ativa o modo automático após confirmação em Aplicar metas', async () => {
+  it('não salva nem exibe mensagem ao alternar para manual e voltar para o automático quando o modo já salvo for auto', async () => {
     const requests: Record<string, unknown>[] = [];
     server.use(http.put(`${baseURL}/users/me/goals`, async ({ request }) => {
       const body = await request.json() as Record<string, unknown>;
@@ -121,11 +124,55 @@ describe('Separação das tarefas de perfil e configurações', () => {
       return HttpResponse.json({ success: true, data: body });
     }));
     render(<MemoryRouter><GoalSettingsCard /></MemoryRouter>);
-    await userEvent.click(await screen.findByRole('button', { name: /^manual$/i }));
+    await screen.findByRole('button', { name: /^manual$/i });
+    expect(screen.queryByRole('button', { name: /aplicar metas/i })).not.toBeInTheDocument();
+    
+    // Alterna para manual sem salvar
+    await userEvent.click(screen.getByRole('button', { name: /^manual$/i }));
+    expect(screen.getByRole('button', { name: /aplicar metas/i })).toBeInTheDocument();
+    
+    // Retorna para automático
     await userEvent.click(screen.getByRole('button', { name: /^automático$/i }));
-    expect(requests).toHaveLength(0);
     expect(screen.getByLabelText(/calorias/i)).toHaveValue(2100);
-    await userEvent.click(screen.getByRole('button', { name: /aplicar metas/i }));
+    expect(screen.queryByRole('button', { name: /aplicar metas/i })).not.toBeInTheDocument();
+    
+    // Não deve ter enviado requisição e não deve exibir mensagem de alterações salvas
+    expect(requests).toHaveLength(0);
+    expect(screen.queryByText(/alterações salvas com sucesso/i)).not.toBeInTheDocument();
+  });
+
+  it('ativa o modo automático e salva na API quando a meta salva anterior era manual', async () => {
+    const requests: Record<string, unknown>[] = [];
+    server.use(
+      http.get(`${baseURL}/users/me/goals`, () => {
+        return HttpResponse.json({
+          success: true,
+          data: {
+            id: 'goal-manual',
+            user_id: '1',
+            effective_from: '2026-01-01',
+            calories: 1900,
+            proteins: 140,
+            carbs: 210,
+            fats: 60,
+            mode: 'manual',
+            created_at: '2026-01-01T00:00:00Z',
+          },
+        });
+      }),
+      http.put(`${baseURL}/users/me/goals`, async ({ request }) => {
+        const body = await request.json() as Record<string, unknown>;
+        requests.push(body);
+        return HttpResponse.json({ success: true, data: body });
+      })
+    );
+    render(<MemoryRouter><GoalSettingsCard /></MemoryRouter>);
+    await screen.findByRole('button', { name: /^automático$/i });
+    expect(screen.getByRole('button', { name: /aplicar metas/i })).toBeInTheDocument();
+    
+    // Clica em automático para ativar
+    await userEvent.click(screen.getByRole('button', { name: /^automático$/i }));
+    expect(screen.queryByRole('button', { name: /aplicar metas/i })).not.toBeInTheDocument();
     await waitFor(() => expect(requests).toEqual([{ calories: 2100, proteins: 150, carbs: 230, fats: 65, mode: 'auto' }]));
   });
 
