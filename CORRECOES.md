@@ -12,11 +12,11 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 
 ## 📍 CHECKPOINT
 - Fase atual: 1 (Execução dos Lotes)
-- Lote atual: Lote 06: Modelos, Otimizações de Consultas e Limpeza no Backend
-- Achado em andamento: A-013
-- Próximo passo (bem específico): Iniciar Lote 06 implementando batch insert e otimização de retorno sem re-consulta O(n) em saved_meal.model.ts (A-013, A-014, A-016, A-026, A-034, A-037, A-063, A-033).
-- Último commit: 8ab32cc (Lote 05 concluído)
-- Progresso: 38 / 129 achados
+- Lote atual: Lote 07: Subsistema de Notificações Push e VAPID
+- Achado em andamento: A-005
+- Próximo passo (bem específico): Iniciar Lote 07 analisando endpoints de push, mock / VAPID keys e validação no frontend/backend (A-005, A-030, A-071, A-086, A-087, A-116).
+- Último commit: 902186b (Lote 06 concluído)
+- Progresso: 46 / 129 achados
 
 ## 🔧 COMANDOS DE VALIDAÇÃO
 - Typecheck: `npm --prefix backend run typecheck` e `npm run build` (tsc -b no frontend)
@@ -79,15 +79,15 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - [x] A-040 🔵 Timeout específico e resposta segura no health check
 - [x] A-022 🔵 Reforço de tipagem de userId autenticado
 
-### Lote 06: Modelos, Otimizações de Consultas e Limpeza no Backend (status: ⬜ pendente)
-- [ ] A-013 🟡 Inserção em batch e otimização de salvamento de combos
-- [ ] A-014 🟡 Centralização de mapeamento de linhas em food.model.ts
-- [ ] A-016 🟡 Tratamento de precisão NUMERIC no pool
-- [ ] A-026 🟡 Totais nutricionais completos (carbs e gorduras)
-- [ ] A-034 🟡 Paginação em listagens sem limite
-- [ ] A-037 🔵 Retorno coerente em addFavoriteFood / removeFavorite
-- [ ] A-063 🔵 Validação de existência em removeFavorite
-- [ ] A-033 🟠 Exportação LGPD de histórico
+### Lote 06: Modelos, Otimizações de Consultas e Limpeza no Backend (status: ✅ concluído)
+- [x] A-013 🟡 Inserção em batch e otimização de salvamento de combos
+- [x] A-014 🟡 Centralização de mapeamento de linhas em food.model.ts
+- [x] A-016 🟡 Tratamento de precisão NUMERIC no pool
+- [x] A-026 🟡 Totais nutricionais completos (carbs e gorduras)
+- [x] A-034 🟡 Paginação em listagens sem limite
+- [x] A-037 🔵 Retorno coerente em addFavoriteFood / removeFavorite
+- [x] A-063 🔵 Validação de existência em removeFavorite
+- [x] A-033 🟠 Exportação LGPD de histórico
 
 ### Lote 07: Subsistema de Notificações Push e VAPID (status: ⬜ pendente)
 - [ ] A-005 🟠 Endpoint de push de teste no backend
@@ -404,6 +404,48 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - Arquivos alterados: `backend/src/middlewares/auth.ts`, `backend/src/controllers/user.controller.ts`, `backend/src/controllers/food.controller.ts`, `backend/src/controllers/meal.controller.ts`, `backend/src/controllers/saved_meal.controller.ts`, `backend/src/controllers/push.controller.ts`, `backend/tests/integration/error_handling_and_observability.test.ts`
 - Decisões tomadas: Proteção contra injeção de `undefined` em SQL e refatores de rotas desatentos.
 
+### A-013: ✅ CORRIGIDO
+- Lote: 06 | Commit: 902186b
+- O que foi feito: Em `backend/src/models/saved_meal.model.ts`, reescrita a inserção de itens de combo salvo para batch multi-row único (`INSERT INTO saved_meal_items ... VALUES ($1, $2, ...), ($5, $6, ...)`), substituindo o loop `for` com N queries `INSERT` sequenciais. Além disso, eliminado o recarregamento de todos os combos do usuário via `listByUser` que fazia consulta O(n) desnecessária; criado e utilizado método `findById(savedMeal.id, client)` que busca diretamente o combo recém-criado dentro da mesma transação.
+- Arquivos alterados: `backend/src/models/saved_meal.model.ts`
+- Decisões tomadas: Redução drástica de round-trips de rede e complexidade de O(n) para O(1).
+
+### A-014: ✅ CORRIGIDO
+- Lote: 06 | Commit: 902186b
+- O que foi feito: Em `backend/src/models/food.model.ts`, centralizado o mapeamento de linhas retornadas pelo banco através dos helpers `mapFoodRow` e `mapFoodRows`, eliminando a repetição do mapeamento manual de colunas (`id`, `name`, `calories`, `proteins`, `carbohydrates`, `fats`, `serving_size`, `serving_unit`, etc.) em 6 métodos diferentes (`findById`, `findByName`, `search`, `listCustomByUser`, `listRecentByUser`, `listFavoritesByUser`).
+- Arquivos alterados: `backend/src/models/food.model.ts`
+- Decisões tomadas: Elimina risco de inconsistência de schema ou colunas faltantes entre consultas.
+
+### A-016: ✅ CORRIGIDO
+- Lote: 06 | Commit: 902186b
+- O que foi feito: Em `backend/src/database/pool.ts`, configurado parser do OID 1700 (`NUMERIC` do PostgreSQL) para conversão numérica segura (`Number(val)`), evitando que valores retornassem como strings e mantendo precisão com arredondamento seguro nos agregadores SQL (`ROUND(..., 2)`).
+- Arquivos alterados: `backend/src/database/pool.ts`
+- Decisões tomadas: Preserva compatibilidade e garante consistência de tipos matemáticos.
+
+### A-026: ✅ CORRIGIDO
+- Lote: 06 | Commit: 902186b
+- O que foi feito: Em `shared/src/types/meal.types.ts`, `backend/src/models/meal.model.ts` e `backend/src/models/saved_meal.model.ts`, adicionados os campos `total_carbs` e `total_fats` aos tipos e queries agregadas (`findMealsByUserAndDate`, `listByUser`, `findById`), completando os macros ao lado de `total_calories` e `total_protein`.
+- Arquivos alterados: `shared/src/types/meal.types.ts`, `backend/src/models/meal.model.ts`, `backend/src/models/saved_meal.model.ts`
+- Decisões tomadas: Fornece ao frontend a visão nutricional agregada completa de macronutrientes sem forçar recálculos manuais na tela.
+
+### A-034: ✅ CORRIGIDO
+- Lote: 06 | Commit: 902186b
+- O que foi feito: Adicionados limites máximos de segurança (`LIMIT 100` a `LIMIT 1000`) nas consultas de listagem que não possuíam paginação ou limite: `findMealsByUserAndDate` (`LIMIT 100`), `listByUser` em combos (`LIMIT 100`), `getFavoriteFoods` (`LIMIT 100`), `listGoalsByUser` (`LIMIT 500`) e `listBodyMeasurementsByUser` (`LIMIT 1000`).
+- Arquivos alterados: `backend/src/models/meal.model.ts`, `backend/src/models/saved_meal.model.ts`, `backend/src/models/food.model.ts`, `backend/src/models/history.model.ts`
+- Decisões tomadas: Previne vazamento de memória e negação de serviço acidental em usuários com grande histórico.
+
+### A-037 / A-063: ✅ CORRIGIDO
+- Lote: 06 | Commit: 902186b
+- O que foi feito: Em `backend/src/services/food.service.ts` e `backend/src/models/food.model.ts`, o método `removeFavorite` foi ajustado para verificar `result.rowCount`. Se for 0 (o alimento não constava como favorito do usuário ou não existia), lança `AppError('Alimento não encontrado nos favoritos', 404)` em vez de retornar sucesso falso. Atualizados os testes de integração em `backend/tests/integration/food_favorites_recents.test.ts`.
+- Arquivos alterados: `backend/src/services/food.service.ts`, `backend/tests/integration/food_favorites_recents.test.ts`
+- Decisões tomadas: Retorno coerente e semântico conforme convenções REST.
+
+### A-033: ✅ CORRIGIDO
+- Lote: 06 | Commit: 902186b
+- O que foi feito: Em `backend/src/models/meal.model.ts`, o método `findAllMealsByUser` (usado na exportação de dados pessoais LGPD) foi protegido com `LIMIT 2000`, evitando sobrecarga de buffer e estouro de memória no Node.js caso um usuário antigo tenha milhares de registros de refeição.
+- Arquivos alterados: `backend/src/models/meal.model.ts`
+- Decisões tomadas: Garante estabilidade operacional do backend durante requisições de portabilidade de dados.
+
 ## 🧠 DECISÕES E OBSERVAÇÕES GLOBAIS
 - Padrão conservador: preservar comportamento de produção e regras de negócio já validadas pelos testes.
 - Toda modificação passa por validação rápida (typecheck / testes da área) e ao final do lote pela validação completa (`npm run lint`, `npm run build`, `npm run test`, `npm run test:frontend`).
@@ -419,4 +461,6 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - Lote 03 concluído (commit `312c849`): corrigidos A-011, A-012, A-006, A-021, A-023, A-043, A-045.
 - Lote 04 concluído (commit `fd0f16f`): corrigidos A-003, A-015, A-020, A-024, A-025, A-035, A-061 (A-105 já realizado no Lote 01).
 - Lote 05 concluído (commit `8ab32cc`): corrigidos A-007, A-017, A-018, A-031, A-058, A-040, A-022.
+- Lote 06 concluído (commit `902186b`): corrigidos A-013, A-014, A-016, A-026, A-034, A-037, A-063, A-033.
+
 
