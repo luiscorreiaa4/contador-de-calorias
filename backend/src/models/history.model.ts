@@ -121,14 +121,23 @@ export async function addBodyMeasurement(
   try {
     await client.query('BEGIN');
     const measurement = await insertBodyMeasurement(userId, weight, bodyFat, dateToUse, client);
-    await client.query(
-      `UPDATE users 
-       SET weight = $1, 
-           body_fat = COALESCE($2, body_fat), 
-           updated_at = NOW() 
-       WHERE id = $3`,
-      [weight, bodyFat, userId]
+
+    // A-006: Só atualiza o peso do perfil se esta medição for a mais recente do usuário
+    const newerMeasurementCheck = await client.query(
+      `SELECT 1 FROM body_measurements WHERE user_id = $1 AND measured_at > $2 LIMIT 1`,
+      [userId, dateToUse]
     );
+
+    if (newerMeasurementCheck.rowCount === 0) {
+      await client.query(
+        `UPDATE users 
+         SET weight = $1, 
+             body_fat = COALESCE($2, body_fat), 
+             updated_at = NOW() 
+         WHERE id = $3`,
+        [weight, bodyFat, userId]
+      );
+    }
     await client.query('COMMIT');
     return measurement;
   } catch (err) {

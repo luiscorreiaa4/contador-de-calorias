@@ -172,6 +172,29 @@ describe('User Routes (Integration - E2E)', () => {
     assert.ok(res.body.data.suggestedCalories > 0);
   });
 
+  it('POST /api/users/me/preview-goals - deve retornar 422 quando a data de nascimento estiver ausente (A-043)', async () => {
+    const newReg = await request(app).post('/api/users/register').send({
+      name: 'User Sem Perfil',
+      email: `tester-meas-nobirth-${Date.now()}@example.com`,
+      password: testPassword,
+      acceptTerms: true,
+    });
+    const token = newReg.body.data.token;
+
+    const res = await request(app)
+      .post('/api/users/me/preview-goals')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        weight: 70,
+        height: 175,
+        goal: 'manter_peso',
+      });
+
+    assert.strictEqual(res.status, 422);
+    assert.strictEqual(res.body.success, false);
+    assert.strictEqual(res.body.message, 'Informe a data de nascimento para calcular as metas.');
+  });
+
   it('PUT /api/users/me/goals - deve atualizar metas manuais e persistir vigência', async () => {
     const res = await request(app)
       .put('/api/users/me/goals')

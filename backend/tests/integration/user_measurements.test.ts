@@ -98,4 +98,23 @@ describe('User Body Measurements Evolution (BL-21 / FEAT-C04)', () => {
     assert.strictEqual(res.body.success, true);
     assert.strictEqual(res.body.data.length, 0);
   });
+
+  it('POST /api/users/me/measurements - medição retroativa não deve sobrescrever peso atual do perfil (A-006)', async () => {
+    // user1 tem peso atual 81.8. Registramos medição passada (ex: ano 2020).
+    const pastDate = new Date('2020-01-01T10:00:00Z').toISOString();
+    const res = await request(app)
+      .post('/api/users/me/measurements')
+      .set('Authorization', `Bearer ${user1Token}`)
+      .send({ weight: 99.9, body_fat: 25.0, measured_at: pastDate });
+
+    assert.strictEqual(res.status, 201);
+    assert.strictEqual(res.body.success, true);
+    assert.strictEqual(Number(res.body.data.weight), 99.9);
+
+    // O perfil do usuário ainda DEVE refletir 81.8 (medição mais recente), não 99.9
+    const profileRes = await request(app)
+      .get('/api/users/me')
+      .set('Authorization', `Bearer ${user1Token}`);
+    assert.strictEqual(Number(profileRes.body.data.weight), 81.8);
+  });
 });

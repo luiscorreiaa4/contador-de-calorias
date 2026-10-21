@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { calculateEnergyTargets, calculateAge, UserProfile } from '../../src/services/nutrition.service.js';
+import { calculateItemNutrients } from '@caloriesync/shared';
 
 describe('calculateAge (CA-09)', () => {
   it('não deve adiantar a idade no dia anterior ao aniversário (fuso BRT)', () => {
@@ -197,6 +198,56 @@ describe('Nutrition Service (Unit)', () => {
                           (targets.suggestedMacros.fats * 9) +
                           (targets.suggestedMacros.carbs * 4);
     assert.ok(Math.abs(macroCalories - targets.suggestedCalories) <= 2, `Soma dos macros (${macroCalories} kcal) deve coincidir com a meta (${targets.suggestedCalories} kcal)`);
+  });
+});
+
+describe('calculateItemNutrients & calculateNutrients (A-021 / A-023)', () => {
+  it('deve usar unit_weight quando unit === "un"', () => {
+    const food = {
+      serving_weight: 100,
+      calories: 200,
+      proteins: 10,
+      carbs: 20,
+      fats: 5,
+      unit_weight: 50,
+      base_unit: 'g',
+    };
+    const result = calculateItemNutrients({ foodId: 'f1', quantity: 2, unit: 'un' }, food);
+    // 2 unidades * 50g = 100g -> calorias = 200
+    assert.strictEqual(result.quantity, 100);
+    assert.strictEqual(result.calories, 200);
+    assert.strictEqual(result.displayAmount, 2);
+  });
+
+  it('deve usar serving_weight como fallback quando unit === "un" e unit_weight for nulo (A-023)', () => {
+    const food = {
+      serving_weight: 60,
+      calories: 150,
+      proteins: 8,
+      carbs: 15,
+      fats: 3,
+      unit_weight: null,
+      base_unit: 'g',
+    };
+    const result = calculateItemNutrients({ foodId: 'f2', quantity: 2, unit: 'un' }, food);
+    // 2 unidades * 60g (serving_weight) = 120g -> calorias = 300 (não 2g/3kcal)
+    assert.strictEqual(result.quantity, 120);
+    assert.strictEqual(result.calories, 300);
+    assert.strictEqual(result.displayAmount, 2);
+  });
+
+  it('deve preservar displayAmount 0 sem coagir para undefined (A-021)', () => {
+    const food = {
+      serving_weight: 100,
+      calories: 100,
+      proteins: 0,
+      carbs: 0,
+      fats: 0,
+      unit_weight: 50,
+      base_unit: 'g',
+    };
+    const result = calculateItemNutrients({ foodId: 'f3', quantity: 0, displayAmount: 0 }, food);
+    assert.strictEqual(result.displayAmount, 0);
   });
 });
 

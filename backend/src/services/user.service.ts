@@ -152,7 +152,7 @@ export async function completeOnboarding(userId: string, data: CompleteOnboardin
     await HistoryModel.insertBodyMeasurement(
       userId,
       data.weight,
-      data.body_fat || null,
+      data.body_fat ?? null,
       new Date(),
       client
     );
@@ -317,14 +317,33 @@ export async function previewGoals(userId: string, data: Partial<import('@calori
     throw error;
   }
 
+  const birthDate = data.birthDate ?? (user.birth_date ? String(user.birth_date) : null);
+  if (!birthDate) {
+    const error: CustomError = new Error('Informe a data de nascimento para calcular as metas.');
+    error.statusCode = 422;
+    throw error;
+  }
+
+  const sex = data.sex ?? (user.sex as 'masculino' | 'feminino' | 'prefiro_nao_responder' | null);
+  const goal = data.goal ?? (user.goal as 'perder_peso' | 'manter_peso' | 'ganhar_massa' | null);
+  const weight = data.weight ?? (user.weight != null ? Number(user.weight) : null);
+  const height = data.height ?? (user.height != null ? Number(user.height) : null);
+  const activityLevel = data.activity_level ?? (user.activity_level as 'sedentario' | 'pouco_ativo' | 'moderadamente_ativo' | 'muito_ativo' | 'extremamente_ativo' | null);
+
+  if (!sex || !goal || weight == null || height == null || !activityLevel) {
+    const error: CustomError = new Error('Dados incompletos para calcular as metas nutricionais.');
+    error.statusCode = 422;
+    throw error;
+  }
+
   const profileForCalc = {
-    sex: data.sex ?? (user.sex as 'masculino' | 'feminino' | 'prefiro_nao_responder'),
-    birthDate: data.birthDate ?? (user.birth_date as string) ?? '',
-    goal: data.goal ?? (user.goal as 'perder_peso' | 'manter_peso' | 'ganhar_massa'),
-    weight: data.weight ?? Number(user.weight),
-    height: data.height ?? Number(user.height),
-    body_fat: data.body_fat !== undefined ? data.body_fat : (user.body_fat ? Number(user.body_fat) : null),
-    activity_level: data.activity_level ?? (user.activity_level as 'sedentario' | 'pouco_ativo' | 'moderadamente_ativo' | 'muito_ativo' | 'extremamente_ativo'),
+    sex,
+    birthDate,
+    goal,
+    weight,
+    height,
+    body_fat: data.body_fat !== undefined ? data.body_fat : (user.body_fat != null ? Number(user.body_fat) : null),
+    activity_level: activityLevel,
   };
 
   return NutritionService.calculateEnergyTargets(profileForCalc);

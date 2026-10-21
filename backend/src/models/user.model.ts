@@ -99,10 +99,14 @@ export async function updateUser(
     values.push(fields.sex);
   }
   if (fields.birthDate !== undefined) {
-    let dbBirthDate = fields.birthDate;
-    if (fields.birthDate && fields.birthDate.includes('/')) {
-      const [d, m, y] = fields.birthDate.split('/');
-      dbBirthDate = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+    let dbBirthDate: string | null = fields.birthDate || null;
+    if (fields.birthDate) {
+      if (fields.birthDate.includes('/')) {
+        const [d, m, y] = fields.birthDate.split('/');
+        dbBirthDate = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+      } else if (fields.birthDate.includes('T')) {
+        dbBirthDate = fields.birthDate.split('T')[0];
+      }
     }
     updates.push(`birth_date = $${paramIndex++}`);
     values.push(dbBirthDate);

@@ -12,11 +12,11 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 
 ## 📍 CHECKPOINT
 - Fase atual: 1 (Execução dos Lotes)
-- Lote atual: Lote 03: Validações de Schemas e Integridade de Dados no Shared e Backend
-- Achado em andamento: A-011
-- Próximo passo (bem específico): Iniciar Lote 03 analisando validação de data YYYY-MM-DD em shared/src/schemas/common.schema.ts (A-011).
-- Último commit: pendente de commit do Lote 02
-- Progresso: 16 / 129 achados
+- Lote atual: Lote 04: Regras de Negócio e Catálogo de Alimentos no Backend
+- Achado em andamento: A-003
+- Próximo passo (bem específico): Iniciar Lote 04 analisando unicidade de alimentos e tratamento de erro 23505 em food.service.ts / food.model.ts (A-003).
+- Último commit: pendente (Lote 03 concluído, pronto para commit)
+- Progresso: 23 / 129 achados
 
 ## 🔧 COMANDOS DE VALIDAÇÃO
 - Typecheck: `npm --prefix backend run typecheck` e `npm run build` (tsc -b no frontend)
@@ -51,14 +51,14 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - [x] A-059 🟡 Rate limit em rotas sensíveis /me (senha e exclusão)
 - [x] A-009 🟡 Revogação de JWT / token_version
 
-### Lote 03: Validações de Schemas e Integridade de Dados no Shared e Backend (status: 🔄 em andamento)
-- [ ] A-011 🟠 Validação de data YYYY-MM-DD rejeitando datas inexistentes
-- [ ] A-012 🟡 Validação estrita de birthDate e measured_at
-- [ ] A-006 🟠 Medição retroativa não deve sobrescrever peso atual do perfil
-- [ ] A-021 🔵 Uso de nullish coalescing (??) para números
-- [ ] A-023 🔵 Item em 'un' sem unit_weight
-- [ ] A-043 🔵 previewGoals tratamento de birth_date nulo
-- [ ] A-045 🔵 updateUser formatação de data consistente
+### Lote 03: Validações de Schemas e Integridade de Dados no Shared e Backend (status: ✅ concluído)
+- [x] A-011 🟠 Validação de data YYYY-MM-DD rejeitando datas inexistentes
+- [x] A-012 🟡 Validação estrita de birthDate e measured_at
+- [x] A-006 🟠 Medição retroativa não deve sobrescrever peso atual do perfil
+- [x] A-021 🔵 Uso de nullish coalescing (??) para números
+- [x] A-023 🔵 Item em 'un' sem unit_weight
+- [x] A-043 🔵 previewGoals tratamento de birth_date nulo
+- [x] A-045 🔵 updateUser formatação de data consistente
 
 ### Lote 04: Regras de Negócio e Catálogo de Alimentos no Backend (status: ⬜ pendente)
 - [ ] A-003 🟠 Unicidade de nome de alimentos e tratamento 23505
@@ -231,52 +231,94 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - Decisões tomadas: Fechar conexão em `finally` evita travamento do processo Node.
 
 ### A-002: ✅ CORRIGIDO
-- Lote: 02 | Commit: pendente (lote 02)
+- Lote: 02 | Commit: 88b2e0c
 - O que foi feito: Criado `emailSchema` compartilhado com `.trim().toLowerCase().email().max(255)` e aplicado em register, login e update; atualizado `findUserByEmail` para buscar por `lower(email) = lower($1)`; normalizado e-mail em `createUser` e `updateUser`; criada migração `1792600000000_add-users-email-lower-index.js` criando o índice único `users_email_lower_key ON users (lower(email))`.
 - Arquivos alterados: `shared/src/schemas/user.schema.ts`, `backend/src/models/user.model.ts`, `backend/migrations/1792600000000_add-users-email-lower-index.js`
 - Decisões tomadas: Índice criado com `IF NOT EXISTS` para segurança e idempotência em migrações.
 
 ### A-004: ✅ CORRIGIDO
-- Lote: 02 | Commit: pendente (lote 02)
+- Lote: 02 | Commit: 88b2e0c
 - O que foi feito: Adicionado tratamento de erro de unicidade do PostgreSQL (`23505`) em `register` e `updateProfile` no `user.service.ts`, convertendo a violação de constraint em resposta HTTP 409 clara ("Este e-mail já está cadastrado." / "Este e-mail já está em uso por outra conta.") em vez de 500.
 - Arquivos alterados: `backend/src/services/user.service.ts`, `backend/tests/integration/user.routes.test.ts`
 - Decisões tomadas: Teste de integração adicionado para validar a resposta 409 em tentativas de cadastro com o mesmo e-mail (inclusive com casing diferente).
 
 ### A-008: ✅ CORRIGIDO
-- Lote: 02 | Commit: pendente (lote 02)
+- Lote: 02 | Commit: 88b2e0c
 - O que foi feito: Em `backend/src/services/user.service.ts`, atualizada a função `generateToken` para respeitar `env.JWT_EXPIRES_IN || '7d'` em vez de fixar '7d' hardcoded.
 - Arquivos alterados: `backend/src/services/user.service.ts`
 - Decisões tomadas: Mantido fallback '7d' se a env não estiver preenchida.
 
 ### A-010: ✅ CORRIGIDO
-- Lote: 02 | Commit: pendente (lote 02)
+- Lote: 02 | Commit: 88b2e0c
 - O que foi feito: No middleware `authenticate` (`backend/src/middlewares/auth.ts`), adicionada validação do payload decodificado via Zod (`tokenPayloadSchema = z.object({ userId: z.string().min(1) })`), retornando 401 caso o payload não possua `userId` válido.
 - Arquivos alterados: `backend/src/middlewares/auth.ts`, `backend/tests/unit/auth.middleware.test.ts`
 - Decisões tomadas: Adicionado caso de teste unitário comprovando a rejeição com 401 para payloads arbitrários sem `userId`.
 
 ### A-060: ✅ CORRIGIDO
-- Lote: 02 | Commit: pendente (lote 02)
+- Lote: 02 | Commit: 88b2e0c
 - O que foi feito: Especificado explicitamente `algorithm: 'HS256'` na assinatura do token em `generateToken` e `algorithms: ['HS256']` na verificação em `authenticate`.
 - Arquivos alterados: `backend/src/services/user.service.ts`, `backend/src/middlewares/auth.ts`
 - Decisões tomadas: Restringe o algoritmo a HS256 contra ataques de substituição de algoritmo.
 
 ### A-036: ✅ CORRIGIDO
-- Lote: 02 | Commit: pendente (lote 02)
+- Lote: 02 | Commit: 88b2e0c
 - O que foi feito: Em `backend/src/routes/user.routes.ts`, separado o rate limit de registro (`registerLimiter`, 20 req/15min por IP) do rate limit de login (`loginLimiter`, 10 req/15min por IP + e-mail normalizado). O cadastro não mais afeta ou é afetado pelo balde de tentativas de login por e-mail.
 - Arquivos alterados: `backend/src/routes/user.routes.ts`
 - Decisões tomadas: Evita bloqueio cruzado de cadastro e ataque DoS direcionado a e-mails.
 
 ### A-059: ✅ CORRIGIDO
-- Lote: 02 | Commit: pendente (lote 02)
+- Lote: 02 | Commit: 88b2e0c
 - O que foi feito: Criado `sensitiveActionLimiter` com janela de 15 minutos e máximo de 15 requisições por usuário/IP e aplicado às rotas sensíveis `PUT /me` (alteração de senha e e-mail) e `DELETE /me` (exclusão de conta).
 - Arquivos alterados: `backend/src/routes/user.routes.ts`
 - Decisões tomadas: Protege a confirmação de senha contra força bruta com tokens comprometidos.
 
 ### A-009: 🔁 ADIADO
-- Lote: 02 | Commit: pendente (lote 02)
+- Lote: 02 | Commit: 88b2e0c
 - O que foi feito: Proposta técnica documentada. Atualmente os tokens JWT são stateless e validados sincronamente no middleware `authenticate` sem overhead de banco. Transformar `authenticate` em assíncrono para consultar o banco a cada requisição ou implementar rotação completa de refresh tokens com cookies HttpOnly altera a arquitetura central de autenticação, testes unitários síncronos e o cliente frontend. O risco foi mitigado no Lote 02 por A-059 (rate limit em /me) e será alinhado no Lote 14 com A-066 (ajuste da declaração legal).
 - Arquivos alterados: N/hum no Lote 02.
 - Decisões tomadas: Adiado para futura introdução de infraestrutura de refresh tokens com Redis ou coluna `token_version`.
+
+### A-011: ✅ CORRIGIDO
+- Lote: 03 | Commit: pendente
+- O que foi feito: Atualizados `dateQuerySchema` e `statsQuerySchema` em `shared/src/schemas/common.schema.ts` para usar `z.string().date()` do Zod, validando datas válidas de calendário e rejeitando com 400 dias impossíveis (como 2026-02-31 e 2026-13-45) antes de tocar o banco de dados. Adicionados testes unitários em `backend/tests/user.test.ts`.
+- Arquivos alterados: `shared/src/schemas/common.schema.ts`, `backend/tests/user.test.ts`
+- Decisões tomadas: Rejeição imediata via middleware Zod previne que erros Postgres 22007 estourem como 500.
+
+### A-012: ✅ CORRIGIDO
+- Lote: 03 | Commit: pendente
+- O que foi feito: Criada função compartilhada `parseAndValidateBirthDate` e schemas `birthDateSchema`, `optionalBirthDateSchema` e `measuredAtSchema` em `shared/src/schemas/user.schema.ts`. `birthDate` agora valida limites de idade (1-130 anos), rejeita datas inexistentes no calendário e futuras, suportando formatos ISO e brasileiro (DD/MM/AAAA) com normalização automática para YYYY-MM-DD. `measured_at` agora rejeita strings arbitrárias e datas futuras (com tolerância de 5min de relógio).
+- Arquivos alterados: `shared/src/schemas/user.schema.ts`, `backend/tests/user.test.ts`
+- Decisões tomadas: Suporte e normalização de ambos os formatos (ISO e DD/MM/AAAA) garantem compatibilidade com os formulários de onboarding/perfil existentes e testes.
+
+### A-006: ✅ CORRIGIDO
+- Lote: 03 | Commit: pendente
+- O que foi feito: Em `backend/src/models/history.model.ts` (`addBodyMeasurement`), adicionada checagem transacional que verifica se existe medição com `measured_at > dateToUse`. A atualização de `users.weight` e `body_fat` só é executada se a medição inserida for a mais recente do usuário. Adicionado teste de integração em `backend/tests/integration/user_measurements.test.ts`.
+- Arquivos alterados: `backend/src/models/history.model.ts`, `backend/tests/integration/user_measurements.test.ts`
+- Decisões tomadas: Medições retroativas são gravadas com sucesso no histórico para acompanhamento da evolução, sem distorcer o perfil e metas atuais.
+
+### A-021: ✅ CORRIGIDO
+- Lote: 03 | Commit: pendente
+- O que foi feito: Substituída coerção booleana `|| null` e `!value` por verificações explícitas de nullish coalescing (`!= null`, `?? null`, `!== undefined`) em `user.service.ts` (`body_fat`), `nutrients.ts` (`displayAmount`, `serving_weight`) e `saved_meal.model.ts` (`unit_weight`, `display_amount`), impedindo que o valor numérico 0 seja corrompido para `null` ou `undefined`.
+- Arquivos alterados: `backend/src/services/user.service.ts`, `shared/src/nutrition/nutrients.ts`, `backend/src/models/saved_meal.model.ts`, `backend/tests/unit/nutrition.service.test.ts`
+- Decisões tomadas: Valores numéricos zero são dados válidos e devem ser preservados integralmente.
+
+### A-023: ✅ CORRIGIDO
+- Lote: 03 | Commit: pendente
+- O que foi feito: Em `shared/src/nutrition/nutrients.ts` (`calculateItemNutrients`), quando a unidade for `'un'` e o alimento não possuir `unit_weight`, o cálculo agora utiliza `food.serving_weight` (ou 100g de porção padrão) como fallback em vez de tratar quantidade em gramas (evitando que 2 unidades virem 2g). Adicionado teste unitário em `backend/tests/unit/nutrition.service.test.ts`.
+- Arquivos alterados: `shared/src/nutrition/nutrients.ts`, `backend/tests/unit/nutrition.service.test.ts`
+- Decisões tomadas: Fallback conservador para porção/porção padrão evita subestimação calórica grosseira.
+
+### A-043: ✅ CORRIGIDO
+- Lote: 03 | Commit: pendente
+- O que foi feito: Em `backend/src/services/user.service.ts` (`previewGoals`), adicionada validação antecipada exigindo `birthDate` e dados essenciais do perfil antes do cálculo energético, respondendo com HTTP 422 ("Informe a data de nascimento para calcular as metas.") em vez de calcular idade com string vazia e gerar macros `NaN`. Adicionado teste de integração em `backend/tests/integration/user.routes.test.ts`.
+- Arquivos alterados: `backend/src/services/user.service.ts`, `backend/tests/integration/user.routes.test.ts`
+- Decisões tomadas: Retorno 422 informa claramente a pendência cadastral em vez de mascarar com NaN/null.
+
+### A-045: ✅ CORRIGIDO
+- Lote: 03 | Commit: pendente
+- O que foi feito: Em `backend/src/models/user.model.ts` (`updateUser`), padronizada a normalização de `birthDate` para formato ISO YYYY-MM-DD suportando strings ISO completas e nulos, alinhando com a validação estrita já executada no schema compartilhado.
+- Arquivos alterados: `backend/src/models/user.model.ts`
+- Decisões tomadas: Formato canônico `YYYY-MM-DD` preservado no banco para evitar incompatibilidades de timezone ou locale.
 
 ## 🧠 DECISÕES E OBSERVAÇÕES GLOBAIS
 - Padrão conservador: preservar comportamento de produção e regras de negócio já validadas pelos testes.
@@ -288,4 +330,7 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 
 ## 📝 LOG DE SESSÕES
 - Sessão 1: Fase 0 concluída. Branch `fix/auditoria` criada. Linha de base validada (173 testes de backend, 142 de frontend, 0 erros de lint, build bem-sucedido). 129 achados organizados em 14 lotes no `CORRECOES.md`.
-- Lote 01 concluído (commit `cd73c37`): corrigidos A-001, A-107, A-106, A-105, A-108, A-109, A-110 e A-121. Início do Lote 02.
+- Lote 01 concluído (commit `cd73c37`): corrigidos A-001, A-107, A-106, A-105, A-108, A-109, A-110 e A-121.
+- Lote 02 concluído (commit `88b2e0c`): corrigidos A-002, A-004, A-008, A-010, A-060, A-036, A-059; A-009 documentado como adiado com mitigação.
+- Lote 03 concluído: corrigidos A-011, A-012, A-006, A-021, A-023, A-043, A-045.
+

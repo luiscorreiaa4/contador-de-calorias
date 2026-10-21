@@ -29,12 +29,85 @@ export const loginUserSchema = z.object({
   password: z.string().min(1, 'A senha é obrigatória.').max(72, 'A senha deve ter no máximo 72 caracteres.'),
 });
 
+export function parseAndValidateBirthDate(val: unknown): string | null {
+  if (typeof val !== 'string' || val.trim().length < 10) return null;
+  const trimmed = val.trim();
+  let y: number;
+  let m: number;
+  let d: number;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    [y, m, d] = trimmed.split('-').map(Number);
+  } else if (/^\d{2}\/\d{2}\/\d{4}$/.test(trimmed)) {
+    const [dStr, mStr, yStr] = trimmed.split('/');
+    [y, m, d] = [Number(yStr), Number(mStr), Number(dStr)];
+  } else if (trimmed.includes('T') && !isNaN(Date.parse(trimmed))) {
+    const datePart = trimmed.split('T')[0];
+    if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+      [y, m, d] = datePart.split('-').map(Number);
+    } else {
+      return null;
+    }
+  } else {
+    return null;
+  }
+  if (y < 1900 || m < 1 || m > 12 || d < 1 || d > 31) return null;
+  const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  if (d > daysInMonth) return null;
+  const dateObj = new Date(Date.UTC(y, m - 1, d));
+  const today = new Date();
+  today.setUTCHours(23, 59, 59, 999);
+  if (dateObj > today) return null;
+  const age = today.getUTCFullYear() - y;
+  if (age < 0 || age > 130) return null;
+  return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+}
+
+export const birthDateSchema = z
+  .string({ required_error: 'A data de nascimento é obrigatória.' })
+  .min(10, 'A data de nascimento é obrigatória.')
+  .transform((val, ctx) => {
+    const normalized = parseAndValidateBirthDate(val);
+    if (!normalized) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Data de nascimento inválida.',
+      });
+      return z.NEVER;
+    }
+    return normalized;
+  });
+
+export const optionalBirthDateSchema = z
+  .string()
+  .transform((val, ctx) => {
+    if (!val || !val.trim()) return undefined;
+    const normalized = parseAndValidateBirthDate(val);
+    if (!normalized) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Data de nascimento inválida.',
+      });
+      return z.NEVER;
+    }
+    return normalized;
+  })
+  .optional();
+
+export const measuredAtSchema = z
+  .string()
+  .refine((val) => {
+    const timestamp = Date.parse(val);
+    if (isNaN(timestamp)) return false;
+    return timestamp <= Date.now() + 5 * 60 * 1000;
+  }, 'Data de medição inválida ou no futuro.')
+  .optional();
+
 export const updateUserSchema = z.object({
   name: z.string().min(2, 'O nome deve ter no mínimo 2 caracteres.').max(100, 'O nome deve ter no máximo 100 caracteres.').optional(),
   email: emailSchema.optional(),
   goal: z.enum(['perder_peso', 'manter_peso', 'ganhar_massa']).optional(),
   sex: z.enum(['masculino', 'feminino', 'prefiro_nao_responder']).optional(),
-  birthDate: z.string().min(10, 'Data de nascimento inválida.').optional(),
+  birthDate: optionalBirthDateSchema,
   weight: z.number().positive('O peso deve ser maior que zero.').optional(),
   height: z.number().positive('A altura deve ser maior que zero.').optional(),
   body_fat: z.number().positive('O percentual de gordura deve ser maior que zero.').nullable().optional(),
@@ -57,7 +130,7 @@ export const deleteUserSchema = z.object({
 
 export const completeOnboardingSchema = z.object({
   sex: z.enum(['masculino', 'feminino', 'prefiro_nao_responder'], { message: 'Selecione o sexo.' }),
-  birthDate: z.string().min(10, 'A data de nascimento é obrigatória.'),
+  birthDate: birthDateSchema,
   goal: z.enum(['perder_peso', 'manter_peso', 'ganhar_massa'], { message: 'Selecione um objetivo válido.' }),
   weight: z.number().positive('O peso deve ser maior que zero.'),
   height: z.number().positive('A altura deve ser maior que zero.'),
@@ -67,7 +140,7 @@ export const completeOnboardingSchema = z.object({
 
 export const previewGoalsSchema = z.object({
   sex: z.enum(['masculino', 'feminino', 'prefiro_nao_responder']).nullable().optional(),
-  birthDate: z.string().min(10).nullable().optional(),
+  birthDate: optionalBirthDateSchema.nullable(),
   goal: z.enum(['perder_peso', 'manter_peso', 'ganhar_massa']).nullable().optional(),
   weight: z.preprocess((val) => (val === null || val === '' || val === undefined ? undefined : Number(val)), z.number().positive().optional()),
   height: z.preprocess((val) => (val === null || val === '' || val === undefined ? undefined : Number(val)), z.number().positive().optional()),
@@ -86,7 +159,7 @@ export const updateGoalsSchema = z.object({
 export const createMeasurementSchema = z.object({
   weight: z.number().positive('O peso deve ser maior que zero.').max(500, 'Peso inválido.'),
   body_fat: z.number().positive('O percentual de gordura deve ser maior que zero.').max(100, 'Percentual inválido.').nullable().optional(),
-  measured_at: z.string().optional(),
+  measured_at: measuredAtSchema,
 });
 
 export const measurementQuerySchema = z.object({

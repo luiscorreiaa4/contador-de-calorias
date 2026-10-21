@@ -68,7 +68,7 @@ export async function listByUser(userId: string): Promise<SavedMeal[]> {
       carbs: Number(row.food_carbs),
       fats: Number(row.food_fats),
       unit_name: row.food_unit_name,
-      unit_weight: row.food_unit_weight ? Number(row.food_unit_weight) : null,
+      unit_weight: row.food_unit_weight != null ? Number(row.food_unit_weight) : null,
     };
 
     const calculated = calculateItemNutrients(
@@ -76,7 +76,7 @@ export async function listByUser(userId: string): Promise<SavedMeal[]> {
         foodId: row.food_id,
         quantity: Number(row.quantity),
         unit: row.unit as 'g' | 'ml' | 'un' | undefined,
-        displayAmount: row.display_amount ? Number(row.display_amount) : undefined,
+        displayAmount: row.display_amount != null ? Number(row.display_amount) : undefined,
       },
       food
     );
@@ -88,10 +88,10 @@ export async function listByUser(userId: string): Promise<SavedMeal[]> {
       food_name: row.food_name,
       food_base_unit: row.food_base_unit,
       food_unit_name: row.food_unit_name,
-      food_unit_weight: row.food_unit_weight ? Number(row.food_unit_weight) : null,
+      food_unit_weight: row.food_unit_weight != null ? Number(row.food_unit_weight) : null,
       quantity: Number(row.quantity),
       unit: row.unit,
-      display_amount: row.display_amount ? Number(row.display_amount) : null,
+      display_amount: row.display_amount != null ? Number(row.display_amount) : null,
       calories: calculated.calories,
       proteins: calculated.proteins,
       carbs: calculated.carbs,
