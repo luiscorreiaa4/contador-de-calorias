@@ -24,7 +24,7 @@ describe('LoginForm', () => {
     render(<LoginForm />);
     
     await userEvent.type(screen.getByLabelText(/email/i), 'wrong@example.com');
-    await userEvent.type(screen.getByLabelText(/senha/i, { selector: 'input' }), '123456');
+    await userEvent.type(screen.getByLabelText(/senha/i, { selector: 'input' }), 'senha123');
     await userEvent.click(screen.getByRole('button', { name: /acessar dashboard/i }));
 
     expect(await screen.findByText(/credenciais inválidas/i)).toBeInTheDocument();
@@ -35,7 +35,7 @@ describe('LoginForm', () => {
     render(<LoginForm onSuccess={onSuccess} />);
     
     await userEvent.type(screen.getByLabelText(/email/i), 'test@example.com');
-    await userEvent.type(screen.getByLabelText(/senha/i, { selector: 'input' }), '123456');
+    await userEvent.type(screen.getByLabelText(/senha/i, { selector: 'input' }), 'senha123');
     await userEvent.click(screen.getByRole('button', { name: /acessar dashboard/i }));
 
     await waitFor(() => {

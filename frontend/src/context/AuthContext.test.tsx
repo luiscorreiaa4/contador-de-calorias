@@ -101,6 +101,38 @@ describe('AuthContext Component & State (PC-34 / TST-011)', () => {
     expect(localStorage.getItem('auth_token')).toBeNull();
   });
 
+  it('hidrata corretamente a sessão e o token salvos no localStorage (A-129)', () => {
+    localStorage.setItem(
+      'user_session',
+      JSON.stringify({
+        id: 'user-hidrata',
+        name: 'Usuário Hidratado',
+        email: 'hidrata@teste.com',
+        onboarding_completed: true,
+      })
+    );
+    localStorage.setItem('auth_token', 'token-recuperado');
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    expect(result.current.isAuthenticated).toBe(true);
+    expect(result.current.token).toBe('token-recuperado');
+    expect(result.current.user?.id).toBe('user-hidrata');
+    expect(result.current.user?.email).toBe('hidrata@teste.com');
+    expect(result.current.isLoadingProfile).toBe(true);
+  });
+
+  it('rejeita e limpa sessão parcial sem email ou sem id no localStorage (A-129)', () => {
+    localStorage.setItem('user_session', JSON.stringify({ id: 'user-sem-email' }));
+    localStorage.setItem('auth_token', 'token-sem-email');
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    expect(result.current.isAuthenticated).toBe(false);
+    expect(result.current.user).toBeNull();
+    expect(localStorage.getItem('user_session')).toBeNull();
+  });
+
   it('grava no sessionStorage quando rememberMe for falso (A-081)', () => {
     sessionStorage.clear();
     const { result } = renderHook(() => useAuth(), { wrapper });

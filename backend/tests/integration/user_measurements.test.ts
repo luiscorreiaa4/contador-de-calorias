@@ -87,6 +87,17 @@ describe('User Body Measurements Evolution (BL-21 / FEAT-C04)', () => {
     assert.strictEqual(res.body.success, true);
     assert.ok(Array.isArray(res.body.data));
     assert.ok(res.body.data.length >= 2);
+
+    // Validação estrita de ordem cronológica crescente (A-119)
+    const measurements = res.body.data as Array<{ measured_at: string }>;
+    for (let i = 1; i < measurements.length; i += 1) {
+      const prevTime = new Date(measurements[i - 1].measured_at).getTime();
+      const currTime = new Date(measurements[i].measured_at).getTime();
+      assert.ok(
+        prevTime <= currTime,
+        `Medição ${i - 1} (${measurements[i - 1].measured_at}) deve ser anterior ou igual à medição ${i} (${measurements[i].measured_at})`
+      );
+    }
   });
 
   it('GET /api/users/me/measurements - IDOR: usuário 2 não deve ver medições do usuário 1', async () => {

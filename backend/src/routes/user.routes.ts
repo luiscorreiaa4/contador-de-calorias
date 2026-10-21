@@ -41,6 +41,14 @@ const loginLimiter = rateLimit({
   message: { success: false, message: 'Muitas tentativas de login. Tente novamente após 15 minutos.' }
 });
 
+const loginIpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30, // Máximo 30 tentativas totais por IP em 15 minutos (mitiga pulverização de senhas / credential stuffing)
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Muitas tentativas de login originadas deste IP. Tente novamente após 15 minutos.' }
+});
+
 const sensitiveActionLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 15, // 15 tentativas para ações sensíveis de alteração de senha/exclusão
@@ -55,7 +63,7 @@ const sensitiveActionLimiter = rateLimit({
 });
 
 router.post('/register', registerLimiter, validate(registerUserSchema), UserController.register);
-router.post('/login', loginLimiter, validate(loginUserSchema), UserController.login);
+router.post('/login', loginIpLimiter, loginLimiter, validate(loginUserSchema), UserController.login);
 router.get('/me', authenticate, UserController.getProfile);
 router.get('/me/export', authenticate, UserController.exportData);
 router.put('/me', authenticate, sensitiveActionLimiter, validate(updateUserSchema), UserController.updateProfile);

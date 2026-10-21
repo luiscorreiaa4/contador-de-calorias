@@ -2,8 +2,16 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
 import * as UserModel from '../models/user.model.js';
-import { RegisterUserDTO, LoginUserDTO, UpdateUserDTO, CompleteOnboardingDTO, CreateMeasurementDTO } from '@caloriesync/shared';
-import { AuthResponse, UserWithoutPassword, type Meal } from '@caloriesync/shared';
+import {
+  RegisterUserDTO,
+  LoginUserDTO,
+  UpdateUserDTO,
+  CompleteOnboardingDTO,
+  CreateMeasurementDTO,
+  AuthResponse,
+  UserWithoutPassword,
+  type Meal,
+} from '@caloriesync/shared';
 import * as NutritionService from './nutrition.service.js';
 import * as HistoryModel from '../models/history.model.js';
 import * as MealModel from '../models/meal.model.js';

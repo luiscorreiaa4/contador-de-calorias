@@ -76,4 +76,36 @@ describe('AuthContext storage privacy (PC-19 / SEC-018)', () => {
     expect(stored.body_fat).toBeUndefined();
     expect(stored.daily_calories_goal).toBeUndefined();
   });
+
+  it('deve hidratar a sessão inicial a partir do localStorage sem conter dados biométricos (A-129)', () => {
+    const savedSession = {
+      id: 'user-persistido',
+      name: 'Usuário Persistido',
+      email: 'persistido@teste.com',
+      onboarding_completed: true,
+    };
+    localStorage.setItem('user_session', JSON.stringify(savedSession));
+    localStorage.setItem('auth_token', 'token-valido-123');
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    expect(result.current.isAuthenticated).toBe(true);
+    expect(result.current.token).toBe('token-valido-123');
+    expect(result.current.user?.id).toBe('user-persistido');
+    expect(result.current.user?.name).toBe('Usuário Persistido');
+    expect(result.current.user?.email).toBe('persistido@teste.com');
+    expect(result.current.user?.weight).toBeUndefined();
+    expect(result.current.user?.daily_calories_goal).toBeUndefined();
+  });
+
+  it('deve descartar sessão incompleta ou corrompida e inicializar limpo sem crash (A-129)', () => {
+    localStorage.setItem('user_session', JSON.stringify({ invalidField: true }));
+    localStorage.setItem('auth_token', 'token-invalido');
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    expect(result.current.isAuthenticated).toBe(false);
+    expect(result.current.user).toBeNull();
+    expect(localStorage.getItem('user_session')).toBeNull();
+  });
 });

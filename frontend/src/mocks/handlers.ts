@@ -5,7 +5,7 @@ const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 export const handlers = [
   http.post(`${baseURL}/users/login`, async ({ request }) => {
     const body = await request.json() as { email?: string; password?: string };
-    if (body.email === 'test@example.com' && body.password === '123456') {
+    if (body.email === 'test@example.com' && body.password === 'senha123') {
       return HttpResponse.json({
         success: true,
         data: {
