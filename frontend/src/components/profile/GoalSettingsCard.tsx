@@ -12,7 +12,13 @@ function GoalForm({ goal, preview }: { goal: UserGoal; preview: EnergyTargets })
   const queryClient = useQueryClient();
   const { register, control, setValue, handleSubmit, reset, formState: { errors } } = useForm<UpdateGoalsDTO>({
     resolver: zodResolver(updateGoalsSchema),
-    defaultValues: goal,
+    defaultValues: {
+      calories: goal.calories,
+      proteins: goal.proteins,
+      carbs: goal.carbs,
+      fats: goal.fats,
+      mode: goal.mode,
+    },
   });
   const selectedMode = useWatch({ control, name: 'mode' });
   const isAuto = selectedMode === 'auto';
@@ -32,10 +38,22 @@ function GoalForm({ goal, preview }: { goal: UserGoal; preview: EnergyTargets })
       for (const key of ['calories', 'proteins', 'carbs', 'fats'] as const) setValue(key, automatic[key]);
     }
   };
-  const onSubmit = (data: Partial<UpdateGoalsDTO>) => {
+  const onSubmit = (data: UpdateGoalsDTO) => {
     const payload: UpdateGoalsDTO = data.mode === 'auto'
-      ? { calories: automatic.calories, proteins: automatic.proteins, carbs: automatic.carbs, fats: automatic.fats, mode: 'auto' }
-      : { calories: Number(data.calories), proteins: Number(data.proteins), carbs: Number(data.carbs), fats: Number(data.fats), mode: 'manual' };
+      ? {
+          calories: automatic.calories,
+          proteins: automatic.proteins,
+          carbs: automatic.carbs,
+          fats: automatic.fats,
+          mode: 'auto',
+        }
+      : {
+          calories: Number(data.calories),
+          proteins: Number(data.proteins),
+          carbs: Number(data.carbs),
+          fats: Number(data.fats),
+          mode: 'manual',
+        };
     mutation.mutate(payload);
   };
   return <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-6">

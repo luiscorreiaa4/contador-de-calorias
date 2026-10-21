@@ -65,3 +65,5 @@ Executar na **raiz** do monorepo:
   - Estratégia de Testes: [docs/TESTING.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/TESTING.md)
   - Planejamento de Fases: [docs/ROADMAP.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/ROADMAP.md)
   - Débitos Técnicos e Backlog: [docs/BACKLOG.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/BACKLOG.md) (histórico em [docs/archive/TECH_DEBT.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/archive/TECH_DEBT.md))
+
+SE EXISTIR AUDITORIA.md NA RAIZ E A AUDITORIA NÃO ESTIVER CONCLUÍDA: leia-o inteiro e continue a partir do CHECKPOINT. Modo somente leitura.
