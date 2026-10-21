@@ -50,7 +50,12 @@ export async function addFavorite(userId: string, foodId: string) {
 }
 
 export async function removeFavorite(userId: string, foodId: string) {
-  await FoodModel.removeFavoriteFood(userId, foodId);
+  const removed = await FoodModel.removeFavoriteFood(userId, foodId);
+  if (!removed) {
+    const error: CustomError = new Error('Alimento não encontrado nos favoritos.');
+    error.statusCode = 404;
+    throw error;
+  }
   return true;
 }
 

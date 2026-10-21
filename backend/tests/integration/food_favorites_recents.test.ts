@@ -140,4 +140,14 @@ describe('Food Favorites and Recents (BL-19 / FEAT-C01 / D-20)', () => {
     assert.strictEqual(listRes.status, 200);
     assert.strictEqual(listRes.body.data.length, 0);
   });
+
+  it('DELETE /api/foods/:id/favorite - retorna 404 quando o alimento não estiver nos favoritos (A-037 / A-063)', async () => {
+    const res = await request(app)
+      .delete(`/api/foods/${food1Id}/favorite`)
+      .set('Authorization', `Bearer ${user1Token}`);
+
+    assert.strictEqual(res.status, 404);
+    assert.strictEqual(res.body.success, false);
+    assert.strictEqual(res.body.message, 'Alimento não encontrado nos favoritos.');
+  });
 });

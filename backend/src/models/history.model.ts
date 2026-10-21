@@ -80,16 +80,16 @@ export async function insertBodyMeasurement(
   return result.rows[0];
 }
 
-/** Lista todas as metas do usuário em ordem cronológica para exportação. */
+/** Lista todas as metas do usuário em ordem cronológica para exportação (limitado a 500 registros, A-034). */
 export async function listGoalsByUser(userId: string): Promise<UserGoal[]> {
   const result = await pool.query<UserGoal>(
-    `SELECT * FROM user_goals WHERE user_id = $1 ORDER BY effective_from ASC, created_at ASC`,
+    `SELECT * FROM user_goals WHERE user_id = $1 ORDER BY effective_from ASC, created_at ASC LIMIT 500`,
     [userId]
   );
   return result.rows;
 }
 
-/** Lista todas as medições corporais do usuário em ordem cronológica (com filtro opcional de período). */
+/** Lista todas as medições corporais do usuário em ordem cronológica com limite de segurança (A-034). */
 export async function listBodyMeasurementsByUser(
   userId: string,
   period: '30d' | '90d' | 'all' = 'all'
@@ -103,7 +103,7 @@ export async function listBodyMeasurementsByUser(
     query += ` AND measured_at >= NOW() - INTERVAL '90 days'`;
   }
 
-  query += ` ORDER BY measured_at ASC, created_at ASC`;
+  query += ` ORDER BY measured_at ASC, created_at ASC LIMIT 1000`;
 
   const result = await pool.query<BodyMeasurement>(query, params);
   return result.rows;

@@ -30,6 +30,8 @@ export interface Meal {
   items: MealItem[];
   total_calories?: number;
   total_proteins?: number;
+  total_carbs?: number;
+  total_fats?: number;
 }
 
 export interface SavedMealItem {
@@ -58,4 +60,6 @@ export interface SavedMeal {
   items: SavedMealItem[];
   total_calories: number;
   total_proteins: number;
+  total_carbs?: number;
+  total_fats?: number;
 }

@@ -3,8 +3,8 @@ import { env } from '../config/env.js';
 
 const { Pool } = pg;
 
-// Converte tipos NUMERIC (OID 1700) do PostgreSQL para float (JavaScript number)
-pg.types.setTypeParser(1700, (val: string) => (val === null ? null : parseFloat(val)));
+// Converte tipos NUMERIC (OID 1700) do PostgreSQL para number JavaScript (A-016)
+pg.types.setTypeParser(1700, (val: string) => (val === null ? null : Number(val)));
 
 const dbName = env.DB_NAME;
 

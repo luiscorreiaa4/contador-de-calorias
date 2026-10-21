@@ -85,6 +85,8 @@ describe('Saved Meals and Combos (BL-20 / FEAT-C02 / D-20)', () => {
     assert.strictEqual(res.body.data[0].id, savedMealId);
     assert.strictEqual(res.body.data[0].name, 'Café da Manhã Padrão');
     assert.ok(res.body.data[0].total_calories > 0);
+    assert.strictEqual(typeof res.body.data[0].total_carbs, 'number');
+    assert.strictEqual(typeof res.body.data[0].total_fats, 'number');
   });
 
   it('Isolamento IDOR: usuário 2 não vê combos do usuário 1', async () => {
