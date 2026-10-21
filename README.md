@@ -1,186 +1,226 @@
-# 🍏 CalorieSync
+# CalorieSync
 
-## Testes com encerramento limitado
+Aplicação web para acompanhamento nutricional, registro de refeições e análise da evolução alimentar e corporal. Reúne diário por data, metas de calorias e macronutrientes, catálogo de alimentos e gráficos de histórico em uma interface responsiva com temas claro e escuro.
 
-Use `npm test`, `npm run test:strict`, `npm run test:file -- tests/integration/meal_items_batch.test.ts` e `npm run test:frontend`. Todos fixam CWD e ambiente e encerram a árvore do runner após 300 s. `TEST_PROCESS_TIMEOUT_MS` permite ajustar o teto entre 1 e 3600000 ms. Não execute runners avulsos.
+## Funcionalidades
 
-Configure `backend/.env` a partir de `backend/.env.example`: `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` e `JWT_SECRET` (mínimo 32 caracteres) são obrigatórios. O runner fixa `NODE_ENV=test`, `DB_NAME=contador_calorias_test` e `TZ=America/Sao_Paulo`; credenciais não têm fallback. Nesta auditoria, o usuário autorizou o banco de testes no Docker em `127.0.0.1:5432`. Nunca aponte testes para outro banco nem use scripts de reset. Veja [TESTING.md](docs/TESTING.md) e [relatório de higiene](docs/TEST_HYGIENE_REPORT.md).
+- **Diário alimentar:** registro, edição e exclusão de refeições, navegação por datas e lançamentos retroativos.
+- **Organização de refeições:** cópia de refeições ou do dia anterior, alimentos recentes e favoritos, refeições salvas e combos reutilizáveis.
+- **Catálogo de alimentos:** busca sem distinção de acentos ou maiúsculas, ordenação por similaridade e cadastro de alimentos personalizados.
+- **Metas nutricionais:** cálculo automático a partir dos dados corporais, objetivo e atividade física, com opção de ajuste manual e histórico de vigência.
+- **Evolução:** gráficos de consumo alimentar em períodos de 7 e 30 dias e acompanhamento de peso e gordura corporal.
+- **Conta e privacidade:** gestão de perfil, alteração de senha, exportação de dados e exclusão da conta.
+- **Experiência web:** recursos de PWA, cache de assets e navegação, indicação de conexão offline e gerenciamento de notificações push.
 
-O **CalorieSync** é uma aplicação web full-stack para acompanhamento nutricional diário. Permite aos usuários registrar refeições, pesquisar alimentos por similaridade fonética/ortográfica, calcular automaticamente metas calóricas e de macronutrientes com base na Taxa Metabólica Basal (TMB), e visualizar a evolução do consumo através de gráficos e estatísticas.
+O projeto está em desenvolvimento. Confirmação de e-mail, recuperação de senha, login social e revogação de sessão com refresh tokens permanecem pendentes na documentação. O [roadmap](docs/ROADMAP.md) e o [backlog](docs/BACKLOG.md) detalham os requisitos que bloqueiam o lançamento público.
 
----
+## Tecnologias
 
-## 🛠️ Stack Tecnológica [CONFIRMADO]
+| Camada | Tecnologias principais |
+| --- | --- |
+| Frontend | React 19, Vite 8, TypeScript 6 e React Router 7 |
+| Interface | Tailwind CSS 3, Radix UI, Recharts e Lucide React |
+| Dados e formulários | TanStack Query 5, React Hook Form e Zod 3 |
+| Backend | Node.js 24, Express 4 e TypeScript 5, com execução via `tsx` |
+| Autenticação e proteção HTTP | JWT, bcrypt, Helmet, CORS e rate limiting |
+| Banco de dados | PostgreSQL 14+, driver `pg` e migrações com `node-pg-migrate` |
+| Testes | Node Test Runner e Supertest no backend; Vitest, Testing Library e MSW no frontend |
 
-### Frontend
-- **Framework:** React 19.2.8 com Vite 8.2.1
-- **Roteamento:** React Router 7.18.4 (declarativo com suporte a code-splitting por rota)
-- **Linguagem:** TypeScript 6.0.2
-- **Estilização:** Tailwind CSS 3.4.19 (identidade brutalista com suporte a temas claro/escuro via CSS Variables)
-- **Componentes & Acessibilidade:** Radix UI (`@radix-ui/react-dialog`, `@radix-ui/react-label`, etc.)
-- **Gerenciamento de Estado de Servidor:** TanStack Query (React Query) v5.101.4
-- **Gráficos:** Recharts 3.10.1
-- **Ícones:** Lucide React 1.31.0
-- **Validação de Formulários:** Zod 3.24.2
+## Executar localmente
 
-### Backend
-- **Ambiente:** Node.js v24.14.0 (mínimo v20+ suportado) com Express 4.21.2
-- **Linguagem:** TypeScript 5.7.3 (executado diretamente via `tsx` 4.23.9 em desenvolvimento)
-- **Autenticação:** JSON Web Tokens (`jsonwebtoken` 9.0.2) e hashing com `bcrypt` 5.1.1
-- **Performance:** Compressão HTTP (`compression` 1.8.2) e cache privado HTTP (ETag, Cache-Control)
-- **Validação de Entrada:** Zod 3.24.2 em 100% das rotas e DTOs (body, query, params)
-- **Segurança Web:** `helmet` 8.3.0, `cors` 2.8.5 e `express-rate-limit` 8.7.0
-- **Banco de Dados:** Driver PostgreSQL nativo `pg` 8.13.1 (sem ORMs)
-- **Migrações:** `node-pg-migrate` 9.0.0
+### Pré-requisitos
 
----
+- Node.js 24 e npm instalados. O ambiente registrado na documentação utiliza Node.js `24.14.0` e npm `11.9.0`.
+- PostgreSQL 14 ou superior, instalado localmente ou executado com Docker Compose.
+- Docker com suporte a Compose, caso escolha a opção de banco em container.
 
-## 📋 Pré-requisitos [CONFIRMADO]
+Execute os comandos abaixo na raiz do repositório.
 
-Antes de iniciar, certifique-se de possuir instalado em sua máquina:
-- **Node.js:** Versão 20 ou superior (versão utilizada e verificada no ambiente: `v24.14.0`).
-- **npm:** Versão 10 ou superior (versão verificada: `11.9.0`).
-- **PostgreSQL:** Versão 14 ou superior em execução local (porta padrão `5432`) **ou** **Docker / Docker Desktop** com Docker Compose.
-
----
-
-## 🚀 Instalação Passo a Passo [CONFIRMADO]
-
-### 1. Clonar o Repositório e Instalar Dependências
-No diretório raiz do projeto, instale as dependências da raiz e dos submódulos:
+### 1. Instalar dependências
 
 ```bash
-# Dependências de orquestração da raiz (concurrently, eslint)
 npm install
-
-# Dependências da API backend
 npm --prefix backend install
-
-# Dependências da SPA frontend
 npm --prefix frontend install
-
-# Dependências do pacote compartilhado (schemas Zod/DTOs/cálculo nutricional)
 npm --prefix shared install
 ```
 
-### 2. Configurar Variáveis de Ambiente
-Copie o arquivo de exemplo para criar o `.env` do backend:
+### 2. Configurar o ambiente
+
+Crie `backend/.env` a partir de `backend/.env.example`.
+
+No PowerShell:
+
+```powershell
+Copy-Item backend/.env.example backend/.env
+```
+
+No Linux ou macOS:
 
 ```bash
-# No Windows PowerShell:
-copy backend\.env.example backend\.env
-
-# No Linux / macOS:
 cp backend/.env.example backend/.env
 ```
 
-Abra `backend/.env` e configure suas credenciais locais do PostgreSQL:
+Ajuste as credenciais e a porta para corresponder ao seu PostgreSQL. Exemplo de configuração para desenvolvimento:
 
-```env
+```dotenv
 PORT=3001
 NODE_ENV=development
 
-# Configurações do PostgreSQL
 DB_HOST=localhost
 DB_PORT=5432
 DB_USER=postgres
-DB_PASSWORD=sua_senha_do_postgres_aqui
+DB_PASSWORD=substitua_pela_senha_local
 DB_NAME=contador_calorias
 
-DATABASE_URL=postgresql://postgres:sua_senha_do_postgres_aqui@localhost:5432/contador_calorias
-JWT_SECRET=coloque_uma_chave_secreta_com_mais_de_32_caracteres_aqui
+DATABASE_URL=postgresql://postgres:substitua_pela_senha_local@localhost:5432/contador_calorias
+
+JWT_SECRET=substitua_por_uma_chave_aleatoria_de_pelo_menos_32_caracteres
 JWT_EXPIRES_IN=7d
 CORS_ORIGIN=http://localhost:5173
 ```
 
-> **Atenção:** A variável `JWT_SECRET` é validada pelo Zod no início da API e **deve** conter pelo menos 32 caracteres.
+Substitua os valores de exemplo antes de iniciar a API. Mantenha `DATABASE_URL` coerente com os campos `DB_*`; a chave `JWT_SECRET` precisa ter pelo menos 32 caracteres.
 
-### 3. Iniciar o Banco de Dados
+### 3. Preparar o banco de dados
 
-Você pode utilizar o **Docker** (recomendado para agilidade) ou uma instalação **nativa** do PostgreSQL:
+**Com Docker Compose**
 
-#### Opção A: Via Docker Compose (Recomendado)
-Com o Docker Desktop em execução:
+Com o Docker em execução, inicie o PostgreSQL:
+
 ```bash
-# Sobe o container PostgreSQL em segundo plano (com volume persistente e banco de testes automático)
 npm run docker:up
 ```
-> **Nota de Porta e Conflitos:** Caso já possua um serviço nativo do PostgreSQL ativo no Windows na porta `5432`, você pode definir `DB_PORT=5433` no seu `backend/.env` (o `docker-compose.yml` mapeia `${DB_PORT:-5432}:5432`, expondo o container na porta 5433 e evitando qualquer colisão). Para desligar o container posteriormente, use `npm run docker:down`.
 
-#### Opção B: Via PostgreSQL Nativo
-Acesse seu cliente PostgreSQL (`psql` ou pgAdmin/DBeaver) e crie manualmente o banco de dados principal e o de testes:
+A configuração documentada utiliza volume persistente e cria também o banco de testes. Se a porta `5432` já estiver ocupada, defina `DB_PORT=5433` em `backend/.env` antes de iniciar o container e ajuste a porta em `DATABASE_URL`.
+
+Para encerrar o container:
+
+```bash
+npm run docker:down
+```
+
+**Com PostgreSQL local**
+
+Crie os bancos de desenvolvimento e testes pelo cliente PostgreSQL de sua preferência:
 
 ```sql
 CREATE DATABASE contador_calorias;
 CREATE DATABASE contador_calorias_test;
 ```
 
-### 4. Executar as Migrações
-Execute o comando de configuração na raiz para aplicar o esquema completo (6 tabelas, índices GIN de busca por similaridade e sementes de alimentos):
+### 4. Aplicar as migrações
 
 ```bash
 npm run setup
 ```
 
-### 5. Iniciar a Aplicação
-Inicie tanto a API backend quanto a aplicação frontend com um único comando:
+O comando aplica as migrações versionadas do backend, incluindo o esquema, os índices e os dados iniciais do catálogo. Consulte o [guia de migrações](docs/MIGRATIONS.md) para as convenções de manutenção do banco.
+
+### 5. Iniciar a aplicação
 
 ```bash
 npm run dev:all
 ```
 
-- **Frontend:** [http://localhost:5173](http://localhost:5173)
-- **Backend API:** [http://localhost:3001/api](http://localhost:3001/api)
+| Serviço | Endereço local |
+| --- | --- |
+| Frontend | [localhost:5173](http://localhost:5173) |
+| API | [localhost:3001/api](http://localhost:3001/api) |
 
----
+## Configuração de ambiente
 
-## ⚙️ Variáveis de Ambiente Detalhadas [CONFIRMADO]
+As variáveis do backend ficam em `backend/.env`. Os campos de conexão devem ser preenchidos explicitamente; os valores mostrados na instalação são exemplos de configuração local.
 
-As variáveis de ambiente do backend residem em `backend/.env`:
+| Variável | Finalidade |
+| --- | --- |
+| `PORT` | Porta da API; configuração local: `3001` |
+| `NODE_ENV` | Ambiente de execução: `development`, `production` ou `test` |
+| `DB_HOST` | Host do PostgreSQL; obrigatório |
+| `DB_PORT` | Porta do PostgreSQL; obrigatória |
+| `DB_USER` | Usuário do PostgreSQL; obrigatório |
+| `DB_PASSWORD` | Senha do PostgreSQL; obrigatória |
+| `DB_NAME` | Nome do banco; em desenvolvimento, `contador_calorias` |
+| `DATABASE_URL` | URL de conexão utilizada pelas migrações |
+| `JWT_SECRET` | Chave de assinatura de sessão; obrigatória, com no mínimo 32 caracteres |
+| `JWT_EXPIRES_IN` | Validade do token; configuração documentada: `7d` |
+| `CORS_ORIGIN` | Origem autorizada para o frontend; localmente, `http://localhost:5173` |
+| `DB_SSL_CA` | Certificado de autoridade certificadora para conexões SSL, quando necessário |
+| `TRUST_PROXY` | Número de saltos de proxy confiáveis em ambientes com proxy reverso |
 
-| Variável | Padrão | Obrigatória? | Descrição |
-| :--- | :--- | :--- | :--- |
-| `PORT` | `3001` | Não | Porta TCP em que o Express escuta as requisições HTTP |
-| `NODE_ENV` | `development` | Não | Ambiente de execução (`development`, `production`, `test`) |
-| `DB_HOST` | `localhost` | Sim | Endereço do host do servidor PostgreSQL |
-| `DB_PORT` | `5432` | Não | Porta de rede do PostgreSQL (pode usar `5433` no Docker) |
-| `DB_USER` | `postgres` | Sim | Usuário com permissões no PostgreSQL |
-| `DB_PASSWORD` | - | Sim | Senha do usuário do banco |
-| `DB_NAME` | `contador_calorias` | Sim | Nome da base de dados de desenvolvimento |
-| `DATABASE_URL` | - | Não | Connection string completa (utilizada pelo `node-pg-migrate`) |
-| `JWT_SECRET` | - | Sim | Chave de assinatura dos tokens JWT (mínimo 32 caracteres) |
-| `JWT_EXPIRES_IN` | `7d` | Não | Período de expiração do token de sessão |
-| `CORS_ORIGIN` | `http://localhost:5173` | Não | Origem autorizada no middleware de CORS |
+As decisões de SSL e proxy estão descritas no [backlog, decisão D-19](docs/BACKLOG.md#d-19).
 
----
+## Comandos de desenvolvimento
 
-## 📜 Scripts do Repositório [CONFIRMADO]
+Todos os comandos desta tabela são executados na raiz do repositório.
 
-Comandos disponíveis a partir da **raiz**:
+| Comando | Finalidade |
+| --- | --- |
+| `npm run dev:all` | Iniciar frontend e backend em paralelo |
+| `npm run dev` | Iniciar apenas o frontend |
+| `npm run server` | Iniciar apenas a API em modo watch |
+| `npm run setup` | Aplicar as migrações do banco |
+| `npm run docker:up` | Iniciar o PostgreSQL com Docker Compose |
+| `npm run docker:down` | Encerrar o container do PostgreSQL |
+| `npm run lint` | Executar ESLint, a verificação de higiene dos testes e a guarda de cores |
+| `npm --prefix frontend run check:colors` | Verificar o uso dos tokens semânticos de cor |
+| `npm run build` | Verificar a tipagem e gerar o bundle de produção do frontend |
 
-| Comando | Descrição |
-| :--- | :--- |
-| `npm run dev:all` | Roda Frontend (`:5173`) e Backend (`:3001`) em paralelo via `concurrently` |
-| `npm run server` | Roda somente o backend em modo watch (`tsx watch src/server.ts`) |
-| `npm run dev` | Roda somente o servidor de desenvolvimento do Vite |
-| `npm run setup` | Aplica todas as migrações SQL no banco (`node-pg-migrate up`) |
-| `npm run docker:up` | Sobe o container PostgreSQL de desenvolvimento via Docker Compose (`-d`) |
-| `npm run docker:down` | Encerra o container PostgreSQL do Docker Compose |
-| `npm run test` | Roda os 128 testes automatizados do backend em banco isolado (`_test`) |
-| `npm run test:strict` | Roda testes do backend sem force-exit para verificação estrita de handles |
-| `npm --prefix frontend test` | Roda os 66 testes automatizados do frontend via Vitest |
-| `npm --prefix frontend run test:coverage` | Roda os testes do frontend gerando cobertura com `@vitest/coverage-v8` |
-| `npm run lint` | Valida as regras de ESLint e higiene de testes em todo o repositório |
-| `npm run build` | Compila a versão de produção do frontend (`tsc -b && vite build`) |
+## Testes
 
----
+Os testes de backend utilizam exclusivamente o banco `contador_calorias_test`. Configure as credenciais em `backend/.env`; o runner fixa `NODE_ENV=test`, `DB_NAME=contador_calorias_test` e `TZ=America/Sao_Paulo`.
 
-## 📚 Mais Informações
+| Comando | Finalidade |
+| --- | --- |
+| `npm test` | Executar a suíte de backend |
+| `npm run test:strict` | Executar o backend sem encerramento forçado, expondo conexões que permaneçam abertas |
+| `npm run test:file -- tests/integration/meal_items_batch.test.ts` | Executar um arquivo de backend em modo estrito |
+| `npm run test:frontend` | Executar a suíte de frontend |
+| `npm run test:frontend:file src/components/meals/NewMealModal.test.tsx` | Executar um arquivo de frontend |
+| `npm --prefix frontend run test:coverage` | Gerar o relatório de cobertura do frontend |
 
-Para aprofundamento na arquitetura do sistema e decisões técnicas:
-- [docs/BACKLOG.md](docs/BACKLOG.md) — Backlog consolidado único e decisões de arquitetura (D-01 a D-20).
-- [docs/ROADMAP.md](docs/ROADMAP.md) — Planejamento de fases, marcos e tarefas do projeto.
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — Camadas, diagrama ER completo e decisões de banco.
-- [docs/SPEC.md](docs/SPEC.md) — Requisitos funcionais e regras matemáticas de cálculo de TMB e metas.
-- [docs/TESTING.md](docs/TESTING.md) — Guia detalhado de testes automatizados e suítes existentes.
-- [docs/archive/TECH_DEBT.md](docs/archive/TECH_DEBT.md) — Histórico consolidado de dívidas técnicas arquivadas.
+Utilize os scripts oficiais, que fixam o diretório de execução e limitam a duração dos processos a 300 segundos por padrão. O limite pode ser ajustado com `TEST_PROCESS_TIMEOUT_MS`. O modo `test:strict` integra a verificação final do backend.
+
+O [guia de testes](docs/TESTING.md) descreve o isolamento do banco, o encerramento de conexões e as convenções das suítes. Resultados de auditorias anteriores estão no [relatório de higiene dos testes](docs/TEST_HYGIENE_REPORT.md).
+
+## Organização do projeto
+
+```text
+backend/       API Express, regras de negócio, acesso SQL e testes
+frontend/      Aplicação React, páginas, componentes e testes de interface
+shared/        Schemas Zod, contratos e cálculos compartilhados
+docs/          Especificações, arquitetura, planejamento e guias
+docker/        Recursos de infraestrutura para desenvolvimento
+.agents/       Regras e instruções de trabalho no projeto
+.github/       Configuração de integração contínua
+```
+
+O backend segue o fluxo `routes → controllers → services → models`, com SQL parametrizado via `pg`. O frontend consome a API por serviços integrados ao TanStack Query. O pacote `shared/` centraliza contratos e cálculos, consumidos por aliases TypeScript/Vite, sem npm workspaces.
+
+### Navegação
+
+| Área | Páginas principais |
+| --- | --- |
+| Dashboard | Resumo e registro do dia (`/`), diário por data (`/diario/:date`) |
+| Evolução | Alimentação (`/evolucao/alimentacao`) e corpo (`/evolucao/corpo`) |
+| Metas | Objetivo e rotina (`/metas/rotina`), calorias e macros (`/metas/diarias`) |
+| Perfil | Dados pessoais (`/perfil`) |
+| Configurações | Notificações, segurança e privacidade (`/configuracoes/...`) |
+
+O [guia de navegação](docs/UX_NAVIGATION.md) detalha as responsabilidades das telas e os redirecionamentos de URLs anteriores.
+
+## Documentação
+
+| Documento | Conteúdo |
+| --- | --- |
+| [Especificação](docs/SPEC.md) | Requisitos funcionais, regras nutricionais e contratos de API |
+| [Arquitetura](docs/ARCHITECTURE.md) | Camadas, modelo de dados e decisões técnicas |
+| [Navegação](docs/UX_NAVIGATION.md) | Organização das áreas e responsabilidades das páginas |
+| [Migrações](docs/MIGRATIONS.md) | Versionamento e manutenção do esquema de banco |
+| [Testes](docs/TESTING.md) | Comandos, convenções e estratégia de testes |
+| [Identidade visual](docs/CORES.md) | Paleta, tokens semânticos e critérios de contraste |
+| [Roadmap](docs/ROADMAP.md) | Fases de desenvolvimento e marcos do produto |
+| [Backlog](docs/BACKLOG.md) | Fonte consolidada de pendências e decisões de arquitetura |
+| [Performance](docs/PERFORMANCE_BASELINE.md) | Medições e referências de desempenho |
+
+Relatórios de revisão estão em `docs/reviews/`; registros históricos ficam em `docs/archive/`.
