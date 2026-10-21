@@ -21,6 +21,9 @@ const envSchema = z.object({
   JWT_EXPIRES_IN: z.string().default('7d'),
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
   DB_SSL_CA: z.string().optional(),
+  // BL-27 / A-030 — Chaves VAPID para Web Push Notifications
+  VAPID_PUBLIC_KEY: z.string().optional(),
+  VAPID_PRIVATE_KEY: z.string().optional(),
   // Número de saltos confiáveis (ex: "1") ou "false"; nunca "true".
   TRUST_PROXY: z
     .string()

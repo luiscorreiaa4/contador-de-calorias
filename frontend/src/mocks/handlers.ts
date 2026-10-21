@@ -289,7 +289,11 @@ export const handlers = [
     return HttpResponse.json({
       success: true,
       message: 'Lembrete enviado com sucesso!',
-      data: { sent: true, recipientCount: 1 },
+      data: {
+        sent: true,
+        recipientCount: 1,
+        message: 'Notificação teste despachada com sucesso.',
+      },
     });
   }),
 

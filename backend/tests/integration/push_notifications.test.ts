@@ -55,6 +55,16 @@ describe('Push Notifications Feature (BL-27 / FEAT-C09)', () => {
     assert.strictEqual(res.body.success, false);
   });
 
+  it('POST /api/push/test - deve retornar 422 quando usuário não possui inscrições ativas', async () => {
+    const res = await request(app)
+      .post('/api/push/test')
+      .set('Authorization', `Bearer ${token}`);
+
+    assert.strictEqual(res.status, 422);
+    assert.strictEqual(res.body.success, false);
+    assert.match(res.body.message, /Nenhum dispositivo cadastrado/i);
+  });
+
   it('POST /api/push/subscribe - deve salvar inscrição com sucesso', async () => {
     const res = await request(app)
       .post('/api/push/subscribe')
@@ -65,13 +75,15 @@ describe('Push Notifications Feature (BL-27 / FEAT-C09)', () => {
     assert.strictEqual(res.body.success, true);
   });
 
-  it('POST /api/push/test - deve enviar notificação de teste com sucesso', async () => {
+  it('POST /api/push/test - deve enviar notificação de teste com sucesso quando inscrito', async () => {
     const res = await request(app)
       .post('/api/push/test')
       .set('Authorization', `Bearer ${token}`);
 
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.success, true);
+    assert.strictEqual(res.body.data.sent, true);
+    assert.strictEqual(res.body.data.recipientCount, 1);
   });
 
   it('POST /api/push/unsubscribe - deve remover inscrição com sucesso', async () => {
@@ -82,5 +94,14 @@ describe('Push Notifications Feature (BL-27 / FEAT-C09)', () => {
 
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.success, true);
+  });
+
+  it('POST /api/push/test - deve voltar a retornar 422 após remoção da inscrição', async () => {
+    const res = await request(app)
+      .post('/api/push/test')
+      .set('Authorization', `Bearer ${token}`);
+
+    assert.strictEqual(res.status, 422);
+    assert.strictEqual(res.body.success, false);
   });
 });
