@@ -6,6 +6,7 @@ interface CustomError extends Error {
   statusCode?: number;
   status?: number;
   type?: string;
+  code?: string;
 }
 
 export function errorHandler(
@@ -41,8 +42,13 @@ export function errorHandler(
     });
   }
 
-  return res.status(statusCode).json({
+  const responsePayload: { success: false; message: string; code?: string } = {
     success: false,
     message,
-  });
+  };
+  if (err.code) {
+    responsePayload.code = err.code;
+  }
+
+  return res.status(statusCode).json(responsePayload);
 }

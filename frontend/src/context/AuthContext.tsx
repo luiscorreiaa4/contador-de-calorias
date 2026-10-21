@@ -15,11 +15,45 @@ const sanitizeUserSession = (userData: UserProfile): SafeUserSession => ({
   onboarding_completed: userData.onboarding_completed,
 });
 
+/**
+ * Recupera e valida com segurança a sessão armazenada, protegendo contra JSON corrompido (A-074).
+ */
+function getStoredUserSession(): UserProfile | null {
+  try {
+    const raw = localStorage.getItem('user_session') || sessionStorage.getItem('user_session');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      typeof parsed.id === 'string' &&
+      typeof parsed.email === 'string'
+    ) {
+      return parsed as UserProfile;
+    }
+    localStorage.removeItem('user_session');
+    sessionStorage.removeItem('user_session');
+    return null;
+  } catch (err) {
+    console.warn('Sessão armazenada corrompida. Limpando armazenamento:', err);
+    localStorage.removeItem('user_session');
+    localStorage.removeItem('auth_token');
+    sessionStorage.removeItem('user_session');
+    sessionStorage.removeItem('auth_token');
+    return null;
+  }
+}
+
+function getStoredAuthToken(): string | null {
+  return localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+}
+
 interface AuthContextType {
   user: UserProfile | null;
   isAuthenticated: boolean;
   token: string | null;
-  setAuthSession: (user: UserProfile, token: string) => void;
+  isLoadingProfile: boolean;
+  setAuthSession: (user: UserProfile, token: string, rememberMe?: boolean) => void;
   updateUserSession: (user: UserProfile) => void;
   logout: () => void;
 }
@@ -27,22 +61,39 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('auth_token'));
-  const [user, setUser] = useState<UserProfile | null>(() => {
-    const savedUser = localStorage.getItem('user_session');
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
+  const [token, setToken] = useState<string | null>(getStoredAuthToken);
+  const [user, setUser] = useState<UserProfile | null>(getStoredUserSession);
 
-  const setAuthSession = useCallback((userData: UserProfile, authToken: string) => {
+  // Perfil completo contém created_at; sessão sanitizada do storage não contém
+  const isLoadingProfile = !!token && (!user || !('created_at' in user));
+
+  const setAuthSession = useCallback((userData: UserProfile, authToken: string, rememberMe: boolean = true) => {
     setUser(userData);
     setToken(authToken);
-    localStorage.setItem('user_session', JSON.stringify(sanitizeUserSession(userData)));
-    localStorage.setItem('auth_token', authToken);
+
+    const serialized = JSON.stringify(sanitizeUserSession(userData));
+
+    if (rememberMe) {
+      localStorage.setItem('user_session', serialized);
+      localStorage.setItem('auth_token', authToken);
+      sessionStorage.removeItem('user_session');
+      sessionStorage.removeItem('auth_token');
+    } else {
+      sessionStorage.setItem('user_session', serialized);
+      sessionStorage.setItem('auth_token', authToken);
+      localStorage.removeItem('user_session');
+      localStorage.removeItem('auth_token');
+    }
   }, []);
 
   const updateUserSession = useCallback((userData: UserProfile) => {
     setUser(userData);
-    localStorage.setItem('user_session', JSON.stringify(sanitizeUserSession(userData)));
+    const serialized = JSON.stringify(sanitizeUserSession(userData));
+    if (sessionStorage.getItem('auth_token')) {
+      sessionStorage.setItem('user_session', serialized);
+    } else {
+      localStorage.setItem('user_session', serialized);
+    }
   }, []);
 
   const logout = useCallback(() => {
@@ -50,17 +101,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(null);
     localStorage.removeItem('user_session');
     localStorage.removeItem('auth_token');
+    sessionStorage.removeItem('user_session');
+    sessionStorage.removeItem('auth_token');
   }, []);
 
   useEffect(() => {
     if (token) {
+      let isMounted = true;
       getCurrentUserProfile()
         .then((fullProfile) => {
-          setUser(fullProfile);
+          if (isMounted) {
+            setUser(fullProfile);
+          }
         })
         .catch(() => {
           // Em caso de erro 401, o apiFetch já remove os tokens e dispara auth:unauthorized
         });
+
+      return () => {
+        isMounted = false;
+      };
     }
   }, [token]);
 
@@ -81,11 +141,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       user,
       token,
       isAuthenticated: !!user && !!token,
+      isLoadingProfile,
       setAuthSession,
       updateUserSession,
       logout,
     }),
-    [user, token, setAuthSession, updateUserSession, logout]
+    [user, token, isLoadingProfile, setAuthSession, updateUserSession, logout]
   );
 
   return (

@@ -35,10 +35,9 @@ export const AuthCard: React.FC<AuthCardProps> = ({ initialMode }) => {
         navigate('/');
       }
     } else {
-      setIsSuccessMessage('Conta criada! Faça login para continuar.');
-      setMode('login');
+      setIsSuccessMessage('Conta criada com sucesso! Redirecionando...');
       if (navigate) {
-        navigate('/login');
+        navigate('/');
       }
     }
     setTimeout(() => setIsSuccessMessage(null), 4000);
@@ -51,7 +50,7 @@ export const AuthCard: React.FC<AuthCardProps> = ({ initialMode }) => {
           <Flame className="w-6 h-6 fill-current" aria-hidden="true" />
         </div>
         <h1 className="text-3xl font-heading font-black tracking-tighter text-foreground uppercase">
-          Bem-vindo de volta
+          {mode === 'register' ? 'Crie sua conta' : 'Bem-vindo de volta'}
         </h1>
         <p className="mt-2 text-sm font-medium text-muted-foreground uppercase tracking-widest">
           Monitore calorias. Supere metas.

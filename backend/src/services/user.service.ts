@@ -11,6 +11,7 @@ import { getSaoPauloDateString } from '../utils/date.js';
 import { pool } from '../database/pool.js';
 interface CustomError extends Error {
   statusCode?: number;
+  code?: string;
 }
 
 export async function register(data: RegisterUserDTO): Promise<AuthResponse> {
@@ -84,7 +85,8 @@ export async function getUserProfile(userId: string): Promise<UserWithoutPasswor
   const user = await UserModel.findUserById(userId);
   if (!user) {
     const error: CustomError = new Error('Usuário não encontrado.');
-    error.statusCode = 404;
+    error.statusCode = 401;
+    error.code = 'USER_NOT_FOUND';
     throw error;
   }
   return user;

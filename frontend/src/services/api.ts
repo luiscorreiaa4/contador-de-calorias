@@ -32,9 +32,16 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
   }
 
   if (!response.ok || !json?.success) {
-    if (response.status === 401 || (response.status === 404 && json?.message === 'Usuário não encontrado.')) {
+    const isUnauthorized =
+      response.status === 401 ||
+      (json as { code?: string })?.code === 'USER_NOT_FOUND' ||
+      (response.status === 404 && json?.message === 'Usuário não encontrado.');
+
+    if (isUnauthorized) {
       localStorage.removeItem('auth_token');
       localStorage.removeItem('user_session');
+      sessionStorage.removeItem('auth_token');
+      sessionStorage.removeItem('user_session');
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new Event('auth:unauthorized'));
       }

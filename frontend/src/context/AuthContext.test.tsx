@@ -89,4 +89,35 @@ describe('AuthContext Component & State (PC-34 / TST-011)', () => {
       expect(result.current.token).toBeNull();
     });
   });
+
+  it('recupera-se graciosamente sem travar quando user_session no localStorage estiver corrompido (A-074)', () => {
+    localStorage.setItem('user_session', '{corrupted_json_content:');
+    localStorage.setItem('auth_token', 'token-corrompido');
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    expect(result.current.user).toBeNull();
+    expect(localStorage.getItem('user_session')).toBeNull();
+    expect(localStorage.getItem('auth_token')).toBeNull();
+  });
+
+  it('grava no sessionStorage quando rememberMe for falso (A-081)', () => {
+    sessionStorage.clear();
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    act(() => {
+      result.current.setAuthSession(mockUser, 'test-jwt-session', false);
+    });
+
+    expect(result.current.isAuthenticated).toBe(true);
+    expect(sessionStorage.getItem('auth_token')).toBe('test-jwt-session');
+    expect(localStorage.getItem('auth_token')).toBeNull();
+
+    act(() => {
+      result.current.logout();
+    });
+
+    expect(sessionStorage.getItem('auth_token')).toBeNull();
+    expect(result.current.isAuthenticated).toBe(false);
+  });
 });

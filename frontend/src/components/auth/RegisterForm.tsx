@@ -8,27 +8,35 @@ import { z } from 'zod';
 import type { RegisterFormData } from '../../types/auth';
 import { useAuth } from '../../context/AuthContext';
 import { registerUser } from '../../services/auth.service';
+import { registerUserSchema } from '@caloriesync/shared';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Button } from '../ui/button';
 
-const registerSchema = z
-  .object({
-    name: z.string().trim().min(1, 'O nome é obrigatório.'),
+const registerSchema = registerUserSchema
+  .extend({
+    name: z
+      .string()
+      .trim()
+      .min(1, 'O nome é obrigatório.')
+      .min(2, 'O nome deve ter no mínimo 2 caracteres.')
+      .max(100, 'O nome deve ter no máximo 100 caracteres.'),
     email: z
       .string()
       .trim()
       .min(1, 'O email é obrigatório.')
-      .email('Digite um email válido.'),
+      .email('Digite um email válido.')
+      .max(255, 'O email deve ter no máximo 255 caracteres.'),
     password: z
       .string()
       .min(1, 'A senha é obrigatória.')
+      .max(72, 'A senha deve ter no máximo 72 caracteres.')
       .refine(
         (val) => val.length >= 8 && /(?=.*[a-zA-Z])(?=.*[0-9])/.test(val),
         { message: 'Mínimo 8 caracteres com letra e número.' }
       ),
     confirmPassword: z.string().min(1, 'Confirme sua senha.'),
-    acceptTerms: z.boolean().refine((value) => value === true, {
+    acceptTerms: z.boolean().refine((val) => val === true, {
       message: 'Aceite os Termos de Uso e a Política de Privacidade para continuar.',
     }),
   })
@@ -155,7 +163,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
           <Input
             id="register-password"
             type={showPassword ? 'text' : 'password'}
-            placeholder="MÍNIMO 6 CARACTERES"
+            placeholder="MÍNIMO 8 CARACTERES COM LETRA E NÚMERO"
             aria-invalid={!!errors.password}
             aria-describedby={errors.password ? 'register-password-error' : undefined}
             className={`pl-10 pr-10 font-mono tracking-widest ${errors.password ? 'border-destructive focus-visible:border-destructive' : ''}`}

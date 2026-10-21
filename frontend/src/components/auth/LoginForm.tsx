@@ -26,7 +26,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   const loginMutation = useMutation({
     mutationFn: (data: LoginFormData) => loginUser(data),
     onSuccess: (response) => {
-      setAuthSession(response.user, response.token);
+      setAuthSession(response.user, response.token, formData.rememberMe);
       if (onSuccess) onSuccess();
     },
     onError: (err: unknown) => {
@@ -144,7 +144,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
         </div>
         <a
           href="#forgot-password"
-          onClick={(e) => e.preventDefault()}
+          onClick={(e) => {
+            e.preventDefault();
+            setServerError(
+              'A recuperação de senha via e-mail está temporariamente indisponível. Para redefinir seu acesso, entre em contato com o suporte.'
+            );
+          }}
           className="text-xs font-bold uppercase tracking-widest text-primary-ink hover:text-primary-ink/80 transition-colors focus:outline-none focus:underline"
         >
           Esqueci minha senha
