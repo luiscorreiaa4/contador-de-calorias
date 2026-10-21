@@ -12,11 +12,11 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 
 ## 📍 CHECKPOINT
 - Fase atual: 1 (Execução dos Lotes)
-- Lote atual: Lote 09: Frontend - Formulários de Perfil, Medições e Acessibilidade
-- Achado em andamento: A-067
-- Próximo passo (bem específico): Iniciar Lote 09 tratando birthDate (limpeza, validação unificada), labels no onboarding, routine fallback e datas de medições (A-067, A-068, A-072, A-073, A-083, A-085, A-099, A-100).
-- Último commit: 79a3463 (Lote 08 concluído)
-- Progresso: 61 / 129 achados
+- Lote atual: Lote 10: Frontend - Refeições, Combos e Dashboard
+- Achado em andamento: A-092
+- Próximo passo (bem específico): Iniciar Lote 10 com correção de cálculo nutricional em combos salvos, modal de confirmação acessível ao excluir combo, preservação de horário com fuso ao editar refeição, eliminação de metas fixas fictícias de macros no dashboard e sincronização de datas (A-092, A-093, A-094, A-095, A-096, A-097, A-098, A-089, A-090).
+- Último commit: c95815c (Lote 09 concluído)
+- Progresso: 69 / 129 achados
 
 ## 🔧 COMANDOS DE VALIDAÇÃO
 - Typecheck: `npm --prefix backend run typecheck` e `npm run build` (tsc -b no frontend)
@@ -108,15 +108,15 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - [x] A-082 🔵 Tratamento do link "Esqueci minha senha"
 - [x] A-084 🔵 Título condicional no AuthCard (Login vs Cadastro)
 
-### Lote 09: Frontend - Formulários de Perfil, Medições e Acessibilidade (status: ⬜ pendente)
-- [ ] A-067 🟡 Possibilidade de limpar birthDate na edição de perfil
-- [ ] A-068 🟡 Validação unificada de birthDate no formulário de perfil
-- [ ] A-072 🟡 Associação correta de labels com inputs no Onboarding
-- [ ] A-073 🔵 RoutinePage preservação de nível de atividade desconhecido
-- [ ] A-083 🟡 Roving tabindex e navegação por teclado na tablist do AuthCard
-- [ ] A-085 🟡 Estabilização de efeitos no DeleteAccountModal
-- [ ] A-099 🟡 Bloqueio de datas futuras em medições corporais
-- [ ] A-100 🟠 Tratamento de fuso em medições sem deslocar dia
+### Lote 09: Frontend - Formulários de Perfil, Medições e Acessibilidade (status: ✅ concluído)
+- [x] A-067 🟡 Possibilidade de limpar birthDate na edição de perfil
+- [x] A-068 🟡 Validação unificada de birthDate no formulário de perfil
+- [x] A-072 🟡 Associação correta de labels com inputs no Onboarding
+- [x] A-073 🔵 RoutinePage preservação de nível de atividade desconhecido
+- [x] A-083 🟡 Roving tabindex e navegação por teclado na tablist do AuthCard
+- [x] A-085 🟡 Estabilização de efeitos no DeleteAccountModal
+- [x] A-099 🟡 Bloqueio de datas futuras em medições corporais
+- [x] A-100 🟠 Tratamento de fuso em medições sem deslocar dia
 
 ### Lote 10: Frontend - Refeições, Combos e Dashboard (status: ⬜ pendente)
 - [ ] A-092 🟠 Correção de cálculo nutricional em combos salvos
@@ -530,6 +530,54 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - Arquivos alterados: `frontend/src/components/auth/AuthCard.tsx`
 - Decisões tomadas: Consistência de interface.
 
+### A-067: ✅ CORRIGIDO
+- Lote: 09 | Commit: c95815c
+- O que foi feito: Em `EditProfilePage.tsx:34`, o envio de `birthDate` foi corrigido para enviar `birthDate: data.birthDate?.trim() ? data.birthDate.trim() : null` em vez de omitir o campo quando vazio. Em `UpdateProfileData` (`auth.service.ts`), `optionalBirthDateSchema` (`user.schema.ts`) e `updateUser` (`user.model.ts`), `birthDate` agora aceita `null` e string vazia, transformando em `null` no banco de dados e permitindo ao usuário apagar seu dado opcional de data de nascimento.
+- Arquivos alterados: `frontend/src/pages/private/EditProfilePage.tsx`, `frontend/src/services/auth.service.ts`, `shared/src/schemas/user.schema.ts`, `backend/src/models/user.model.ts`
+- Decisões tomadas: Respeita o direito de eliminação/correção de dados pessoais da LGPD.
+
+### A-068: ✅ CORRIGIDO
+- Lote: 09 | Commit: c95815c
+- O que foi feito: Em `frontend/src/types/profile.ts`, refatorada a validação de `birthDate` em `profileFields` para consumir diretamente `parseAndValidateBirthDate` de `@caloriesync/shared`. Isso elimina a validação manual frágil de `month 1..12` e `year 1900..atual`, unificando a verificação de dias por mês (incluindo anos bissextos), impedimento de datas futuras e teto de idade entre onboarding, formulário de perfil e backend.
+- Arquivos alterados: `frontend/src/types/profile.ts`
+- Decisões tomadas: Fonte única da verdade compartilhada para datas de nascimento.
+
+### A-072: ✅ CORRIGIDO
+- Lote: 09 | Commit: c95815c
+- O que foi feito: Em `frontend/src/components/onboarding/OnboardingFlow.tsx`, todos os campos do fluxo de onboarding tiveram seus `<label>` associados semanticamente via `htmlFor` e `id` nos inputs/selects correspondentes (`onboarding-sex`, `onboarding-birth-date`, `onboarding-weight`, `onboarding-height`, `onboarding-body-fat`).
+- Arquivos alterados: `frontend/src/components/onboarding/OnboardingFlow.tsx`
+- Decisões tomadas: Acessibilidade completa segundo diretrizes WCAG e regras de design.
+
+### A-073: ✅ CORRIGIDO
+- Lote: 09 | Commit: c95815c
+- O que foi feito: Em `frontend/src/pages/private/RoutinePage.tsx`, adicionada detecção de nível de atividade desconhecido (`!parsedActivity.success`). Em vez de forçar silenciosamente o formulário para `sedentario` e arriscar sobrescrever o valor real do usuário no banco ao salvar, a página exibe um alerta de aviso acessível (`role="alert"`) orientando-o a selecionar uma das opções válidas para atualizar a rotina.
+- Arquivos alterados: `frontend/src/pages/private/RoutinePage.tsx`
+- Decisões tomadas: Transparência com dados preexistentes.
+
+### A-083: ✅ CORRIGIDO
+- Lote: 09 | Commit: c95815c
+- O que foi feito: Em `frontend/src/components/auth/AuthCard.tsx`, a `tablist` de autenticação foi atualizada para implementar o padrão WAI-ARIA Tabs completo com roving tabindex (`tabIndex={mode === 'login' ? 0 : -1}` no botão Entrar e `tabIndex={mode === 'register' ? 0 : -1}` no botão Criar conta) e navegação bidirecional por teclado (`ArrowLeft`, `ArrowRight`, `Home`, `End`) com foco automático.
+- Arquivos alterados: `frontend/src/components/auth/AuthCard.tsx`
+- Decisões tomadas: Cumprimento estrito do padrão ARIA para abas.
+
+### A-085: ✅ CORRIGIDO
+- Lote: 09 | Commit: c95815c
+- O que foi feito: Em `frontend/src/components/common/DeleteAccountModal.tsx`, os efeitos e o ciclo de vida foram estabilizados de acordo com as regras do React 19: `onClose` e `isLoading` são sincronizados com `useRef`; o reset de estado de senha/visibilidade segue o padrão oficial de ajuste de estado em transição de prop (`isOpen !== prevIsOpen`); o foco tem timer limpo via `clearTimeout`; o listener global de teclado (Escape e Tab trap) depende apenas de `isOpen` sem reiniciar a cada renderização do pai, eliminando o silenciamento por `eslint-disable`.
+- Arquivos alterados: `frontend/src/components/common/DeleteAccountModal.tsx`
+- Decisões tomadas: Código em conformidade com o React Compiler e sem perda de input.
+
+### A-099: ✅ CORRIGIDO
+- Lote: 09 | Commit: c95815c
+- O que foi feito: Em `frontend/src/pages/private/MeasurementsPage.tsx:22-24`, adicionado refinamento no schema do formulário de medição: `.refine(value => value <= getLocalDateString(), 'A DATA DA MEDIÇÃO NÃO PODE SER NO FUTURO.')`, bloqueando o registro de pesos em datas futuras tanto na interface quanto no shared/backend.
+- Arquivos alterados: `frontend/src/pages/private/MeasurementsPage.tsx`
+- Decisões tomadas: Integridade cronológica dos dados antropométricos.
+
+### A-100: ✅ CORRIGIDO
+- Lote: 09 | Commit: c95815c
+- O que foi feito: Em `frontend/src/pages/private/MeasurementsPage.tsx:63`, o envio de medição foi corrigido para ancorar a data no meio-dia local (`${data.measured_at}T12:00:00-03:00`) em vez de invocar `new Date(data.measured_at).toISOString()` (que convertia data pura para 00:00:00 UTC, deslocando o dia para trás em fusos como São Paulo UTC-3). No backend (`backend/src/services/user.service.ts`), `addBodyMeasurement` também foi blindado para ancorar datas `YYYY-MM-DD` em `T12:00:00-03:00`.
+- Arquivos alterados: `frontend/src/pages/private/MeasurementsPage.tsx`, `backend/src/services/user.service.ts`
+- Decisões tomadas: Prevenção de deslocamento de dia no fuso horário brasileiro.
+
 ## 🧠 DECISÕES E OBSERVAÇÕES GLOBAIS
 - Padrão conservador: preservar comportamento de produção e regras de negócio já validadas pelos testes.
 - Toda modificação passa por validação rápida (typecheck / testes da área) e ao final do lote pela validação completa (`npm run lint`, `npm run build`, `npm run test`, `npm run test:frontend`).
@@ -548,6 +596,8 @@ Eu sou um modelo de IA corrigindo, de forma AUTÔNOMA, os achados do AUDITORIA.m
 - Lote 06 concluído (commit `902186b`): corrigidos A-013, A-014, A-016, A-026, A-034, A-037, A-063, A-033.
 - Lote 07 concluído (commit `5535396`): corrigidos A-005, A-030, A-071, A-086, A-087, A-116.
 - Lote 08 concluído (commit `79a3463`): corrigidos A-074, A-075, A-076, A-077, A-078, A-079, A-081, A-082, A-084.
+- Lote 09 concluído (commit `c95815c`): corrigidos A-067, A-068, A-072, A-073, A-083, A-085, A-099, A-100.
+
 
 
 
