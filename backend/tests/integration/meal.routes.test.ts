@@ -4,6 +4,7 @@ import assert from 'node:assert';
 import request from 'supertest';
 import { app } from '../../src/app.js';
 import { cleanupTestData } from '../helpers/db.js';
+import { createVerifiedUser } from '../helpers/auth.js';
 
 describe('Meal Routes (Integration)', () => {
   closeTestPool(async () => {
@@ -21,13 +22,12 @@ describe('Meal Routes (Integration)', () => {
   let createdMealId: string;
 
   it('Setup: Registrar usuário e pegar alimento para o teste de fuso', async () => {
-    const res = await request(app).post('/api/users/register').send({
+    const user = await createVerifiedUser({
       name: 'Timezone Tester',
       email: `tester-tz-${Date.now()}@example.com`,
       password: 'password123',
-      acceptTerms: true
     });
-    userToken = res.body.data.token;
+    userToken = user.token;
     
     const foodsRes = await request(app)
       .get('/api/foods')

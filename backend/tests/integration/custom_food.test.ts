@@ -4,6 +4,7 @@ import assert from 'node:assert';
 import request from 'supertest';
 import { app } from '../../src/app.js';
 import { cleanupTestData } from '../helpers/db.js';
+import { createVerifiedUser } from '../helpers/auth.js';
 
 describe('Custom Foods Feature (BL-22 / FEAT-C05 / D-07)', () => {
   closeTestPool(async () => {
@@ -15,23 +16,19 @@ describe('Custom Foods Feature (BL-22 / FEAT-C05 / D-07)', () => {
   let customFoodId: string;
 
   it('Setup: Registrar usuários de teste', async () => {
-    const res1 = await request(app).post('/api/users/register').send({
+    const user1 = await createVerifiedUser({
       name: 'Custom Food Tester 1',
       email: `tester-food-1-${Date.now()}@example.com`,
       password: 'password123',
-      acceptTerms: true,
     });
-    assert.strictEqual(res1.status, 201);
-    user1Token = res1.body.data.token;
+    user1Token = user1.token;
 
-    const res2 = await request(app).post('/api/users/register').send({
+    const user2 = await createVerifiedUser({
       name: 'Custom Food Tester 2',
       email: `tester-food-2-${Date.now()}@example.com`,
       password: 'password123',
-      acceptTerms: true,
     });
-    assert.strictEqual(res2.status, 201);
-    user2Token = res2.body.data.token;
+    user2Token = user2.token;
   });
 
   it('POST /api/foods/custom - deve retornar 401 sem autenticação', async () => {

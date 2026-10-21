@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 import { env } from './config/env.js';
 import { parseTrustProxy } from './config/trustProxy.js';
+import authRoutes from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
 import foodRoutes from './routes/food.routes.js';
 import mealRoutes from './routes/meal.routes.js';
@@ -57,6 +58,7 @@ app.use(compression());
 app.use(express.json({ limit: '50kb' }));
 
 // Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/foods', foodRoutes);
 app.use('/api/meals', mealRoutes);

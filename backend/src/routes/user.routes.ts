@@ -4,8 +4,6 @@ import * as UserController from '../controllers/user.controller.js';
 import { validate } from '../middlewares/validate.js';
 import { authenticate } from '../middlewares/auth.js';
 import {
-  registerUserSchema,
-  loginUserSchema,
   updateUserSchema,
   deleteUserSchema,
   completeOnboardingSchema,
@@ -17,37 +15,6 @@ import {
 } from '@caloriesync/shared';
 
 const router = Router();
-
-const registerLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 20, // Limita até 20 cadastros por IP
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { success: false, message: 'Muitas tentativas de cadastro. Tente novamente após 15 minutos.' }
-});
-
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 10, // Limita cada credencial a 10 requisições por janela de tempo
-  standardHeaders: true,
-  legacyHeaders: false,
-  // Chave por IP + e-mail normalizado contra ataques de força bruta e bypass por NAT/IP variável.
-  keyGenerator: (req) => {
-    const ip = ipKeyGenerator(req.ip ?? '');
-    const rawEmail = (req.body as { email?: unknown } | undefined)?.email;
-    const email = typeof rawEmail === 'string' ? rawEmail.trim().toLowerCase() : '';
-    return email ? `${ip}:${email}` : ip;
-  },
-  message: { success: false, message: 'Muitas tentativas de login. Tente novamente após 15 minutos.' }
-});
-
-const loginIpLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 30, // Máximo 30 tentativas totais por IP em 15 minutos (mitiga pulverização de senhas / credential stuffing)
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { success: false, message: 'Muitas tentativas de login originadas deste IP. Tente novamente após 15 minutos.' }
-});
 
 const sensitiveActionLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -62,8 +29,6 @@ const sensitiveActionLimiter = rateLimit({
   message: { success: false, message: 'Muitas tentativas para esta operação. Tente novamente após 15 minutos.' }
 });
 
-router.post('/register', registerLimiter, validate(registerUserSchema), UserController.register);
-router.post('/login', loginIpLimiter, loginLimiter, validate(loginUserSchema), UserController.login);
 router.get('/me', authenticate, UserController.getProfile);
 router.get('/me/export', authenticate, UserController.exportData);
 router.put('/me', authenticate, sensitiveActionLimiter, validate(updateUserSchema), UserController.updateProfile);

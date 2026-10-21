@@ -19,7 +19,7 @@ describe('Tratamento de Erros, Middlewares e Observabilidade (Lote 05)', () => {
 
   it('deve retornar 400 sanitizado quando o body contiver JSON malformado (A-017)', async () => {
     const res = await request(app)
-      .post('/api/users/login')
+      .post('/api/auth/login')
       .set('Content-Type', 'application/json')
       .send('{ "email": "test@example.com", "password": invalid_json_syntax }');
 

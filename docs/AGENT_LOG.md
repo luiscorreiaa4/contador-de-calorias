@@ -37,3 +37,16 @@ Registro cronológico de linhas de base, migrações e decisões operacionais.
 - Criado `docs/AUTH_EMAIL_PLAN.md` com inventário do código real, desenho-alvo e checklist.
 - Criado `docs/DECISOES.md` consolidando D-02 (emendada), D-03, D-13, D-19 e D-21 (A1..A12).
 - Nenhum código de aplicação alterado nesta fase.
+
+---
+
+## 2026-10-21 — Fases 2 a 4: backend BL-12 + BL-05
+
+- Infraestrutura: env novas, Mailpit no Compose, `Mailer`/`SmtpMailer`/`MemoryMailer`, templates,
+  utilitários de HMAC/SHA-256, migração aplicada em dev e test.
+- Rotas movidas para `/api/auth/*`: `register` (202 sem sessão), `login` (403 `EMAIL_NOT_VERIFIED`),
+  `verify-email`, `resend-code`, `forgot-password` e `reset-password`.
+- JWT com `tv`; middleware consulta `users.token_version`; troca de senha/e-mail incrementa a versão.
+- Testes: helper `createVerifiedUser`, suítes de BL-12, BL-05, middleware e limites.
+- Validação parcial: `npm run test:strict` => 236 testes, 0 falhas; lint e `tsc --noEmit` verdes.
+- Frontend, documentação final e auditoria seguem pendentes.

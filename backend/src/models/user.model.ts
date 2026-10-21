@@ -24,7 +24,7 @@ export async function createUser(
   const result = await pool.query<UserWithoutPassword>(
     `INSERT INTO users (name, email, password_hash, terms_accepted_at)
      VALUES ($1, $2, $3, $4)
-     RETURNING id, name, email, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, terms_accepted_at, created_at, updated_at`,
+     RETURNING id, name, email, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, terms_accepted_at, email_verified_at, token_version, created_at, updated_at`,
     [name.trim(), normalizedEmail, passwordHash, termsAcceptedAt]
   );
   return mapUserRow(result.rows[0])!;
@@ -41,7 +41,7 @@ export async function findUserByEmail(email: string): Promise<User | null> {
 
 export async function findUserById(id: string): Promise<UserWithoutPassword | null> {
   const result = await pool.query<UserWithoutPassword>(
-    'SELECT id, name, email, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, terms_accepted_at, created_at, updated_at FROM users WHERE id = $1',
+    'SELECT id, name, email, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, terms_accepted_at, email_verified_at, token_version, created_at, updated_at FROM users WHERE id = $1',
     [id]
   );
   return mapUserRow(result.rows[0]);
@@ -71,6 +71,7 @@ export async function updateUser(
     daily_calories_goal?: number;
     daily_proteins_goal?: number;
     onboarding_completed?: boolean;
+    emailVerifiedAt?: Date | null;
   },
   client?: PoolClient
 ): Promise<UserWithoutPassword> {
@@ -139,6 +140,10 @@ export async function updateUser(
     updates.push(`onboarding_completed = $${paramIndex++}`);
     values.push(fields.onboarding_completed);
   }
+  if (fields.emailVerifiedAt !== undefined) {
+    updates.push(`email_verified_at = $${paramIndex++}`);
+    values.push(fields.emailVerifiedAt);
+  }
 
   updates.push(`updated_at = CURRENT_TIMESTAMP`);
   values.push(id);
@@ -147,7 +152,7 @@ export async function updateUser(
     UPDATE users
     SET ${updates.join(', ')}
     WHERE id = $${paramIndex}
-    RETURNING id, name, email, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, terms_accepted_at, created_at, updated_at
+    RETURNING id, name, email, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, terms_accepted_at, email_verified_at, token_version, created_at, updated_at
   `;
 
   const db = client || pool;
@@ -160,3 +165,4 @@ export async function deleteUser(id: string, client?: PoolClient): Promise<boole
   const result = await db.query('DELETE FROM users WHERE id = $1', [id]);
   return (result.rowCount ?? 0) > 0;
 }
+

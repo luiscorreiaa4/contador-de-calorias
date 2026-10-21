@@ -2,7 +2,7 @@ import { closeTestPool } from '../helpers/lifecycle.js';
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { registerUserSchema, updateUserSchema } from '@caloriesync/shared';
-import * as UserService from '../../src/services/user.service.js';
+import * as AuthService from '../../src/services/auth.service.js';
 
 describe('Password Security Policy & Dummy Bcrypt Timing Attack Mitigation (PC-08 / SEC-004 / SEC-005)', () => {
   closeTestPool();
@@ -72,7 +72,7 @@ describe('Password Security Policy & Dummy Bcrypt Timing Attack Mitigation (PC-0
   it('login: deve rejeitar usuário inexistente com status 401 e mensagem genérica', async () => {
     await assert.rejects(
       async () => {
-        await UserService.login({
+        await AuthService.login({
           email: 'nao_existe_mesmo@example.com',
           password: 'qualquerSenha123'
         });

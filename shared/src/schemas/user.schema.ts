@@ -29,6 +29,34 @@ export const loginUserSchema = z.object({
   password: z.string().min(1, 'A senha é obrigatória.').max(72, 'A senha deve ter no máximo 72 caracteres.'),
 });
 
+/** Código numérico de 6 dígitos (BL-12 / A2). */
+export const emailVerificationCodeSchema = z
+  .string()
+  .trim()
+  .regex(/^\d{6}$/, 'Informe o código de 6 dígitos.');
+
+export const verifyEmailSchema = z.object({
+  email: emailSchema,
+  code: emailVerificationCodeSchema,
+});
+
+export const resendVerificationCodeSchema = z.object({
+  email: emailSchema,
+});
+
+export const forgotPasswordSchema = z.object({
+  email: emailSchema,
+});
+
+export const resetPasswordSchema = z.object({
+  token: z
+    .string()
+    .trim()
+    .min(20, 'Token de redefinição inválido.')
+    .max(200, 'Token de redefinição inválido.'),
+  password: strongPasswordSchema,
+});
+
 export function parseAndValidateBirthDate(val: unknown): string | null {
   if (typeof val !== 'string' || val.trim().length < 10) return null;
   const trimmed = val.trim();
@@ -169,6 +197,10 @@ export const measurementQuerySchema = z.object({
 
 export type RegisterUserDTO = z.infer<typeof registerUserSchema>;
 export type LoginUserDTO = z.infer<typeof loginUserSchema>;
+export type VerifyEmailDTO = z.infer<typeof verifyEmailSchema>;
+export type ResendVerificationCodeDTO = z.infer<typeof resendVerificationCodeSchema>;
+export type ForgotPasswordDTO = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordDTO = z.infer<typeof resetPasswordSchema>;
 export type UpdateUserDTO = z.infer<typeof updateUserSchema>;
 export type DeleteUserDTO = z.infer<typeof deleteUserSchema>;
 export type CompleteOnboardingDTO = z.infer<typeof completeOnboardingSchema>;

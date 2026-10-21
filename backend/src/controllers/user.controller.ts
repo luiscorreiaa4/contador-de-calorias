@@ -4,24 +4,6 @@ import { requireUserId } from '../middlewares/auth.js';
 import { getSaoPauloDateString } from '../utils/date.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
-export const register = asyncHandler(async (req: Request, res: Response) => {
-  const authData = await UserService.register(req.body);
-  return res.status(201).json({
-    success: true,
-    message: 'Conta criada com sucesso!',
-    data: authData,
-  });
-});
-
-export const login = asyncHandler(async (req: Request, res: Response) => {
-  const authData = await UserService.login(req.body);
-  return res.status(200).json({
-    success: true,
-    message: 'Login realizado com sucesso!',
-    data: authData,
-  });
-});
-
 export const getProfile = asyncHandler(async (req: Request, res: Response) => {
   const userId = requireUserId(req);
   const profile = await UserService.getUserProfile(userId);

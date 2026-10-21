@@ -158,29 +158,29 @@ Sem imagens remotas, sem pixel, sem rastreamento. Proibido logar código/token/U
 | `docs/AUTH_EMAIL_PLAN.md` | criar plano | [x] |
 | `docs/DECISOES.md` | criar e registrar D-21 (+ emenda D-02, D-03) | [x] |
 | `docs/AGENT_LOG.md` | criar linha de base e migrações | [x] |
-| `backend/.env.example` | documentar variáveis novas | [ ] |
-| `backend/src/config/env.ts` | validar variáveis novas | [ ] |
-| `docker-compose.yml` | serviço mailpit | [ ] |
-| `backend/src/mail/mailer.ts` | interface + SMTP + Memory + fábrica | [ ] |
-| `backend/src/mail/templates.ts` | 4 templates puros pt-BR | [ ] |
-| `backend/src/utils/authTokens.ts` | utilitários de segurança | [ ] |
-| `backend/src/models/auth.model.ts` | SQL de códigos/tokens/versão | [ ] |
-| `backend/src/services/auth.service.ts` | fluxos BL-12/BL-05 | [ ] |
-| `backend/src/controllers/auth.controller.ts` | tradução HTTP | [ ] |
-| `backend/src/routes/auth.routes.ts` | rotas + limitadores | [ ] |
-| `backend/src/middlewares/authRateLimit.ts` | chave única de limitador | [ ] |
-| `backend/src/middlewares/auth.ts` | claim `tv` + consulta `token_version` | [ ] |
-| `backend/src/routes/user.routes.ts` | remover register/login | [ ] |
-| `backend/src/services/user.service.ts` | `token_version` na troca autenticada | [ ] |
-| `shared/src/schemas/user.schema.ts` | schemas de verificação/reset | [ ] |
-| `shared/src/types/user.types.ts` | `tv`, `email_verified_at`, `token_version` | [ ] |
-| `backend/migrations/*_auth-email-verification.js` | colunas + tabelas | [ ] |
-| `backend/tests/helpers/auth.ts` | criar usuário verificado para testes | [ ] |
-| `backend/tests/unit/authTokens.test.ts` | utilitários | [ ] |
-| `backend/tests/unit/mailer.test.ts` | MemoryMailer/templates | [ ] |
-| `backend/tests/integration/auth_email_verification.test.ts` | BL-12 | [ ] |
-| `backend/tests/integration/auth_password_reset.test.ts` | BL-05 | [ ] |
-| `backend/tests/unit/auth.middleware.test.ts` | `tv` e usuário removido | [ ] |
+| `backend/.env.example` | documentar variáveis novas | [x] |
+| `backend/src/config/env.ts` | validar variáveis novas | [x] |
+| `docker-compose.yml` | serviço mailpit | [x] |
+| `backend/src/mail/mailer.ts` | interface + SMTP + Memory + fábrica | [x] |
+| `backend/src/mail/templates.ts` | 4 templates puros pt-BR | [x] |
+| `backend/src/utils/authTokens.ts` | utilitários de segurança | [x] |
+| `backend/src/models/auth.model.ts` | SQL de códigos/tokens/versão | [x] |
+| `backend/src/services/auth.service.ts` | fluxos BL-12/BL-05 | [x] |
+| `backend/src/controllers/auth.controller.ts` | tradução HTTP | [x] |
+| `backend/src/routes/auth.routes.ts` | rotas + limitadores | [x] |
+| `backend/src/middlewares/authRateLimit.ts` | chave única de limitador | [x] |
+| `backend/src/middlewares/auth.ts` | claim `tv` + consulta `token_version` | [x] |
+| `backend/src/routes/user.routes.ts` | remover register/login | [x] |
+| `backend/src/services/user.service.ts` | `token_version` na troca autenticada | [x] |
+| `shared/src/schemas/user.schema.ts` | schemas de verificação/reset | [x] |
+| `shared/src/types/user.types.ts` | `tv`, `email_verified_at`, `token_version` | [x] |
+| `backend/migrations/*_auth-email-verification.js` | colunas + tabelas | [x] |
+| `backend/tests/helpers/auth.ts` | criar usuário verificado para testes | [x] |
+| `backend/tests/unit/authTokens.test.ts` | utilitários | [x] |
+| `backend/tests/unit/mailer.test.ts` | MemoryMailer/templates | [x] |
+| `backend/tests/integration/auth_email_verification.test.ts` | BL-12 | [x] |
+| `backend/tests/integration/auth_password_reset.test.ts` | BL-05 | [x] |
+| `backend/tests/unit/auth.middleware.test.ts` | `tv` e usuário removido | [x] |
 | `frontend/src/pages/public/VerifyEmailPage.tsx` | tela de código | [ ] |
 | `frontend/src/pages/public/ForgotPasswordPage.tsx` | pedido genérico | [ ] |
 | `frontend/src/pages/public/ResetPasswordPage.tsx` | link com fragmento | [ ] |

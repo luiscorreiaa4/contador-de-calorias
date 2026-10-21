@@ -2,9 +2,11 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { env } from '../config/env.js';
+import { getTokenVersion } from '../models/auth.model.js';
 
 export interface AuthenticatedRequest extends Request {
   userId?: string;
+  tokenVersion?: number;
   requestId?: string;
 }
 
@@ -24,9 +26,18 @@ export function requireUserId(req: Request | AuthenticatedRequest): string {
 
 const tokenPayloadSchema = z.object({
   userId: z.string().min(1, 'Token inválido: userId ausente.'),
+  // A8: claim obrigatório e inteiro não negativo.
+  tv: z.number().int().nonnegative('Token inválido: tv ausente.'),
 });
 
-export function authenticate(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+function rejectInvalidToken(res: Response) {
+  return res.status(401).json({
+    success: false,
+    message: 'Token de autenticação inválido ou expirado.',
+  });
+}
+
+export async function authenticate(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) {
     return res.status(401).json({
@@ -35,26 +46,36 @@ export function authenticate(req: AuthenticatedRequest, res: Response, next: Nex
     });
   }
 
+  let parsed: { userId: string; tv: number };
   try {
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, env.JWT_SECRET, {
       algorithms: ['HS256'],
     });
 
-    const parsed = tokenPayloadSchema.safeParse(decoded);
-    if (!parsed.success) {
-      return res.status(401).json({
-        success: false,
-        message: 'Token de autenticação inválido ou expirado.',
-      });
+    const result = tokenPayloadSchema.safeParse(decoded);
+    if (!result.success) {
+      return rejectInvalidToken(res);
     }
-
-    req.userId = parsed.data.userId;
-    next();
+    parsed = result.data;
   } catch {
-    return res.status(401).json({
-      success: false,
-      message: 'Token de autenticação inválido ou expirado.',
-    });
+    return rejectInvalidToken(res);
   }
+
+  let currentTokenVersion: number | null;
+  try {
+    currentTokenVersion = await getTokenVersion(parsed.userId);
+  } catch (error) {
+    // Falha de infraestrutura não deve ser mascarada como token inválido.
+    return next(error);
+  }
+
+  // Usuário removido ou sessão revogada por troca de senha (A8).
+  if (currentTokenVersion === null || currentTokenVersion !== parsed.tv) {
+    return rejectInvalidToken(res);
+  }
+
+  req.userId = parsed.userId;
+  req.tokenVersion = currentTokenVersion;
+  return next();
 }

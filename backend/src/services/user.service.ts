@@ -1,14 +1,13 @@
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import { env } from '../config/env.js';
 import * as UserModel from '../models/user.model.js';
+import * as AuthModel from '../models/auth.model.js';
+import { signAuthToken } from '../utils/jwt.js';
+import { sendVerificationCodeForUser } from './auth.service.js';
+import { structuredLog } from '../config/logger.js';
 import {
-  RegisterUserDTO,
-  LoginUserDTO,
   UpdateUserDTO,
   CompleteOnboardingDTO,
   CreateMeasurementDTO,
-  AuthResponse,
   UserWithoutPassword,
   type Meal,
 } from '@caloriesync/shared';
@@ -20,73 +19,6 @@ import { pool } from '../database/pool.js';
 interface CustomError extends Error {
   statusCode?: number;
   code?: string;
-}
-
-export async function register(data: RegisterUserDTO): Promise<AuthResponse> {
-  const normalizedEmail = data.email.trim().toLowerCase();
-  const existingUser = await UserModel.findUserByEmail(normalizedEmail);
-  if (existingUser) {
-    const error: CustomError = new Error('Este e-mail já está cadastrado.');
-    error.statusCode = 409;
-    throw error;
-  }
-
-  const saltRounds = process.env.NODE_ENV === 'test' ? 1 : 10;
-  const passwordHash = await bcrypt.hash(data.password, saltRounds);
-
-  let newUser: UserWithoutPassword;
-  try {
-    newUser = await UserModel.createUser(
-      data.name,
-      normalizedEmail,
-      passwordHash,
-      new Date()
-    );
-  } catch (err: unknown) {
-    const pgErr = err as { code?: string; constraint?: string; detail?: string };
-    if (pgErr?.code === '23505') {
-      const error: CustomError = new Error('Este e-mail já está cadastrado.');
-      error.statusCode = 409;
-      throw error;
-    }
-    throw err;
-  }
-
-  const token = generateToken(newUser.id);
-
-  return {
-    user: newUser,
-    token,
-  };
-}
-
-// Hash bcrypt estático para mitigar timing attacks na enumeração de usuários (PC-08 / SEC-005)
-const DUMMY_HASH = '$2b$10$7EqJtq98hPqEX7fNZaFWoO9m5N9fKqy4i4U0p1W6eG5q7Xv6eJ8mK';
-
-export async function login(data: LoginUserDTO): Promise<AuthResponse> {
-  const user = await UserModel.findUserByEmail(data.email);
-  if (!user) {
-    await bcrypt.compare(data.password, DUMMY_HASH);
-    const error: CustomError = new Error('E-mail ou senha incorretos.');
-    error.statusCode = 401;
-    throw error;
-  }
-
-  const isPasswordValid = await bcrypt.compare(data.password, user.password_hash);
-  if (!isPasswordValid) {
-    const error: CustomError = new Error('E-mail ou senha incorretos.');
-    error.statusCode = 401;
-    throw error;
-  }
-
-  const token = generateToken(user.id);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { password_hash, ...userWithoutPassword } = user;
-
-  return {
-    user: userWithoutPassword,
-    token,
-  };
 }
 
 export async function getUserProfile(userId: string): Promise<UserWithoutPassword> {
@@ -177,7 +109,10 @@ export async function completeOnboarding(userId: string, data: CompleteOnboardin
   }
 }
 
-export async function updateProfile(userId: string, data: UpdateUserDTO): Promise<UserWithoutPassword> {
+export async function updateProfile(
+  userId: string,
+  data: UpdateUserDTO
+): Promise<UserWithoutPassword & { token?: string }> {
   const user = await UserModel.findFullUserById(userId);
   if (!user) {
     const error: CustomError = new Error('Usuário não encontrado.');
@@ -186,9 +121,11 @@ export async function updateProfile(userId: string, data: UpdateUserDTO): Promis
   }
 
   let newPasswordHash: string | undefined;
+  const newEmail = data.email?.trim().toLowerCase();
+  const emailChanged = !!newEmail && newEmail !== user.email.toLowerCase();
 
   // Se o e-mail estiver sendo alterado
-  if (data.email && data.email.toLowerCase() !== user.email.toLowerCase()) {
+  if (emailChanged) {
     if (!data.currentPassword || !data.currentPassword.trim()) {
       const error: CustomError = new Error('Confirme sua senha atual para alterar o e-mail.');
       error.statusCode = 400;
@@ -202,7 +139,7 @@ export async function updateProfile(userId: string, data: UpdateUserDTO): Promis
       throw error;
     }
 
-    const emailInUse = await UserModel.findUserByEmail(data.email);
+    const emailInUse = await UserModel.findUserByEmail(newEmail);
     if (emailInUse && emailInUse.id !== userId) {
       const error: CustomError = new Error('Este e-mail já está em uso por outra conta.');
       error.statusCode = 400;
@@ -239,7 +176,7 @@ export async function updateProfile(userId: string, data: UpdateUserDTO): Promis
         userId,
         {
           name: data.name,
-          email: data.email,
+          email: newEmail,
           passwordHash: newPasswordHash,
           goal: data.goal,
           sex: data.sex,
@@ -248,6 +185,7 @@ export async function updateProfile(userId: string, data: UpdateUserDTO): Promis
           height: data.height,
           body_fat: data.body_fat,
           activity_level: data.activity_level,
+          emailVerifiedAt: emailChanged ? null : undefined,
         },
         client
       );
@@ -334,8 +272,27 @@ export async function updateProfile(userId: string, data: UpdateUserDTO): Promis
       }
     }
 
+    let refreshedToken: string | undefined;
+    if (newPasswordHash || emailChanged) {
+      // A8: revoga sessões anteriores na mesma transação e devolve token novo.
+      const tokenVersion = await AuthModel.incrementTokenVersion(userId, client);
+      refreshedToken = signAuthToken(userId, tokenVersion);
+    }
+
     await client.query('COMMIT');
-    return updatedUser;
+
+    if (emailChanged) {
+      // A conta volta a "não verificada": emite código para o novo endereço.
+      try {
+        await sendVerificationCodeForUser(userId);
+      } catch (error) {
+        structuredLog('error', 'auth_verification_email_failed', {
+          error: error instanceof Error ? error.message : 'unknown_error',
+        });
+      }
+    }
+
+    return refreshedToken ? { ...updatedUser, token: refreshedToken } : updatedUser;
   } catch (error) {
     await client.query('ROLLBACK');
     throw error;
@@ -366,13 +323,6 @@ export async function deleteAccount(userId: string, password?: string): Promise<
   }
 
   return await UserModel.deleteUser(userId);
-}
-
-function generateToken(userId: string): string {
-  return jwt.sign({ userId }, env.JWT_SECRET, {
-    expiresIn: (env.JWT_EXPIRES_IN || '7d') as jwt.SignOptions['expiresIn'],
-    algorithm: 'HS256',
-  });
 }
 
 export async function previewGoals(userId: string, data: Partial<import('@caloriesync/shared').PreviewGoalsDTO>) {

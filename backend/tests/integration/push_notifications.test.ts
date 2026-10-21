@@ -4,6 +4,7 @@ import assert from 'node:assert';
 import request from 'supertest';
 import { app } from '../../src/app.js';
 import { cleanupTestData } from '../helpers/db.js';
+import { createVerifiedUser } from '../helpers/auth.js';
 
 describe('Push Notifications Feature (BL-27 / FEAT-C09)', () => {
   closeTestPool(async () => {
@@ -20,14 +21,12 @@ describe('Push Notifications Feature (BL-27 / FEAT-C09)', () => {
   };
 
   it('Setup: Registrar usuário de teste', async () => {
-    const res = await request(app).post('/api/users/register').send({
+    const user = await createVerifiedUser({
       name: 'Push Tester',
       email: `tester-push-${Date.now()}@example.com`,
       password: 'password123',
-      acceptTerms: true,
     });
-    assert.strictEqual(res.status, 201);
-    token = res.body.data.token;
+    token = user.token;
   });
 
   it('GET /api/push/public-key - deve retornar a chave pública VAPID', async () => {

@@ -4,6 +4,7 @@ import assert from 'node:assert';
 import request from 'supertest';
 import { app } from '../../src/app.js';
 import { cleanupTestData } from '../helpers/db.js';
+import { createVerifiedUser } from '../helpers/auth.js';
 
 describe('Food Routes (Integration)', () => {
   closeTestPool(async () => {
@@ -13,13 +14,12 @@ describe('Food Routes (Integration)', () => {
   let userToken: string;
 
   it('Setup: Registrar usuário para acessar as rotas de alimentos', async () => {
-    const res = await request(app).post('/api/users/register').send({
+    const user = await createVerifiedUser({
       name: 'Food Tester',
       email: `tester-food-${Date.now()}@example.com`,
       password: 'password123',
-      acceptTerms: true
     });
-    userToken = res.body.data.token;
+    userToken = user.token;
   });
 
   it('GET /api/foods - listar com paginação básica', async () => {

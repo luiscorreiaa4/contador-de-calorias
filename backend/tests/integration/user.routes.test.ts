@@ -4,6 +4,11 @@ import assert from 'node:assert';
 import request from 'supertest';
 import { app } from '../../src/app.js';
 import { cleanupTestData } from '../helpers/db.js';
+import { pool } from '../../src/database/pool.js';
+import {
+  createVerifiedUser,
+  verificationCodeFor,
+} from '../helpers/auth.js';
 
 describe('User Routes (Integration - E2E)', () => {
   closeTestPool(async () => {
@@ -14,24 +19,29 @@ describe('User Routes (Integration - E2E)', () => {
   const testPassword = 'password123';
   let userToken: string;
 
-  it('POST /api/users/register - deve retornar 201 no caminho feliz real', async () => {
-    const response = await request(app).post('/api/users/register').send({
+  it('POST /api/auth/register - deve retornar 202 sem sessão e persistir termos', async () => {
+    const response = await request(app).post('/api/auth/register').send({
       name: 'Integração Tester',
       email: testEmail,
       password: testPassword,
       acceptTerms: true
     });
 
-    assert.strictEqual(response.status, 201);
+    assert.strictEqual(response.status, 202);
     assert.strictEqual(response.body.success, true);
-    assert.strictEqual(response.body.data.user.email, testEmail);
+    assert.strictEqual(response.body.data, undefined, 'cadastro não deve emitir sessão');
+
+    const row = await pool.query<{ terms_accepted_at: Date | null; email_verified_at: Date | null }>(
+      'SELECT terms_accepted_at, email_verified_at FROM users WHERE email = $1',
+      [testEmail]
+    );
     // BL-11 / SEC-020 — o aceite dos termos é persistido no cadastro.
-    assert.ok(response.body.data.user.terms_accepted_at, 'terms_accepted_at deve ser registrado no cadastro');
-    userToken = response.body.data.token;
+    assert.ok(row.rows[0]?.terms_accepted_at, 'terms_accepted_at deve ser registrado no cadastro');
+    assert.strictEqual(row.rows[0]?.email_verified_at, null, 'conta nasce não verificada');
   });
 
-  it('POST /api/users/register - deve retornar 400 em caso de payload inválido', async () => {
-    const response = await request(app).post('/api/users/register').send({
+  it('POST /api/auth/register - deve retornar 400 em caso de payload inválido', async () => {
+    const response = await request(app).post('/api/auth/register').send({
       name: 'Tester',
       email: 'email_invalido',
       password: '123'
@@ -41,24 +51,36 @@ describe('User Routes (Integration - E2E)', () => {
     assert.strictEqual(response.body.success, false);
   });
 
-  it('POST /api/users/register - deve rejeitar cadastro duplicado com 409 mesmo com casing diferente (A-002 / A-004)', async () => {
+  it('POST /api/auth/register - deve responder 202 genérico para e-mail já cadastrado (A4)', async () => {
     const uppercaseEmail = testEmail.toUpperCase();
-    const response = await request(app).post('/api/users/register').send({
-      name: 'Tester Duplicado',
+    const response = await request(app).post('/api/auth/register').send({
+      name: 'Integração Tester',
       email: uppercaseEmail,
       password: testPassword,
       acceptTerms: true
     });
 
-    assert.strictEqual(response.status, 409);
-    assert.strictEqual(response.body.success, false);
-    assert.strictEqual(response.body.message, 'Este e-mail já está cadastrado.');
+    assert.strictEqual(response.status, 202);
+    assert.strictEqual(response.body.success, true);
+    assert.strictEqual(response.body.data, undefined);
+    assert.doesNotMatch(JSON.stringify(response.body), /já está cadastrado/i);
   });
 
-  it('POST /api/users/login - deve retornar 200 e um token no banco de dados', async () => {
-    const response = await request(app).post('/api/users/login').send({
+  it('POST /api/auth/login - deve bloquear conta não verificada com 403 (A1/A5)', async () => {
+    const response = await request(app).post('/api/auth/login').send({
       email: testEmail.toUpperCase(),
       password: testPassword
+    });
+
+    assert.strictEqual(response.status, 403);
+    assert.strictEqual(response.body.success, false);
+    assert.strictEqual(response.body.code, 'EMAIL_NOT_VERIFIED');
+  });
+
+  it('POST /api/auth/verify-email - deve verificar o código e emitir sessão', async () => {
+    const response = await request(app).post('/api/auth/verify-email').send({
+      email: testEmail,
+      code: verificationCodeFor(testEmail),
     });
 
     assert.strictEqual(response.status, 200);
@@ -195,13 +217,12 @@ describe('User Routes (Integration - E2E)', () => {
   });
 
   it('POST /api/users/me/preview-goals - deve retornar 422 quando a data de nascimento estiver ausente (A-043)', async () => {
-    const newReg = await request(app).post('/api/users/register').send({
+    const newUser = await createVerifiedUser({
       name: 'User Sem Perfil',
       email: `tester-meas-nobirth-${Date.now()}@example.com`,
       password: testPassword,
-      acceptTerms: true,
     });
-    const token = newReg.body.data.token;
+    const token = newUser.token;
 
     const res = await request(app)
       .post('/api/users/me/preview-goals')
@@ -270,6 +291,9 @@ describe('User Routes (Integration - E2E)', () => {
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.success, true);
     assert.strictEqual(res.body.data.name, 'Nome Atualizado');
+    // A8: troca de senha revoga sessões antigas e devolve token novo.
+    assert.ok(res.body.data.token, 'token novo deve ser devolvido após troca de senha');
+    userToken = res.body.data.token;
   });
 
   it('DELETE /api/users/me - deve rejeitar exclusão com senha incorreta', async () => {
@@ -296,7 +320,7 @@ describe('User Routes (Integration - E2E)', () => {
     assert.strictEqual(res.body.success, true);
 
     // Tentativa de login subsequente deve falhar
-    const loginRes = await request(app).post('/api/users/login').send({
+    const loginRes = await request(app).post('/api/auth/login').send({
       email: testEmail,
       password: 'newpassword123'
     });

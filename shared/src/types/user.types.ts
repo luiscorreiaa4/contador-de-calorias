@@ -14,6 +14,8 @@ export interface User {
   daily_proteins_goal: number;
   onboarding_completed: boolean;
   terms_accepted_at: Date | null;
+  email_verified_at: Date | null;
+  token_version: number;
   created_at: Date;
   updated_at: Date;
 }
@@ -22,6 +24,8 @@ export type UserWithoutPassword = Omit<User, 'password_hash'>;
 
 export interface TokenPayload {
   userId: string;
+  /** Versão da sessão (D-21 / A8). Claim ausente é inválido. */
+  tv: number;
 }
 
 export interface AuthResponse {

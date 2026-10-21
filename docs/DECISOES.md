@@ -99,7 +99,9 @@ Envia o aviso "sua senha foi alterada" após o commit.
 ### A8 — `token_version` (emenda à D-02)
 JWT carrega `tv`. O middleware lê `token_version` do banco por chave primária e rejeita com 401
 se o usuário não existir ou o valor divergir; claim ausente é inválido. Troca de senha autenticada
-no perfil também incrementa `token_version` e devolve token novo.
+no perfil também incrementa `token_version` e devolve token novo. Troca de e-mail autenticada
+incrementa `token_version`, zera `email_verified_at` e emite novo código de verificação para o
+endereço novo; a sessão devolvida usa a nova versão.
 
 ### A9 — Limites
 Por IP, `express-rate-limit` (rotas de auth); por e-mail, contagem de linhas nas tabelas de
