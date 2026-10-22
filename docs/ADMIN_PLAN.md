@@ -122,20 +122,20 @@
 | `backend/scripts/import-foods.ts` | Proteção contra reativação e sobreposição de alimentos com `admin_edited_at` | [x] |
 | `backend/data/curated-foods.json` | Modelo vazio com array `[]` e exemplo documentado | [x] |
 | `docs/CURADORIA_CATALOGO.md` | Documentação do fluxo de curadoria (export → decidir → apply) e fontes válidas | [x] |
-| `frontend/src/services/auth.service.ts` | Incluir `role?: 'user' \| 'admin'` em `UserProfile` | [ ] |
-| `frontend/src/context/AuthContext.tsx` | Incluir `role` em `SafeUserSession` sanitizada | [ ] |
-| `frontend/src/components/AdminRoute.tsx` | Componente de guarda de rota para UX administrativa | [ ] |
-| `frontend/src/services/admin-food.service.ts` | Chamadas de API para `/api/admin/foods` | [ ] |
-| `frontend/src/pages/admin/AdminCatalogPage.tsx` | Tela de gestão do catálogo global | [ ] |
-| `frontend/src/components/admin/AdminFoodModal.tsx` | Modal brutalista de criação/edição de alimento global | [ ] |
-| `frontend/src/components/layout/AppHeader.tsx` | Exibir link "Catálogo" no menu e dropdown se `user.role === 'admin'` | [ ] |
-| `frontend/src/router.tsx` | Adicionar rota protegida `/admin/alimentos` | [ ] |
-| `frontend/src/components/meals/NewMealModal.tsx` | Tratar erro 422 de alimento inativo | [ ] |
+| `frontend/src/services/auth.service.ts` | Incluir `role?: 'user' \| 'admin'` em `UserProfile` | [x] |
+| `frontend/src/context/AuthContext.tsx` | Incluir `role` em `SafeUserSession` sanitizada | [x] |
+| `frontend/src/components/AdminRoute.tsx` | Componente de guarda de rota para UX administrativa | [x] |
+| `frontend/src/services/admin-food.service.ts` | Chamadas de API para `/api/admin/foods` | [x] |
+| `frontend/src/pages/admin/AdminCatalogPage.tsx` | Tela de gestão do catálogo global | [x] |
+| `frontend/src/components/admin/AdminFoodModal.tsx` | Modal brutalista de criação/edição de alimento global | [x] |
+| `frontend/src/components/layout/AppHeader.tsx` | Exibir link "Catálogo" no menu e dropdown se `user.role === 'admin'` | [x] |
+| `frontend/src/router.tsx` | Adicionar rota protegida `/admin/alimentos` | [x] |
+| `frontend/src/components/meals/NewMealModal.tsx` | Tratar erro 422 de alimento inativo | [x] |
 | `backend/tests/integration/admin_rbac.test.ts` | Testes de RBAC, enumeração de rotas 401/403 e rebaixamento imediato | [x] |
 | `backend/tests/integration/admin_foods.test.ts` | Testes de CRUD, auditoria atômica, integridade B6/B7 e warnings | [x] |
 | `backend/tests/integration/admin_cli.test.ts` | Testes de promoção, demote com trava de último admin e verificação de e-mail | [x] |
 | `backend/tests/integration/catalog_curation.test.ts` | Testes de exportação, apply simulação/real e proteção do `import-foods` | [x] |
-| `frontend/src/pages/admin/__tests__/AdminCatalogPage.test.tsx` | Testes de frontend com RTL, MSW e acessibilidade | [ ] |
+| `frontend/src/pages/admin/__tests__/AdminCatalogPage.test.tsx` | Testes de frontend com RTL, MSW e acessibilidade | [x] |
 | `docs/ADMIN.md` | Manual de operação de admins, RBAC, auditoria e curadoria | [ ] |
 | `docs/DECISOES.md` | Registro de D-22 | [x] |
 | `docs/AGENT_LOG.md` | Registro cronológico da execução | [x] |

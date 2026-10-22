@@ -6,6 +6,7 @@ interface SafeUserSession {
   name: string;
   email: string;
   onboarding_completed: boolean;
+  role?: 'user' | 'admin';
 }
 
 const sanitizeUserSession = (userData: UserProfile): SafeUserSession => ({
@@ -13,6 +14,7 @@ const sanitizeUserSession = (userData: UserProfile): SafeUserSession => ({
   name: userData.name,
   email: userData.email,
   onboarding_completed: userData.onboarding_completed,
+  role: userData.role,
 });
 
 /**

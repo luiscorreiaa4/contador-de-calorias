@@ -15,6 +15,8 @@ export interface UserProfile {
   daily_calories_goal: number;
   daily_proteins_goal: number;
   onboarding_completed: boolean;
+  /** Papel de autorização do usuário (D-22 / B1). */
+  role?: 'user' | 'admin';
   /** Presente nas respostas completas do backend (BL-12). */
   email_verified_at?: string | null;
   /** Versão do token usada para revogar sessões antigas (BL-12 / A8). */

@@ -8,8 +8,13 @@ import {
 } from 'react-router';
 import { RootLayout } from './components/layout/RootLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { AdminRoute } from './components/AdminRoute';
 import { PublicRoute } from './components/PublicRoute';
 import { SectionLayout } from './components/layout/SectionLayout';
+
+const AdminCatalogPage = lazy(() =>
+  import('./pages/admin/AdminCatalogPage').then((m) => ({ default: m.AdminCatalogPage }))
+);
 const LoginPage = lazy(() =>
   import('./pages/public/LoginPage').then((m) => ({ default: m.LoginPage }))
 );
@@ -118,6 +123,12 @@ export const routes: RouteObject[] = [
           },
           { path: 'perfil', element: <EditProfilePage /> },
           { path: 'diario/:date', element: <DashboardPage /> },
+        ],
+      },
+      {
+        element: <AdminRoute />,
+        children: [
+          { path: 'admin/alimentos', element: <AdminCatalogPage /> },
         ],
       },
       // Telas públicas de autenticação por e-mail (acessíveis também fora do login).

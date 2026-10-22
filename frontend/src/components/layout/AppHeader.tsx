@@ -15,6 +15,7 @@ import {
   Target,
   LayoutDashboard,
   TrendingUp,
+  Database,
 } from 'lucide-react';
 
 interface AppHeaderProps {
@@ -60,6 +61,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     { to: '/', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/evolucao', label: 'Evolução', icon: TrendingUp },
     { to: '/metas', label: 'Metas', icon: Target },
+    ...(user?.role === 'admin' ? [{ to: '/admin/alimentos', label: 'Catálogo', icon: Database }] : []),
     { to: '/perfil', label: 'Perfil', icon: UserCog },
     { to: '/configuracoes', label: 'Configurações', icon: Settings },
   ];

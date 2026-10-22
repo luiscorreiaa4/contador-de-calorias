@@ -21,6 +21,7 @@ const testUser = {
   onboarding_completed: true,
   email_verified_at: '2026-01-01T00:00:00Z',
   token_version: 0,
+  role: 'user' as const,
   created_at: '2026-01-01T00:00:00Z',
   updated_at: '2026-01-01T00:00:00Z',
 };
@@ -471,10 +472,16 @@ export const handlers = [
     });
   }),
 
-  http.get(`${baseURL}/users/me`, () => {
+  http.get(`${baseURL}/users/me`, ({ request }) => {
+    const authHeader = request.headers.get('Authorization') || '';
+    const isAdmin = authHeader.includes('admin-token');
     return HttpResponse.json({
       success: true,
-      data: testUser,
+      data: {
+        ...testUser,
+        role: isAdmin ? 'admin' : (testUser.role || 'user'),
+        name: isAdmin ? 'Admin Teste' : testUser.name,
+      },
     });
   }),
 
@@ -553,6 +560,126 @@ export const handlers = [
         name: body.name || 'Test User',
         email: 'test@example.com',
         goal: 'perder_peso',
+      },
+    });
+  }),
+
+  // Admin Catalog Handlers (D-22 / B11)
+  http.get(`${baseURL}/admin/foods`, ({ request }) => {
+    const url = new URL(request.url);
+    const search = url.searchParams.get('search')?.toLowerCase() || '';
+    const status = url.searchParams.get('status') || 'all';
+
+    let filtered = [
+      {
+        id: 'food-admin-1',
+        name: 'Arroz Branco Cozido',
+        calories: 130,
+        proteins: 2.7,
+        carbs: 28,
+        fats: 0.3,
+        base_unit: 'g',
+        serving_weight: 100,
+        unit_name: 'colher de sopa',
+        unit_weight: 25,
+        source: 'TACO',
+        source_ref: 'TACO 4ª ed., código 001',
+        active: true,
+        admin_edited_at: null,
+        created_at: '2026-01-01T00:00:00Z',
+        updated_at: '2026-01-01T00:00:00Z',
+      },
+      {
+        id: 'food-admin-2',
+        name: 'Feijão Carioca Cozido',
+        calories: 76,
+        proteins: 4.8,
+        carbs: 13.6,
+        fats: 0.5,
+        base_unit: 'g',
+        serving_weight: 100,
+        unit_name: 'concha',
+        unit_weight: 130,
+        source: 'TACO',
+        source_ref: 'TACO 4ª ed., código 002',
+        active: false,
+        admin_edited_at: '2026-01-02T00:00:00Z',
+        created_at: '2026-01-01T00:00:00Z',
+        updated_at: '2026-01-02T00:00:00Z',
+      },
+    ];
+
+    if (search) {
+      filtered = filtered.filter((f) => f.name.toLowerCase().includes(search));
+    }
+
+    if (status === 'active') {
+      filtered = filtered.filter((f) => f.active);
+    } else if (status === 'inactive') {
+      filtered = filtered.filter((f) => !f.active);
+    }
+
+    return HttpResponse.json({
+      success: true,
+      data: {
+        foods: filtered,
+        pagination: {
+          page: 1,
+          limit: 20,
+          total: filtered.length,
+          totalPages: 1,
+        },
+      },
+    });
+  }),
+
+  http.post(`${baseURL}/admin/foods`, async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const created = {
+      id: 'food-new-123',
+      ...body,
+      active: true,
+      created_at: '2026-01-01T00:00:00Z',
+      updated_at: '2026-01-01T00:00:00Z',
+    };
+    return HttpResponse.json({
+      success: true,
+      message: 'Alimento criado com sucesso no catálogo global.',
+      data: {
+        food: created,
+        warnings: [],
+      },
+    });
+  }),
+
+  http.put(`${baseURL}/admin/foods/:id`, async ({ request, params }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const updated = {
+      id: params.id,
+      ...body,
+      active: true,
+      admin_edited_at: '2026-01-01T00:00:00Z',
+      updated_at: '2026-01-01T00:00:00Z',
+    };
+    return HttpResponse.json({
+      success: true,
+      message: 'Alimento atualizado com sucesso no catálogo global.',
+      data: {
+        food: updated,
+        warnings: [],
+      },
+    });
+  }),
+
+  http.patch(`${baseURL}/admin/foods/:id/status`, async ({ request, params }) => {
+    const body = (await request.json()) as { active: boolean };
+    return HttpResponse.json({
+      success: true,
+      message: 'Status do alimento atualizado com sucesso.',
+      data: {
+        id: params.id,
+        name: 'Alimento Status Alterado',
+        active: body.active,
       },
     });
   }),
