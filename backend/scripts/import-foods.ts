@@ -1,8 +1,9 @@
 import fs from 'fs';
 import path from 'path';
+import { PoolClient } from 'pg';
 import { pool } from '../src/database/pool.js';
 
-interface RawFood {
+export interface RawFood {
   name: string;
   calories: number;
   proteins: number;
@@ -16,7 +17,13 @@ interface RawFood {
   external_id: string;
 }
 
-function formatFoodName(name: string): string {
+export interface ImportFoodsResult {
+  inserted: number;
+  updated: number;
+  skipped: number;
+}
+
+export function formatFoodName(name: string): string {
   let clean = name;
   
   // Casos específicos chatos da TACO
@@ -48,47 +55,37 @@ function formatFoodName(name: string): string {
   }).join(' ');
 }
 
-async function runImport() {
-  const args = process.argv.slice(2);
-  const isDryRun = args.includes('--dry-run');
-  const filePathIndex = args.findIndex(a => !a.startsWith('--'));
-  
-  if (filePathIndex === -1) {
-    console.error('Uso: npx tsx scripts/import-foods.ts [--dry-run] <caminho-para-json>');
-    process.exit(1);
-  }
-
-  const filePath = path.resolve(args[filePathIndex]);
-  if (!fs.existsSync(filePath)) {
-    console.error(`Arquivo não encontrado: ${filePath}`);
-    process.exit(1);
-  }
-
-  const fileContent = fs.readFileSync(filePath, 'utf-8');
+export async function importFoodsFromJson(
+  filePathOrFoods: string | RawFood[],
+  options?: { isDryRun?: boolean; client?: PoolClient }
+): Promise<ImportFoodsResult> {
+  const isDryRun = Boolean(options?.isDryRun);
   let foods: RawFood[];
-  try {
+
+  if (typeof filePathOrFoods === 'string') {
+    const resolvedPath = path.resolve(filePathOrFoods);
+    if (!fs.existsSync(resolvedPath)) {
+      throw new Error(`Arquivo não encontrado: ${resolvedPath}`);
+    }
+    const fileContent = fs.readFileSync(resolvedPath, 'utf-8');
     foods = JSON.parse(fileContent);
-  } catch (err: unknown) {
-    console.error('O arquivo fornecido não é um JSON válido.', err);
-    process.exit(1);
+  } else {
+    foods = filePathOrFoods;
   }
 
-  console.log(`Iniciando importação de ${foods.length} alimentos...`);
-  if (isDryRun) {
-    console.log('--- MODO DRY-RUN: Nenhuma alteração será efetivada no banco ---');
-  }
+  const client = options?.client ?? (await pool.connect());
+  const shouldRelease = !options?.client;
 
-  const client = await pool.connect();
-  
+  let inserted = 0;
+  let updated = 0;
+  let skipped = 0;
+
   try {
     await client.query('BEGIN');
-    
-    let inserted = 0;
-    let updated = 0;
 
     for (const food of foods) {
       if (!food.source || !food.external_id) {
-        console.warn(`Alimento "${food.name}" ignorado: faltando source ou external_id.`);
+        skipped++;
         continue;
       }
 
@@ -97,19 +94,22 @@ async function runImport() {
       // O catálogo possui índice único parcial sobre o nome normalizado
       // (`f_unaccent(lower(name))` quando `active = true`). Antes do upsert,
       // desativamos qualquer outro alimento ativo do catálogo global com o mesmo nome para manter
-      // a carga idempotente e evitar violação de unicidade, preservando alimentos de usuários.
+      // a carga idempotente, exceto se for curado/editado (admin_edited_at IS NOT NULL) (B10).
       await client.query(
         `UPDATE foods
          SET active = false,
              updated_at = NOW()
          WHERE active = true
            AND user_id IS NULL
+           AND admin_edited_at IS NULL
            AND f_unaccent(lower(name)) = f_unaccent(lower($1))
            AND NOT (source = $2 AND external_id = $3)`,
         [formattedName, food.source, food.external_id]
       );
 
-      // Upsert logic
+      // Upsert logic respeitando B10:
+      // 1. Alimentos curados (admin_edited_at IS NOT NULL) não são sobrescritos (WHERE foods.admin_edited_at IS NULL).
+      // 2. Alimentos desativados (active = false) nunca são reativados (active = foods.active).
       const query = `
         INSERT INTO foods (
           name, calories, proteins, carbs, fats, base_unit, serving_weight, 
@@ -128,9 +128,10 @@ async function runImport() {
           serving_weight = EXCLUDED.serving_weight,
           unit_name = EXCLUDED.unit_name,
           unit_weight = EXCLUDED.unit_weight,
-          active = EXCLUDED.active,
+          active = foods.active,
           updated_at = NOW()
-        RETURNING (xmax = 0) AS inserted;
+        WHERE foods.admin_edited_at IS NULL
+        RETURNING (xmax = 0) AS is_inserted;
       `;
       
       const values = [
@@ -140,46 +141,71 @@ async function runImport() {
         food.source, food.external_id
       ];
 
-      const res = await client.query(query, values);
-      
-      if (res.rows[0].inserted) {
+      const res = await client.query<{ is_inserted: boolean }>(query, values);
+
+      if (res.rows.length === 0) {
+        // Alimento protegido contra sobrescrita por admin_edited_at (B10)
+        skipped++;
+      } else if (res.rows[0].is_inserted) {
         inserted++;
       } else {
         updated++;
       }
     }
 
-    console.log(`Importação concluída.`);
-    console.log(`- Inseridos novos: ${inserted}`);
-    console.log(`- Atualizados: ${updated}`);
-    
     if (isDryRun) {
       await client.query('ROLLBACK');
-      console.log('ROLLBACK executado (dry-run).');
     } else {
       await client.query('COMMIT');
-      console.log('COMMIT executado com sucesso.');
     }
   } catch (error) {
     try {
       await client.query('ROLLBACK');
-    } catch (rbError) {
-      console.error('Falha ao executar ROLLBACK:', rbError);
+    } catch {
+      // ignora
     }
-    console.error('Erro durante a importação. ROLLBACK executado.', error);
     throw error;
   } finally {
-    client.release();
+    if (shouldRelease) {
+      client.release();
+    }
+  }
+
+  return { inserted, updated, skipped };
+}
+
+async function runCli() {
+  const args = process.argv.slice(2);
+  const isDryRun = args.includes('--dry-run');
+  const filePathIndex = args.findIndex(a => !a.startsWith('--'));
+  
+  if (filePathIndex === -1) {
+    console.error('Uso: npx tsx scripts/import-foods.ts [--dry-run] <caminho-para-json>');
+    process.exit(1);
+  }
+
+  const filePath = path.resolve(args[filePathIndex]);
+  console.log(`Iniciando importação de alimentos de: ${filePath}`);
+  if (isDryRun) {
+    console.log('--- MODO DRY-RUN: Nenhuma alteração será efetivada no banco ---');
+  }
+
+  try {
+    const result = await importFoodsFromJson(filePath, { isDryRun });
+    console.log('Importação concluída com sucesso:');
+    console.log(`- Inseridos novos: ${result.inserted}`);
+    console.log(`- Atualizados: ${result.updated}`);
+    console.log(`- Ignorados / protegidos (B10): ${result.skipped}`);
+    await pool.end();
+    process.exit(0);
+  } catch (err) {
+    console.error('Falha no processo de importação:', err);
+    await pool.end();
+    process.exit(1);
   }
 }
 
-runImport()
-  .then(async () => {
-    await pool.end();
-    process.exit(0);
-  })
-  .catch(async (e) => {
-    console.error('Falha no processo de importação:', e);
-    await pool.end();
-    process.exit(1);
-  });
+// Executa se invocado diretamente
+if (process.argv[1] && process.argv[1].endsWith('import-foods.ts')) {
+  runCli();
+}

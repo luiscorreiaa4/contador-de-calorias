@@ -18,7 +18,10 @@
     "test:strict": "node ../scripts/run-tests.mjs strict",
     "admin:promote": "cross-env TZ=America/Sao_Paulo tsx scripts/admin-cli.ts promote",
     "admin:demote": "cross-env TZ=America/Sao_Paulo tsx scripts/admin-cli.ts demote",
-    "admin:list": "cross-env TZ=America/Sao_Paulo tsx scripts/admin-cli.ts list"
+    "admin:list": "cross-env TZ=America/Sao_Paulo tsx scripts/admin-cli.ts list",
+    "catalog:export": "cross-env TZ=America/Sao_Paulo tsx scripts/catalog-export.ts",
+    "catalog:apply": "cross-env TZ=America/Sao_Paulo tsx scripts/catalog-apply.ts",
+    "catalog:import-curated": "cross-env TZ=America/Sao_Paulo tsx scripts/catalog-import-curated.ts"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

@@ -20,7 +20,10 @@
     "test:frontend": "node scripts/run-tests.mjs frontend",
     "admin:promote": "npm --prefix backend run admin:promote --",
     "admin:demote": "npm --prefix backend run admin:demote --",
-    "admin:list": "npm --prefix backend run admin:list"
+    "admin:list": "npm --prefix backend run admin:list",
+    "catalog:export": "npm --prefix backend run catalog:export --",
+    "catalog:apply": "npm --prefix backend run catalog:apply --",
+    "catalog:import-curated": "npm --prefix backend run catalog:import-curated --"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
