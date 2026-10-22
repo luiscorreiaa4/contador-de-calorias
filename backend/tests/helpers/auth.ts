@@ -9,6 +9,7 @@ export interface TestUser {
   name: string;
   email: string;
   password: string;
+  role: 'user' | 'admin';
   token: string;
 }
 
@@ -16,6 +17,7 @@ export interface CreateVerifiedUserOptions {
   name?: string;
   email?: string;
   password?: string;
+  role?: 'user' | 'admin';
 }
 
 /**
@@ -28,13 +30,14 @@ export async function createVerifiedUser(
   const name = options.name ?? 'Tester';
   const email = (options.email ?? `tester-${randomUUID()}@example.com`).trim().toLowerCase();
   const password = options.password ?? 'senhaForte123';
+  const role = options.role ?? 'user';
   const passwordHash = await bcrypt.hash(password, 1);
 
-  const result = await pool.query<{ id: string; name: string; email: string; token_version: number }>(
-    `INSERT INTO users (name, email, password_hash, terms_accepted_at, email_verified_at)
-     VALUES ($1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-     RETURNING id, name, email, token_version`,
-    [name.trim(), email, passwordHash]
+  const result = await pool.query<{ id: string; name: string; email: string; role: 'user' | 'admin'; token_version: number }>(
+    `INSERT INTO users (name, email, password_hash, role, terms_accepted_at, email_verified_at)
+     VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+     RETURNING id, name, email, role, token_version`,
+    [name.trim(), email, passwordHash, role]
   );
 
   const row = result.rows[0];
@@ -43,8 +46,15 @@ export async function createVerifiedUser(
     name: row.name,
     email: row.email,
     password,
+    role: row.role,
     token: signAuthToken(row.id, Number(row.token_version)),
   };
+}
+
+export async function createVerifiedAdmin(
+  options: Omit<CreateVerifiedUserOptions, 'role'> = {}
+): Promise<TestUser> {
+  return createVerifiedUser({ ...options, role: 'admin' });
 }
 
 /** Marca a conta como verificada (usado após exercitar o cadastro real via HTTP). */

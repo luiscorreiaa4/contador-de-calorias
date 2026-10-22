@@ -218,13 +218,26 @@ export async function incrementTokenVersion(userId: string, client: PoolClient):
   return Number(result.rows[0]?.token_version ?? 0);
 }
 
-export async function getTokenVersion(userId: string): Promise<number | null> {
-  const result = await pool.query<{ token_version: number }>(
-    'SELECT token_version FROM users WHERE id = $1',
+export interface UserAuthContext {
+  token_version: number;
+  role: 'user' | 'admin';
+}
+
+export async function getUserAuthContext(userId: string): Promise<UserAuthContext | null> {
+  const result = await pool.query<{ token_version: number; role: 'user' | 'admin' }>(
+    'SELECT token_version, role FROM users WHERE id = $1',
     [userId]
   );
   if (!result.rows[0]) return null;
-  return Number(result.rows[0].token_version);
+  return {
+    token_version: Number(result.rows[0].token_version),
+    role: result.rows[0].role,
+  };
+}
+
+export async function getTokenVersion(userId: string): Promise<number | null> {
+  const ctx = await getUserAuthContext(userId);
+  return ctx ? ctx.token_version : null;
 }
 
 /**

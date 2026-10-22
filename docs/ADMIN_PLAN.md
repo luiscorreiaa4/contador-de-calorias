@@ -100,13 +100,13 @@
 
 | Caminho | Ação | Status |
 | :--- | :--- | :---: |
-| `backend/migrations/1792900000000_add-admin-roles-and-audit.js` | Migração: `users.role`, `foods.source_ref`, `foods.admin_edited_at`, tabela `admin_audit_log` | [ ] |
-| `shared/src/types/user.types.ts` | Adicionar `role: 'user' \| 'admin'` em `User` e `UserWithoutPassword` | [ ] |
-| `shared/src/types/food.types.ts` | Adicionar `source_ref`, `admin_edited_at`, `active` opcionais em `Food` | [ ] |
+| `backend/migrations/1792900000000_add-admin-roles-and-audit.js` | Migração: `users.role`, `foods.source_ref`, `foods.admin_edited_at`, tabela `admin_audit_log` | [x] |
+| `shared/src/types/user.types.ts` | Adicionar `role: 'user' \| 'admin'` em `User` e `UserWithoutPassword` | [x] |
+| `shared/src/types/food.types.ts` | Adicionar `source_ref`, `admin_edited_at`, `active` opcionais em `Food` | [x] |
 | `shared/src/schemas/admin-food.schemas.ts` | Schemas Zod de criação, edição, busca e status admin | [ ] |
 | `shared/src/index.ts` | Reexportar novos schemas e tipos admin | [ ] |
-| `backend/src/models/auth.model.ts` | Buscar `role` junto com `token_version` do banco por PK | [ ] |
-| `backend/src/middlewares/auth.ts` | Carregar `req.userRole` no `authenticate` e criar middleware `requireAdmin` | [ ] |
+| `backend/src/models/auth.model.ts` | Buscar `role` junto com `token_version` do banco por PK | [x] |
+| `backend/src/middlewares/auth.ts` | Carregar `req.userRole` no `authenticate` e criar middleware `requireAdmin` | [x] |
 | `backend/src/models/admin-audit.model.ts` | Model para inserção transacional em `admin_audit_log` | [ ] |
 | `backend/src/models/admin-food.model.ts` | Model de busca administrativa (all/active/inactive), update e insert de alimentos globais | [ ] |
 | `backend/src/services/admin-food.service.ts` | Regras de validação dura por 100 g, divergência calórica (warnings) e auditoria | [ ] |
@@ -131,14 +131,14 @@
 | `frontend/src/components/layout/AppHeader.tsx` | Exibir link "Catálogo" no menu e dropdown se `user.role === 'admin'` | [ ] |
 | `frontend/src/router.tsx` | Adicionar rota protegida `/admin/alimentos` | [ ] |
 | `frontend/src/components/meals/NewMealModal.tsx` | Tratar erro 422 de alimento inativo | [ ] |
-| `backend/tests/integration/admin_rbac.test.ts` | Testes de RBAC, enumeração de rotas 401/403 e rebaixamento imediato | [ ] |
+| `backend/tests/integration/admin_rbac.test.ts` | Testes de RBAC, enumeração de rotas 401/403 e rebaixamento imediato | [x] |
 | `backend/tests/integration/admin_foods.test.ts` | Testes de CRUD, auditoria atômica, integridade B6/B7 e warnings | [ ] |
 | `backend/tests/integration/admin_cli.test.ts` | Testes de promoção, demote com trava de último admin e verificação de e-mail | [ ] |
 | `backend/tests/integration/catalog_curation.test.ts` | Testes de exportação, apply simulação/real e proteção do `import-foods` | [ ] |
 | `frontend/src/pages/admin/__tests__/AdminCatalogPage.test.tsx` | Testes de frontend com RTL, MSW e acessibilidade | [ ] |
 | `docs/ADMIN.md` | Manual de operação de admins, RBAC, auditoria e curadoria | [ ] |
-| `docs/DECISOES.md` | Registro de D-22 | [ ] |
-| `docs/AGENT_LOG.md` | Registro cronológico da execução | [ ] |
+| `docs/DECISOES.md` | Registro de D-22 | [x] |
+| `docs/AGENT_LOG.md` | Registro cronológico da execução | [x] |
 
 ---
 

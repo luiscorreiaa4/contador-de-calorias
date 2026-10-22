@@ -16,6 +16,7 @@ export interface User {
   terms_accepted_at: Date | null;
   email_verified_at: Date | null;
   token_version: number;
+  role: 'user' | 'admin';
   created_at: Date;
   updated_at: Date;
 }

@@ -24,7 +24,7 @@ export async function createUser(
   const result = await pool.query<UserWithoutPassword>(
     `INSERT INTO users (name, email, password_hash, terms_accepted_at)
      VALUES ($1, $2, $3, $4)
-     RETURNING id, name, email, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, terms_accepted_at, email_verified_at, token_version, created_at, updated_at`,
+     RETURNING id, name, email, role, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, terms_accepted_at, email_verified_at, token_version, created_at, updated_at`,
     [name.trim(), normalizedEmail, passwordHash, termsAcceptedAt]
   );
   return mapUserRow(result.rows[0])!;
@@ -41,7 +41,7 @@ export async function findUserByEmail(email: string): Promise<User | null> {
 
 export async function findUserById(id: string): Promise<UserWithoutPassword | null> {
   const result = await pool.query<UserWithoutPassword>(
-    'SELECT id, name, email, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, terms_accepted_at, email_verified_at, token_version, created_at, updated_at FROM users WHERE id = $1',
+    'SELECT id, name, email, role, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, terms_accepted_at, email_verified_at, token_version, created_at, updated_at FROM users WHERE id = $1',
     [id]
   );
   return mapUserRow(result.rows[0]);
@@ -152,7 +152,7 @@ export async function updateUser(
     UPDATE users
     SET ${updates.join(', ')}
     WHERE id = $${paramIndex}
-    RETURNING id, name, email, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, terms_accepted_at, email_verified_at, token_version, created_at, updated_at
+    RETURNING id, name, email, role, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, terms_accepted_at, email_verified_at, token_version, created_at, updated_at
   `;
 
   const db = client || pool;

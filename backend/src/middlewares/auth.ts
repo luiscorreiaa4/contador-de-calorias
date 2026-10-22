@@ -2,11 +2,12 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { env } from '../config/env.js';
-import { getTokenVersion } from '../models/auth.model.js';
+import { getUserAuthContext, type UserAuthContext } from '../models/auth.model.js';
 
 export interface AuthenticatedRequest extends Request {
   userId?: string;
   tokenVersion?: number;
+  userRole?: 'user' | 'admin';
   requestId?: string;
 }
 
@@ -22,6 +23,22 @@ export function requireUserId(req: Request | AuthenticatedRequest): string {
     throw error;
   }
   return userId;
+}
+
+/**
+ * Garante que a requisição autenticada possui papel de administrador (D-22 / B1 / B11).
+ * Rejeita com HTTP 403 e code 'FORBIDDEN' caso o papel no banco seja diferente de 'admin'.
+ */
+export function requireAdmin(req: Request | AuthenticatedRequest, res: Response, next: NextFunction) {
+  const userRole = (req as AuthenticatedRequest).userRole;
+  if (userRole !== 'admin') {
+    return res.status(403).json({
+      success: false,
+      message: 'Acesso negado. Recurso restrito a administradores.',
+      code: 'FORBIDDEN',
+    });
+  }
+  return next();
 }
 
 const tokenPayloadSchema = z.object({
@@ -62,20 +79,23 @@ export async function authenticate(req: AuthenticatedRequest, res: Response, nex
     return rejectInvalidToken(res);
   }
 
-  let currentTokenVersion: number | null;
+  let authContext: UserAuthContext | null;
   try {
-    currentTokenVersion = await getTokenVersion(parsed.userId);
+    // B1: papel vem SEMPRE do banco a cada requisição
+    authContext = await getUserAuthContext(parsed.userId);
   } catch (error) {
     // Falha de infraestrutura não deve ser mascarada como token inválido.
     return next(error);
   }
 
   // Usuário removido ou sessão revogada por troca de senha (A8).
-  if (currentTokenVersion === null || currentTokenVersion !== parsed.tv) {
+  if (authContext === null || authContext.token_version !== parsed.tv) {
     return rejectInvalidToken(res);
   }
 
   req.userId = parsed.userId;
-  req.tokenVersion = currentTokenVersion;
+  req.tokenVersion = authContext.token_version;
+  req.userRole = authContext.role;
   return next();
 }
+

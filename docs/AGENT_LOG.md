@@ -29,6 +29,7 @@ Registro cronológico de linhas de base, migrações e decisões operacionais.
 | Arquivo | Conteúdo | Aplicada em dev | Aplicada em test |
 | --- | --- | --- | --- |
 | `backend/migrations/1792800000000_auth-email-verification.js` | `users.email_verified_at`, `users.token_version`, `email_verification_codes`, `password_reset_tokens` e índices | [x] | [x] |
+| `backend/migrations/1792900000000_add-admin-roles-and-audit.js` | `users.role`, `foods.source_ref`, `foods.admin_edited_at` e tabela `admin_audit_log` com índices | [x] | [x] |
 
 ---
 
@@ -126,4 +127,23 @@ Registro cronológico de linhas de base, migrações e decisões operacionais.
   - `meal_items` persiste snapshot completo de calorias e macros; edição de alimentos no catálogo é livre para alimentos futuros sem desregular histórico retroativo (B6).
   - Catálogo em `contador_calorias`: 10 alimentos globais ativos, 0 inativos, 0 personalizados.
 - Nenhum código de aplicação alterado nesta fase.
+
+---
+
+## 2026-10-22 — Fase 2: Banco e RBAC
+
+- Criada e aplicada migração `1792900000000_add-admin-roles-and-audit.js`:
+  - `users.role VARCHAR(20) NOT NULL DEFAULT 'user'` + `CHECK (role IN ('user', 'admin'))`.
+  - `foods.source_ref VARCHAR(255) NULL` e `foods.admin_edited_at TIMESTAMPTZ NULL`.
+  - Tabela `admin_audit_log` com índices em `created_at` e `(entity_type, entity_id)`.
+  - Aplicada em dev (`contador_calorias`) e test (`contador_calorias_test`).
+- Tipos `@caloriesync/shared`: adicionado `role` em `User`/`UserWithoutPassword`, e `source_ref`, `admin_edited_at`, `active` em `Food`.
+- Backend:
+  - `auth.model.ts`: adicionado `getUserAuthContext` consultando `role` e `token_version` por PK.
+  - `auth.ts`: middleware `authenticate` carrega `req.userRole` e adicionado middleware `requireAdmin` (403 `FORBIDDEN`).
+  - `user.model.ts`: `createUser`, `findUserById` e `updateUser` incluem `role`.
+- Testes: `backend/tests/integration/admin_rbac.test.ts` (3/3 passando):
+  - Papel padrão 'user';
+  - Rejeição de valores inválidos pela constraint CHECK;
+  - Rebaixamento de admin para user tem efeito imediato na requisição seguinte sem esperar expiração do JWT (B1).
 
