@@ -40,8 +40,8 @@ Abaixo está o status real verificado através da execução direta dos comandos
 
 | Camada | Ferramenta / Runner | Total de Testes | Status Atual | Detalhes / Observações |
 | :--- | :--- | :--- | :--- | :--- |
-| **Backend** | `node:test` + `node:assert` + `supertest` via `tsx --test` | **237 testes em 48 suítes** | ✅ **237 PASSOU / 0 FALHOU** (~39s) | Roda exclusivamente contra o banco `contador_calorias_test` com trava `_test` e limpeza via `cleanupTestData`. |
-| **Frontend** | `Vitest 5.0.3` + `React Testing Library` + `MSW 2.15.0` + `@vitest/coverage-v8` | **175 testes em 25 arquivos** | ✅ **175 PASSOU / 0 FALHOU** (~18s) | Suporte completo a relatório de cobertura v8 via `npm --prefix frontend run test:coverage`. |
+| **Backend** | `node:test` + `node:assert` + `supertest` via `tsx --test` | **263 testes em 52 suítes** | ✅ **263 PASSOU / 0 FALHOU** (~41s) | Roda exclusivamente contra o banco `contador_calorias_test` com trava `_test` e limpeza via `cleanupTestData`. |
+| **Frontend** | `Vitest 5.0.3` + `React Testing Library` + `MSW 2.15.0` + `@vitest/coverage-v8` | **185 testes em 26 arquivos** | ✅ **185 PASSOU / 0 FALHOU** (~19s) | Suporte completo a relatório de cobertura v8 via `npm --prefix frontend run test:coverage`. |
 | **Linter** | `ESLint 10` + `check-test-hygiene.mjs` + `check:colors` | Monorepo completo | ✅ **0 Erros / 1 Warning** | Higiene de testes, guarda AST de pool, guarda de cores semânticas e regras de código sem apontamentos. |
 | **Build** | `tsc -b && vite build` | Frontend | ✅ **Compilação com Sucesso** | Code-splitting por rota com chunks separados de vendor (`react-vendor`, `tanstack-vendor`, `chart-vendor`, etc.). |
 
@@ -78,6 +78,10 @@ Abaixo está o status real verificado através da execução direta dos comandos
    - `request_logging.test.ts`: Logging estruturado assíncrono com correlation ID e sincronização determinística (BL-08 / ARCH-020 / A-120).
    - `saved_meals.test.ts`: Gerenciamento de refeições salvas e combos com cálculo nutricional.
    - `push_notifications.test.ts`: Gerenciamento de inscrições de push notifications (BL-27).
+   - `admin_rbac.test.ts`: Role padrão 'user', CHECK constraint, autenticação recarregando role do banco a cada requisição (B1), e rebaixamento imediato sem esperar expiração de token.
+   - `admin_foods.test.ts`: Matriz de autorização com guard em `/api/admin` (401/403/200), CRUD administrativo, auditoria atômica (B5), rejeição de item inativo novo na refeição com 422 (B7), validação de 100g e warnings de divergência calórica.
+   - `admin_cli.test.ts`: CLI de administração de usuários (`admin:promote`, `admin:demote`, `admin:list`), validação de e-mail verificado, proteção contra remoção do último admin, auditoria CLI (`actor_type: 'cli'`), incremento de `token_version`.
+   - `catalog_curation.test.ts`: Curadoria de catálogo: exportação CSV (BOM, `;`), aplicação de decisões de curadoria (simulação por padrão, `--apply`), importação de alimentos curados com `source` e `source_ref` obrigatórios, e proteção do script `import-foods.ts` contra reativação e sobrescrita de curados (B10).
 3. **Carga (`tests/load/autocannon.js`):**
    - Script de estresse com `autocannon` para medição de requisições por segundo e latência da API sob concorrência.
 
@@ -98,6 +102,7 @@ Abaixo está o status real verificado através da execução direta dos comandos
 14. `src/pages/public/VerifyEmailPage.test.tsx`: Estado do router sem persistência de e-mail, campo `autocomplete="one-time-code"`, contagem de 60 s, código inválido, verificação com sessão e reenvio (BL-12).
 15. `src/pages/public/ForgotPasswordPage.test.tsx`: Validação local de e-mail e resposta genérica idêntica para conta existente ou inexistente (BL-05 / A4).
 16. `src/pages/public/ResetPasswordPage.test.tsx`: Leitura do token no fragmento, limpeza da URL, senha forte/confirmação, sucesso sem sessão (e encerramento da sessão local antiga) e token inválido/expirado (BL-05 / A3).
+17. `src/pages/admin/__tests__/AdminCatalogPage.test.tsx`: Painel de administração de catálogo, proteção de rota por `AdminRoute`, tabela desktop e cards mobile, badges de status, modais com avisos de divergência calórica e diálogo de confirmação.
 
 ---
 

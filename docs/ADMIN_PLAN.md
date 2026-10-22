@@ -136,7 +136,7 @@
 | `backend/tests/integration/admin_cli.test.ts` | Testes de promoção, demote com trava de último admin e verificação de e-mail | [x] |
 | `backend/tests/integration/catalog_curation.test.ts` | Testes de exportação, apply simulação/real e proteção do `import-foods` | [x] |
 | `frontend/src/pages/admin/__tests__/AdminCatalogPage.test.tsx` | Testes de frontend com RTL, MSW e acessibilidade | [x] |
-| `docs/ADMIN.md` | Manual de operação de admins, RBAC, auditoria e curadoria | [ ] |
+| `docs/ADMIN.md` | Manual de operação de admins, RBAC, auditoria e curadoria | [x] |
 | `docs/DECISOES.md` | Registro de D-22 | [x] |
 | `docs/AGENT_LOG.md` | Registro cronológico da execução | [x] |
 
@@ -148,3 +148,30 @@
 2. **Consultas de Histórico e Alimentos Inativos:** Confirmado que `hydrateMealsWithItems` realiza `JOIN foods` sem restringir `active = true`. A desativação de um alimento não apaga nem oculta itens de refeições passadas.
 3. **Consulta de Papel por Requisição (B1):** Unificamos a query de validação de versão de sessão em `getUserAuthContext(userId)`, que busca `token_version` e `role` em uma única ida ao Postgres por PK, mantendo tempo de resposta negligenciável (< 1 ms).
 4. **Auditoria Transacional Atômica (B5):** Toda operação administrativa de escrita (`admin-food.service`, `admin-user.service`, `catalog:apply`) utiliza o mesmo `client` de transação para registrar em `admin_audit_log`, garantindo que nenhuma alteração ocorra sem auditoria e que nenhum log fique órfão em caso de erro.
+
+---
+
+## 5. Evidências de Auditoria e Greps de Segunda Via (Fase 7b)
+
+1. **Nenhuma migração/seed/script cria usuário ou senha (B2):**
+   - Comando: `grep_search "ADMIN_EMAIL|ADMIN_DEFAULT_PASSWORD|INSERT INTO users" [backend/migrations/*, backend/scripts/*]`
+   - Resultado: 0 ocorrências encontradas.
+2. **Nenhuma autorização usa claim do JWT (B1):**
+   - Comando: `grep_search "jwt.*role|decoded.*role|payload.*role" [backend/src/**/*.ts]`
+   - Resultado: 0 ocorrências. Em `backend/src/middlewares/auth.ts`, o token é validado apenas para `{ userId, tv }` e `getUserAuthContext(parsed.userId)` consulta `role` e `token_version` diretamente no PostgreSQL por PK em cada requisição.
+3. **Todo handler de `/api/admin` está sob o guard do router (B11):**
+   - `backend/src/routes/admin.routes.ts`: `router.use(authenticate, requireAdmin);` aplicado no topo antes de qualquer sub-roteador (`router.use('/foods', adminFoodRoutes);`).
+   - `backend/src/app.ts`: `app.use('/api/admin', adminRoutes);`.
+   - Cobertura em teste: `backend/tests/integration/admin_foods.test.ts` enumera todas as rotas verificando rejeição 401 para anônimos e 403 para usuários comuns.
+4. **Nenhum `DELETE` de alimento (B4):**
+   - Comando: `grep_search "DELETE FROM foods" [backend/src/**/*.ts]`
+   - Resultado: 0 ocorrências. Nenhum endpoint HTTP DELETE existe para o catálogo. A exclusão de alimentos é substituída exclusivamente por `PATCH /:id/status` (`active = false`).
+5. **Nenhum endpoint admin lê dados pessoais de usuários (B3):**
+   - Comando: `grep_search "SELECT.*FROM (meals|meal_items|user_goals|body_measurements|users)" [backend/src/{routes,controllers,models,services}/admin*]`
+   - Resultado: 0 ocorrências. Endpoints administrativos operam estritamente sobre `foods` e `admin_audit_log`.
+6. **Importação não reativa inativos nem sobrescreve curados (B10):**
+   - `backend/scripts/import-foods.ts`: A instrução de upsert contém `WHERE foods.admin_edited_at IS NULL` e preserva o status atual do banco com `active = foods.active`. Testado com 100% de sucesso em `backend/tests/integration/catalog_curation.test.ts`.
+7. **Toda escrita administrativa passa pela auditoria atômica (B5):**
+   - Comando: `grep_search "recordAuditLog" [backend/src/**/*.ts]`
+   - Resultado: 100% das operações de escrita em `admin-food.service.ts` (`createFood`, `updateFood`, `updateFoodStatus`), `admin-user.service.ts` (`promoteToAdmin`, `demoteToUser`) e `catalog-curation.service.ts` (`applyCurationDecisions`, `importCuratedFoods`) invocam `recordAuditLog` no mesmo `client` de transação.
+

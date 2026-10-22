@@ -31,6 +31,12 @@ Executar na **raiz** do monorepo:
 - `npm run lint` — Valida ESLint em todo o repositório e executa a guarda de cores (`check:colors`).
 - `npm --prefix frontend run check:colors` — Executa a guarda de cores do design brutalista (tokens semânticos, ausência de literais/dark:).
 - `npm run build` — Compila bundle de produção do frontend (`tsc -b && vite build`).
+- `npm run admin:promote <email>` — Promove usuário verificado a administrador (D-22 / B2).
+- `npm run admin:demote <email>` — Rebaixa administrador para usuário comum (com trava de último admin).
+- `npm run admin:list` — Lista administradores ativos do sistema.
+- `npm run catalog:export` — Exporta catálogo global para CSV de revisão com heurísticas de duplicatas.
+- `npm run catalog:apply <arquivo.csv>` — Simula ou aplica (`--apply`) decisões de curadoria com auditoria atômica.
+- `npm run catalog:import-curated <arquivo.json>` — Simula ou importa (`--apply`) lote de alimentos curados oficiais.
 
 ---
 
@@ -42,6 +48,7 @@ Executar na **raiz** do monorepo:
 5. **Estilo Brutalista & Acessibilidade:** Design brutalista (`rounded-none`, contornos firmes), tokens semânticos via CSS Variables, sem alert/confirm nativos (ver `.agents/rules/style-rules.md`).
 6. **Autenticação por E-mail (BL-12/BL-05):** Rotas públicas em `/api/auth/*` com `Cache-Control: no-store`; cadastro responde `202` sem JWT; login de conta não verificada responde `403` com `code: "EMAIL_NOT_VERIFIED"`; JWT carrega `tv` validado contra `users.token_version`.
 7. **Entrega de E-mail:** `Mailer` plugável (`SmtpMailer`/`MemoryMailer`) escolhido por `MAIL_TRANSPORT`; Mailpit em desenvolvimento (UI `http://localhost:8025`); `NODE_ENV=test` usa memória.
+8. **RBAC e Catálogo Global (D-22 / B1–B12):** Rotas administrativas sob `/api/admin/*` com guard `router.use(authenticate, requireAdmin)`; consulta de papel `role` por PK no PostgreSQL a cada requisição; auditoria atômica obrigatória (`admin_audit_log`); desativação sem deleção física (`active = false`).
 
 ---
 
@@ -58,6 +65,9 @@ Executar na **raiz** do monorepo:
 - ❌ **PROIBIDO Logar Segredos de Autenticação:** Nunca registre código de verificação, token de reset, URL de reset, senha ou pepper em logs, mensagens de erro ou respostas HTTP.
 - ❌ **PROIBIDO Persistir E-mail/Código/Token de Reset no Cliente:** O e-mail de verificação usa apenas o state do router; o token de reset fica no fragmento `#token=...`, é lido uma vez e removido com `history.replaceState`; nunca use `localStorage`/`sessionStorage` para esses valores.
 - ❌ **PROIBIDO Alterar Mensagens Genéricas de Autenticação:** `register`, `resend-code` e `forgot-password` devem manter status e corpo idênticos exista ou não a conta, evitando enumeração.
+- ❌ **PROIBIDO Criar Contas Admin em Código/Seed/Env:** Nunca crie administradores via migration, seed ou env (`ADMIN_EMAIL`/`ADMIN_PASSWORD`). Primeiro admin deve ser criado via cadastro normal + e-mail verificado + CLI (`admin:promote`).
+- ❌ **PROIBIDO Autorizar Papéis via JWT Claims:** Nunca autorize privilégios baseado em claims de JWT; consulte sempre `role` no banco por PK a cada requisição.
+- ❌ **PROIBIDO Excluir Alimentos do Catálogo:** Nunca implemente rotas `DELETE` de alimentos; utilize exclusivamente desativação (`active = false`).
 
 ---
 
@@ -68,6 +78,9 @@ Executar na **raiz** do monorepo:
   - Estilo e UI: [.agents/rules/style-rules.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/.agents/rules/style-rules.md)
   - Inspeção no Browser (E2E): [.agents/skills/browser-inspection/SKILL.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/.agents/skills/browser-inspection/SKILL.md)
 - **Documentação de Sistema:**
+  - Manual do Administrador (RBAC & Audit): [docs/ADMIN.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/ADMIN.md)
+  - Manual de Curadoria do Catálogo: [docs/CURADORIA_CATALOGO.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/CURADORIA_CATALOGO.md)
+  - Plano e Decisões Administrativas (D-22): [docs/ADMIN_PLAN.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/ADMIN_PLAN.md)
   - Arquitetura & Banco (ER): [docs/ARCHITECTURE.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/ARCHITECTURE.md)
   - Especificação e Fórmulas de Negócio: [docs/SPEC.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/SPEC.md)
   - Estratégia de Testes: [docs/TESTING.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/TESTING.md)

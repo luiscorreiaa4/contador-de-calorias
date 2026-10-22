@@ -147,3 +147,70 @@ Registro cronológico de linhas de base, migrações e decisões operacionais.
   - Rejeição de valores inválidos pela constraint CHECK;
   - Rebaixamento de admin para user tem efeito imediato na requisição seguinte sem esperar expiração do JWT (B1).
 
+---
+
+## 2026-10-22 — Fase 3: API Admin do Catálogo
+
+- Roteador isolado `backend/src/routes/admin.routes.ts` com guarda `router.use(authenticate, requireAdmin)` (B11).
+- Rotas `/api/admin/foods`:
+  - `GET /`: busca paginada com status (all, active, inactive), escape ILIKE e limite máximo 100 (B12).
+  - `POST /`: criação de alimentos globais com `source = 'catalog'`, `source_ref` obrigatório, validação 100g e warnings calóricos. Auditoria atômica (B5).
+  - `GET /:id`: busca de alimento por ID.
+  - `PUT /:id`: atualização de campos nutricionais marcando `admin_edited_at = NOW()`. Auditoria atômica (B5).
+  - `PATCH /:id/status`: ativação e desativação sem deleção física (B4). Auditoria atômica (B5).
+- Integridade de refeições (B7):
+  - `POST /api/meals` e `PUT /api/meals/:id`: rejeitam novo item com alimento inativo retornando 422 Unprocessable Entity. Em edição, itens pré-existentes são preservados.
+- Testes: `backend/tests/integration/admin_foods.test.ts` (10/10 passando).
+
+---
+
+## 2026-10-22 — Fase 4: CLI de Admins
+
+- Implementado `backend/src/services/admin-user.service.ts` e `backend/scripts/admin-cli.ts`.
+- Comandos CLI:
+  - `npm run admin:promote <email>`: exige e-mail verificado, incrementa `token_version` e grava auditoria com `actor_type: 'cli'` (B2, B3).
+  - `npm run admin:demote <email>`: recusa se for deixar zero admins, incrementa `token_version` e grava auditoria (B3).
+  - `npm run admin:list`: lista administradores ativos com data de criação e verificação.
+- Proteção de produção: exige flag `--yes` caso `NODE_ENV === 'production'`.
+- Testes: `backend/tests/integration/admin_cli.test.ts` (5/5 passando).
+
+---
+
+## 2026-10-22 — Fase 5: Ferramentas de Curadoria
+
+- Implementado `backend/src/services/catalog-curation.service.ts`:
+  - `npm run catalog:export`: exporta `backend/data/catalog-review.csv` com BOM UTF-8 e `;`, calculando heurísticas de duplicatas (sugestões não aplicadas automaticamente) (B9).
+  - `npm run catalog:apply <csv>`: simulação por padrão, grava apenas com `--apply`, marca `admin_edited_at = NOW()` e grava auditoria atômica (B5, B10).
+  - `npm run catalog:import-curated <json>`: validação com Zod exigindo `source` e `source_ref`, simulação padrão, `--apply` para efetivar.
+- Proteção em `backend/scripts/import-foods.ts` (B10):
+  - Upsert preserva `active = foods.active` (nunca reativa inativo);
+  - Upsert ignora alimentos com `admin_edited_at IS NOT NULL` (nunca sobrescreve curado).
+- Executado export inicial no banco dev (`contador_calorias`): 10 alimentos, 0 inativos, 0 sugestões.
+- Documentado fluxo completo em `docs/CURADORIA_CATALOGO.md` e criado modelo vazio `backend/data/curated-foods.json`.
+- Testes: `backend/tests/integration/catalog_curation.test.ts` (6/6 passando).
+
+---
+
+## 2026-10-22 — Fase 6: Frontend
+
+- Atualizado `UserProfile` e `SafeUserSession` para incluir `role?: 'user' | 'admin'`.
+- Criado componente `AdminRoute` para redirecionamento UX de usuários não-admin para `/`.
+- Registrada rota `/admin/alimentos` no `router.tsx`.
+- Criado `frontend/src/services/admin-food.service.ts`.
+- Criado modal `AdminFoodModal` com validação de 100g, avisos visuais de divergência calórica e chaveamento por `key` para reset de estado sem efeitos colaterais.
+- Criada página `AdminCatalogPage` com tabela desktop, cards mobile, busca, filtro de status, badges, alternância de status com `ConfirmDialog` e paginação.
+- `AppHeader` atualizado para exibir item "Catálogo" apenas quando `user.role === 'admin'`.
+- Modal `NewMealModal` atualizado para exibir mensagem amigável caso receba 422 de alimento inativo (B7).
+- Atualizado handlers MSW para simular `/api/admin/foods` e role admin condicional por token.
+- Testes: `frontend/src/pages/admin/__tests__/AdminCatalogPage.test.tsx` (8/8 passando).
+
+---
+
+## 2026-10-22 — Fase 7: Documentação e Auditoria Final
+
+- Criado `docs/ADMIN.md` com guia completo de criação do primeiro admin, segurança RBAC, CLI, integridade e curadoria.
+- Atualizados `docs/TESTING.md`, `docs/ROADMAP.md`, `docs/SPEC.md`, `docs/ARCHITECTURE.md`, `AGENTS.md` e `.agents/rules/backend-rules.md`.
+- Executados greps de segunda via para garantia dos requisitos B1 a B12 (registrados no `docs/ADMIN_PLAN.md`).
+- Validação completa executada com 100% de aprovação.
+
+

@@ -34,7 +34,8 @@ O projeto é estruturado em um monorepo com separação estrita entre o cliente 
 4. **`models/`**: Consultas diretas ao PostgreSQL via driver nativo `pg.Pool`, com parametrização estrita de valores contra SQL Injection, projeções explícitas de colunas e inserções multi-row em lote.
 5. **`middlewares/`**:
    - `compression`: Compressão HTTP ativa de respostas no topo da cadeia.
-   - `auth.ts`: Validação de tokens JWT, incluindo o claim `tv` (`token_version`), consulta de revogação no banco e extração de `userId`.
+   - `auth.ts`: Validação de tokens JWT, extração de `userId`, consulta de revogação no banco via `token_version` e carregamento de `role` por chave primária (`req.userRole`).
+   - `requireAdmin`: Middleware de autorização RBAC que exige `req.userRole === 'admin'`, rejeitando usuários comuns com 403 Forbidden.
    - `authRateLimit.ts`: Limitadores das rotas `/api/auth/*`, com a chave isolada em uma única função.
    - `validate.ts`: Middleware genérico para validação particionada de esquemas Zod (body, params, query) retornando 400 em caso de falha.
    - `requestLogger.ts`: Logging HTTP estruturado em JSON e propagação/geração do header `X-Request-Id` (correlation ID) para rastreabilidade de ponta a ponta.
@@ -76,7 +77,7 @@ O projeto é estruturado em um monorepo com separação estrita entre o cliente 
 
 ## 2. Diagrama Entidade-Relacionamento (ER) [CONFIRMADO]
 
-O esquema do banco de dados é composto por **8 tabelas**, geradas pelas migrações em `backend/migrations/`:
+O esquema do banco de dados é composto por **9 tabelas**, geradas pelas migrações em `backend/migrations/`:
 
 ```mermaid
 erDiagram
@@ -85,6 +86,7 @@ erDiagram
     users ||--o{ user_goals : "possui vigencia"
     users ||--o{ email_verification_codes : "recebe codigos"
     users ||--o{ password_reset_tokens : "solicita resets"
+    users ||--o{ admin_audit_log : "ator em"
     meals ||--o{ meal_items : "contem"
     foods ||--o{ meal_items : "referenciado em"
 
@@ -93,6 +95,7 @@ erDiagram
         VARCHAR name "NOT NULL"
         VARCHAR email UK "NOT NULL, UNIQUE"
         VARCHAR password_hash "NOT NULL"
+        VARCHAR role "NOT NULL, DEFAULT 'user', CHECK (role IN ('user', 'admin'))"
         VARCHAR goal "NOT NULL, DEFAULT 'perder_peso'"
         VARCHAR sex "NULLABLE"
         DATE birth_date "NULLABLE"
@@ -122,10 +125,24 @@ erDiagram
         VARCHAR unit_name "50 NULLABLE"
         NUMERIC unit_weight "8,2 NULLABLE"
         VARCHAR source "50 NULLABLE"
+        VARCHAR source_ref "255 NULLABLE"
         VARCHAR external_id "100 NULLABLE"
         BOOLEAN active "NOT NULL, DEFAULT TRUE"
+        TIMESTAMPTZ admin_edited_at "NULLABLE"
         TIMESTAMPTZ created_at "DEFAULT CURRENT_TIMESTAMP"
         TIMESTAMPTZ updated_at "DEFAULT CURRENT_TIMESTAMP"
+    }
+
+    admin_audit_log {
+        UUID id PK "default uuid_generate_v4()"
+        UUID actor_user_id FK "NULLABLE REFERENCES users(id)"
+        VARCHAR actor_type "NOT NULL, CHECK (actor_type IN ('user', 'cli'))"
+        VARCHAR action "NOT NULL"
+        VARCHAR entity_type "NOT NULL"
+        VARCHAR entity_id "NOT NULL"
+        JSONB before "NULLABLE"
+        JSONB after "NULLABLE"
+        TIMESTAMPTZ created_at "NOT NULL, DEFAULT CURRENT_TIMESTAMP"
     }
 
     meals {

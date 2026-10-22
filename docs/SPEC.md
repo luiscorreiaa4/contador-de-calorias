@@ -187,6 +187,22 @@ Regras de negócio de saúde aplicadas exclusivamente para geração de metas au
 
 ---
 
+### RF-007: Painel Administrativo do Catálogo, Curadoria e RBAC (D-22 / B1–B12) [CONFIRMADO]
+- **Endpoints Administrativos (`/api/admin/*`, protegidos por `router.use(authenticate, requireAdmin)`):**
+  - `GET /api/admin/foods?search=&status=all|active|inactive&page=1&limit=50`: Listagem paginada (limit máx 100) com escape de `ILIKE` e filtro de status.
+  - `POST /api/admin/foods`: Criação de alimento global (`user_id = NULL`), com validação estrita por 100 g/ml (`calories <= 900`, macros `<= 100`, `P+C+G <= 100.5 g`), exigência de `source_ref` oficial auditável e warnings informativos para divergência calórica > 25%.
+  - `PUT /api/admin/foods/:id`: Edição de dados nutricionais e apresentação de alimentos globais. Marca `admin_edited_at = NOW()`.
+  - `PATCH /api/admin/foods/:id/status`: Alternância de status ativo/inativo (`active: boolean`). Sem rota DELETE de alimentos.
+- **Regras de Negócio Administrativas:**
+  - **Autorização Dinâmica por PK (B1):** O papel `role` é consultado no banco por chave primária a cada requisição no middleware `authenticate`. É proibido autorizar por claims do JWT.
+  - **Sem Contas Pré-definidas (B2):** Nenhum administrador é criado via migração, seed ou variável de ambiente. A promoção é realizada exclusivamente via CLI (`npm run admin:promote <email>`) após cadastro e e-mail verificado.
+  - **Restrição de Escopo (B3):** O painel administrativo gerencia unicamente o catálogo global. Nenhum endpoint administrativo lê ou gerencia refeições, perfis, metas ou lista de usuários.
+  - **Auditoria Transacional Atômica (B5):** Toda operação de escrita administrativa grava na mesma transação em `admin_audit_log` (`actor_type: 'user' | 'cli'`).
+  - **Integridade de Refeições com Inativos (B7):** Novos lançamentos de refeição com alimento inativo são rejeitados com status `422 Unprocessable Entity`.
+  - **Proteção da Importação TACO (B10):** A rotina `import-foods.ts` nunca reativa alimentos desativados (`active = foods.active`) e nunca sobrescreve alimentos curados (`admin_edited_at IS NOT NULL`).
+
+---
+
 ## 2. Tratamento Centralizado de Erros e Contratos de API (D-10) [CONFIRMADO]
 
 1. **Contrato Universal de Resposta:**

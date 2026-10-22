@@ -61,3 +61,11 @@ description: Regras obrigatórias e verificáveis para desenvolvimento de backen
 - **Execução Isolada de Testes:** Para executar um único arquivo de teste no backend, use sempre `npm run test:backend:file <caminho>` a partir da raiz.
 - **Autenticação por E-mail nos Testes:** Use o helper `backend/tests/helpers/auth.ts` (`createVerifiedUser`, `markEmailVerified`, `lastEmailTo`, `verificationCodeFor`, `clearMailbox`). O `MemoryMailer` é forçado em `NODE_ENV=test`; nunca dependa de SMTP real. Limpe a caixa entre cenários que verificam envio.
 
+## 8. Rotas Administrativas e RBAC (D-22 / B1 a B12)
+- **Isolamento de Rota:** Todas as rotas administrativas DEVEM residir exclusivamente sob `/api/admin/*`.
+- **Guard no Roteador Inteiro (B11):** O roteador administrativo principal deve aplicar `router.use(authenticate, requireAdmin)` no nível do roteador raiz (`admin.routes.ts`). É proibido expor endpoints administrativos sem essa guarda.
+- **Autorização Dinâmica por PK (B1):** O middleware consulta `role` e `token_version` por chave primária no PostgreSQL a cada requisição. É expressamente proibido autorizar por claims de JWT.
+- **Códigos de Resposta Padronizados:** Requisição sem autenticação = `401 Unauthorized`; usuário autenticado sem papel admin (`role !== 'admin'`) = `403 Forbidden`.
+- **Trilha de Auditoria Obrigatória (B5):** Toda operação de escrita administrativa DEVE gravar na tabela `admin_audit_log` dentro da MESMA transação atômica (`actor_type: 'user' | 'cli'`). Não criar rotas de edição ou exclusão de logs.
+- **Proibição de Deleção de Alimentos (B4):** Não criar rotas `DELETE` para alimentos do catálogo global; utilizar exclusivamente alternância de status ativo/inativo (`active = false`).
+
