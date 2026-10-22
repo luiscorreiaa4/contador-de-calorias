@@ -98,3 +98,32 @@ Registro cronológico de linhas de base, migrações e decisões operacionais.
 | `npm run lint` | 0 erros (1 warning pré-existente em `OnboardingFlow.tsx:73`) |
 | `npm run build` | sucesso |
 | `npm --prefix frontend run check:colors` | 0 violações |
+
+---
+
+## 2026-10-22 — Fase 0: Linha de Base (Painel Admin do Catálogo e Curadoria)
+
+- Branch base: `feat/auth-email` (working tree limpo).
+- Branch de trabalho: `feat/admin-catalogo`.
+- Postgres de desenvolvimento: Docker `caloriesync_postgres`, `127.0.0.1:5433` (`contador_calorias`).
+- Validação executada antes de qualquer alteração:
+
+| Comando | Resultado |
+| --- | --- |
+| `npm run test:strict` | 241 testes / 48 suítes, 0 falhas (23,9 s) |
+| `npm --prefix frontend test -- --run` | 177 testes / 25 arquivos, 0 falhas (12,8 s) |
+| `npm run lint` | 0 erros (1 warning pré-existente em `OnboardingFlow.tsx:73`) |
+| `npm run build` | sucesso (1,35 s) |
+| `npm --prefix frontend run check:colors` | 0 violações |
+
+---
+
+## 2026-10-22 — Fase 1: Descoberta e Decisões D-22
+
+- Criado `docs/ADMIN_PLAN.md` com inventário do código real (esquema de users e foods, snapshot imutável em `meal_items`, ausência de filtros por `active` no histórico, middleware de auth por `token_version`, navegação e importador).
+- Registrada decisão vinculante **D-22** (B1 a B12) em `docs/DECISOES.md`.
+- Constatações do código real:
+  - `meal_items` persiste snapshot completo de calorias e macros; edição de alimentos no catálogo é livre para alimentos futuros sem desregular histórico retroativo (B6).
+  - Catálogo em `contador_calorias`: 10 alimentos globais ativos, 0 inativos, 0 personalizados.
+- Nenhum código de aplicação alterado nesta fase.
+

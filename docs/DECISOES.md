@@ -123,3 +123,46 @@ de `/api/auth/*` levam `Cache-Control: no-store`.
 ### A12 — Contas existentes
 Contas anteriores à migração ficam **não verificadas** (sem grandfathering). No próximo login com
 senha correta recebem 403 e um código para confirmar o e-mail.
+
+---
+
+## D-22 — Painel administrativo do catálogo global e ferramentas de curadoria
+
+Aprovada pelo prompt de execução autônoma. Especificação vinculante para RBAC de catálogo, integridade e ferramentas de curadoria.
+
+### B1 — Papel sempre do banco
+O papel do usuário vem SEMPRE do banco de dados: o middleware de autenticação consulta `role` (e `token_version`) por chave primária a cada requisição. Nunca autoriza por claim do JWT. O papel chega ao frontend pelo payload do usuário (`/auth/login`, `/users/me`), unicamente para controle de interface.
+
+### B2 — Criação estrita de administradores
+É proibido criar conta admin em migrações, seeds ou variáveis de ambiente. Sem `ADMIN_EMAIL` e sem `ADMIN_DEFAULT_PASSWORD`. O primeiro admin é criado por fluxo natural: cadastro normal, e-mail verificado, e promoção soberana no servidor via CLI: `npm run admin:promote <email>`.
+
+### B3 — Escopo estrito ao catálogo global
+O administrador gerencia apenas o catálogo global (`foods` com `user_id IS NULL`). Nenhum endpoint admin lê refeições, perfil, metas ou listagem de usuários. Gestão de administradores ocorre exclusivamente via CLI (`promote`, `demote`, `list`).
+
+### B4 — Sem exclusão física de alimentos
+Alimentos nunca são apagados do banco de dados: apenas ativados ou desativados (`active = true | false`). Não existe rota HTTP de `DELETE` de alimentos.
+
+### B5 — Auditoria atômica obrigatória
+Toda escrita administrativa (API e CLI) grava na tabela `admin_audit_log` dentro da **mesma transação**: `actor_user_id` (nulo para CLI), `actor_type` (`'user' | 'cli'`), `action`, `entity_type`, `entity_id`, `before` (jsonb), `after` (jsonb), `created_at`. Não existem rotas de edição ou exclusão do log.
+
+### B6 — Integridade do histórico
+Refeições antigas não são recalculadas nem corrompidas quando um alimento é editado ou desativado. Constatou-se na Fase 1 que a tabela `meal_items` persiste um snapshot imutável dos macronutrientes e calorias. A edição dos campos nutricionais no catálogo é livre para alimentos futuros sem desregular registros retroativos. Consultas de histórico e estatísticas nunca filtram por `active`.
+
+### B7 — Barreira contra novos lançamentos com alimentos inativos
+Qualquer tentativa de criar item novo de refeição com alimento desativado é rejeitada com status **422** e mensagem contextual explicativa. Na edição de refeição (`PUT /api/meals/:id`), itens pré-existentes com alimentos inativos são preservados.
+
+### B8 — Política de cache do catálogo
+O catálogo público possui cabeçalho de cache HTTP `Cache-Control: private, max-age=300` (D-07). A desativação de um alimento pode levar até 5 minutos para sumir das buscas de quem já consultou recentemente. A política é mantida sem alterações.
+
+### B9 — Fidelidade nutricional e fontes obrigatórias
+É proibido inventar dados nutricionais. Todo alimento oficial novo exige `source` e `source_ref` auditáveis (ex.: "TACO 4ª ed., código X", "rótulo do produto Y", "IBGE medidas referidas"). Sem fonte, a inserção é rejeitada. O agente não escreve listas arbitrariamente: entrega modelo vazio e ferramentas de curadoria.
+
+### B10 — Proteção do importador contra sobreposição
+A importação automatizada (ex.: `backend/scripts/import-foods.ts`) nunca reativa alimentos desativados nem sobrescreve alimentos curados ou editados manualmente (identificados pelo marcador `admin_edited_at IS NOT NULL`).
+
+### B11 — Guarda no roteador administrativo
+Todas as rotas sob `/api/admin/*` são protegidas por guarda no roteador raiz: `router.use(authenticate, requireAdmin)`. Requisições não autenticadas recebem 401; usuários comuns autenticados recebem 403 com código `FORBIDDEN`.
+
+### B12 — Whitelist estrita de campos e validação por 100 g
+Campos permitidos na escrita são rigorosamente filtrados por schemas Zod dedicados. `source`, `user_id` e `active` na criação são controlados pelo servidor. Paginação com limite máximo 100, busca textual com escape de caracteres especiais do ILIKE (`%`, `_`, `\`). Validação dura de valores por 100 g: valores não negativos, kcal ≤ 900, cada macro ≤ 100 g, P+C+G ≤ 100,5 g. Divergência calórica (> 25%) emite alertas (*warnings*) na resposta sem bloquear o salvamento.
+
