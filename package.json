@@ -17,7 +17,10 @@
     "docker:down": "docker compose --env-file backend/.env down",
     "test:strict": "node scripts/run-tests.mjs strict",
     "test:file": "node scripts/run-tests.mjs file",
-    "test:frontend": "node scripts/run-tests.mjs frontend"
+    "test:frontend": "node scripts/run-tests.mjs frontend",
+    "admin:promote": "npm --prefix backend run admin:promote --",
+    "admin:demote": "npm --prefix backend run admin:demote --",
+    "admin:list": "npm --prefix backend run admin:list"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

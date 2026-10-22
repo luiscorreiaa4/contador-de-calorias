@@ -114,8 +114,8 @@
 | `backend/src/routes/admin-food.routes.ts` | Rotas sob `/api/admin/foods` protegidas por `router.use(authenticate, requireAdmin)` | [x] |
 | `backend/src/routes/index.ts` | Registro do router `/api/admin` na aplicação Express | [x] |
 | `backend/src/services/meal.service.ts` | Validação de B7: rejeitar 422 para novo alimento inativo em criação/edição | [x] |
-| `backend/src/services/admin-user.service.ts` | Serviço testável de CLI (promote, demote, list) com verificação de e-mail e última conta admin | [ ] |
-| `backend/scripts/admin-cli.ts` | Scripts CLI para `npm run admin:promote`, `admin:demote`, `admin:list` | [ ] |
+| `backend/src/services/admin-user.service.ts` | Serviço testável de CLI (promote, demote, list) com verificação de e-mail e última conta admin | [x] |
+| `backend/scripts/admin-cli.ts` | Scripts CLI para `npm run admin:promote`, `admin:demote`, `admin:list` | [x] |
 | `backend/scripts/catalog-export.ts` | Script `npm run catalog:export` gerando CSV com heurísticas de duplicatas | [ ] |
 | `backend/scripts/catalog-apply.ts` | Script `npm run catalog:apply` com simulação padrão e flag `--apply` | [ ] |
 | `backend/scripts/catalog-import-curated.ts` | Script `npm run catalog:import-curated` para carregar JSON estruturado | [ ] |
@@ -133,7 +133,7 @@
 | `frontend/src/components/meals/NewMealModal.tsx` | Tratar erro 422 de alimento inativo | [ ] |
 | `backend/tests/integration/admin_rbac.test.ts` | Testes de RBAC, enumeração de rotas 401/403 e rebaixamento imediato | [x] |
 | `backend/tests/integration/admin_foods.test.ts` | Testes de CRUD, auditoria atômica, integridade B6/B7 e warnings | [x] |
-| `backend/tests/integration/admin_cli.test.ts` | Testes de promoção, demote com trava de último admin e verificação de e-mail | [ ] |
+| `backend/tests/integration/admin_cli.test.ts` | Testes de promoção, demote com trava de último admin e verificação de e-mail | [x] |
 | `backend/tests/integration/catalog_curation.test.ts` | Testes de exportação, apply simulação/real e proteção do `import-foods` | [ ] |
 | `frontend/src/pages/admin/__tests__/AdminCatalogPage.test.tsx` | Testes de frontend com RTL, MSW e acessibilidade | [ ] |
 | `docs/ADMIN.md` | Manual de operação de admins, RBAC, auditoria e curadoria | [ ] |

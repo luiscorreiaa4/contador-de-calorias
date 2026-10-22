@@ -15,7 +15,10 @@
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "start": "cross-env TZ=America/Sao_Paulo tsx src/server.ts",
-    "test:strict": "node ../scripts/run-tests.mjs strict"
+    "test:strict": "node ../scripts/run-tests.mjs strict",
+    "admin:promote": "cross-env TZ=America/Sao_Paulo tsx scripts/admin-cli.ts promote",
+    "admin:demote": "cross-env TZ=America/Sao_Paulo tsx scripts/admin-cli.ts demote",
+    "admin:list": "cross-env TZ=America/Sao_Paulo tsx scripts/admin-cli.ts list"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
