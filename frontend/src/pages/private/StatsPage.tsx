@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { getMealStats } from '../../services/meal.service';
 import { getLocalDateString } from '../../utils/date';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from 'recharts';
-import { TrendingUp, Target, Info, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { TrendingUp, Target, Info, AlertTriangle } from 'lucide-react';
 
 export const StatsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
   const Heading = embedded ? 'h2' : 'h1';
@@ -26,22 +25,13 @@ export const StatsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }
   return (
     <div className={embedded ? "space-y-8" : "w-full max-w-5xl mx-auto px-4 py-8 space-y-10"}>
       <div className="border-b-2 border-border pb-6 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary-ink mb-2">
-              Estatísticas
-            </p>
-            <Heading className="text-3xl sm:text-5xl font-heading font-black text-foreground uppercase tracking-tighter">
-              ALIMENTAÇÃO
-            </Heading>
-          </div>
-          <Link
-            to="/"
-            aria-label="Voltar ao dashboard"
-            className="self-start sm:self-auto shrink-0 flex items-center justify-center w-12 h-12 border-2 border-border bg-background hover:bg-primary hover:text-primary-foreground transition-colors text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          >
-            <ArrowLeft className="w-5 h-5" aria-hidden="true" />
-          </Link>
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary-ink mb-2">
+            Estatísticas
+          </p>
+          <Heading className="text-3xl sm:text-5xl font-heading font-black text-foreground uppercase tracking-tighter">
+            ALIMENTAÇÃO
+          </Heading>
         </div>
         
         <div className="border-2 border-border p-1 bg-card shadow-hard grid grid-cols-2 w-full sm:w-fit sm:inline-flex sm:ml-auto gap-1">

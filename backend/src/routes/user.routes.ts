@@ -12,6 +12,7 @@ import {
   dateQuerySchema,
   createMeasurementSchema,
   measurementQuerySchema,
+  uuidParamSchema,
 } from '@caloriesync/shared';
 
 const router = Router();
@@ -41,6 +42,7 @@ router.get('/me/goals', authenticate, validate({ query: dateQuerySchema }), User
 
 router.get('/me/measurements', authenticate, validate({ query: measurementQuerySchema }), UserController.getMeasurements);
 router.post('/me/measurements', authenticate, validate(createMeasurementSchema), UserController.addMeasurement);
+router.delete('/me/measurements/:id', authenticate, validate({ params: uuidParamSchema }), UserController.deleteMeasurement);
 
 export default router;
 

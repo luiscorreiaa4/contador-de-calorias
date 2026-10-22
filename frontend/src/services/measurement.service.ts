@@ -16,3 +16,9 @@ export const addMeasurement = async (data: CreateMeasurementDTO): Promise<BodyMe
     body: JSON.stringify(data),
   });
 };
+
+export const deleteMeasurement = async (id: string): Promise<void> => {
+  return apiFetch<void>(`/users/me/measurements/${id}`, {
+    method: 'DELETE',
+  });
+};

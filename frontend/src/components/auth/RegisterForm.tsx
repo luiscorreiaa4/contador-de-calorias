@@ -120,7 +120,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
             placeholder="NOME COMPLETO"
             aria-invalid={!!errors.name}
             aria-describedby={errors.name ? 'register-name-error' : undefined}
-            className={`pl-10 ${errors.name ? 'border-destructive focus-visible:border-destructive' : ''}`}
+            className={`pl-10 ${errors.name ? 'border-destructive focus:border-destructive focus-visible:border-destructive' : ''}`}
             {...register('name')}
           />
         </div>
@@ -142,7 +142,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
             placeholder="SEU@EMAIL.COM"
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? 'register-email-error' : undefined}
-            className={`pl-10 ${errors.email ? 'border-destructive focus-visible:border-destructive' : ''}`}
+            className={`pl-10 ${errors.email ? 'border-destructive focus:border-destructive focus-visible:border-destructive' : ''}`}
             {...register('email')}
           />
         </div>
@@ -164,7 +164,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
             placeholder="MÍNIMO 8 CARACTERES COM LETRA E NÚMERO"
             aria-invalid={!!errors.password}
             aria-describedby={errors.password ? 'register-password-error' : undefined}
-            className={`pl-10 pr-10 font-mono tracking-widest ${errors.password ? 'border-destructive focus-visible:border-destructive' : ''}`}
+            className={`pl-10 pr-10 font-mono tracking-widest ${errors.password ? 'border-destructive focus:border-destructive focus-visible:border-destructive' : ''}`}
             {...register('password')}
           />
           <button
@@ -194,7 +194,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
             placeholder="REPITA SUA SENHA"
             aria-invalid={!!errors.confirmPassword}
             aria-describedby={errors.confirmPassword ? 'register-confirm-password-error' : undefined}
-            className={`pl-10 pr-10 font-mono tracking-widest ${errors.confirmPassword ? 'border-destructive focus-visible:border-destructive' : ''}`}
+            className={`pl-10 pr-10 font-mono tracking-widest ${errors.confirmPassword ? 'border-destructive focus:border-destructive focus-visible:border-destructive' : ''}`}
             {...register('confirmPassword')}
           />
           <button

@@ -518,3 +518,10 @@ export async function addBodyMeasurement(
   return HistoryModel.addBodyMeasurement(userId, data.weight, data.body_fat ?? null, measuredAt);
 }
 
+export async function deleteBodyMeasurement(
+  userId: string,
+  measurementId: string
+): Promise<boolean> {
+  return HistoryModel.deleteBodyMeasurement(userId, measurementId);
+}
+

@@ -88,7 +88,7 @@ export const ForgotPasswordPage: React.FC = () => {
                 placeholder="SEU@EMAIL.COM"
                 aria-invalid={!!fieldError}
                 aria-describedby={fieldError ? 'forgot-email-error' : undefined}
-                className={`pl-10 ${fieldError ? 'border-destructive focus-visible:border-destructive' : ''}`}
+                className={`pl-10 ${fieldError ? 'border-destructive focus:border-destructive focus-visible:border-destructive' : ''}`}
               />
             </div>
             {fieldError && (

@@ -154,7 +154,7 @@ export const FoodQuantityForm: React.FC<FoodQuantityFormProps> = ({
               onChange={(e) => onSetAmount(e.target.value ? Number(e.target.value) : '')}
               placeholder={amountMode === 'un' ? 'EX: 2' : selectedFood.base_unit === 'ml' ? 'EX: 200' : 'EX: 150'}
               aria-label="Quantidade do alimento"
-              className="w-full px-4 py-3 bg-background border-2 border-border text-sm font-black text-foreground uppercase placeholder:text-muted-foreground focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background outline-none transition-colors"
+              className="w-full px-4 py-3 bg-background border-2 border-border text-sm font-black text-foreground uppercase placeholder:text-muted-foreground focus:border-ring focus:outline-none focus-visible:border-ring focus-visible:outline-none outline-none transition-colors"
             />
             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted-foreground uppercase pointer-events-none">
               {amountMode === 'un' ? selectedFood.unit_name || 'UN' : selectedFood.base_unit}

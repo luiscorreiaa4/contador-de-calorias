@@ -90,7 +90,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onEmailNotVerif
             placeholder="SEU@EMAIL.COM"
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? 'login-email-error' : undefined}
-            className={`pl-10 ${errors.email ? 'border-destructive focus-visible:border-destructive' : ''}`}
+            className={`pl-10 ${errors.email ? 'border-destructive focus:border-destructive focus-visible:border-destructive' : ''}`}
           />
         </div>
         {errors.email && (
@@ -118,7 +118,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onEmailNotVerif
             placeholder="••••••••"
             aria-invalid={!!errors.password}
             aria-describedby={errors.password ? 'login-password-error' : undefined}
-            className={`pl-10 pr-10 font-mono tracking-widest ${errors.password ? 'border-destructive focus-visible:border-destructive' : ''}`}
+            className={`pl-10 pr-10 font-mono tracking-widest ${errors.password ? 'border-destructive focus:border-destructive focus-visible:border-destructive' : ''}`}
           />
           <button
             type="button"

@@ -182,7 +182,7 @@ export const ResetPasswordPage: React.FC = () => {
               placeholder="MÍNIMO 8 CARACTERES COM LETRA E NÚMERO"
               aria-invalid={!!errors.password}
               aria-describedby={errors.password ? 'reset-password-error' : undefined}
-              className={`pl-10 pr-10 font-mono tracking-widest ${errors.password ? 'border-destructive focus-visible:border-destructive' : ''}`}
+              className={`pl-10 pr-10 font-mono tracking-widest ${errors.password ? 'border-destructive focus:border-destructive focus-visible:border-destructive' : ''}`}
               {...register('password')}
             />
             <button
@@ -218,7 +218,7 @@ export const ResetPasswordPage: React.FC = () => {
               placeholder="REPITA A NOVA SENHA"
               aria-invalid={!!errors.confirmPassword}
               aria-describedby={errors.confirmPassword ? 'reset-confirm-password-error' : undefined}
-              className={`pl-10 pr-10 font-mono tracking-widest ${errors.confirmPassword ? 'border-destructive focus-visible:border-destructive' : ''}`}
+              className={`pl-10 pr-10 font-mono tracking-widest ${errors.confirmPassword ? 'border-destructive focus:border-destructive focus-visible:border-destructive' : ''}`}
               {...register('confirmPassword')}
             />
             <button

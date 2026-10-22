@@ -58,7 +58,8 @@ describe('Navegação por finalidade', () => {
     const navigation = await screen.findByRole('navigation', { name: 'Evolução' });
     await userEvent.click(within(navigation).getByRole('link', { name: /peso e medidas/i }));
     expect(await screen.findByRole('heading', { name: 'PESO E MEDIDAS' })).toBeInTheDocument();
-    expect(await screen.findByLabelText(/altura/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/altura/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /nova medição/i })).toBeInTheDocument();
     await router.navigate(-1);
     expect(await screen.findByRole('heading', { name: 'ALIMENTAÇÃO' })).toBeInTheDocument();
     await router.navigate(1);
@@ -68,6 +69,7 @@ describe('Navegação por finalidade', () => {
   it('oferece configurações específicas no menu da conta e fecha com Escape', async () => {
     renderRoute('/perfil');
     await screen.findByRole('heading', { name: 'PERFIL' });
+    expect(await screen.findByLabelText(/altura/i)).toBeInTheDocument();
     const trigger = screen.getByRole('button', { name: 'Menu da conta' });
     await userEvent.click(trigger);
     const menu = screen.getByRole('navigation', { name: 'Menu da conta' });

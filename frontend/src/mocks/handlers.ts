@@ -351,6 +351,13 @@ export const handlers = [
     });
   }),
 
+  http.delete(`${baseURL}/users/me/measurements/:id`, () => {
+    return HttpResponse.json({
+      success: true,
+      message: 'Medição excluída com sucesso.',
+    });
+  }),
+
   http.get(`${baseURL}/push/public-key`, () => {
     return HttpResponse.json({
       success: true,

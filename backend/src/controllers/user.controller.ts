@@ -104,3 +104,19 @@ export const addMeasurement = asyncHandler(async (req: Request, res: Response) =
     message: 'Medição registrada com sucesso.',
   });
 });
+
+export const deleteMeasurement = asyncHandler(async (req: Request, res: Response) => {
+  const userId = requireUserId(req);
+  const measurementId = req.params.id as string;
+  const deleted = await UserService.deleteBodyMeasurement(userId, measurementId);
+  if (!deleted) {
+    return res.status(404).json({
+      success: false,
+      message: 'Medição não encontrada ou não pertence a este usuário.',
+    });
+  }
+  return res.status(200).json({
+    success: true,
+    message: 'Medição excluída com sucesso.',
+  });
+});

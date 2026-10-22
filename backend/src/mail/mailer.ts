@@ -73,8 +73,9 @@ function buildSmtpMailer(): SmtpMailer {
   if (!env.MAIL_SMTP_HOST || !env.MAIL_SMTP_PORT) {
     throw new Error('MAIL_SMTP_HOST e MAIL_SMTP_PORT são obrigatórios para MAIL_TRANSPORT=smtp.');
   }
+  const host = env.MAIL_SMTP_HOST === 'localhost' ? '127.0.0.1' : env.MAIL_SMTP_HOST;
   return new SmtpMailer({
-    host: env.MAIL_SMTP_HOST,
+    host,
     port: Number(env.MAIL_SMTP_PORT),
     secure: env.MAIL_SMTP_SECURE,
     user: env.MAIL_SMTP_USER || undefined,

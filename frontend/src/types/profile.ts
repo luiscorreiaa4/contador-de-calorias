@@ -1,27 +1,21 @@
 import { z } from 'zod';
 import { parseAndValidateBirthDate } from '@caloriesync/shared';
 
-const profileFields = z
-  .object({
-    name: z.string().trim().min(1, 'O NOME É OBRIGATÓRIO.'),
-    email: z.string().trim().min(1, 'O E-MAIL É OBRIGATÓRIO.').email('DIGITE UM E-MAIL VÁLIDO.'),
-    goal: z.string().min(1, 'SELECIONE O OBJETIVO.'),
-    sex: z.enum(['masculino', 'feminino', 'prefiro_nao_responder']),
-    birthDate: z.string().optional().refine((val) => {
-      if (!val || !val.trim()) return true;
-      return parseAndValidateBirthDate(val) !== null;
-    }, 'DATA DE NASCIMENTO INVÁLIDA.'),
-    weight: z.string().min(1, 'INFORME SEU PESO.'),
-    height: z.string().min(1, 'INFORME SUA ALTURA.'),
-    bodyFat: z.string().optional().default(''),
-    activityLevel: z.string().min(1, 'SELECIONE SEU NÍVEL DE ATIVIDADE.'),
-    currentPassword: z.string().optional().default(''),
-    newPassword: z.string().optional().default(''),
-    confirmNewPassword: z.string().optional().default(''),
-  });
 
-export const personalInfoSchema = profileFields
-  .pick({ name: true, email: true, sex: true, birthDate: true, currentPassword: true });
+export const personalInfoSchema = z.object({
+  name: z.string().trim().min(1, 'O NOME É OBRIGATÓRIO.'),
+  sex: z.enum(['masculino', 'feminino', 'prefiro_nao_responder']),
+  birthDate: z.string().optional().refine((val) => {
+    if (!val || !val.trim()) return true;
+    return parseAndValidateBirthDate(val) !== null;
+  }, 'DATA DE NASCIMENTO INVÁLIDA.'),
+  height: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined || (typeof val === 'number' && isNaN(val)) ? undefined : Number(String(val).replace(',', '.'))),
+    z.number({ invalid_type_error: 'INFORME UMA ALTURA VÁLIDA.', required_error: 'INFORME SUA ALTURA.' })
+      .positive('A ALTURA DEVE SER MAIOR QUE ZERO.')
+      .max(300, 'ALTURA INVÁLIDA.')
+  ),
+});
 export type PersonalInfoFormInputs = z.infer<typeof personalInfoSchema>;
 
 export const routineSchema = z.object({

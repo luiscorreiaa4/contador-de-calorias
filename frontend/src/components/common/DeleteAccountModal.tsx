@@ -177,7 +177,7 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="SUA SENHA ATUAL"
-                  className={`w-full pl-10 pr-12 py-2.5 bg-background border-2 rounded-none text-sm font-medium text-foreground outline-none transition-colors min-h-[48px] ${error ? 'border-destructive bg-destructive/10 text-destructive focus:border-destructive' : 'border-border hover:border-foreground/60 focus:border-ring focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background'}`}
+                  className={`w-full pl-10 pr-12 py-2.5 bg-background border-2 rounded-none text-sm font-medium text-foreground outline-none transition-colors min-h-[48px] ${error ? 'border-destructive bg-destructive/10 text-destructive focus:border-destructive' : 'border-border hover:border-foreground/60 focus:border-ring focus:outline-none focus-visible:border-ring focus-visible:outline-none'}`}
                   disabled={isLoading}
                   aria-invalid={!!error}
                   aria-describedby={error ? 'delete-password-error' : undefined}

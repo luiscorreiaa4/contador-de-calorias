@@ -1,7 +1,6 @@
 import { render as rtlRender, screen, waitFor } from '@testing-library/react';
 import type { ReactElement } from 'react';
-import userEvent from '@testing-library/user-event';
-import { MemoryRouter, Route, Routes } from 'react-router';
+import { MemoryRouter } from 'react-router';
 import { describe, it, expect } from 'vitest';
 import { StatsPage } from '../StatsPage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -20,19 +19,6 @@ const createTestQueryClient = () =>
   });
 
 describe('StatsPage (PC-27)', () => {
-  it('volta ao dashboard pela seta de navegação', async () => {
-    render(
-      <QueryClientProvider client={createTestQueryClient()}>
-        <Routes>
-          <Route path="/estatisticas" element={<StatsPage />} />
-          <Route path="/" element={<h1>Dashboard</h1>} />
-        </Routes>
-      </QueryClientProvider>
-    );
-
-    await userEvent.click(screen.getByRole('link', { name: /voltar ao dashboard/i }));
-    expect(screen.getByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
-  });
   it('renders loading state initially', () => {
     const queryClient = createTestQueryClient();
     render(

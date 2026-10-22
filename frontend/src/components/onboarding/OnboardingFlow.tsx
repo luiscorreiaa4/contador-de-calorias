@@ -130,7 +130,7 @@ export const OnboardingFlow: React.FC = () => {
     { key: 'extremamente_ativo', label: 'EXTREMAMENTE ATIVO', desc: 'TRABALHO FÍSICO PESADO OU TREINO 2X/DIA' },
   ];
 
-  const inputBase = 'w-full pl-10 pr-4 py-3 bg-background border-2 border-border rounded-none text-sm font-black text-foreground placeholder:text-muted-foreground focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background outline-none transition-colors min-h-[48px]';
+  const inputBase = 'w-full pl-10 pr-4 py-3 bg-background border-2 border-border rounded-none text-sm font-black text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus-visible:border-ring focus-visible:outline-none outline-none transition-colors min-h-[48px]';
 
   return (
     <form 

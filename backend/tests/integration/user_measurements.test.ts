@@ -125,4 +125,72 @@ describe('User Body Measurements Evolution (BL-21 / FEAT-C04)', () => {
       .set('Authorization', `Bearer ${user1Token}`);
     assert.strictEqual(Number(profileRes.body.data.weight), 81.8);
   });
+
+  it('DELETE /api/users/me/measurements/:id - deve retornar 401 sem autenticação', async () => {
+    const res = await request(app).delete('/api/users/me/measurements/00000000-0000-0000-0000-000000000000');
+    assert.strictEqual(res.status, 401);
+  });
+
+  it('DELETE /api/users/me/measurements/:id - deve retornar 400 para UUID inválido', async () => {
+    const res = await request(app)
+      .delete('/api/users/me/measurements/nao-e-uuid')
+      .set('Authorization', `Bearer ${user1Token}`);
+    assert.strictEqual(res.status, 400);
+  });
+
+  it('DELETE /api/users/me/measurements/:id - IDOR: não deve permitir que usuário 2 exclua medição do usuário 1 (404)', async () => {
+    // Registra medição para o usuário 1
+    const createRes = await request(app)
+      .post('/api/users/me/measurements')
+      .set('Authorization', `Bearer ${user1Token}`)
+      .send({ weight: 75.0, body_fat: 15.0 });
+    const measurementId = createRes.body.data.id;
+
+    // Usuário 2 tenta deletar a medição do usuário 1
+    const res = await request(app)
+      .delete(`/api/users/me/measurements/${measurementId}`)
+      .set('Authorization', `Bearer ${user2Token}`);
+    assert.strictEqual(res.status, 404);
+  });
+
+  it('DELETE /api/users/me/measurements/:id - deve excluir medição e atualizar peso do usuário para a mais recente restante', async () => {
+    const user3 = await createVerifiedUser({
+      name: 'Measurement Tester 3',
+      email: `tester-meas-3-${Date.now()}@example.com`,
+      password: 'password123',
+    });
+    const user3Token = user3.token;
+
+    // Registra uma primeira medição (mais antiga)
+    await request(app)
+      .post('/api/users/me/measurements')
+      .set('Authorization', `Bearer ${user3Token}`)
+      .send({ weight: 70.0, measured_at: '2026-05-01T12:00:00Z' });
+
+    // Registra uma medição mais nova (72.0)
+    const latestRes = await request(app)
+      .post('/api/users/me/measurements')
+      .set('Authorization', `Bearer ${user3Token}`)
+      .send({ weight: 72.0, measured_at: '2026-05-10T12:00:00Z' });
+    const latestId = latestRes.body.data.id;
+
+    // Perfil deve ter peso 72.0
+    let profileRes = await request(app)
+      .get('/api/users/me')
+      .set('Authorization', `Bearer ${user3Token}`);
+    assert.strictEqual(Number(profileRes.body.data.weight), 72.0);
+
+    // Exclui a medição mais recente (latestId)
+    const delRes = await request(app)
+      .delete(`/api/users/me/measurements/${latestId}`)
+      .set('Authorization', `Bearer ${user3Token}`);
+    assert.strictEqual(delRes.status, 200);
+    assert.strictEqual(delRes.body.success, true);
+
+    // Agora o peso no perfil deve ter voltado para a mais recente restante (70.0)
+    profileRes = await request(app)
+      .get('/api/users/me')
+      .set('Authorization', `Bearer ${user3Token}`);
+    assert.strictEqual(Number(profileRes.body.data.weight), 70.0);
+  });
 });

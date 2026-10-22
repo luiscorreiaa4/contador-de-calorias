@@ -148,3 +148,52 @@ export async function addBodyMeasurement(
   }
 }
 
+/** Exclui uma medição corporal específica do usuário e sincroniza users.weight com a medição mais recente restante em transação atômica. */
+export async function deleteBodyMeasurement(
+  userId: string,
+  measurementId: string
+): Promise<boolean> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const deleteResult = await client.query(
+      `DELETE FROM body_measurements WHERE id = $1 AND user_id = $2 RETURNING id`,
+      [measurementId, userId]
+    );
+
+    if (!deleteResult.rowCount || deleteResult.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return false;
+    }
+
+    // Busca a medição mais recente restante do usuário para sincronizar com users
+    const latestResult = await client.query<{ weight: number; body_fat: number | null }>(
+      `SELECT weight, body_fat FROM body_measurements 
+       WHERE user_id = $1 
+       ORDER BY measured_at DESC, created_at DESC 
+       LIMIT 1`,
+      [userId]
+    );
+
+    if (latestResult.rowCount && latestResult.rowCount > 0) {
+      const latest = latestResult.rows[0];
+      await client.query(
+        `UPDATE users 
+         SET weight = $1, 
+             body_fat = $2, 
+             updated_at = NOW() 
+         WHERE id = $3`,
+        [latest.weight, latest.body_fat, userId]
+      );
+    }
+
+    await client.query('COMMIT');
+    return true;
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+

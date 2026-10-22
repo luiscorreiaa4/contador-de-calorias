@@ -15,17 +15,17 @@ Aplicação ao projeto: navegação principal persistente com cinco áreas; nave
 | --- | --- | --- |
 | Dashboard | `/` | Visão e registro do dia; conteúdo preservado |
 | Evolução | `/evolucao/alimentacao` | Média e histórico do consumo alimentar |
-| Evolução | `/evolucao/corpo` | Histórico de peso/gordura, nova medição e altura |
+| Evolução | `/evolucao/corpo` | Histórico de peso/gordura e nova medição |
 | Metas | `/metas/rotina` | Objetivo e nível de atividade física |
 | Metas | `/metas/diarias` | Metas automáticas ou manuais de calorias e macros |
-| Perfil | `/perfil` | Nome, e-mail, sexo e nascimento |
+| Perfil | `/perfil` | Nome, e-mail (não alterável), altura, sexo e nascimento |
 | Configurações | `/configuracoes/notificacoes` | Ativação de lembretes e envio de teste |
 | Configurações | `/configuracoes/seguranca` | Alteração de senha |
 | Configurações | `/configuracoes/privacidade` | Exportação dos dados e exclusão da conta |
 
-Estatísticas e histórico corporal passam a compartilhar a área Evolução, com páginas separadas para preservar os contextos e filtros próprios. Peso/gordura têm um único formulário de registro; altura fica na mesma área corporal. Objetivo e rotina ficam juntos porque orientam o cálculo automático; metas numéricas têm confirmação própria. Perfil deixa de conter segurança, preferências e medidas.
+Estatísticas e histórico corporal passam a compartilhar a área Evolução, com páginas separadas para preservar os contextos e filtros próprios. Peso/gordura têm um formulário de registro com seletor de data padronizado; altura é alterada diretamente no perfil. Objetivo e rotina ficam juntos porque orientam o cálculo automático; metas numéricas têm confirmação própria.
 
-Cada formulário envia apenas os campos da tarefa atual. Alterar o e-mail exige a senha atual no próprio perfil; alterar senha é uma tarefa independente. Selecionar o modo das metas não grava dados até confirmar em Aplicar metas. Atualizações invalidam as consultas relacionadas para manter o dashboard e as metas sincronizados.
+Cada formulário envia apenas os campos da tarefa atual. O e-mail cadastrado é exibido no perfil mas não é alterável; alterar senha é uma tarefa independente na tela de Segurança. Selecionar o modo das metas não grava dados até confirmar em Aplicar metas. Atualizações invalidam as consultas relacionadas para manter o dashboard e as metas sincronizados.
 
 ## Navegação e compatibilidade
 

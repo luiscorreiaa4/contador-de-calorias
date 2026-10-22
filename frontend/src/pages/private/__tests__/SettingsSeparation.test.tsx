@@ -8,7 +8,7 @@ import { EditProfilePage } from '../EditProfilePage';
 import { RoutinePage } from '../RoutinePage';
 import { AccountSecurityPage } from '../AccountSecurityPage';
 import { GoalSettingsCard } from '../../../components/profile/GoalSettingsCard';
-import { BodyHeightForm } from '../../../components/profile/BodyHeightForm';
+import { MeasurementsPage } from '../MeasurementsPage';
 
 const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
@@ -39,21 +39,20 @@ describe('Separação das tarefas de perfil e configurações', () => {
     await userEvent.clear(input);
     await userEvent.type(input, 'Novo Nome');
     await userEvent.click(screen.getByRole('button', { name: /salvar alterações/i }));
-    await waitFor(() => expect(requests).toEqual([{ name: 'Novo Nome', sex: 'masculino', birthDate: '01/01/1990' }]));
+    await waitFor(() => expect(requests).toEqual([{ name: 'Novo Nome', sex: 'masculino', birthDate: '01/01/1990', height: 175 }]));
   });
 
-  it('exige senha apenas para confirmar alteração de e-mail', async () => {
+  it('não permite alterar o e-mail no perfil e permite alterar a altura', async () => {
     const requests = captureProfileUpdates();
     render(<MemoryRouter><EditProfilePage /></MemoryRouter>);
-    const input = await screen.findByLabelText(/^e-mail$/i);
-    await userEvent.clear(input);
-    await userEvent.type(input, 'novo@example.com');
+    const emailInput = await screen.findByLabelText(/^e-mail$/i);
+    expect(emailInput).toBeDisabled();
+
+    const heightInput = screen.getByLabelText(/altura/i);
+    await userEvent.clear(heightInput);
+    await userEvent.type(heightInput, '180');
     await userEvent.click(screen.getByRole('button', { name: /salvar alterações/i }));
-    expect(await screen.findByRole('alert')).toHaveTextContent(/senha atual/i);
-    expect(requests).toHaveLength(0);
-    await userEvent.type(screen.getByLabelText(/senha atual para alterar/i), 'Senha123');
-    await userEvent.click(screen.getByRole('button', { name: /salvar alterações/i }));
-    await waitFor(() => expect(requests[0]).toEqual({ name: 'Test User', sex: 'masculino', birthDate: '01/01/1990', email: 'novo@example.com', currentPassword: 'Senha123' }));
+    await waitFor(() => expect(requests).toEqual([{ name: 'Test User', sex: 'masculino', birthDate: '01/01/1990', height: 180 }]));
   });
 
   it('salva objetivo e rotina sem alterar dados pessoais ou medidas', async () => {
@@ -87,14 +86,11 @@ describe('Separação das tarefas de perfil e configurações', () => {
     expect(requests).toHaveLength(0);
   });
 
-  it('salva altura na área corporal enviando apenas a altura', async () => {
-    const requests = captureProfileUpdates();
-    render(<MemoryRouter><BodyHeightForm /></MemoryRouter>);
-    const input = await screen.findByLabelText(/altura/i);
-    await userEvent.clear(input);
-    await userEvent.type(input, '180');
-    await userEvent.click(screen.getByRole('button', { name: /salvar altura/i }));
-    await waitFor(() => expect(requests).toEqual([{ height: 180 }]));
+  it('não exibe opção de alterar altura na tela de peso e medidas', async () => {
+    render(<MemoryRouter><MeasurementsPage embedded /></MemoryRouter>);
+    await screen.findByRole('heading', { name: /peso e medidas/i });
+    expect(screen.queryByRole('heading', { name: /dados corporais/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /salvar altura/i })).not.toBeInTheDocument();
   });
 
   it('permite aplicar metas manuais com validação e salvamento próprio', async () => {

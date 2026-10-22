@@ -1,12 +1,5 @@
 1. Ao clicar em adicionar novo alimento, na tela de nova refeição preenche no banco de dados para todos? Se sim, não quero isso, pois um usuario pode criar algo com nomes improprios ou poluir o banco de dados de alimentos de todos
 
-2. Na tela de configurações, o nav com as opções notificações, segurança e privacidade e dados está no mobile bem feio, com a terceira opção abaixo. Todos os submenus estão feios no mobile, na tela de evolução também, quero eles reimaginados, talvez centralizados no mobile ou algo do tipo.
-
 4. analise o readme e tambem a arquitetura, e se necessario o codigo, para ver como a base de alimentos esta armazenada, é um banco de dados proprio ou uma api externa? quero adicionar muitos alimentos e remover muitos outros caso seja o primeiro caso, e caso seja o segundo, quero puxar uma vez só essa base de dados da api e salvar localmente no projeto. Caso essa escolha seja muito ruim me explique por que e proponha soluções para isso, pois tem muitos alimentos repetidos como arroz tipo 1 2 3 4 5, ai integral tipo a b c d e, e muitos alimentos que deveriam ser simples estão faltando. Com base nisso, proponha a melhor solução para eu conseguir remover(manualmente) e adicionar alimentos também
 
-3. algumas vezes voce faz essa função de abrir uma janela do chrome e mexer no site, mas toda vez voce precisa criar uma conta e passar pelo onboard, verifique se tem uma conta ja de teste no momento em que rodo o projeto, se nao em engano tem, quando o bd foi criado, e nesse caso, mexa no agents.md ou nas skills, nao sei onde exatamente, instruindo para utilizar essa conta de teste de maneira que nao precisa passar pelo onboard para mexer no dashboard
 
-5. na subtela em evolução -> peso e medidas, o gráfico deve estar mais ao topo da tela, inclusive acima de nova medição, abaixo apenas do menu de 30 dias, 90 dias e tudo. A parte de alterar altura deve ser a ultima coisa dessa tela.
-
-6. A tela de meta COLOCAR AQUI O ARQUIVO, perfil COLOCAR AQUI O ARQUIVO, configurações COLOCAR AQUI O ARQUIVO, estão sem a setinha pra voltar pra tela inicial, e na tela de evolução COLOCAR AQUI O ARQUIVO ela está lá em baixo, e em lugares diferentes de acordo com a opção selecionada(alimentação ou peso e medidas), quero essa setas extintas, pois implementarei uma barra de navegação inferior para mobile.
-7.
