@@ -10,6 +10,7 @@ import foodRoutes from './routes/food.routes.js';
 import mealRoutes from './routes/meal.routes.js';
 import savedMealRoutes from './routes/saved_meal.routes.js';
 import pushRoutes from './routes/push.routes.js';
+import adminRoutes from './routes/admin.routes.js';
 import { pool } from './database/pool.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { requestLogger } from './middlewares/requestLogger.js';
@@ -64,6 +65,7 @@ app.use('/api/foods', foodRoutes);
 app.use('/api/meals', mealRoutes);
 app.use('/api/saved-meals', savedMealRoutes);
 app.use('/api/push', pushRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health Check com probe ativo do banco e timeout dedicado de 2s (A-040)
 app.get('/health', async (_req, res) => {

@@ -103,17 +103,17 @@
 | `backend/migrations/1792900000000_add-admin-roles-and-audit.js` | Migração: `users.role`, `foods.source_ref`, `foods.admin_edited_at`, tabela `admin_audit_log` | [x] |
 | `shared/src/types/user.types.ts` | Adicionar `role: 'user' \| 'admin'` em `User` e `UserWithoutPassword` | [x] |
 | `shared/src/types/food.types.ts` | Adicionar `source_ref`, `admin_edited_at`, `active` opcionais em `Food` | [x] |
-| `shared/src/schemas/admin-food.schemas.ts` | Schemas Zod de criação, edição, busca e status admin | [ ] |
-| `shared/src/index.ts` | Reexportar novos schemas e tipos admin | [ ] |
+| `shared/src/schemas/admin-food.schemas.ts` | Schemas Zod de criação, edição, busca e status admin | [x] |
+| `shared/src/index.ts` | Reexportar novos schemas e tipos admin | [x] |
 | `backend/src/models/auth.model.ts` | Buscar `role` junto com `token_version` do banco por PK | [x] |
 | `backend/src/middlewares/auth.ts` | Carregar `req.userRole` no `authenticate` e criar middleware `requireAdmin` | [x] |
-| `backend/src/models/admin-audit.model.ts` | Model para inserção transacional em `admin_audit_log` | [ ] |
-| `backend/src/models/admin-food.model.ts` | Model de busca administrativa (all/active/inactive), update e insert de alimentos globais | [ ] |
-| `backend/src/services/admin-food.service.ts` | Regras de validação dura por 100 g, divergência calórica (warnings) e auditoria | [ ] |
-| `backend/src/controllers/admin-food.controller.ts` | Tradução HTTP das rotas administrativas de catálogo | [ ] |
-| `backend/src/routes/admin-food.routes.ts` | Rotas sob `/api/admin/foods` protegidas por `router.use(authenticate, requireAdmin)` | [ ] |
-| `backend/src/routes/index.ts` | Registro do router `/api/admin` na aplicação Express | [ ] |
-| `backend/src/services/meal.service.ts` | Validação de B7: rejeitar 422 para novo alimento inativo em criação/edição | [ ] |
+| `backend/src/models/admin-audit.model.ts` | Model para inserção transacional em `admin_audit_log` | [x] |
+| `backend/src/models/admin-food.model.ts` | Model de busca administrativa (all/active/inactive), update e insert de alimentos globais | [x] |
+| `backend/src/services/admin-food.service.ts` | Regras de validação dura por 100 g, divergência calórica (warnings) e auditoria | [x] |
+| `backend/src/controllers/admin-food.controller.ts` | Tradução HTTP das rotas administrativas de catálogo | [x] |
+| `backend/src/routes/admin-food.routes.ts` | Rotas sob `/api/admin/foods` protegidas por `router.use(authenticate, requireAdmin)` | [x] |
+| `backend/src/routes/index.ts` | Registro do router `/api/admin` na aplicação Express | [x] |
+| `backend/src/services/meal.service.ts` | Validação de B7: rejeitar 422 para novo alimento inativo em criação/edição | [x] |
 | `backend/src/services/admin-user.service.ts` | Serviço testável de CLI (promote, demote, list) com verificação de e-mail e última conta admin | [ ] |
 | `backend/scripts/admin-cli.ts` | Scripts CLI para `npm run admin:promote`, `admin:demote`, `admin:list` | [ ] |
 | `backend/scripts/catalog-export.ts` | Script `npm run catalog:export` gerando CSV com heurísticas de duplicatas | [ ] |
@@ -132,7 +132,7 @@
 | `frontend/src/router.tsx` | Adicionar rota protegida `/admin/alimentos` | [ ] |
 | `frontend/src/components/meals/NewMealModal.tsx` | Tratar erro 422 de alimento inativo | [ ] |
 | `backend/tests/integration/admin_rbac.test.ts` | Testes de RBAC, enumeração de rotas 401/403 e rebaixamento imediato | [x] |
-| `backend/tests/integration/admin_foods.test.ts` | Testes de CRUD, auditoria atômica, integridade B6/B7 e warnings | [ ] |
+| `backend/tests/integration/admin_foods.test.ts` | Testes de CRUD, auditoria atômica, integridade B6/B7 e warnings | [x] |
 | `backend/tests/integration/admin_cli.test.ts` | Testes de promoção, demote com trava de último admin e verificação de e-mail | [ ] |
 | `backend/tests/integration/catalog_curation.test.ts` | Testes de exportação, apply simulação/real e proteção do `import-foods` | [ ] |
 | `frontend/src/pages/admin/__tests__/AdminCatalogPage.test.tsx` | Testes de frontend com RTL, MSW e acessibilidade | [ ] |

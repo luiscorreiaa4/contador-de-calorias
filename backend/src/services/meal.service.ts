@@ -15,9 +15,9 @@ export { calculateItemNutrients };
 export async function createMeal(userId: string, data: CreateMealDTO) {
   const itemsData = [];
   
-  // Otimização: Fetch all foods at once (evitar N+1 queries)
+  // Otimização: Fetch all foods at once incluindo inativos para validação de B7 (evitar N+1 queries)
   const foodIds = [...new Set(data.items.map(item => item.foodId))];
-  const foods = await FoodModel.findByIds(foodIds, userId);
+  const foods = await FoodModel.findByIds(foodIds, userId, { includeInactive: true });
   const foodsMap = new Map(foods.map(f => [f.id, f]));
   
   for (const item of data.items) {
@@ -25,6 +25,13 @@ export async function createMeal(userId: string, data: CreateMealDTO) {
     if (!food) {
       const error: CustomError = new Error(`Alimento com ID ${item.foodId} não encontrado.`);
       error.statusCode = 404;
+      throw error;
+    }
+
+    // B7: Item NOVO de refeição com alimento inativo é rejeitado com 422
+    if (food.active === false) {
+      const error: CustomError = new Error(`O alimento "${food.name}" está desativado no catálogo e não pode ser adicionado a novas refeições.`);
+      error.statusCode = 422;
       throw error;
     }
     
@@ -47,11 +54,19 @@ export async function getTodayMeals(userId: string, dateStr?: string) {
 }
 
 export async function updateMeal(userId: string, mealId: string, data: CreateMealDTO) {
+  const existingMeal = await MealModel.findMealById(userId, mealId);
+  if (!existingMeal) {
+    const error: CustomError = new Error('Refeição não encontrada ou não pertence a este usuário.');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const existingFoodIds = new Set((existingMeal.items || []).map(it => it.food_id));
   const itemsData = [];
   
   // Otimização: Fetch all foods at once (evitar N+1 queries)
   const foodIds = [...new Set(data.items.map(item => item.foodId))];
-  const foods = await FoodModel.findByIds(foodIds, userId);
+  const foods = await FoodModel.findByIds(foodIds, userId, { includeInactive: true });
   const foodsMap = new Map(foods.map(f => [f.id, f]));
   
   for (const item of data.items) {
@@ -59,6 +74,13 @@ export async function updateMeal(userId: string, mealId: string, data: CreateMea
     if (!food) {
       const error: CustomError = new Error(`Alimento com ID ${item.foodId} não encontrado.`);
       error.statusCode = 404;
+      throw error;
+    }
+
+    // B7: Item NOVO com alimento inativo é rejeitado (422). Alimentos pré-existentes na refeição são preservados.
+    if (food.active === false && !existingFoodIds.has(item.foodId)) {
+      const error: CustomError = new Error(`O alimento "${food.name}" está desativado no catálogo e não pode ser adicionado a refeições.`);
+      error.statusCode = 422;
       throw error;
     }
     

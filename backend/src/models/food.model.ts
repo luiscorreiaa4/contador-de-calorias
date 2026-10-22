@@ -117,16 +117,24 @@ export async function findById(id: string, userId?: string): Promise<Food | null
   return result.rows[0] ? mapFoodRow(result.rows[0] as unknown as Record<string, unknown>) : null;
 }
 
-export async function findByIds(ids: string[], userId?: string): Promise<Food[]> {
+export async function findByIds(
+  ids: string[],
+  userId?: string,
+  options?: { includeInactive?: boolean }
+): Promise<(Food & { active?: boolean })[]> {
   if (ids.length === 0) return [];
-  let query = `SELECT ${FOOD_COLUMNS} FROM foods WHERE id = ANY($1::uuid[]) AND active = true`;
+  const activeFilter = options?.includeInactive ? '' : ' AND active = true';
+  let query = `SELECT ${FOOD_COLUMNS}, active FROM foods WHERE id = ANY($1::uuid[])${activeFilter}`;
   const params: unknown[] = [ids];
   if (userId) {
     query += ` AND (user_id IS NULL OR user_id = $2)`;
     params.push(userId);
   }
   const result = await pool.query(query, params);
-  return mapFoodRows(result.rows as unknown as Record<string, unknown>[]);
+  return result.rows.map((row) => ({
+    ...mapFoodRow(row as Record<string, unknown>),
+    active: Boolean(row.active),
+  }));
 }
 
 export async function getRecentFoods(userId: string, limit: number = 20): Promise<Food[]> {
