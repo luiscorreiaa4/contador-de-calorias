@@ -113,7 +113,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
         {/* Logo */}
         <button type="button" aria-label="CalorieSync — Dashboard" className="flex items-center gap-3 shrink-0 cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background" onClick={handleDashboard}>
-          <div className="w-10 h-10 bg-primary text-primary-foreground border-2 border-black flex items-center justify-center shadow-hard transition-transform group-hover:-translate-y-0.5 group-hover:shadow-hard-hover">
+          <div className="w-10 h-10 bg-primary text-primary-foreground border-2 border-edge flex items-center justify-center shadow-hard transition-transform group-hover:-translate-y-0.5 group-hover:shadow-hard-hover">
             <Flame className="w-6 h-6 fill-current" aria-hidden="true" />
           </div>
 
@@ -214,7 +214,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                           if (to === '/' && onNavigateToDashboard) { event.preventDefault(); handleDashboard(); }
                           if (to === '/evolucao' && onNavigateToStats) { event.preventDefault(); handleStats(); }
                           if (to === '/perfil' && onNavigateToEditProfile) { event.preventDefault(); handleEditProfile(); }
-                        }} className={({ isActive }) => `flex items-center px-3 py-3 text-xs font-bold uppercase tracking-wider focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${isActive ? 'bg-primary text-primary-foreground border-2 border-black' : 'hover:bg-secondary'}`}>
+                        }} className={({ isActive }) => `flex items-center px-3 py-3 text-xs font-bold uppercase tracking-wider focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${isActive ? 'bg-primary text-primary-foreground border-2 border-edge' : 'hover:bg-secondary'}`}>
                           <Icon className="w-4 h-4 mr-3" aria-hidden="true" />{label}
                         </NavLink>
                       ))}

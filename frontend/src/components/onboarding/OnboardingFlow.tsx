@@ -311,7 +311,7 @@ export const OnboardingFlow: React.FC = () => {
 
       {step === 5 && (
         <div className="text-center space-y-6 py-6 border-2 border-border bg-secondary">
-          <div className="w-16 h-16 bg-primary text-primary-foreground border-2 border-black flex items-center justify-center mx-auto shadow-hard-fill">
+          <div className="w-16 h-16 bg-primary text-primary-foreground border-2 border-edge flex items-center justify-center mx-auto shadow-hard-fill">
             <CheckCircle2 className="w-8 h-8" />
           </div>
           <div className="px-6">
@@ -339,7 +339,7 @@ export const OnboardingFlow: React.FC = () => {
         {step < 5 ? (
           <button
             type="submit"
-            className="flex-[2] py-3 px-4 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs border-2 border-black hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring shadow-hard-fill hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+            className="flex-[2] py-3 px-4 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs border-2 border-edge hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring shadow-hard-fill hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
           >
             CONTINUAR
             <ArrowRight className="w-4 h-4" />
@@ -348,7 +348,7 @@ export const OnboardingFlow: React.FC = () => {
           <button
             type="submit"
             disabled={onboardingMutation.isPending}
-            className="w-full py-3 px-4 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs border-2 border-black hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring shadow-hard-fill disabled:shadow-none hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 px-4 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs border-2 border-edge hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring shadow-hard-fill disabled:shadow-none hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {onboardingMutation.isPending ? (
               <span>CARREGANDO...</span>

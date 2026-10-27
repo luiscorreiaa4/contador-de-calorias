@@ -113,7 +113,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
               className={`p-3 shrink-0 border-2 ${
                 isDestructive
                   ? 'bg-destructive text-destructive-foreground border-transparent'
-                  : 'bg-primary text-primary-foreground border-black shadow-hard-fill'
+                  : 'bg-primary text-primary-foreground border-edge shadow-hard-fill'
               }`}
             >
               <AlertTriangle className="w-6 h-6" aria-hidden="true" />
@@ -155,7 +155,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             className={`px-6 py-2 font-black uppercase tracking-widest text-xs flex items-center gap-2 transition-colors border-2 focus-visible:outline-none focus-visible:ring-2 disabled:opacity-50 ${
               isDestructive
                 ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90 border-transparent focus-visible:ring-destructive'
-                : 'bg-primary text-primary-foreground hover:bg-primary/90 border-black shadow-hard-fill focus-visible:ring-ring'
+                : 'bg-primary text-primary-foreground hover:bg-primary/90 border-edge shadow-hard-fill focus-visible:ring-ring'
             }`}
           >
             {isLoading ? (

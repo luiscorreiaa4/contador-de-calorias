@@ -40,7 +40,7 @@ export const StatsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }
             onClick={() => setPeriod('week')}
             className={`flex items-center justify-center text-center py-2.5 px-3 sm:px-6 text-xs font-black uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
               period === 'week' 
-                ? 'bg-primary text-primary-foreground border-2 border-black shadow-hard-fill' 
+                ? 'bg-primary text-primary-foreground border-2 border-edge shadow-hard-fill' 
                 : 'bg-card text-foreground border-2 border-transparent hover:bg-secondary'
             }`}
           >
@@ -51,7 +51,7 @@ export const StatsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }
             onClick={() => setPeriod('month')}
             className={`flex items-center justify-center text-center py-2.5 px-3 sm:px-6 text-xs font-black uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
               period === 'month' 
-                ? 'bg-primary text-primary-foreground border-2 border-black shadow-hard-fill' 
+                ? 'bg-primary text-primary-foreground border-2 border-edge shadow-hard-fill' 
                 : 'bg-card text-foreground border-2 border-transparent hover:bg-secondary'
             }`}
           >
@@ -114,7 +114,7 @@ export const StatsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }
                 <h3 className="text-[11px] font-bold text-muted-foreground group-hover:text-primary-ink transition-colors uppercase tracking-widest">
                   MÉDIA DE CONSUMO
                 </h3>
-                <div className="p-2 bg-primary text-primary-foreground border-2 border-black shadow-hard-fill">
+                <div className="p-2 bg-primary text-primary-foreground border-2 border-edge shadow-hard-fill">
                   <TrendingUp className="w-5 h-5" />
                 </div>
               </div>

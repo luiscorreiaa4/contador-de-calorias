@@ -169,7 +169,7 @@ const AdminFoodFormInner: React.FC<AdminFoodFormInnerProps> = ({
       {/* Header */}
       <div className="p-4 sm:p-6 border-b-2 border-border bg-background flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-primary text-primary-foreground border-2 border-black shrink-0 shadow-hard-fill">
+          <div className="p-2.5 bg-primary text-primary-foreground border-2 border-edge shrink-0 shadow-hard-fill">
             <Database className="w-5 h-5" aria-hidden="true" />
           </div>
           <div>
@@ -459,7 +459,7 @@ const AdminFoodFormInner: React.FC<AdminFoodFormInnerProps> = ({
           <button
             type="submit"
             disabled={isLoading}
-            className="px-6 py-2 font-black uppercase tracking-widest text-xs flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 border-2 border-black shadow-hard-fill transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 min-h-[44px]"
+            className="px-6 py-2 font-black uppercase tracking-widest text-xs flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 border-2 border-edge shadow-hard-fill transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 min-h-[44px]"
           >
             {isLoading ? (
               <>

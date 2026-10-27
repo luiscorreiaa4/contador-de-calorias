@@ -42,19 +42,22 @@
     --warning: 38 92% 50%;           /* #F59E0B - Âmbar para alertas e favoritos */
     --warning-foreground: 0 0% 4%;
 
-    --border: 0 0% 4%;               /* #0A0A0A - Contorno preto brutalista */
-    --input: 0 0% 4%;
-    --ring: 0 0% 4%;
+    --border: 75 55% 14%;            /* #2A3810 - Verde-oliva escuro (contorno firme, menos duro que preto puro) */
+    --input: 75 55% 14%;
+    --ring: 75 100% 20%;             /* #4D6600 - Mesmo verde-oliva da tinta primária */
 
-    /* Sombra brutalista adaptativa dos cards e botões */
-    --shadow: 0 0% 4%;
-    --shadow-alpha: 1;
-    --shadow-alpha-hover: 1;
+    /* Sombra brutalista adaptativa dos cards e botões (espelha o neon do modo escuro) */
+    --shadow: 75 100% 20%;
+    --shadow-alpha: 0.35;
+    --shadow-alpha-hover: 0.55;
 
     /* Sombra neutra para elementos com fill neon */
-    --shadow-fill: 0 0% 0%;
-    --shadow-fill-alpha: 1;
+    --shadow-fill: 75 55% 14%;
+    --shadow-fill-alpha: 0.85;
     --shadow-fill-alpha-hover: 1;
+
+    /* Contorno de superfícies com fill neon (botões, badges, progresso) */
+    --edge: 75 55% 14%;
 
     --radius: 0rem;
     --border-width: 2px;
@@ -95,6 +98,8 @@
     --shadow-fill: 0 0% 100%;
     --shadow-fill-alpha: 0.2;
     --shadow-fill-alpha-hover: 0.4;
+
+    --edge: 0 0% 0%;
 
     --border-width: 2px;
     --shadow-offset: 4px;

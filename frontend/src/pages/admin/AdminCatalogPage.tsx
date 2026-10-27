@@ -135,7 +135,7 @@ export const AdminCatalogPage: React.FC = () => {
       {/* Cabeçalho da Página */}
       <div className="border-2 border-border bg-card p-6 shadow-hard flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-primary text-primary-foreground border-2 border-black shrink-0 shadow-hard-fill">
+          <div className="p-3 bg-primary text-primary-foreground border-2 border-edge shrink-0 shadow-hard-fill">
             <Database className="w-6 h-6" aria-hidden="true" />
           </div>
           <div>
@@ -151,7 +151,7 @@ export const AdminCatalogPage: React.FC = () => {
         <button
           type="button"
           onClick={handleOpenCreate}
-          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-black text-xs uppercase tracking-widest border-2 border-black shadow-hard-fill hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
+          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-black text-xs uppercase tracking-widest border-2 border-edge shadow-hard-fill hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
         >
           <Plus className="w-4 h-4" aria-hidden="true" />
           <span>+ Novo Alimento</span>
@@ -254,7 +254,7 @@ export const AdminCatalogPage: React.FC = () => {
               }}
               className={`px-3 py-1.5 text-xs font-black uppercase tracking-wider transition-colors min-h-[40px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                 activeFilter === tab.id
-                  ? 'bg-primary text-primary-foreground border-2 border-black shadow-hard-fill'
+                  ? 'bg-primary text-primary-foreground border-2 border-edge shadow-hard-fill'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -337,7 +337,7 @@ export const AdminCatalogPage: React.FC = () => {
                         <span
                           className={`inline-flex items-center px-2 py-0.5 text-[10px] font-black uppercase tracking-widest border-2 ${
                             food.active
-                              ? 'bg-primary text-primary-foreground border-black'
+                              ? 'bg-primary text-primary-foreground border-edge'
                               : 'bg-secondary text-muted-foreground border-border'
                           }`}
                         >
@@ -401,7 +401,7 @@ export const AdminCatalogPage: React.FC = () => {
                     <span
                       className={`inline-flex items-center px-2 py-0.5 text-[10px] font-black uppercase tracking-widest border-2 shrink-0 ${
                         food.active
-                          ? 'bg-primary text-primary-foreground border-black'
+                          ? 'bg-primary text-primary-foreground border-edge'
                           : 'bg-secondary text-muted-foreground border-border'
                       }`}
                     >

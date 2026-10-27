@@ -51,7 +51,7 @@ export const RoutineGoalsSection: React.FC<RoutineGoalsSectionProps> = ({
                 htmlFor={`routine-goal-${key}`}
                 className={`p-4 border-2 flex items-center gap-4 transition-all cursor-pointer focus-within:ring-2 focus-within:ring-ring ${
                   goalValue === key
-                    ? 'border-black bg-primary text-primary-foreground shadow-hard-fill'
+                    ? 'border-edge bg-primary text-primary-foreground shadow-hard-fill'
                     : 'border-border bg-background text-foreground hover:border-foreground hover:bg-secondary'
                 }`}
               >
@@ -77,7 +77,7 @@ export const RoutineGoalsSection: React.FC<RoutineGoalsSectionProps> = ({
                 htmlFor={`routine-activity-${a.key}`}
                 className={`p-3 border-2 flex flex-col text-left transition-all cursor-pointer focus-within:ring-2 focus-within:ring-ring ${
                   activityLevelValue === a.key
-                    ? 'border-black bg-primary text-primary-foreground shadow-hard-fill'
+                    ? 'border-edge bg-primary text-primary-foreground shadow-hard-fill'
                     : 'border-border bg-background hover:border-foreground text-foreground'
                 }`}
               >

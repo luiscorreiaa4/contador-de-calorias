@@ -252,7 +252,7 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
                   onClick={() => handleSelectDay(day)}
                   className={`h-8 w-8 flex items-center justify-center font-black text-xs transition-colors rounded-none border-2 border-transparent focus:outline-none focus:border-ring ${
                     selected
-                      ? 'bg-primary text-primary-foreground border-black'
+                      ? 'bg-primary text-primary-foreground border-edge'
                       : disabled
                       ? 'text-muted-foreground opacity-30 cursor-not-allowed'
                       : 'text-foreground hover:bg-secondary hover:border-border'

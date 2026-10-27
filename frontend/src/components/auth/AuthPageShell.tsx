@@ -11,7 +11,7 @@ interface AuthPageShellProps {
 export const AuthPageShell: React.FC<AuthPageShellProps> = ({ title, description, children }) => (
   <div className="w-full max-w-md mx-auto animate-in">
     <div className="mb-8 text-center">
-      <div className="inline-flex items-center justify-center w-12 h-12 bg-primary text-primary-foreground border-2 border-black mb-6 shadow-hard">
+      <div className="inline-flex items-center justify-center w-12 h-12 bg-primary text-primary-foreground border-2 border-edge mb-6 shadow-hard">
         <Flame className="w-6 h-6 fill-current" aria-hidden="true" />
       </div>
       <h1 className="text-3xl font-heading font-black tracking-tighter text-foreground uppercase">

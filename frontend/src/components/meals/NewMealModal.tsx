@@ -625,7 +625,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                     onClick={() => setActiveFoodTab('search')}
                     className={`flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-wider border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-x-px active:translate-y-px ${
                       activeFoodTab === 'search'
-                        ? 'bg-primary text-primary-foreground border-black'
+                        ? 'bg-primary text-primary-foreground border-edge'
                         : 'bg-card text-foreground border-border hover:bg-background'
                     }`}
                   >
@@ -636,7 +636,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                     onClick={() => setActiveFoodTab('recents')}
                     className={`flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-wider border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-x-px active:translate-y-px ${
                       activeFoodTab === 'recents'
-                        ? 'bg-primary text-primary-foreground border-black'
+                        ? 'bg-primary text-primary-foreground border-edge'
                         : 'bg-card text-foreground border-border hover:bg-background'
                     }`}
                   >
@@ -648,7 +648,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                     onClick={() => setActiveFoodTab('favorites')}
                     className={`flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-wider border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-x-px active:translate-y-px ${
                       activeFoodTab === 'favorites'
-                        ? 'bg-primary text-primary-foreground border-black'
+                        ? 'bg-primary text-primary-foreground border-edge'
                         : 'bg-card text-foreground border-border hover:bg-background'
                     }`}
                   >
@@ -660,7 +660,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                     onClick={() => setActiveFoodTab('combos')}
                     className={`flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-wider border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-x-px active:translate-y-px ${
                       activeFoodTab === 'combos'
-                        ? 'bg-primary text-primary-foreground border-black'
+                        ? 'bg-primary text-primary-foreground border-edge'
                         : 'bg-card text-foreground border-border hover:bg-background'
                     }`}
                   >
@@ -672,7 +672,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                     onClick={() => setActiveFoodTab('custom')}
                     className={`col-span-2 flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-widest border-2 border-dashed transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-x-px active:translate-y-px ${
                       activeFoodTab === 'custom'
-                        ? 'bg-primary text-primary-foreground border-black'
+                        ? 'bg-primary text-primary-foreground border-edge'
                         : 'bg-secondary text-foreground border-border hover:bg-card'
                     }`}
                   >
@@ -850,7 +850,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                             unit_weight: uWeight && !isNaN(uWeight) ? uWeight : undefined,
                           });
                         }}
-                        className="px-4 py-1.5 bg-primary text-primary-foreground text-xs font-black uppercase tracking-wider hover:bg-primary/90 border-2 border-black disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        className="px-4 py-1.5 bg-primary text-primary-foreground text-xs font-black uppercase tracking-wider hover:bg-primary/90 border-2 border-edge disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
                         {createCustomFoodMutation.isPending ? 'SALVANDO...' : 'CADASTRAR E SELECIONAR'}
                       </button>
@@ -902,7 +902,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                             <button
                               type="button"
                               onClick={() => handleSelectFood(food)}
-                              className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-primary text-primary-foreground border-2 border-black hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-primary text-primary-foreground border-2 border-edge hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                             >
                               Adicionar
                             </button>
@@ -941,7 +941,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                             <button
                               type="button"
                               onClick={() => handleSelectFood(food)}
-                              className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-primary text-primary-foreground border-2 border-black hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-primary text-primary-foreground border-2 border-edge hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                             >
                               Adicionar
                             </button>
@@ -980,7 +980,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                             <button
                               type="button"
                               onClick={() => handleApplyCombo(combo)}
-                              className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-primary text-primary-foreground border-2 border-black hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-primary text-primary-foreground border-2 border-edge hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                             >
                               Usar Combo
                             </button>
@@ -1068,7 +1068,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                               })),
                             });
                           }}
-                          className="flex-1 sm:flex-none px-4 py-2 bg-primary text-primary-foreground text-xs font-black uppercase tracking-wider hover:bg-primary/90 border-2 border-black disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          className="flex-1 sm:flex-none px-4 py-2 bg-primary text-primary-foreground text-xs font-black uppercase tracking-wider hover:bg-primary/90 border-2 border-edge disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         >
                           {createComboMutation.isPending ? 'Salvando...' : 'Salvar'}
                         </button>

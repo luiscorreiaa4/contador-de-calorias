@@ -49,7 +49,7 @@ export const FoodQuantityForm: React.FC<FoodQuantityFormProps> = ({
       {/* Informações do alimento selecionado */}
       <div className="flex items-center justify-between p-4 bg-card border-2 border-border shadow-hard">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary text-primary-foreground border-2 border-black">
+          <div className="p-2 bg-primary text-primary-foreground border-2 border-edge">
             <Utensils className="w-5 h-5" />
           </div>
           <div>
@@ -101,7 +101,7 @@ export const FoodQuantityForm: React.FC<FoodQuantityFormProps> = ({
             }}
             className={`flex-1 py-2 px-3 text-[10px] font-black uppercase tracking-widest transition-all focus:outline-none flex items-center justify-center gap-2 ${
               amountMode === 'un'
-                ? 'bg-primary text-primary-foreground border-2 border-black'
+                ? 'bg-primary text-primary-foreground border-2 border-edge'
                 : 'bg-background text-foreground border-2 border-transparent hover:border-border'
             }`}
           >
@@ -115,7 +115,7 @@ export const FoodQuantityForm: React.FC<FoodQuantityFormProps> = ({
             }}
             className={`flex-1 py-2 px-3 text-[10px] font-black uppercase tracking-widest transition-all focus:outline-none flex items-center justify-center gap-2 ${
               amountMode === 'weight'
-                ? 'bg-primary text-primary-foreground border-2 border-black'
+                ? 'bg-primary text-primary-foreground border-2 border-edge'
                 : 'bg-background text-foreground border-2 border-transparent hover:border-border'
             }`}
           >
@@ -183,7 +183,7 @@ export const FoodQuantityForm: React.FC<FoodQuantityFormProps> = ({
               type="button"
               onClick={onAddItem}
               disabled={!amount || Number(amount) <= 0 || isSubmitting}
-              className="flex-1 sm:flex-none min-h-12 px-6 py-3 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-black shadow-hard-fill disabled:shadow-none disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex-1 sm:flex-none min-h-12 px-6 py-3 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-edge shadow-hard-fill disabled:shadow-none disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <Plus className="w-4 h-4 shrink-0" />
               <span>INCLUIR</span>

@@ -168,7 +168,7 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
             onClick={() => setMetric('weight')}
             className={`flex items-center justify-center text-center py-2.5 px-4 sm:px-6 text-xs font-black uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
               metric === 'weight'
-                ? 'border-2 border-black bg-primary text-primary-foreground shadow-hard-fill'
+                ? 'border-2 border-edge bg-primary text-primary-foreground shadow-hard-fill'
                 : 'bg-card text-foreground border-2 border-transparent hover:bg-secondary'
             }`}
           >
@@ -179,7 +179,7 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
             onClick={() => setMetric('fat')}
             className={`flex items-center justify-center text-center py-2.5 px-4 sm:px-6 text-xs font-black uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
               metric === 'fat'
-                ? 'border-2 border-black bg-primary text-primary-foreground shadow-hard-fill'
+                ? 'border-2 border-edge bg-primary text-primary-foreground shadow-hard-fill'
                 : 'bg-card text-foreground border-2 border-transparent hover:bg-secondary'
             }`}
           >
@@ -237,7 +237,7 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
             )}
             <button
               onClick={() => setIsLogging(true)}
-              className="px-4 py-2 bg-primary text-primary-foreground border-2 border-black shadow-hard-fill text-xs font-black uppercase tracking-wider hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="px-4 py-2 bg-primary text-primary-foreground border-2 border-edge shadow-hard-fill text-xs font-black uppercase tracking-wider hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               {metric === 'weight' ? 'REGISTRAR PRIMEIRO PESO' : 'REGISTRAR % GORDURA'}
             </button>
@@ -382,7 +382,7 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
           aria-expanded={isLogging}
           aria-controls="measurement-form"
           onClick={() => setIsLogging(!isLogging)}
-          className="w-full sm:w-auto py-3 px-5 text-xs font-black uppercase tracking-widest bg-primary text-primary-foreground border-2 border-black shadow-hard-fill hover:bg-primary/90 flex items-center justify-center gap-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          className="w-full sm:w-auto py-3 px-5 text-xs font-black uppercase tracking-widest bg-primary text-primary-foreground border-2 border-edge shadow-hard-fill hover:bg-primary/90 flex items-center justify-center gap-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           <Plus className="w-4 h-4" />
           NOVA MEDIÇÃO
@@ -471,7 +471,7 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
             <button
               type="submit"
               disabled={mutation.isPending}
-              className="px-6 py-2 bg-primary text-primary-foreground border-2 border-black shadow-hard-fill text-xs font-black uppercase hover:bg-primary/90 disabled:opacity-50 disabled:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="px-6 py-2 bg-primary text-primary-foreground border-2 border-edge shadow-hard-fill text-xs font-black uppercase hover:bg-primary/90 disabled:opacity-50 disabled:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               {mutation.isPending ? 'SALVANDO...' : 'CONFIRMAR PESO'}
             </button>

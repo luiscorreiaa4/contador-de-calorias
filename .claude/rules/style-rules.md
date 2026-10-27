@@ -19,7 +19,7 @@ O tema claro/escuro é gerenciado **estritamente através de variáveis CSS** de
 - **USO OBRIGATÓRIO DOS TOKENS SEMÂNTICOS:**
   - **Superfícies:** `bg-background` (fundo principal), `bg-card` (cartões e modais), `bg-secondary` (blocos de apoio e tags).
   - **Tipografia:** `text-foreground` (texto padrão de alto contraste), `text-muted-foreground` (textos secundários, legendas e placeholders).
-  - **Preenchimento Neon (`bg-primary`):** Uso exclusivo para áreas/superfícies (botões, badges, progresso), acompanhado de `text-primary-foreground` e `border-2 border-black`.
+  - **Preenchimento Neon (`bg-primary`):** Uso exclusivo para áreas/superfícies (botões, badges, progresso), acompanhado de `text-primary-foreground` e `border-2 border-edge`.
   - **Tinta Neon / Verde (`text-primary-ink`):** Uso obrigatório para textos, ícones lineares, outlines e traços de gráficos sobre fundos (`#4D6600` no claro, `#CCFF00` no escuro). Proibido usar `text-primary` solto.
   - **Bordas e Foco:** `border-border` para estrutura; `border-ring` ou `ring-ring` para foco.
   - **Ações Destrutivas / Erros:** `bg-destructive`, `text-destructive-foreground`, `border-destructive`.

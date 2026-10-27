@@ -80,7 +80,7 @@ function GoalForm({ goal, preview, date }: { goal: UserGoal; preview: EnergyTarg
           onClick={() => chooseMode(mode)}
           className={`flex items-center justify-center text-center px-4 py-2.5 font-black text-xs uppercase transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50 ${
             selectedMode === mode
-              ? 'border-2 border-black bg-primary text-primary-foreground shadow-hard-fill'
+              ? 'border-2 border-edge bg-primary text-primary-foreground shadow-hard-fill'
               : 'border-2 border-transparent text-foreground hover:bg-secondary'
           }`}
         >
@@ -123,7 +123,7 @@ function GoalForm({ goal, preview, date }: { goal: UserGoal; preview: EnergyTarg
       <button
         type="submit"
         disabled={mutation.isPending}
-        className="border-2 border-black bg-primary text-primary-foreground px-6 py-3 text-xs font-black uppercase disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring shadow-hard-fill disabled:shadow-none"
+        className="border-2 border-edge bg-primary text-primary-foreground px-6 py-3 text-xs font-black uppercase disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring shadow-hard-fill disabled:shadow-none"
       >
         {mutation.isPending ? 'APLICANDO...' : 'APLICAR METAS'}
       </button>

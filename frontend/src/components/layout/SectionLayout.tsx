@@ -37,7 +37,7 @@ export function SectionLayout({ title, description, links }: SectionLayoutProps)
               className={({ isActive }) =>
                 `flex items-center justify-center text-center px-2 sm:px-6 py-3 text-xs font-black uppercase tracking-wider leading-tight transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background min-h-[44px] min-w-0 ${
                   isActive
-                    ? 'border-2 border-black bg-primary text-primary-foreground font-bold shadow-hard-fill'
+                    ? 'border-2 border-edge bg-primary text-primary-foreground font-bold shadow-hard-fill'
                     : 'border-2 border-transparent text-foreground hover:bg-secondary'
                 }`
               }

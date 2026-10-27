@@ -103,7 +103,7 @@ export const ResetPasswordPage: React.FC = () => {
 
           <Link
             to="/esqueci-senha"
-            className="w-full inline-flex items-center justify-center border-2 border-black bg-primary px-4 py-3 text-xs font-black uppercase tracking-widest text-primary-foreground shadow-hard-fill transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="w-full inline-flex items-center justify-center border-2 border-edge bg-primary px-4 py-3 text-xs font-black uppercase tracking-widest text-primary-foreground shadow-hard-fill transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             Solicitar novo link
           </Link>

@@ -301,7 +301,7 @@ export const DashboardPage: React.FC = () => {
           <Utensils className="w-48 h-48" aria-hidden="true" />
         </div>
         <div className="flex items-center gap-4 relative z-10">
-          <div className="p-3 bg-primary text-primary-foreground border-2 border-black">
+          <div className="p-3 bg-primary text-primary-foreground border-2 border-edge">
             <Utensils className="w-6 h-6" aria-hidden="true" />
           </div>
           <div>
@@ -315,7 +315,7 @@ export const DashboardPage: React.FC = () => {
             setMealToEdit(null);
             setIsNewMealModalOpen(true);
           }}
-          className="relative z-10 w-full sm:w-auto min-h-12 py-3 px-6 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-black shadow-hard-fill focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="relative z-10 w-full sm:w-auto min-h-12 py-3 px-6 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-edge shadow-hard-fill focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <Plus className="w-4 h-4" aria-hidden="true" />
           <span>Nova Refeição</span>
@@ -327,7 +327,7 @@ export const DashboardPage: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <h3 className="text-xl font-heading font-black text-foreground uppercase tracking-tight flex items-center gap-2">
             {isToday ? 'Refeições de Hoje' : 'Refeições do Dia'}
-            <span className="text-xs font-bold bg-primary text-primary-foreground px-2 py-0.5 border-2 border-black">{meals.length}</span>
+            <span className="text-xs font-bold bg-primary text-primary-foreground px-2 py-0.5 border-2 border-edge">{meals.length}</span>
           </h3>
 
           <button
@@ -400,7 +400,7 @@ export const DashboardPage: React.FC = () => {
                 setMealToEdit(null);
                 setIsNewMealModalOpen(true);
               }}
-              className="py-2.5 px-5 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-black shadow-hard-fill focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="py-2.5 px-5 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-edge shadow-hard-fill focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <Plus className="w-4 h-4" aria-hidden="true" />
               <span>REGISTRAR REFEIÇÃO</span>
