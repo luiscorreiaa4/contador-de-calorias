@@ -1,13 +1,15 @@
 MODO AUTÔNOMO — NAVEGAÇÃO MOBILE + RENOMEAÇÃO "DASHBOARD" → "DIÁRIO" (CalorieSync)
-ESCOPO: SOMENTE frontend/ e docs/ (e .agents/rules/style-rules.md, AGENTS.md só onde indicado).
+ESCOPO: SOMENTE frontend/ e docs/ (e .agents/, .claude/rules, .claude/skills, AGENTS.md e CLAUDE.md só onde indicado).
 NÃO altere backend, migrações, banco, contratos de API nem regras de negócio.
-Este prompt substitui o passo "propor plano e aguardar aprovação" do ROADMAP §1. Não peça
-aprovação, não pare para perguntar. É IDEMPOTENTE: se docs/NAV_MIGRATION.md já existir, é uma
+Este prompt já tem aprovação do usuário. Não peça aprovação, não pare para perguntar. É IDEMPOTENTE: se docs/NAV_MIGRATION.md já existir, é uma
 retomada; continue pelos itens não marcados.
 
 OBJETIVO
 1. Renomear a tela "Dashboard" para "Diário" (texto, código, testes e docs).
-2. Criar uma barra de navegação inferior fixa no mobile (tipo Instagram/WhatsApp), sem swipe.
+2. Criar uma barra de navegação inferior fixa no mobile, imitando a barra inferior nova do YouTube
+   mobile: vidro escuro translúcido com blur forte, sem divisórias entre botões, ícone ativo
+   PREENCHIDO, some ao rolar para baixo e volta ao rolar para cima (transição suave). Sem swipe
+   entre os destinos dela.
 3. Padronizar os submenus de página com uma barra segmentada única (Evolução|Metas e Configurações).
 4. Garantir uma fonte única dos destinos de navegação, para nada divergir entre mobile e desktop.
 
@@ -15,15 +17,17 @@ DECISÕES DE PRODUTO (já tomadas; não pergunte)
 N1. Barra inferior (visível abaixo do breakpoint md, 4 slots): [DIÁRIO] [PROGRESSO] [+ NOVA] [CONTA].
     - DIÁRIO = tela inicial (antigo Dashboard).
     - PROGRESSO = Evolução e Metas; ativa em qualquer uma das duas rotas.
-    - "+" (centro) = abre o modal de Nova Refeição em QUALQUER tela. Não é uma rota.
+    - "+" (centro) = abre o modal de Nova Refeição em QUALQUER tela. Não é uma rota e nunca fica
+      ativo. Visualmente é um slot igual aos demais (ver REGRAS TÉCNICAS DA BARRA INFERIOR).
     - CONTA = nova tela-hub /conta com: cartão do usuário (iniciais, nome, e-mail), linhas grandes
       para Perfil e Configurações, o alternador de tema existente e "Sair da conta". Ativa em
       /conta, /perfil e /configuracoes (e subrotas).
 N2. Menu do desktop (dropdown do avatar no header) NÃO muda de comportamento. No mobile (< md) o
     gatilho do dropdown é removido do header, pois a tela /conta o substitui; o logo permanece.
-N3. Barra segmentada (um único componente, mobile e desktop): container fechado
+N3. Barra segmentada (um único componente, mobile e desktop; evolua o SectionLayout.tsx existente,
+    que já usa NavLink, shortLabel e min-h-[44px], em vez de criar do zero): container fechado
     bg-card border-2 border-border; abas com flex-1 min-w-0, altura mínima 44px (min-h-11),
-    texto em caixa alta; aba ativa = bg-primary text-primary-foreground border-2 border-black
+    texto em caixa alta; aba ativa = bg-primary text-primary-foreground border-2 border-edge
     font-bold + aria-current="page"; aba inativa = text-foreground. Em Configurações: grade
     proporcional SEM rolagem horizontal; use rótulo curto (shortLabel) quando o nome completo for
     longo (ex.: "PRIVACIDADE" em vez de "PRIVACIDADE E DADOS"); título completo fica no cabeçalho
@@ -39,28 +43,57 @@ N5. Swipe horizontal entre ABAS IRMÃS (as da SegmentedNav: Evolução↔Metas e
     100% sem ele (WCAG 2.5.1).
 
 REGRAS TÉCNICAS DA BARRA INFERIOR
-- Posição: fixed bottom-0 inset-x-0; bg-card; border-t-2 border-border; padding inferior
-  env(safe-area-inset-bottom). Confirme que o index.html tem viewport-fit=cover no meta viewport
-  (acrescente se faltar).
+- Superfície (vidro escuro, como a barra do YouTube mobile): fixed bottom-0 inset-x-0 z-40;
+  bg-background/85 backdrop-blur-2xl backdrop-saturate-150 (quase opaca, mas o conteúdo ainda
+  aparece por trás; no escuro é o preto do token background translúcido, no claro o off-white
+  translúcido). Aplique a translucidez só com supports-[backdrop-filter]:bg-background/85 e deixe
+  bg-background sólido como padrão, para navegadores sem backdrop-filter. Borda superior FINA:
+  border-t border-border/40 (exceção consciente ao border-2 do app; registre em "Decisões do
+  agente"). Sem sombra e sem rounded. Padding inferior env(safe-area-inset-bottom). Confirme que
+  o index.html tem viewport-fit=cover no meta viewport (hoje falta; acrescente).
 - Conteúdo: o contêiner principal das telas recebe padding-bottom que cubra a barra + safe area
-  apenas no mobile (ex.: pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0). A barra não pode
+  apenas no mobile (ex.: pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0). A barra não pode
   cobrir a última refeição nem os botões finais.
-- Camadas: a barra fica ABAIXO de modais e menus; confira a escala de z-index real do projeto
-  (overlay/conteúdo do Dialog do Radix) e escolha um valor menor sem criar valores arbitrários.
-- Cada slot: ícone (lucide, os já usados) + rótulo curto sempre visível, caixa alta, alvo >= 44px.
-  Slot ativo: bg-primary text-primary-foreground border-2 border-black font-bold e
-  aria-current="page". O "+" é um bloco neon quadrado com border-2 border-black, levemente acima
-  da barra, com aria-label "Nova refeição" e a sombra brutalista neutra já existente.
+- Camadas: escala real do projeto hoje: header z-50, dropdown da conta z-[100], modais z-[200],
+  DatePicker z-50. A barra usa z-40 (abaixo de tudo, sem criar valor arbitrário novo). Reconfirme
+  no código antes de aplicar.
+- Slots (grid grid-cols-4, colunas iguais): fundo transparente, SEM borda, divisória, bloco ou
+  qualquer separação entre eles; o vidro da barra é a única superfície. Cada slot: ícone de 24px
+  com rótulo curto embaixo (text-[10px] uppercase tracking-wide), alvo >= 44px (barra com h-14
+  + safe area). Inativo: ícone só em contorno, text-foreground, rótulo font-medium. ATIVO: ícone
+  PREENCHIDO (sólido, text-foreground = branco no escuro; use o activeIcon do módulo único),
+  rótulo font-bold e aria-current="page". Sem bg-primary, sem borda e sem sombra no slot ativo.
+  Foco por teclado: focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
+  focus-visible:ring-inset.
+- Ícones preenchíveis: o módulo único guarda icon (contorno) e activeIcon (sólido) por destino.
+  Prefira ícones lucide de silhueta fechada (com fill="currentColor"); onde o preenchimento
+  perder a leitura (gráfico de barras, avatar/conta), crie SVGs próprios sólidos em
+  frontend/src/navigation/icons.tsx usando só currentColor (sem hex). Registre as escolhas em
+  docs/NAV_MIGRATION.md.
+- "+" (centro): slot igual aos outros, SEM bloco neon e SEM subir acima da barra: ícone Plus dentro
+  de um quadrado de contorno fino (border-2 border-foreground rounded-none, ~28px), sem rótulo
+  visível, aria-label "Nova refeição", sem sombra. Nunca recebe aria-current nem estado ativo.
+- Auto-ocultar ao rolar (hook único useHideOnScroll em frontend/src/navigation/): listener de
+  scroll passivo em window com requestAnimationFrame; oculta ao rolar para BAIXO (delta acumulado
+  > 8px) e reaparece ao rolar para CIMA (qualquer delta > 4px, sem esperar). Fica sempre visível
+  quando scrollY < 56 (topo), quando algum elemento da barra tem foco (Tab) e SEMPRE em
+  /configuracoes/* (lá ela nunca se esconde). Vale para todas as demais telas. Animação suave:
+  transition-transform duration-300 ease-out com translate-y-full (cobre a safe area); o bloco
+  global prefers-reduced-motion de index.css já a torna instantânea. Enquanto oculta, aplique
+  pointer-events-none (o foco por Tab a reexibe). Nunca altere o padding do conteúdo (sem salto).
 - Esconder a barra enquanto um campo de texto/select (incluindo o input do react-select) estiver
   em foco, para não subir junto com o teclado. Use focusin/focusout no document; sem mudar o
-  padding do conteúdo (para não causar salto de layout).
+  padding do conteúdo (para não causar salto de layout). Reaproveite o mesmo estado e a mesma
+  transição do auto-ocultar (hidden = rolou para baixo OU campo em foco; a exceção de
+  /configuracoes vale só para o scroll, não para o campo em foco).
 - Só renderizar abaixo de md (classes md:hidden). Sem JS de largura de tela.
-- Cores: SOMENTE tokens (CORES.md e .agents/rules/style-rules.md). npm --prefix frontend run
-  check:colors deve continuar com 0 violações.
+- Cores: SOMENTE tokens (docs/CORES.md e .claude/rules/style-rules.md). Opacidade em token
+  (bg-background/85, border-border/40) é aceita pelo check:colors; nada de hex/rgba. npm
+  --prefix frontend run check:colors deve continuar com 0 violações.
 
 REGRA DA FONTE ÚNICA
 - Crie um módulo único de navegação (ex.: frontend/src/navigation/nav-items.ts) com os destinos:
-  id, rótulo, shortLabel, ícone, rota e padrões de rota para "ativo". A barra inferior, o menu do
+  id, rótulo, shortLabel, ícone, ícone preenchido (activeIcon), rota e padrões de rota para "ativo". A barra inferior, o menu do
   desktop e a tela /conta consomem esse módulo. Nenhuma lista de destinos duplicada em
   componente. Rotas e paths NÃO mudam, exceto o que o rename exigir (ver Fase 2) e a nova /conta.
 REGRAS DO SWIPE (tudo em um módulo único, ex.: frontend/src/navigation/swipe.ts + hook useSwipeTabs)
@@ -98,10 +131,13 @@ REGRAS DO SWIPE (tudo em um módulo único, ex.: frontend/src/navigation/swipe.t
     reintroduzem o conflito.
   7. Ao concluir um gesto válido: navegar exatamente como o toque na aba (mesma função/rota, mesmo
     history push), manter o comportamento de scroll e de foco do toque na aba. SEM animação de
-    arraste: navega ao soltar. Nenhuma animação nova.
+    arraste: navega ao soltar. Nenhuma animação nova no swipe (a transição de ocultar/mostrar da
+    barra inferior é independente e é a única permitida).
   8. A ordem das abas vem dos itens da SegmentedNav/módulo único (mesma ordem visual). Não
     duplique listas. O hook só é usado nas seções com SegmentedNav (Progresso e Configurações).
     Nenhum listener global em document/window para o gesto (exceto leituras de seleção/foco).
+    Os únicos listeners globais permitidos fora do swipe são os da barra inferior: scroll em
+    window (useHideOnScroll) e focusin/focusout em document.
 
 VALIDAÇÃO (use só estes comandos; nunca tsx/npx soltos; use os scripts que existirem no
 package.json e no AGENTS.md)
@@ -110,22 +146,27 @@ package.json e no AGENTS.md)
 - npm run build
 - npm --prefix frontend run check:colors
 Limite a saída de cada comando (ex.: | Select-Object -Last 40) e leia o resto só se falhar.
-Comandos que possam demorar rodam sob timeout. Backend: rode npm run test apenas no Passo 0 e na
-Fase 6; entre elas não é tocado.
+Comandos que possam demorar rodam sob timeout. Backend: rode npm run test no Passo 0 e
+npm run test:strict na Fase 6 (obrigatório na verificação final); entre elas não é tocado. Para um
+único arquivo do frontend use npm run test:frontend:file <caminho>.
 
 FASE 0 — VERIFICAR O TRABALHO ANTERIOR E CRIAR A BRANCH
 a) git status deve estar limpo; se não, PARE e reporte. Registre a branch atual (git branch
    --show-current) como BRANCH_BASE.
-b) Verifique que os ciclos anteriores estão concluídos. Leia docs/AGENT_LOG.md, docs/ROADMAP.md,
-   docs/BACKLOG.md, docs/COLOR_MIGRATION.md (se existir), git log --oneline -60 e git tag --list
-   "checkpoint/*". Monte em docs/AGENT_LOG.md a seção "VERIFICAÇÃO PRÉ-NAVEGAÇÃO <data>" com:
-   - status de todos os itens CA-xx e PC-xx ([CORRIGIDO] ou pendente/pulado) e checkpoints A–E;
-   - se a migração de cores está completa (COLOR_MIGRATION.md sem [ ] nem PENDENTE) e se
+b) Verifique o estado dos ciclos anteriores. Leia docs/AGENT_LOG.md, docs/ROADMAP.md, docs/CORES.md
+   (checklist de migração de cores), git log --oneline -60 e git tag --list "checkpoint/*".
+   NÃO existem docs/BACKLOG.md, docs/COLOR_MIGRATION.md nem docs/reviews/ neste repositório: não
+   os procure nem os crie. O status de CA-xx/PC-xx não está em doc vivo: registre "sem registro"
+   para o que não achar no git log ou no AGENT_LOG. Monte em docs/AGENT_LOG.md a seção "VERIFICAÇÃO PRÉ-NAVEGAÇÃO <data>" com:
+   - status dos itens CA-xx e PC-xx e checkpoints A–E que tiverem registro ([CORRIGIDO],
+     pendente, pulado ou "sem registro");
+   - se a migração de cores está completa (checklist de docs/CORES.md todo [x]) e se
      check:colors existe e dá 0 violações;
    - se há stash "falha <ID>" (git stash list).
 c) Rode a validação completa (inclui npm run test do backend) e registre a linha de base.
-d) CRITÉRIOS DE PARADA (PARE e reporte, sem criar branch): linha de base não verde; PC-21
-   (roteador) não concluído; check:colors inexistente ou com violações. Qualquer outro item
+d) CRITÉRIOS DE PARADA (PARE e reporte, sem criar branch): linha de base não verde;
+   frontend/src/router.tsx inexistente ou fora do React Router (PC-21 conta como concluído se o
+   roteador existe e os testes passam); check:colors inexistente ou com violações. Qualquer outro item
    pendente ou pulado NÃO bloqueia: apenas liste no relatório final, e se um item pendente tocar
    os mesmos arquivos desta tarefa, registre o risco.
 e) Se passou: crie e entre na branch nova a partir do HEAD atual: git switch -c feat/navegacao-mobile
@@ -156,14 +197,17 @@ próprios, registre e proteja.
 
 FASE 2 — RENOMEAÇÃO "DASHBOARD" → "DIÁRIO" (um commit, ANTES do resto)
 a) Faça um grep sem diferenciar maiúsculas de "dashboard" em frontend/, docs/, .agents/ e
-   AGENTS.md/README.md. Classifique cada ocorrência: texto de UI, identificador/arquivo, rota,
+   AGENTS.md/CLAUDE.md/README.md e .claude/. Classifique cada ocorrência: texto de UI, identificador/arquivo, rota,
    teste, documentação, histórica/externa.
 b) Renomeie: textos de UI para "Diário"; o componente/arquivo para DiaryPage (e arquivos
    correlatos coerentes) usando git mv (nunca rm), atualizando imports; testes e seus textos;
    o subtítulo conforme N4. Rotas: se existir um path com "dashboard", troque por "/diario" e
    mantenha um redirecionamento do path antigo; se a tela inicial for "/", NÃO mude a rota.
-   Docs vivos (SPEC, ARCHITECTURE, README, ROADMAP, BACKLOG, TESTING, .agents/rules e skills)
-   são atualizados. NÃO reescreva docs/reviews/** nem docs/archive/** (históricos) nem logs.
+   A rota diario/:date já existe em router.tsx e renderiza a tela atual: mantenha "/" e
+   "/diario/:date" como estão e renomeie só componente, arquivo e textos.
+   Docs vivos (SPEC, ARCHITECTURE, README, ROADMAP, UX_NAVIGATION, CORES, TESTING, ADMIN_PLAN,
+   CLAUDE.md, AGENTS.md, .agents/ e .claude/ rules e skills, incluindo browser-inspection) são
+   atualizados. NÃO reescreva docs/archive/** (histórico) nem logs.
 c) Verificação: grep final em frontend/, README e docs vivos retorna zero "dashboard" fora de
    exceções documentadas (histórico e nomes de bibliotecas, listados em NAV_MIGRATION.md).
 d) Valide tudo e faça commit: "refactor(ui): renomeia Dashboard para Diário".
@@ -174,7 +218,7 @@ PROGRESSO ativo em Evolução e Metas; CONTA ativo em /conta, /perfil, /configur
 DIÁRIO ativo na tela inicial. Commit: "feat(nav): módulo único de destinos de navegação".
 
 FASE 4 — BARRA SEGMENTADA
-Crie o componente SegmentedNav (acessível, N3). Substitua os submenus atuais de Evolução|Metas
+Crie o componente SegmentedNav (acessível, N3), evoluindo o SectionLayout.tsx existente. Substitua os submenus atuais de Evolução|Metas
 e de Configurações por ele (um componente para mobile e desktop). Remova o código dos submenus
 antigos que ficar sem uso (git rm, provando antes que não é importado) e as classes órfãs.
 Testes: aba ativa por rota, aria-current, links, rótulo curto, ausência de overflow por
@@ -202,12 +246,16 @@ a) Eleve a abertura do modal de Nova Refeição para um host único no layout (c
    lógica do modal e de invalidação de queries. Na tela Diário, o "+" usa a data selecionada; nas
    demais, a data de hoje (reuse o utilitário de data do frontend; proibido toISOString para
    datas de calendário). Os botões "Nova refeição" já existentes na tela passam a usar o mesmo host.
-b) Crie BottomNav (regras acima), o padding do contêiner principal e o viewport-fit=cover.
+b) Crie BottomNav (regras acima), o hook useHideOnScroll, os ícones preenchíveis, o padding do
+   contêiner principal e o viewport-fit=cover.
 c) Crie a tela /conta (N1), a rota (protegida como as demais) e o ajuste do header (N2).
 d) Aba "Progresso" navega para a última aba visitada (Evolução ou Metas) se for trivial de
    fazer sem estado novo; senão, para Evolução.
 e) Testes (Vitest + RTL, MemoryRouter/MSW existentes): BottomNav renderiza 4 slots; aria-current
    correto por rota; "+" abre o modal em qualquer rota; barra some com input em foco;
+   useHideOnScroll (mock de window.scrollY + evento scroll): oculta ao descer, reaparece ao
+   subir, fica visível perto do topo e com foco dentro da barra, e nunca oculta em
+   /configuracoes/*; slot ativo usa activeIcon; "+" nunca tem aria-current;
    itens vêm do módulo único; /conta mostra Perfil, Configurações, tema e Sair (Sair chama o
    logout existente). Commit(s): "feat(nav): barra inferior mobile, modal global e tela Conta".
 
@@ -221,10 +269,14 @@ c) Revisão por leitura em 360px, 390px e 768px (breakpoint): nenhum elemento co
    que estoure; min-w-0/truncate onde há texto; padding do conteúdo cobre a barra; a barra some
    no md. Registre o que foi checado.
 d) Acessibilidade por código: dois landmarks <nav> com aria-label distintos; apenas um visível
-   por breakpoint; foco visível nos slots (anel com offset); alvos >= 44px.
+   por breakpoint; foco visível nos slots (anel ring-inset); alvos >= 44px; fundo sólido legível quando não há
+   backdrop-filter.
 e) Documentação: docs/SPEC.md (navegação e telas), docs/ARCHITECTURE.md (módulo de navegação e
-   host do modal), .agents/rules/style-rules.md (usar SegmentedNav/BottomNav; novos destinos
-   entram só no módulo único), AGENTS.md (nada novo de comando; só se citar "Dashboard"),
+   host do modal), .agents/rules/style-rules.md e o espelho .claude/rules/style-rules.md (usar
+   SegmentedNav/BottomNav; novos destinos entram só no módulo único), docs/UX_NAVIGATION.md
+   (barra inferior, /conta, swipe), docs/CORES.md (padrão de vidro translúcido da barra: o "sem
+   blur" do doc vale para sombras; registre bg-background/85 + backdrop-blur-2xl como exceção
+   documentada), AGENTS.md e CLAUDE.md (nada novo de comando; só se citarem "Dashboard"),
    docs/ROADMAP.md (registre uma linha "UX: navegação mobile e renomeação para Diário" [x]).
 f) Marque todos os itens da CHECKLIST do NAV_MIGRATION.md. Se algum ficar PENDENTE, NÃO declare
    sucesso.
@@ -233,7 +285,7 @@ além do módulo do swipe; (2) todo arquivo com "recharts" ou slider tem data-no
 guarda + grep manual); (3) o swipe NÃO está ativo em Diário, /conta, Perfil nem na barra
 inferior; (4) nenhum preventDefault no módulo; (5) o contêiner do swipe não usa onTouch* do
 React; (6) a SegmentedNav funciona sem o swipe (testes existentes). Registre em
-docs/NAV_MIGRATION.md. (h): documente o gesto em docs/SPEC.md e em .agents/rules/react-rules.md
+docs/NAV_MIGRATION.md. (h): documente o gesto em docs/SPEC.md e em .agents/rules/react-rules.md e .claude/rules/react-rules.md
 (como marcar data-no-swipe em novos gráficos, sliders e carrosséis).
 
 AO TERMINAR: inclua na lista de QA manual os testes de swipe abaixo.
@@ -250,4 +302,8 @@ LIMITES INEGOCIÁVEIS
 AO TERMINAR, PARE e entregue: resultado da verificação pré-navegação (itens pendentes dos ciclos
 anteriores); hashes dos commits; decisões do agente (divergências entre N1..N5 e o código real);
 exceções; sugestões não implementadas (ex.: indicar HOJE/ONTEM no navegador de datas); e a lista
-de telas para QA manual em 360px e 390px, claro e escuro, incluindo Tab no teclado.
+de telas para QA manual em 360px e 390px, claro e escuro, incluindo Tab no teclado. Inclua também
+QA da barra inferior: rolagem lenta e rápida (some ao descer, volta ao subir, transição suave e
+sem piscar), topo da página (sempre visível), /configuracoes (nunca some), iOS com safe area
+(home indicator), legibilidade do vidro sobre cards neon no claro e no escuro, navegador sem
+backdrop-filter (fundo sólido) e prefers-reduced-motion (sem transição).
