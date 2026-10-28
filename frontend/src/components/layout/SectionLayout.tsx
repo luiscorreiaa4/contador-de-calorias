@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router';
 import type { NavTab } from '../../navigation/nav-items';
+import { SwipeTabsArea } from '../../navigation/SwipeTabsArea';
 import { SegmentedNav } from './SegmentedNav';
 
 export type SectionLink = NavTab;
@@ -13,9 +14,11 @@ interface SectionLayoutProps {
   /** Nível superior opcional (ex.: Evolução | Metas dentro de Progresso). */
   parentTabs?: NavTab[];
   parentLabel?: string;
+  /** Abas percorridas pelo swipe, na ordem visual; por padrão, as próprias abas. */
+  swipeTabs?: NavTab[];
 }
 
-export function SectionLayout({ title, description, links, navLabel, parentTabs, parentLabel }: SectionLayoutProps) {
+export function SectionLayout({ title, description, links, navLabel, parentTabs, parentLabel, swipeTabs }: SectionLayoutProps) {
   return (
     <div className="w-full max-w-5xl mx-auto px-4 py-8 space-y-8">
       <div className="space-y-3">
@@ -26,7 +29,9 @@ export function SectionLayout({ title, description, links, navLabel, parentTabs,
         {parentTabs && <SegmentedNav tabs={parentTabs} ariaLabel={parentLabel ?? title} />}
         <SegmentedNav tabs={links} ariaLabel={navLabel ?? title} />
       </div>
-      <Outlet />
+      <SwipeTabsArea tabs={swipeTabs ?? links}>
+        <Outlet />
+      </SwipeTabsArea>
     </div>
   );
 }

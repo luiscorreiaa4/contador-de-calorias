@@ -154,6 +154,11 @@ export function isPathActive(pathname: string, patterns: string[]): boolean {
   return patterns.some((path) => matchPath({ path, end: !path.endsWith('/*') }, pathname) !== null);
 }
 
+export function isTabActive(pathname: string, tab: NavTab): boolean {
+  if (tab.patterns) return isPathActive(pathname, tab.patterns);
+  return pathname === tab.to || pathname.startsWith(`${tab.to}/`);
+}
+
 export function isDestinationActive(pathname: string, destination: NavDestination): boolean {
   return isPathActive(pathname, destination.patterns);
 }

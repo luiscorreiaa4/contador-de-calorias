@@ -178,7 +178,7 @@ export const StatsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }
               HISTÓRICO DIÁRIO DE CALORIAS
             </h3>
             
-            <div className="h-[400px] w-full">
+            <div data-no-swipe className="h-[400px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={stats.chartData} margin={{ top: 30, right: 20, left: 10, bottom: 20 }}>
                   <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="hsl(var(--border))" opacity={0.8} />

@@ -84,52 +84,54 @@ export const FoodSearchSelect: React.FC<FoodSearchSelectProps> = ({
 }) => {
   return (
     <FoodPaginationContext.Provider value={{ hasNextPage, isFetchingNextPage, isFetchNextPageError, onLoadMore }}>
-      <label htmlFor="food-select-input" className="sr-only">
-        PESQUISAR ALIMENTO
-      </label>
-      <Select<FoodOption, false>
-        inputId="food-select-input"
-        aria-label="Pesquisar alimento no catálogo"
-        options={options}
-        isLoading={isLoading}
-        onInputChange={(newValue, { action }) => {
-          if (action === 'input-change') onSearchChange(newValue);
-        }}
-        onChange={(option) => {
-          if (option) onSelectFood(option.food);
-        }}
-        onMenuScrollToBottom={() => {
-          if (hasNextPage && !isFetchingNextPage && !isFetchNextPageError) onLoadMore();
-        }}
-        placeholder="PESQUISAR ALIMENTO..."
-        menuPortalTarget={document.body}
-        menuShouldScrollIntoView={false}
-        noOptionsMessage={() => isError ? 'ERRO AO CARREGAR ALIMENTOS. TENTE NOVAMENTE.' : 'NENHUM ALIMENTO ENCONTRADO'}
-        components={{ MenuList: FoodMenuList }}
-        styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
-        classNames={{
-          control: (state) =>
-            `bg-background border-2 border-border rounded-none text-xs font-black shadow-none transition-colors min-h-[48px] uppercase ${
-              state.isFocused ? 'border-ring' : 'hover:border-foreground'
-            }`,
-          input: () => 'text-foreground py-0.5 uppercase',
-          singleValue: () => 'text-foreground uppercase',
-          menu: () => 'bg-card border-2 border-border rounded-none shadow-hard mt-2 overflow-hidden',
-          option: (state) =>
-            `px-4 py-3 cursor-pointer transition-colors text-[10px] font-bold uppercase tracking-widest ${
-              state.isFocused ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-secondary'
-            }`,
-          noOptionsMessage: () =>
-            'text-muted-foreground p-4 text-[10px] font-bold uppercase tracking-widest text-center',
-          placeholder: () => 'text-muted-foreground px-1 uppercase',
-          menuList: () => 'p-0',
-          valueContainer: () => 'px-4',
-          dropdownIndicator: () => 'p-2 text-muted-foreground hover:text-foreground',
-          indicatorSeparator: () => 'hidden',
-          clearIndicator: () => 'p-2 text-muted-foreground hover:text-foreground',
-        }}
-        unstyled
-      />
+      <div data-no-swipe>
+        <label htmlFor="food-select-input" className="sr-only">
+          PESQUISAR ALIMENTO
+        </label>
+        <Select<FoodOption, false>
+          inputId="food-select-input"
+          aria-label="Pesquisar alimento no catálogo"
+          options={options}
+          isLoading={isLoading}
+          onInputChange={(newValue, { action }) => {
+            if (action === 'input-change') onSearchChange(newValue);
+          }}
+          onChange={(option) => {
+            if (option) onSelectFood(option.food);
+          }}
+          onMenuScrollToBottom={() => {
+            if (hasNextPage && !isFetchingNextPage && !isFetchNextPageError) onLoadMore();
+          }}
+          placeholder="PESQUISAR ALIMENTO..."
+          menuPortalTarget={document.body}
+          menuShouldScrollIntoView={false}
+          noOptionsMessage={() => isError ? 'ERRO AO CARREGAR ALIMENTOS. TENTE NOVAMENTE.' : 'NENHUM ALIMENTO ENCONTRADO'}
+          components={{ MenuList: FoodMenuList }}
+          styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+          classNames={{
+            control: (state) =>
+              `bg-background border-2 border-border rounded-none text-xs font-black shadow-none transition-colors min-h-[48px] uppercase ${
+                state.isFocused ? 'border-ring' : 'hover:border-foreground'
+              }`,
+            input: () => 'text-foreground py-0.5 uppercase',
+            singleValue: () => 'text-foreground uppercase',
+            menu: () => 'bg-card border-2 border-border rounded-none shadow-hard mt-2 overflow-hidden',
+            option: (state) =>
+              `px-4 py-3 cursor-pointer transition-colors text-[10px] font-bold uppercase tracking-widest ${
+                state.isFocused ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-secondary'
+              }`,
+            noOptionsMessage: () =>
+              'text-muted-foreground p-4 text-[10px] font-bold uppercase tracking-widest text-center',
+            placeholder: () => 'text-muted-foreground px-1 uppercase',
+            menuList: () => 'p-0',
+            valueContainer: () => 'px-4',
+            dropdownIndicator: () => 'p-2 text-muted-foreground hover:text-foreground',
+            indicatorSeparator: () => 'hidden',
+            clearIndicator: () => 'p-2 text-muted-foreground hover:text-foreground',
+          }}
+          unstyled
+        />
+      </div>
     </FoodPaginationContext.Provider>
   );
 };

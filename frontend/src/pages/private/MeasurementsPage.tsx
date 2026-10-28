@@ -243,7 +243,7 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
             </button>
           </div>
         ) : (
-          <div className="h-72 w-full">
+          <div data-no-swipe className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={activeChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
@@ -486,7 +486,7 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
             <Calendar className="w-4 h-4 text-primary-ink" />
             HISTÓRICO DE REGISTROS
           </h2>
-          <div className="overflow-x-auto">
+          <div data-no-swipe className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b-2 border-border text-[10px] font-black uppercase text-muted-foreground tracking-wider">

@@ -38,12 +38,12 @@ PROGRESSO em dois níveis: SegmentedNav `[EVOLUÇÃO|METAS]` + SegmentedNav das 
 
 | Caminho | O que é | Proteção | Telas | Status |
 | --- | --- | --- | --- | --- |
-| `pages/private/StatsPage.tsx` | gráfico Recharts | `data-no-swipe` | Evolução › Alimentação | [ ] |
-| `pages/private/MeasurementsPage.tsx` | gráfico Recharts | `data-no-swipe` | Evolução › Corpo | [ ] |
-| `pages/private/MeasurementsPage.tsx:489` | tabela `overflow-x-auto` | detecção automática + `data-no-swipe` | Evolução › Corpo | [ ] |
-| `components/common/DatePickerInput.tsx` | date picker próprio | `data-no-swipe` | Evolução › Corpo | [ ] |
-| `components/meals/FoodSearchSelect.tsx` | react-select (no modal) | `data-no-swipe` + `[role=dialog]` | modal global | [ ] |
-| `pages/admin/AdminCatalogPage.tsx:294` | tabela `overflow-x-auto` | fora das seções (só registro) | `/admin/alimentos` | [ ] |
+| `pages/private/StatsPage.tsx` | gráfico Recharts | `data-no-swipe` | Evolução › Alimentação | [x] |
+| `pages/private/MeasurementsPage.tsx` | gráfico Recharts | `data-no-swipe` | Evolução › Corpo | [x] |
+| `pages/private/MeasurementsPage.tsx:489` | tabela `overflow-x-auto` | detecção automática + `data-no-swipe` | Evolução › Corpo | [x] |
+| `components/common/DatePickerInput.tsx` | date picker próprio | `data-no-swipe` | Evolução › Corpo | [x] |
+| `components/meals/FoodSearchSelect.tsx` | react-select (no modal) | `data-no-swipe` + `[role=dialog]` | modal global | [x] |
+| `pages/admin/AdminCatalogPage.tsx:294` | tabela `overflow-x-auto` | fora das seções (só registro) | `/admin/alimentos` | [x] (fora das seções) |
 
 Sem uso atual de Radix Slider/Dialog/Popover, carrossel, `touch-action`, `onTouch*`/`onPointer*` ou `draggable`.
 
@@ -62,7 +62,7 @@ Zero "dashboard" em `frontend/` e docs vivos. Exceções: `docs/archive/**` (his
 | docs vivos, `.agents/`, `.claude/`, README, AGENTS.md, CLAUDE.md | rename | [x] |
 | `frontend/src/navigation/nav-items.ts`, `icons.tsx` (+ testes) | criar | [x] |
 | `frontend/src/components/layout/SegmentedNav.tsx`, `SectionLayout.tsx` | criar/evoluir | [x] |
-| `frontend/src/navigation/swipe.ts`, `useSwipeTabs.ts`, `SwipeTabsArea.tsx` (+ testes e guarda fs) | criar | [ ] |
+| `frontend/src/navigation/swipe.ts`, `useSwipeTabs.ts`, `SwipeTabsArea.tsx` (+ testes e guarda fs) | criar | [x] |
 | `frontend/src/navigation/useHideOnScroll.ts`, `components/layout/BottomNav.tsx` | criar | [ ] |
 | `frontend/src/context/NewMealModalContext.tsx`, `ThemeContext.tsx`, `ThemeToggle.tsx` | criar/mover | [ ] |
 | `frontend/src/pages/private/AccountPage.tsx` | criar | [ ] |

@@ -11,7 +11,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminRoute } from './components/AdminRoute';
 import { PublicRoute } from './components/PublicRoute';
 import { SectionLayout } from './components/layout/SectionLayout';
-import { CONFIG_TABS, EVOLUCAO_TABS, METAS_TABS, PROGRESSO_TABS } from './navigation/nav-items';
+import { CONFIG_TABS, EVOLUCAO_TABS, METAS_TABS, PROGRESSO_LEAF_TABS, PROGRESSO_TABS } from './navigation/nav-items';
 
 const AdminCatalogPage = lazy(() =>
   import('./pages/admin/AdminCatalogPage').then((m) => ({ default: m.AdminCatalogPage }))
@@ -86,7 +86,7 @@ export const routes: RouteObject[] = [
           { path: 'medidas', element: <Navigate to="/evolucao/corpo" replace /> },
           {
             path: 'evolucao',
-            element: <SectionLayout title="Progresso" description="Acompanhe sua evolução e defina as metas que orientam seu dia." parentTabs={PROGRESSO_TABS} parentLabel="Progresso" navLabel="Evolução" links={EVOLUCAO_TABS} />,
+            element: <SectionLayout title="Progresso" description="Acompanhe sua evolução e defina as metas que orientam seu dia." parentTabs={PROGRESSO_TABS} parentLabel="Progresso" swipeTabs={PROGRESSO_LEAF_TABS} navLabel="Evolução" links={EVOLUCAO_TABS} />,
             children: [
               { index: true, element: <Navigate to="alimentacao" replace /> },
               { path: 'alimentacao', element: <StatsPage embedded /> },
@@ -95,7 +95,7 @@ export const routes: RouteObject[] = [
           },
           {
             path: 'metas',
-            element: <SectionLayout title="Progresso" description="Acompanhe sua evolução e defina as metas que orientam seu dia." parentTabs={PROGRESSO_TABS} parentLabel="Progresso" navLabel="Metas" links={METAS_TABS} />,
+            element: <SectionLayout title="Progresso" description="Acompanhe sua evolução e defina as metas que orientam seu dia." parentTabs={PROGRESSO_TABS} parentLabel="Progresso" swipeTabs={PROGRESSO_LEAF_TABS} navLabel="Metas" links={METAS_TABS} />,
             children: [
               { index: true, element: <Navigate to="rotina" replace /> },
               { path: 'rotina', element: <RoutinePage /> },

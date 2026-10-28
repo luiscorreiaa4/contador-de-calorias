@@ -1,14 +1,9 @@
 import { Link, useLocation } from 'react-router';
-import { isPathActive, type NavTab } from '../../navigation/nav-items';
+import { isTabActive, type NavTab } from '../../navigation/nav-items';
 
 interface SegmentedNavProps {
   tabs: NavTab[];
   ariaLabel: string;
-}
-
-function isTabActive(pathname: string, tab: NavTab): boolean {
-  if (tab.patterns) return isPathActive(pathname, tab.patterns);
-  return pathname === tab.to || pathname.startsWith(`${tab.to}/`);
 }
 
 /** Barra segmentada única dos submenus (mobile e desktop): colunas iguais, sem rolagem horizontal. */

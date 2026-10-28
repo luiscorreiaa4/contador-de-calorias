@@ -155,7 +155,7 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
   const inputError = 'border-destructive bg-destructive/10 text-destructive focus:border-destructive';
 
   return (
-    <div ref={containerRef} className="relative w-full">
+    <div ref={containerRef} data-no-swipe className="relative w-full">
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
           <CalendarIcon className="w-4 h-4" aria-hidden="true" />
