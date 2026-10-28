@@ -37,7 +37,7 @@ Cada formulário envia apenas os campos da tarefa atual. O e-mail cadastrado é 
 
 ## Navegação mobile, tela Conta e swipe
 
-- **Barra inferior (abaixo de `md`, 4 slots):** `[DIÁRIO] [PROGRESSO] [+] [CONTA]`. Vidro escuro translúcido sem divisórias; o ícone ativo é preenchido e o rótulo fica em negrito (`aria-current="page"`). O "+" abre o modal de Nova Refeição em qualquer tela (data em exibição no Diário; hoje nas demais) e nunca fica ativo.
+- **Barra inferior (abaixo de `md`, 4 slots):** `[DIÁRIO] [PROGRESSO] [+] [CONTA]`. Vidro escuro translúcido sem divisórias; só ícones, sem legendas (o nome acessível vem do `aria-label`); o ícone ativo é preenchido (`aria-current="page"`). O "+" abre o modal de Nova Refeição em qualquer tela (data em exibição no Diário; hoje nas demais) e nunca fica ativo.
 - **Auto-ocultar:** some ao rolar para baixo e volta ao rolar para cima; fica sempre visível no topo (`scrollY < 56`), com foco por teclado dentro dela e em `/configuracoes/*`. Some enquanto um campo de texto/select está em foco, para não subir com o teclado.
 - **PROGRESSO** abre `/evolucao` e fica ativo em Evolução e Metas. Em Progresso há dois níveis de barra segmentada: `[EVOLUÇÃO|METAS]` e as sub-abas de cada seção.
 - **`/conta`:** hub com cartão do usuário, atalhos para Perfil e Configurações (e Catálogo, para administradores), alternador de tema e "Sair da conta". Ativa em `/conta`, `/perfil` e `/configuracoes/*`. No mobile, o menu do avatar do header é substituído por esta tela; no desktop nada muda.

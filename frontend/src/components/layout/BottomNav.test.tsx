@@ -41,7 +41,7 @@ describe('BottomNav', () => {
     renderBar(path);
     const nav = screen.getByRole('navigation', { name: 'Navegação inferior' });
     const current = within(nav).getAllByRole('link').filter((link) => link.getAttribute('aria-current') === 'page');
-    expect(current.map((link) => link.textContent)).toEqual([active]);
+    expect(current.map((link) => link.getAttribute('aria-label'))).toEqual([active]);
   });
 
   it('o slot ativo usa o ícone preenchido e o inativo usa o de contorno', () => {
@@ -51,6 +51,12 @@ describe('BottomNav', () => {
     const inactiveSvg = within(nav).getByRole('link', { name: 'Conta' }).querySelector('svg');
     expect(activeSvg).toHaveAttribute('fill', 'currentColor');
     expect(inactiveSvg).toHaveAttribute('fill', 'none');
+  });
+
+  it('mostra só ícones, sem legendas visíveis', () => {
+    renderBar();
+    const nav = screen.getByRole('navigation', { name: 'Navegação inferior' });
+    expect(nav.textContent).toBe('');
   });
 
   it('o "+" nunca recebe aria-current', () => {

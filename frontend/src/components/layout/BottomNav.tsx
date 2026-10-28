@@ -7,7 +7,7 @@ import { useHideOnScroll } from '../../navigation/useHideOnScroll';
 import { isValidLocalDateString } from '../../utils/date';
 
 const slotClass =
-  'flex h-full w-full flex-col items-center justify-center gap-0.5 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset';
+  'flex h-full w-full items-center justify-center text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset';
 
 /** Barra de navegação inferior do mobile (abaixo de md): [DIÁRIO] [PROGRESSO] [+] [CONTA]. */
 export function BottomNav() {
@@ -25,11 +25,8 @@ export function BottomNav() {
     const Icon = active ? item.activeIcon : item.icon;
     return (
       <li key={item.id} className="min-w-0">
-        <Link to={item.to} aria-current={active ? 'page' : undefined} className={slotClass}>
+        <Link to={item.to} aria-label={item.shortLabel} aria-current={active ? 'page' : undefined} className={slotClass}>
           <Icon className="h-6 w-6" />
-          <span className={`text-[10px] uppercase tracking-wide ${active ? 'font-bold' : 'font-medium'}`}>
-            {item.shortLabel}
-          </span>
         </Link>
       </li>
     );
