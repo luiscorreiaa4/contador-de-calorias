@@ -11,10 +11,11 @@ interface SegmentedToggleProps<T extends string> {
   onChange: (value: T) => void;
   ariaLabel: string;
   className?: string;
+  disabled?: boolean;
 }
 
 /** Chips compactos de filtro/modo: ficam junto do conteúdo que afetam (cabeçalho do card), nunca como barra de navegação. */
-export function SegmentedToggle<T extends string>({ options, value, onChange, ariaLabel, className = '' }: SegmentedToggleProps<T>) {
+export function SegmentedToggle<T extends string>({ options, value, onChange, ariaLabel, className = '', disabled = false }: SegmentedToggleProps<T>) {
   return (
     <div role="group" aria-label={ariaLabel} className={`inline-flex shrink-0 gap-0.5 border-2 border-border bg-card p-0.5 ${className}`}>
       {options.map((option) => {
@@ -25,8 +26,9 @@ export function SegmentedToggle<T extends string>({ options, value, onChange, ar
             type="button"
             aria-pressed={active}
             aria-label={option.ariaLabel}
+            disabled={disabled}
             onClick={() => onChange(option.value)}
-            className={`min-h-9 min-w-0 border-2 px-3 text-xs font-black uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset ${
+            className={`min-h-9 min-w-0 border-2 px-3 text-xs font-black uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset disabled:opacity-50 ${
               active ? 'border-edge bg-primary text-primary-foreground' : 'border-transparent text-foreground hover:bg-secondary'
             }`}
           >

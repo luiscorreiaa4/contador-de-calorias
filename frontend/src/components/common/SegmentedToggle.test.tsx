@@ -38,4 +38,8 @@ describe('SegmentedToggle', () => {
     );
     expect(screen.getByRole('button', { name: 'MANUAL' })).toBeInTheDocument();
   });
+  it('desabilita todos os botões quando disabled', () => {
+    render(<SegmentedToggle options={[...options]} value="week" onChange={() => {}} ariaLabel="Período" disabled />);
+    screen.getAllByRole('button').forEach((button) => expect(button).toBeDisabled());
+  });
 });
