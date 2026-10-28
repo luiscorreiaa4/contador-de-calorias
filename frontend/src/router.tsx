@@ -58,6 +58,9 @@ const AccountPrivacyPage = lazy(() => import('./pages/private/AccountPrivacyPage
 const TermsPage = lazy(() =>
   import('./pages/public/LegalPage').then((m) => ({ default: m.TermsPage }))
 );
+const AccountPage = lazy(() =>
+  import('./pages/private/AccountPage').then((m) => ({ default: m.AccountPage }))
+);
 const PrivacyPage = lazy(() =>
   import('./pages/public/LegalPage').then((m) => ({ default: m.PrivacyPage }))
 );
@@ -112,6 +115,7 @@ export const routes: RouteObject[] = [
               { path: 'privacidade', element: <AccountPrivacyPage /> },
             ],
           },
+          { path: 'conta', element: <AccountPage /> },
           { path: 'perfil', element: <EditProfilePage /> },
           { path: 'diario/:date', element: <DiaryPage /> },
         ],

@@ -1,14 +1,10 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
+import { useNewMealModal } from '../../context/NewMealModalContext';
 import { Flame, Plus, Utensils, Beef, Clock, Pencil, Trash2, AlertTriangle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, CalendarDays, Copy } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-const NewMealModal = React.lazy(() =>
-  import('../../components/meals/NewMealModal').then((m) => ({
-    default: m.NewMealModal,
-  }))
-);
 import { getTodayMeals, deleteMeal, copyMeal, type Meal } from '../../services/meal.service';
 import { getActiveGoal } from '../../services/goals.service';
 import { getLocalDateString, isValidLocalDateString, addDaysToDateString, parseLocalDateOrToday } from '../../utils/date';
@@ -29,8 +25,7 @@ export const DiaryPage: React.FC = () => {
     else navigate(`/diario/${date}`);
   };
 
-  const [isNewMealModalOpen, setIsNewMealModalOpen] = React.useState(false);
-  const [mealToEdit, setMealToEdit] = React.useState<Meal | null>(null);
+  const { open: openMealModal } = useNewMealModal();
   const [areMacrosExpanded, setAreMacrosExpanded] = React.useState(false);
   const macronutrientsId = React.useId();
 
@@ -312,8 +307,7 @@ export const DiaryPage: React.FC = () => {
         <button
           type="button"
           onClick={() => {
-            setMealToEdit(null);
-            setIsNewMealModalOpen(true);
+            openMealModal({ date: selectedDate });
           }}
           className="relative z-10 w-full sm:w-auto min-h-12 py-3 px-6 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-edge shadow-hard-fill focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
@@ -397,8 +391,7 @@ export const DiaryPage: React.FC = () => {
             <button
               type="button"
               onClick={() => {
-                setMealToEdit(null);
-                setIsNewMealModalOpen(true);
+                openMealModal({ date: selectedDate });
               }}
               className="py-2.5 px-5 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-edge shadow-hard-fill focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
@@ -436,8 +429,7 @@ export const DiaryPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => {
-                          setMealToEdit(meal);
-                          setIsNewMealModalOpen(true);
+                          openMealModal({ date: selectedDate, meal });
                         }}
                         className="p-2 border-2 border-border bg-background text-foreground hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         title="Editar refeição"
@@ -501,20 +493,6 @@ export const DiaryPage: React.FC = () => {
           </div>
         )}
       </div>
-
-      {isNewMealModalOpen && (
-        <React.Suspense fallback={null}>
-          <NewMealModal
-            isOpen={isNewMealModalOpen}
-            onClose={() => {
-              setIsNewMealModalOpen(false);
-              setMealToEdit(null);
-            }}
-            mealToEdit={mealToEdit}
-            mealDate={selectedDate}
-          />
-        </React.Suspense>
-      )}
 
       {/* Delete Meal Confirm Modal (A-096) */}
       <ConfirmDialog

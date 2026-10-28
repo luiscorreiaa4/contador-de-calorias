@@ -56,17 +56,17 @@ Zero "dashboard" em `frontend/` e docs vivos. Exceções: `docs/archive/**` (his
 | Caminho | Ação | Status |
 | --- | --- | --- |
 | `frontend/src/pages/private/DashboardPage.tsx` (+ teste) | `git mv` → `DiaryPage` e rename de textos | [x] |
-| `frontend/src/router.tsx` | import `DiaryPage`, rota `conta`, abas do módulo | [ ] |
+| `frontend/src/router.tsx` | import `DiaryPage`, rota `conta`, abas do módulo | [x] |
 | `frontend/src/components/layout/AppHeader.tsx` | rename, consumir módulo, gatilho `hidden md:flex` | [ ] |
 | `frontend/src/components/auth/LoginForm.tsx` (+ teste), `VerifyEmailPage.test.tsx`, `StatsPage.tsx` | textos "Diário" | [x] |
 | docs vivos, `.agents/`, `.claude/`, README, AGENTS.md, CLAUDE.md | rename | [x] |
 | `frontend/src/navigation/nav-items.ts`, `icons.tsx` (+ testes) | criar | [x] |
 | `frontend/src/components/layout/SegmentedNav.tsx`, `SectionLayout.tsx` | criar/evoluir | [x] |
 | `frontend/src/navigation/swipe.ts`, `useSwipeTabs.ts`, `SwipeTabsArea.tsx` (+ testes e guarda fs) | criar | [x] |
-| `frontend/src/navigation/useHideOnScroll.ts`, `components/layout/BottomNav.tsx` | criar | [ ] |
-| `frontend/src/context/NewMealModalContext.tsx`, `ThemeContext.tsx`, `ThemeToggle.tsx` | criar/mover | [ ] |
-| `frontend/src/pages/private/AccountPage.tsx` | criar | [ ] |
-| `frontend/index.html`, `RootLayout.tsx` | `viewport-fit=cover`, padding inferior | [ ] |
+| `frontend/src/navigation/useHideOnScroll.ts`, `components/layout/BottomNav.tsx` | criar | [x] |
+| `frontend/src/context/NewMealModalContext.tsx`, `ThemeContext.tsx`, `ThemeToggle.tsx` | criar/mover | [x] |
+| `frontend/src/pages/private/AccountPage.tsx` | criar | [x] |
+| `frontend/index.html`, `RootLayout.tsx` | `viewport-fit=cover`, padding inferior | [x] |
 | docs: SPEC, ARCHITECTURE, UX_NAVIGATION, CORES, ROADMAP, rules (`.agents` e `.claude`) | atualizar | [ ] |
 
 ## Escolhas de ícones (Fase 3)

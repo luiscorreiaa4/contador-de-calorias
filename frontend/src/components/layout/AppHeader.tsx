@@ -1,23 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
-import { Flame, Sun, Moon, Bell, Lock, Shield, LogOut, ChevronDown } from 'lucide-react';
+import { Flame, Bell, Lock, Shield, LogOut, ChevronDown } from 'lucide-react';
+import { ThemeToggle } from './ThemeToggle';
 import { CONFIG_TABS, DESKTOP_NAV_ITEMS, visibleItems } from '../../navigation/nav-items';
 
 const SETTINGS_ICONS = [Bell, Lock, Shield];
 const SETTINGS_LINKS = CONFIG_TABS.map((tab, index) => ({ ...tab, icon: SETTINGS_ICONS[index] }));
 
 interface AppHeaderProps {
-  darkMode: boolean;
-  onToggleTheme: () => void;
   onNavigateToEditProfile?: () => void;
   onNavigateToStats?: () => void;
   onNavigateToDiary?: () => void;
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
-  darkMode,
-  onToggleTheme,
   onNavigateToEditProfile,
   onNavigateToStats,
   onNavigateToDiary,
@@ -113,24 +110,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
         {/* Right side controls */}
         <div className="flex items-center gap-4">
-          {!isAuthenticated && (
-            <button
-              type="button"
-              onClick={onToggleTheme}
-              aria-label={darkMode ? 'Modo claro' : 'Modo escuro'}
-              className="flex items-center justify-center w-10 h-10 border-2 border-border bg-card hover:bg-secondary transition-colors text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background group"
-            >
-              {darkMode ? (
-                <Sun className="w-5 h-5 group-hover:text-primary-ink transition-colors" />
-              ) : (
-                <Moon className="w-5 h-5 group-hover:text-primary-ink transition-colors" />
-              )}
-            </button>
-          )}
+          {!isAuthenticated && <ThemeToggle />}
 
-          {/* User dropdown — when authenticated */}
+          {/* User dropdown — when authenticated; no mobile, a tela /conta o substitui. */}
           {isAuthenticated && user ? (
-            <div ref={menuRef} className="relative">
+            <div ref={menuRef} className={`relative ${showMainNav ? 'hidden md:block' : ''}`}>
               <button
                 type="button"
                 onClick={() => setMenuOpen((prev) => !prev)}
@@ -171,21 +155,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                         {user.email}
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleTheme();
-                      }}
-                      aria-label={darkMode ? 'Modo claro' : 'Modo escuro'}
-                      className="shrink-0 flex items-center justify-center w-8 h-8 border-2 border-border bg-card hover:bg-secondary transition-colors text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background group"
-                    >
-                      {darkMode ? (
-                        <Sun className="w-4 h-4 group-hover:text-primary-ink transition-colors" />
-                      ) : (
-                        <Moon className="w-4 h-4 group-hover:text-primary-ink transition-colors" />
-                      )}
-                    </button>
+                    <ThemeToggle size="sm" />
                   </div>
 
                   <nav aria-label="Menu da conta" className="p-2 flex flex-col gap-1 max-h-[60vh] overflow-y-auto">

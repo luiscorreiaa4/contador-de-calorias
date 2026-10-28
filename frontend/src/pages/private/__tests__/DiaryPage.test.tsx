@@ -4,6 +4,7 @@ import { describe, it, expect } from 'vitest';
 import { MemoryRouter, Routes, Route } from 'react-router';
 import { render } from '../../../tests/setup/test-utils';
 import { DiaryPage } from '../DiaryPage';
+import { NewMealModalProvider } from '../../../context/NewMealModalProvider';
 import { server } from '../../../mocks/server';
 import { http, HttpResponse } from 'msw';
 import { getLocalDateString, addDaysToDateString, parseLocalDateOrToday } from '../../../utils/date';
@@ -22,10 +23,12 @@ function formatDateLabel(dateStr: string): string {
 function renderDiary(initialPath = '/') {
   return render(
     <MemoryRouter initialEntries={[initialPath]}>
-      <Routes>
-        <Route path="/" element={<DiaryPage />} />
-        <Route path="/diario/:date" element={<DiaryPage />} />
-      </Routes>
+      <NewMealModalProvider>
+        <Routes>
+          <Route path="/" element={<DiaryPage />} />
+          <Route path="/diario/:date" element={<DiaryPage />} />
+        </Routes>
+      </NewMealModalProvider>
     </MemoryRouter>
   );
 }
