@@ -61,7 +61,7 @@ Zero "dashboard" em `frontend/` e docs vivos. Exceções: `docs/archive/**` (his
 | `frontend/src/components/auth/LoginForm.tsx` (+ teste), `VerifyEmailPage.test.tsx`, `StatsPage.tsx` | textos "Diário" | [x] |
 | docs vivos, `.agents/`, `.claude/`, README, AGENTS.md, CLAUDE.md | rename | [x] |
 | `frontend/src/navigation/nav-items.ts`, `icons.tsx` (+ testes) | criar | [x] |
-| `frontend/src/components/layout/SegmentedNav.tsx`, `SectionLayout.tsx` | criar/evoluir | [ ] |
+| `frontend/src/components/layout/SegmentedNav.tsx`, `SectionLayout.tsx` | criar/evoluir | [x] |
 | `frontend/src/navigation/swipe.ts`, `useSwipeTabs.ts`, `SwipeTabsArea.tsx` (+ testes e guarda fs) | criar | [ ] |
 | `frontend/src/navigation/useHideOnScroll.ts`, `components/layout/BottomNav.tsx` | criar | [ ] |
 | `frontend/src/context/NewMealModalContext.tsx`, `ThemeContext.tsx`, `ThemeToggle.tsx` | criar/mover | [ ] |

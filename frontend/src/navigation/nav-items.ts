@@ -31,6 +31,8 @@ export interface NavTab {
   to: string;
   label: string;
   shortLabel?: string;
+  /** Padrões em que a aba conta como ativa; por padrão, a rota da aba e suas subrotas. */
+  patterns?: string[];
 }
 
 const DIARIO: NavDestination = {
@@ -135,8 +137,8 @@ export const METAS_TABS: NavTab[] = [
 
 /** Nível superior de Progresso; cada aba abre a sub-aba padrão da seção. */
 export const PROGRESSO_TABS: NavTab[] = [
-  { to: '/evolucao/alimentacao', label: 'Evolução' },
-  { to: '/metas/rotina', label: 'Metas' },
+  { to: '/evolucao/alimentacao', label: 'Evolução', patterns: ['/evolucao/*'] },
+  { to: '/metas/rotina', label: 'Metas', patterns: ['/metas/*'] },
 ];
 
 /** Abas-folha de Progresso na ordem visual (usada pelo swipe). */
