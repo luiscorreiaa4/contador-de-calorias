@@ -189,5 +189,49 @@ describe('MeasurementsPage (BL-21 / FEAT-C04)', () => {
     expect(dateInput).toHaveAttribute('placeholder', 'DD/MM/AAAA');
     expect(screen.getByRole('button', { name: /abrir calendário/i })).toBeInTheDocument();
   });
+
+  describe('redesign: filtros no card e resumo em linha', () => {
+    const renderEmbedded = () =>
+      render(
+        <QueryClientProvider client={createTestQueryClient()}>
+          <MeasurementsPage embedded />
+        </QueryClientProvider>
+      );
+
+    it('a métrica é um grupo de chips no cabeçalho do card do gráfico e alterna peso/gordura', async () => {
+      renderEmbedded();
+      const group = screen.getByRole('group', { name: 'Métrica' });
+      const weight = within(group).getByRole('button', { name: 'PESO' });
+      const fat = within(group).getByRole('button', { name: '% GORDURA' });
+      expect(weight).toHaveAttribute('aria-pressed', 'true');
+
+      await userEvent.click(fat);
+      expect(fat).toHaveAttribute('aria-pressed', 'true');
+      expect(weight).toHaveAttribute('aria-pressed', 'false');
+      expect(screen.getByRole('heading', { name: /gráfico de percentual de gordura/i })).toBeInTheDocument();
+    });
+
+    it('mostra Atual/Menor/Maior/Variação numa única linha de 4 colunas, não numa grade 2x2', async () => {
+      renderEmbedded();
+      await waitFor(() => expect(screen.getByText(/peso atual/i)).toBeInTheDocument());
+      ['MENOR PESO', 'MAIOR PESO', 'VARIAÇÃO'].forEach((label) => expect(screen.getByText(label)).toBeInTheDocument());
+
+      const strip = screen.getByText('VARIAÇÃO').parentElement?.parentElement;
+      expect(strip).toHaveClass('grid-cols-4');
+      expect(strip).not.toHaveClass('grid-cols-2');
+    });
+
+    it('NOVA MEDIÇÃO ocupa a largura total e o histórico vira um card com título', async () => {
+      renderEmbedded();
+      expect(screen.getByRole('button', { name: /nova medição/i })).toHaveClass('w-full');
+      expect(await screen.findByRole('heading', { level: 2, name: /histórico de registros/i })).toBeInTheDocument();
+    });
+
+    it('em modo embutido o título da aba fica só para leitores de tela (sr-only)', async () => {
+      renderEmbedded();
+      expect(screen.getByRole('heading', { level: 2, name: /^peso e medidas$/i })).toHaveClass('sr-only');
+      await waitFor(() => expect(screen.getByText(/peso atual/i)).toBeInTheDocument());
+    });
+  });
 });
 

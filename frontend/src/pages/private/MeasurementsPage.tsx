@@ -5,6 +5,8 @@ import { type CreateMeasurementDTO } from '@caloriesync/shared';
 import { z } from 'zod';
 import { DatePickerInput } from '../../components/common/DatePickerInput';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
+import { SectionCard } from '../../components/common/SectionCard';
+import { SegmentedToggle } from '../../components/common/SegmentedToggle';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getMeasurements, addMeasurement, deleteMeasurement, type BodyMeasurement } from '../../services/measurement.service';
 import { getLocalDateString } from '../../utils/date';
@@ -17,7 +19,14 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from 'recharts';
-import { Scale, TrendingDown, TrendingUp, Plus, AlertTriangle, Calendar, Trash2 } from 'lucide-react';
+import { Scale, TrendingDown, TrendingUp, Plus, AlertTriangle, Trash2 } from 'lucide-react';
+
+type Metric = 'weight' | 'fat';
+
+const METRIC_OPTIONS = [
+  { value: 'weight', label: 'PESO' },
+  { value: 'fat', label: '% GORDURA' },
+] as const;
 
 const isValidDateValue = (val: string) => {
   if (!val || typeof val !== 'string') return false;
@@ -60,7 +69,7 @@ const decimalValue = (value: string) => value.trim() ? Number(value.replace(',',
 export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
   const Heading = embedded ? 'h2' : 'h1';
   const queryClient = useQueryClient();
-  const [metric, setMetric] = useState<'weight' | 'fat'>('weight');
+  const [metric, setMetric] = useState<Metric>('weight');
   const [isLogging, setIsLogging] = useState(false);
   const [measurementToDelete, setMeasurementToDelete] = useState<BodyMeasurement | null>(null);
   const { register, handleSubmit, reset, setValue, control, formState: { errors } } = useForm<z.infer<typeof measurementFormSchema>>({
@@ -148,60 +157,39 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
   const fatChartData = chartData.filter((item) => item.bodyFat !== undefined);
   const activeChartData = metric === 'weight' ? chartData : fatChartData;
 
+  const unit = metric === 'weight' ? ' kg' : '%';
+  const series =
+    metric === 'weight'
+      ? { current: currentWeight, min: minWeight, max: maxWeight, diff: weightDiff, labels: ['PESO ATUAL', 'MENOR PESO', 'MAIOR PESO'] }
+      : { current: currentBodyFat, min: minBodyFat, max: maxBodyFat, diff: bodyFatDiff, labels: ['GORDURA ATUAL', 'MENOR GORDURA', 'MAIOR GORDURA'] };
+  const format = (value: number | null) => (value !== null ? `${value.toFixed(1)}${unit}` : '—');
+  const showStats = !isLoading && !isError && activeChartData.length > 0;
+  const statCells: { label: string; value: string }[] = [
+    { label: series.labels[0], value: format(series.current) },
+    { label: series.labels[1], value: format(series.min) },
+    { label: series.labels[2], value: format(series.max) },
+  ];
+
   return (
-    <div className={embedded ? "space-y-8" : "w-full max-w-5xl mx-auto px-4 py-8 space-y-10"}>
-      {/* Header */}
-      <div className="border-b-2 border-border pb-6 space-y-6">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary-ink mb-2">
-            Evolução Corporal
-          </p>
-          <Heading className="text-3xl sm:text-5xl font-heading font-black text-foreground uppercase tracking-tighter">
-            PESO E MEDIDAS
-          </Heading>
-        </div>
+    <div className={embedded ? 'space-y-6' : 'w-full max-w-5xl mx-auto px-4 py-8 space-y-6'}>
+      {/* A aba "Peso e medidas" já nomeia a página; o título só existe para a hierarquia de cabeçalhos. */}
+      <Heading
+        className={embedded ? 'sr-only' : 'text-3xl sm:text-5xl font-heading font-black text-foreground uppercase tracking-tighter'}
+      >
+        PESO E MEDIDAS
+      </Heading>
 
-        {/* Seletor de métrica: Peso vs Gordura */}
-        <div className="border-2 border-border p-1 bg-card shadow-hard grid grid-cols-2 w-full sm:w-fit sm:inline-flex sm:ml-auto gap-1">
-          <button
-            aria-pressed={metric === 'weight'}
-            onClick={() => setMetric('weight')}
-            className={`flex items-center justify-center text-center py-2.5 px-4 sm:px-6 text-xs font-black uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
-              metric === 'weight'
-                ? 'border-2 border-edge bg-primary text-primary-foreground shadow-hard-fill'
-                : 'bg-card text-foreground border-2 border-transparent hover:bg-secondary'
-            }`}
-          >
-            PESO
-          </button>
-          <button
-            aria-pressed={metric === 'fat'}
-            onClick={() => setMetric('fat')}
-            className={`flex items-center justify-center text-center py-2.5 px-4 sm:px-6 text-xs font-black uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
-              metric === 'fat'
-                ? 'border-2 border-edge bg-primary text-primary-foreground shadow-hard-fill'
-                : 'bg-card text-foreground border-2 border-transparent hover:bg-secondary'
-            }`}
-          >
-            % GORDURA
-          </button>
-        </div>
-      </div>
-
-      {/* Gráfico de Evolução */}
-      <div className="bg-card border-2 border-border p-6 shadow-hard space-y-6">
-        <div className="flex items-center justify-between border-b-2 border-border pb-4">
-          <h2 className="text-sm sm:text-base font-black uppercase tracking-tight text-foreground flex items-center gap-2">
-            <Scale className="w-5 h-5 text-primary-ink" />
-            {metric === 'weight' ? 'GRÁFICO DE EVOLUÇÃO DE PESO' : 'GRÁFICO DE PERCENTUAL DE GORDURA'}
-          </h2>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-            {activeChartData.length} REGISTROS
-          </span>
-        </div>
+      {/* Gráfico de evolução: o filtro de métrica fica no cabeçalho do card que ele afeta */}
+      <SectionCard
+        title={metric === 'weight' ? 'GRÁFICO DE EVOLUÇÃO DE PESO' : 'GRÁFICO DE PERCENTUAL DE GORDURA'}
+        actions={<SegmentedToggle options={[...METRIC_OPTIONS]} value={metric} onChange={setMetric} ariaLabel="Métrica" />}
+      >
+        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          {activeChartData.length} REGISTROS
+        </p>
 
         {isLoading ? (
-          <div className="flex items-center justify-center h-64 border-2 border-border border-dashed bg-card opacity-50">
+          <div className="flex items-center justify-center h-48 border-2 border-border border-dashed opacity-50">
             <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground animate-pulse">
               CARREGANDO MEDIÇÕES...
             </p>
@@ -209,21 +197,22 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
         ) : isError ? (
           <div
             role="alert"
-            className="bg-destructive/10 border-2 border-destructive p-8 flex flex-col items-center justify-center text-center gap-4"
+            className="bg-destructive/10 border-2 border-destructive p-6 flex flex-col items-center justify-center text-center gap-3"
           >
             <AlertTriangle className="w-8 h-8 text-destructive" />
             <p className="text-sm font-black uppercase tracking-wider text-destructive">
               {error instanceof Error ? error.message.toUpperCase() : 'ERRO AO CARREGAR DADOS DE EVOLUÇÃO'}
             </p>
             <button
+              type="button"
               onClick={() => refetch()}
-              className="py-2 px-6 bg-destructive text-destructive-foreground font-black text-xs uppercase"
+              className="py-2 px-6 bg-destructive text-destructive-foreground font-black text-xs uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               TENTAR NOVAMENTE
             </button>
           </div>
         ) : activeChartData.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-border p-6 text-center space-y-3">
+          <div className="flex flex-col items-center justify-center min-h-48 border-2 border-dashed border-border p-6 text-center space-y-3">
             <Scale className="w-10 h-10 text-muted-foreground" />
             <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               {metric === 'weight'
@@ -236,6 +225,7 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
               </p>
             )}
             <button
+              type="button"
               onClick={() => setIsLogging(true)}
               className="px-4 py-2 bg-primary text-primary-foreground border-2 border-edge shadow-hard-fill text-xs font-black uppercase tracking-wider hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
@@ -243,7 +233,7 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
             </button>
           </div>
         ) : (
-          <div data-no-swipe className="h-72 w-full">
+          <div data-no-swipe className="h-60 sm:h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={activeChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
@@ -299,90 +289,34 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
             </ResponsiveContainer>
           </div>
         )}
-      </div>
 
-      {/* Cards de Resumo */}
-      {metric === 'weight' ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-card border-2 border-border p-4 shadow-hard">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">PESO ATUAL</p>
-            <p className="text-2xl sm:text-3xl font-heading font-black text-foreground">
-              {currentWeight !== null ? `${currentWeight.toFixed(1)} kg` : '—'}
-            </p>
+        {/* Faixa de resumo: 4 indicadores em linha (não vira grade 2x2 no mobile) */}
+        {showStats && (
+          <div className="grid grid-cols-4 divide-x-2 divide-border border-t-2 border-border pt-4">
+            {[...statCells, { label: 'VARIAÇÃO', value: series.current !== null ? `${series.diff > 0 ? '+' : ''}${series.diff.toFixed(1)}${unit}` : '—' }].map(
+              ({ label, value }, index) => (
+                <div key={label} className="min-w-0 px-2 first:pl-0 last:pr-0">
+                  <p className="flex items-center gap-1 text-[10px] font-bold uppercase leading-tight tracking-wider text-muted-foreground">
+                    {label}
+                    {index === 3 && series.diff > 0 && <TrendingUp className="w-3 h-3 text-primary-ink shrink-0" aria-hidden="true" />}
+                    {index === 3 && series.diff < 0 && <TrendingDown className="w-3 h-3 text-primary-ink shrink-0" aria-hidden="true" />}
+                  </p>
+                  <p className="mt-1 whitespace-nowrap text-sm sm:text-2xl font-heading font-black text-foreground">{value}</p>
+                </div>
+              )
+            )}
           </div>
-          <div className="bg-card border-2 border-border p-4 shadow-hard">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">MENOR PESO</p>
-            <p className="text-2xl sm:text-3xl font-heading font-black text-foreground">
-              {minWeight !== null ? `${minWeight.toFixed(1)} kg` : '—'}
-            </p>
-          </div>
-          <div className="bg-card border-2 border-border p-4 shadow-hard">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">MAIOR PESO</p>
-            <p className="text-2xl sm:text-3xl font-heading font-black text-foreground">
-              {maxWeight !== null ? `${maxWeight.toFixed(1)} kg` : '—'}
-            </p>
-          </div>
-          <div className="bg-card border-2 border-border p-4 shadow-hard">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">VARIAÇÃO</p>
-            <div className="flex items-center gap-1">
-              {weightDiff > 0 ? (
-                <TrendingUp className="w-5 h-5 text-primary-ink" />
-              ) : weightDiff < 0 ? (
-                <TrendingDown className="w-5 h-5 text-primary-ink" />
-              ) : null}
-              <p className="text-2xl sm:text-3xl font-heading font-black text-foreground">
-                {currentWeight !== null
-                  ? `${weightDiff > 0 ? '+' : ''}${weightDiff.toFixed(1)} kg`
-                  : '—'}
-              </p>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-card border-2 border-border p-4 shadow-hard">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">GORDURA ATUAL</p>
-            <p className="text-2xl sm:text-3xl font-heading font-black text-foreground">
-              {currentBodyFat !== null ? `${currentBodyFat.toFixed(1)}%` : '—'}
-            </p>
-          </div>
-          <div className="bg-card border-2 border-border p-4 shadow-hard">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">MENOR GORDURA</p>
-            <p className="text-2xl sm:text-3xl font-heading font-black text-foreground">
-              {minBodyFat !== null ? `${minBodyFat.toFixed(1)}%` : '—'}
-            </p>
-          </div>
-          <div className="bg-card border-2 border-border p-4 shadow-hard">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">MAIOR GORDURA</p>
-            <p className="text-2xl sm:text-3xl font-heading font-black text-foreground">
-              {maxBodyFat !== null ? `${maxBodyFat.toFixed(1)}%` : '—'}
-            </p>
-          </div>
-          <div className="bg-card border-2 border-border p-4 shadow-hard">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">VARIAÇÃO</p>
-            <div className="flex items-center gap-1">
-              {bodyFatDiff > 0 ? (
-                <TrendingUp className="w-5 h-5 text-primary-ink" />
-              ) : bodyFatDiff < 0 ? (
-                <TrendingDown className="w-5 h-5 text-primary-ink" />
-              ) : null}
-              <p className="text-2xl sm:text-3xl font-heading font-black text-foreground">
-                {currentBodyFat !== null
-                  ? `${bodyFatDiff > 0 ? '+' : ''}${bodyFatDiff.toFixed(1)}%`
-                  : '—'}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+        )}
+      </SectionCard>
 
       {/* Ação Nova Medição */}
-      <div className="flex justify-end">
+      <div>
         <button
+          type="button"
           aria-expanded={isLogging}
           aria-controls="measurement-form"
           onClick={() => setIsLogging(!isLogging)}
-          className="w-full sm:w-auto py-3 px-5 text-xs font-black uppercase tracking-widest bg-primary text-primary-foreground border-2 border-edge shadow-hard-fill hover:bg-primary/90 flex items-center justify-center gap-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          className="w-full py-3 px-5 text-xs font-black uppercase tracking-widest bg-primary text-primary-foreground border-2 border-edge shadow-hard-fill hover:bg-primary/90 flex items-center justify-center gap-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           <Plus className="w-4 h-4" />
           NOVA MEDIÇÃO
@@ -391,7 +325,7 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
 
       {/* Formulário de Registro Rápido */}
       {isLogging && (
-        <form id="measurement-form" noValidate onSubmit={handleSubmit(onSubmit)} className="p-6 bg-card border-2 border-border shadow-hard space-y-4">
+        <form id="measurement-form" noValidate onSubmit={handleSubmit(onSubmit)} className="p-4 sm:p-6 bg-card border-2 border-border shadow-hard space-y-4">
           <div className="flex items-center justify-between border-b-2 border-border pb-3">
             <h2 className="text-sm font-black uppercase tracking-wider text-foreground flex items-center gap-2">
               <Scale className="w-4 h-4 text-primary-ink" />
@@ -481,11 +415,7 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
 
       {/* Tabela de Histórico Recente */}
       {measurements.length > 0 && (
-        <div className="bg-card border-2 border-border p-6 shadow-hard space-y-4">
-          <h2 className="text-sm font-black uppercase tracking-tight text-foreground flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-primary-ink" />
-            HISTÓRICO DE REGISTROS
-          </h2>
+        <SectionCard title="HISTÓRICO DE REGISTROS">
           <div data-no-swipe className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -528,9 +458,8 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
               </tbody>
             </table>
           </div>
-        </div>
+        </SectionCard>
       )}
-
 
       {/* Confirmação de Exclusão de Medição */}
       <ConfirmDialog
