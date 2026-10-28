@@ -3,7 +3,6 @@ import {
   ACCOUNT_LINK_ITEMS,
   BOTTOM_NAV_ITEMS,
   DESKTOP_NAV_ITEMS,
-  PROGRESSO_LEAF_TABS,
   isDestinationActive,
   visibleItems,
 } from './nav-items';
@@ -48,12 +47,4 @@ describe('nav-items', () => {
     expect(visibleItems(ACCOUNT_LINK_ITEMS, false).map((i) => i.id)).toEqual(['perfil', 'configuracoes']);
   });
 
-  it('abas-folha de Progresso seguem a ordem visual', () => {
-    expect(PROGRESSO_LEAF_TABS.map((tab) => tab.to)).toEqual([
-      '/evolucao/alimentacao',
-      '/evolucao/corpo',
-      '/metas/rotina',
-      '/metas/diarias',
-    ]);
-  });
 });

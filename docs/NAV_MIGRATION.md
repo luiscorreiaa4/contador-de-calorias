@@ -24,7 +24,7 @@ Estado vivo da tarefa (idempotente: uma nova janela retoma pelos itens não marc
 | + NOVA | — (abre modal) | 3 | nunca |
 | CONTA | `/conta` | 4 | `/conta`, `/perfil`, `/configuracoes/*` |
 
-PROGRESSO em dois níveis: SegmentedNav `[EVOLUÇÃO|METAS]` + SegmentedNav das sub-abas. O swipe percorre as folhas: Alimentação → Corpo → Rotina → Diárias; Configurações: Notificações → Segurança → Privacidade. Sem swipe em Diário, `/conta`, Perfil e barra inferior.
+PROGRESSO em dois níveis: SegmentedNav `[EVOLUÇÃO|METAS]` + SegmentedNav das sub-abas. **Swipe (revisado, ver "Revisão N5")**: entre Diário ↔ Progresso ↔ Conta, com arrasto animado; sem swipe entre abas irmãs.
 
 ## Decisões do agente
 
@@ -112,3 +112,14 @@ Feita por leitura do código, sem abrir o navegador (regra do CLAUDE.md):
 4. Nenhum `preventDefault` no módulo; listeners passivos.
 5. O contêiner usa `ref` + listeners nativos (sem `onTouch*` do React).
 6. A `SegmentedNav` funciona sem swipe (testes de `SegmentedNav` e de navegação existentes).
+
+## Revisão N5 (swipe entre destinos da barra inferior)
+
+O usuário corrigiu o prompt original: o swipe deve ser **entre as telas da barra inferior** (Diário ↔ Progresso ↔ Conta), com animação semelhante à do YouTube, e **não** entre abas irmãs.
+
+- **Removido:** `useSwipeTabs`, `SwipeTabsArea`, `PROGRESSO_LEAF_TABS` e o uso em `SectionLayout`. A SegmentedNav continua sendo o único meio de trocar de aba irmã.
+- **Novo:** `swipe.ts` (regras puras), `useSwipeNav.ts` (arrasto + animação) e `SwipeMain.tsx` (o `<main>` do `RootLayout`, ativo só com a barra inferior presente e em rotas de um destino da barra).
+- **Contradições conscientes com o prompt original:** (1) o gesto horizontal passa a existir no Diário (antes reservado a BL-02; a navegação por dia precisará de outro gesto); (2) há animação de arrasto (antes "sem animação"); (3) o toque agora usa também `touchmove` para arrastar, sempre passivo e sem `preventDefault`.
+- **Animação:** o painel interno do `<main>` acompanha o dedo (`translateX` + opacidade), com resistência na ponta da fila; ao confirmar sai em 180 ms, navega e a nova tela entra pelo lado oposto em 220 ms; se não confirmar, volta em 220 ms. `prefers-reduced-motion`: navega direto. Nenhum `transform` permanece fora do gesto.
+- **Zonas sem swipe:** continuam valendo `data-no-swipe` (gráficos de Evolução, tabela e date picker de medidas, react-select), campos, sliders, overlays e rolagem horizontal real. Em Evolução, deslizar sobre o gráfico não troca de tela.
+- **Auditoria do swipe (substitui o item g):** (1) `touchstart/touchmove/touchend/touchcancel` só em `useSwipeNav.ts`, no `<main>`; (2) arquivos com `recharts` têm `data-no-swipe` (teste de guarda); (3) swipe só em rotas dos 3 destinos, nunca em `/admin` nem páginas legais; (4) nenhum `preventDefault`; (5) sem `onTouch*` do React; (6) a barra inferior funciona sem o swipe (testes do `BottomNav`).

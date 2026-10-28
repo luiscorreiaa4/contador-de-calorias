@@ -141,9 +141,6 @@ export const PROGRESSO_TABS: NavTab[] = [
   { to: '/metas/rotina', label: 'Metas', patterns: ['/metas/*'] },
 ];
 
-/** Abas-folha de Progresso na ordem visual (usada pelo swipe). */
-export const PROGRESSO_LEAF_TABS: NavTab[] = [...EVOLUCAO_TABS, ...METAS_TABS];
-
 export const CONFIG_TABS: NavTab[] = [
   { to: '/configuracoes/notificacoes', label: 'Notificações', shortLabel: 'Notific.' },
   { to: '/configuracoes/seguranca', label: 'Segurança' },

@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { NewMealModalProvider } from '../../context/NewMealModalProvider';
 import { ThemeProvider } from '../../context/ThemeProvider';
 import { AppHeader } from './AppHeader';
+import { SwipeMain } from '../../navigation/SwipeMain';
 import { BottomNav } from './BottomNav';
 import { Footer } from './Footer';
 
@@ -38,7 +39,7 @@ const RootShell: React.FC = () => {
       <AppHeader />
 
       {/* Main Content (Routes Area) */}
-      <main className="flex-1 flex items-center justify-center z-10 my-8 sm:my-12 pb-8 sm:pb-16">
+      <SwipeMain enabled={showBottomNav} className="flex-1 flex items-center justify-center z-10 my-8 sm:my-12 pb-8 sm:pb-16">
         <Suspense
           fallback={
             <div className="flex items-center justify-center w-full h-64">
@@ -48,7 +49,7 @@ const RootShell: React.FC = () => {
         >
           <Outlet />
         </Suspense>
-      </main>
+      </SwipeMain>
 
       {/* Footer */}
       <Footer />

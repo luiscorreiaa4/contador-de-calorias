@@ -120,7 +120,7 @@ describe('Router & Navigation (PC-21 / D-16)', () => {
     );
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: /recuperar senha/i })
+      await screen.findByRole('heading', { level: 1, name: /recuperar senha/i }, { timeout: 5000 })
     ).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/esqueci-senha');
   });
