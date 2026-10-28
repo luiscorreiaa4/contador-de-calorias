@@ -41,3 +41,8 @@ O tema claro/escuro é gerenciado **estritamente através de variáveis CSS** de
 - **Associação de Labels:** Todo elemento `<input>`, `<select>` ou `<textarea>` DEVE possuir um `<label>` correspondente com o atributo `htmlFor` associado ao `id` do campo, ou atributo `aria-label` descritivo quando o label visual for oculto.
 - **Foco por Teclado:** Elementos interativos devem demarcar claramente o foco para navegação por teclado (`focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background` ou `focus:border-ring`).
 - **Proibição de Diálogos Nativos:** É **terminantemente proibido** utilizar `window.alert()` ou `window.confirm()`. Todas as confirmações e alertas devem utilizar modais acessíveis construídos com Radix UI (com foco preso, tecla `Escape` para fechar e atributo `aria-modal="true"`).
+
+## 6. Navegação (BottomNav, SegmentedNav e Fonte Única)
+- **Fonte única:** todo destino de navegação (rótulo, rota, ícone de contorno e preenchido, padrões de "ativo") vive em `frontend/src/navigation/nav-items.ts`. Novos destinos entram **só** ali; proibido repetir listas de rótulos em componentes.
+- **Submenus:** use `SegmentedNav` (`components/layout/SegmentedNav.tsx`), um `<nav aria-label>` com links, colunas iguais, `min-w-0`/`truncate`, sem rolagem horizontal. Não crie abas próprias.
+- **Barra inferior:** use `BottomNav` (`md:hidden`, `z-40`). Vidro `bg-background supports-[backdrop-filter]:bg-background/85 backdrop-blur-2xl` e `border-t border-border/40` são a exceção documentada em `docs/CORES.md`; slots sem borda, sombra ou bloco; ativo = ícone preenchido + `font-bold` + `aria-current="page"`.

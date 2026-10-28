@@ -24,6 +24,7 @@ Este documento registra o planejamento estratégico e a evolução do **CalorieS
 - **Fase 5.5: Pacote Compartilhado (`shared`):** Contratos DTO, schemas Zod e cálculos matemáticos compartilhados como fonte única entre backend e frontend.
 - **Fase 6 (parcial): Autenticação por e-mail:** Confirmação de cadastro por código de 6 dígitos (BL-12) e recuperação de senha por link de uso único (BL-05), com hard gate no login, revogação por `token_version`, Mailpit/Mailer plugável e telas públicas de verificação e redefinição.
 - **Fase 6.5: Painel Administrativo do Catálogo e Curadoria (D-22 / B1–B12):** RBAC estrito via banco (`users.role`), auditoria transacional atômica (`admin_audit_log`), rotas protegidas sob `/api/admin/foods`, CLI de gestão de administradores (`admin:promote`, `admin:demote`, `admin:list`), ferramentas de curadoria reproduzíveis (export CSV com heurísticas de duplicatas, apply com simulação/efetivação, import estruturado de curados), proteção de alimentos curados contra reativação e sobreposição na TACO (B10), tela brutalista `/admin/alimentos` e `AdminRoute`.
+- [x] **UX: navegação mobile e renomeação para Diário:** tela "Dashboard" renomeada para "Diário"; barra inferior mobile com auto-ocultar; tela `/conta`; `SegmentedNav` única para submenus; swipe entre abas irmãs; módulo único de destinos (`frontend/src/navigation/`) e host global do modal de Nova Refeição.
 
 ---
 

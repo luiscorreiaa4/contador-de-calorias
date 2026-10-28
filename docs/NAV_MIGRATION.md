@@ -57,7 +57,7 @@ Zero "dashboard" em `frontend/` e docs vivos. Exceções: `docs/archive/**` (his
 | --- | --- | --- |
 | `frontend/src/pages/private/DashboardPage.tsx` (+ teste) | `git mv` → `DiaryPage` e rename de textos | [x] |
 | `frontend/src/router.tsx` | import `DiaryPage`, rota `conta`, abas do módulo | [x] |
-| `frontend/src/components/layout/AppHeader.tsx` | rename, consumir módulo, gatilho `hidden md:flex` | [ ] |
+| `frontend/src/components/layout/AppHeader.tsx` | rename, consumir módulo, gatilho `hidden md:block` no mobile | [x] |
 | `frontend/src/components/auth/LoginForm.tsx` (+ teste), `VerifyEmailPage.test.tsx`, `StatsPage.tsx` | textos "Diário" | [x] |
 | docs vivos, `.agents/`, `.claude/`, README, AGENTS.md, CLAUDE.md | rename | [x] |
 | `frontend/src/navigation/nav-items.ts`, `icons.tsx` (+ testes) | criar | [x] |
@@ -67,8 +67,48 @@ Zero "dashboard" em `frontend/` e docs vivos. Exceções: `docs/archive/**` (his
 | `frontend/src/context/NewMealModalContext.tsx`, `ThemeContext.tsx`, `ThemeToggle.tsx` | criar/mover | [x] |
 | `frontend/src/pages/private/AccountPage.tsx` | criar | [x] |
 | `frontend/index.html`, `RootLayout.tsx` | `viewport-fit=cover`, padding inferior | [x] |
-| docs: SPEC, ARCHITECTURE, UX_NAVIGATION, CORES, ROADMAP, rules (`.agents` e `.claude`) | atualizar | [ ] |
+| docs: SPEC, ARCHITECTURE, UX_NAVIGATION, CORES, ROADMAP, rules (`.agents` e `.claude`) | atualizar | [x] |
 
 ## Escolhas de ícones (Fase 3)
 
 Os três slots da barra inferior (Diário, Progresso, Conta) usam SVGs próprios em `frontend/src/navigation/icons.tsx`, com contorno e versão sólida, só `currentColor`. Diário: caderno (sólido com linhas vazadas); Progresso: barras; Conta: cabeça e ombros. Os destinos só do desktop usam ícones lucide (`activeIcon` igual a `icon`).
+
+## Auditoria final (Fase 6)
+
+### a) Validação
+
+- `npm --prefix frontend run check:colors`: 0 violações. `npm run lint`: 0 erros (1 aviso preexistente em `OnboardingFlow`). `npm run build`: ok. Testes do frontend: ver o resultado final no relatório de entrega. Backend (`npm run test` na Fase 0 e `npm run test:strict` ao final): nada do backend foi tocado.
+
+### b) Greps de segunda via
+
+- "dashboard": zero em `frontend/` e docs vivos. Exceções: `docs/archive/**`, `docs/AGENT_LOG.md`, este arquivo e a nota "antigo Dashboard" em `docs/UX_NAVIGATION.md`.
+- Listas de destinos duplicadas: nenhum rótulo "Evolução/Metas/Perfil/Configurações/Progresso/Conta" fora de `navigation/nav-items.ts`, testes e `AccountPage` (que consome o módulo). `DiaryPage` mantém o rótulo "Diário" do navegador de datas (texto de tela, não destino).
+- Submenus antigos: o `SectionLayout` foi reescrito sobre `SegmentedNav`; o código do submenu antigo (grid/inline-flex com `shadow-hard-fill`) não existe mais. As classes `shadow-hard-fill*` continuam em uso por botões e modais.
+- Hex/rgba soltos e z-index arbitrário em `navigation/` e `components/layout/`: nenhum. A barra inferior usa `z-40` (escala: header z-50, dropdown z-[100], modais z-[200]).
+- Toque/ponteiro: `touchstart/touchend/touchcancel` só em `navigation/useSwipeTabs.ts`, no contêiner (não em document/window). Nenhum `onTouch*`/`onPointer*`. Nenhum `preventDefault` em `navigation/`.
+
+### c) Revisão por leitura (360, 390, 768 px)
+
+Feita por leitura do código, sem abrir o navegador (regra do CLAUDE.md):
+
+- Barra inferior: `grid-cols-4` com `min-w-0`, altura `h-14` + `env(safe-area-inset-bottom)`; sem largura fixa. Some em `md` (`md:hidden`).
+- Padding do conteúdo: o contêiner raiz recebe `pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0` só quando a barra existe; cobre a barra (3.5rem = `h-14`) sem alterar com a rolagem.
+- `SegmentedNav`: `grid-flow-col auto-cols-fr`, abas com `min-w-0`, `truncate` e `min-h-11`; rótulo curto abaixo de `sm`. Sem rolagem horizontal por construção.
+- `/conta`: cartão com `truncate` e `min-w-0`; linhas com `flex-1 truncate`.
+- Breakpoint 768 px: barra inferior oculta, gatilho do menu da conta e abas do desktop visíveis.
+
+### d) Acessibilidade por código
+
+- Dois landmarks `<nav>` distintos ("Navegação principal" no desktop e "Navegação inferior" no mobile), só um visível por breakpoint (`hidden md:block` / `md:hidden`).
+- Foco visível nos slots (`focus-visible:ring-2 ring-ring ring-inset`); alvos de 56 px de altura (`h-14`) e colunas de ≥ 90 px em 360 px.
+- Fundo sólido (`bg-background`) quando não há `backdrop-filter` (translucidez só sob `supports-[backdrop-filter]`).
+- A barra oculta mantém `pointer-events-none`, mas o foco por Tab a reexibe.
+
+### g) Auditoria do swipe
+
+1. Nenhum listener de toque/ponteiro global além do módulo do swipe; os globais permitidos são só `scroll` em window e `focusin/focusout` em document (`useHideOnScroll`).
+2. Arquivos com `recharts` (`StatsPage`, `MeasurementsPage`) têm `data-no-swipe`; não há slider Radix. Teste de guarda `navigation/no-swipe-guard.test.ts` verde.
+3. Swipe só ativo via `SectionLayout` (Progresso e Configurações); não há em Diário, `/conta`, Perfil nem na barra inferior.
+4. Nenhum `preventDefault` no módulo; listeners passivos.
+5. O contêiner usa `ref` + listeners nativos (sem `onTouch*` do React).
+6. A `SegmentedNav` funciona sem swipe (testes de `SegmentedNav` e de navegação existentes).

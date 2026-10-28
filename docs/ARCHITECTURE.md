@@ -47,6 +47,8 @@ O projeto é estruturado em um monorepo com separação estrita entre o cliente 
 3. **TanStack Query (React Query v5)**: Gerencia chamadas assíncronas, estado de cache, revalidação e invalidação cruzada de dados (`mealStats`, `todayMeals`, `active-goal`).
 4. **`context/AuthContext.tsx`**: Gerencia autenticação global, sincronização do token e perfil em memória, mantendo o `localStorage` sanitizado sem dados biométricos.
 5. **`components/` & `pages/`**: Componentes estilizados com Tailwind CSS em estética brutalista (`rounded-none`, bordas contrastantes) e modais acessíveis via Radix UI com focus trap.
+6. **`navigation/` (fonte única de navegação):** `nav-items.ts` guarda destinos, abas, ícones (contorno e preenchido, em `icons.tsx`) e a regra de rota ativa; consumido por `BottomNav`, `AppHeader`, `AccountPage` e `SegmentedNav`. Também abriga o swipe entre abas (`swipe.ts`, `useSwipeTabs.ts`, `SwipeTabsArea.tsx`) e `useHideOnScroll.ts`.
+7. **Hosts globais no `RootLayout`:** `ThemeProvider` (tema claro/escuro, `useTheme`) e `NewMealModalProvider` (`useNewMealModal().open({ date?, meal? })`), que renderiza o `NewMealModal` lazy uma única vez e mantém a invalidação de queries do próprio modal.
 
 ### Pacote Compartilhado (`/shared/`) [CONFIRMADO]
 1. **Fonte única de contratos**: schemas Zod puros (`src/schemas/`), DTOs/tipos (`src/types/`) e cálculo nutricional (`src/nutrition/nutrients.ts`) consumidos por backend e frontend.

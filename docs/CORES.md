@@ -294,6 +294,11 @@ Para elementos que já têm o fundo totalmente verde neon (como abas selecionada
 
 ---
 
+## 🫧 Exceção Documentada: Vidro Translúcido da Barra Inferior
+
+O "sem blur" deste guia vale para **sombras**. A barra inferior mobile (`BottomNav`) é a única superfície com translucidez: `bg-background supports-[backdrop-filter]:bg-background/85 backdrop-blur-2xl backdrop-saturate-150`, com `border-t border-border/40` (borda superior fina, exceção consciente ao `border-2`). Sem `backdrop-filter` o fundo continua sólido (`bg-background`). Só tokens, com opacidade em token; sem hex/rgba, sem sombra e sem `rounded`.
+
+
 ## 🛡️ Como Evitar Regressão
 
 Para garantir que novos componentes e refatorações preservem a integridade da paleta semântica e do contraste WCAG:

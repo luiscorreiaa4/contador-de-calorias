@@ -35,6 +35,16 @@ Cada formulário envia apenas os campos da tarefa atual. O e-mail cadastrado é 
 - `/evolucao`, `/metas` e `/configuracoes` abrem suas primeiras páginas por redirecionamento com substituição no histórico.
 - Nenhuma mudança de banco ou migration é necessária.
 
+## Navegação mobile, tela Conta e swipe
+
+- **Barra inferior (abaixo de `md`, 4 slots):** `[DIÁRIO] [PROGRESSO] [+] [CONTA]`. Vidro escuro translúcido sem divisórias; o ícone ativo é preenchido e o rótulo fica em negrito (`aria-current="page"`). O "+" abre o modal de Nova Refeição em qualquer tela (data em exibição no Diário; hoje nas demais) e nunca fica ativo.
+- **Auto-ocultar:** some ao rolar para baixo e volta ao rolar para cima; fica sempre visível no topo (`scrollY < 56`), com foco por teclado dentro dela e em `/configuracoes/*`. Some enquanto um campo de texto/select está em foco, para não subir com o teclado.
+- **PROGRESSO** abre `/evolucao` e fica ativo em Evolução e Metas. Em Progresso há dois níveis de barra segmentada: `[EVOLUÇÃO|METAS]` e as sub-abas de cada seção.
+- **`/conta`:** hub com cartão do usuário, atalhos para Perfil e Configurações (e Catálogo, para administradores), alternador de tema e "Sair da conta". Ativa em `/conta`, `/perfil` e `/configuracoes/*`. No mobile, o menu do avatar do header é substituído por esta tela; no desktop nada muda.
+- **Barra segmentada única (`SegmentedNav`)** para os submenus de Evolução, Metas e Configurações, no mobile e no desktop: colunas iguais, sem rolagem horizontal, rótulo curto quando o nome é longo.
+- **Swipe horizontal** entre abas irmãs (Alimentação → Corpo → Rotina → Diárias; Notificações → Segurança → Privacidade), só em toque e só como atalho: a barra segmentada funciona sem ele. Não há swipe no Diário, em `/conta`, no Perfil nem entre os destinos da barra inferior. Detalhes em `docs/SPEC.md` (RF-008).
+- **Fonte única:** todos os destinos vêm de `frontend/src/navigation/nav-items.ts`.
+
 ## Verificação
 
 Teste inicial reproduz a presença indevida de medidas corporais no perfil. Regressões cobrem separação das telas, payloads independentes, senha para alteração do e-mail, metas automáticas/manuais, rotas protegidas, links antigos e navegação pelo histórico.

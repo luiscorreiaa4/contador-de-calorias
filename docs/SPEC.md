@@ -203,6 +203,13 @@ Regras de negócio de saúde aplicadas exclusivamente para geração de metas au
 
 ---
 
+### RF-008: Navegação, Telas e Gesto de Swipe [CONFIRMADO]
+- **Destinos (fonte única `frontend/src/navigation/nav-items.ts`):** Diário (`/`, `/diario/:date`), Progresso (`/evolucao/*` e `/metas/*`), Conta (`/conta`, `/perfil`, `/configuracoes/*`). Barra inferior no mobile (`md:hidden`): `[DIÁRIO] [PROGRESSO] [+ NOVA] [CONTA]`; o "+" é uma ação (modal global de Nova Refeição), não uma rota.
+- **Tela Diário:** antiga "Dashboard"; subtítulo "SEU DIA EM NÚMEROS"; rotas inalteradas.
+- **Tela `/conta`:** cartão do usuário (iniciais, nome, e-mail), atalhos para Perfil, Configurações (e Catálogo, se admin), alternador de tema e "Sair da conta".
+- **Submenus:** componente único `SegmentedNav` (`<nav aria-label>` com links, `aria-current="page"` na aba ativa).
+- **Swipe entre abas irmãs (atalho opcional, só toque):** `classifySwipe` (`frontend/src/navigation/swipe.ts`) retorna `next` (dedo para a esquerda), `prev` (direita) ou `null`, com `SWIPE_CONFIG`: distância mínima de 64 px (ou 40 px a ≥ 0,5 px/ms), `|dx| ≥ 2 × |dy|`, duração máxima de 700 ms, toque inicial a menos de 24 px das bordas ignorado, sem dar a volta. O gesto é ignorado em `[data-no-swipe]`, sliders, campos, `[role=dialog|listbox|menu|combobox]`, gráficos Recharts, ancestrais com rolagem horizontal real, com dois dedos, texto selecionado, campo em foco, overlay aberto ou `touchcancel`. Listeners nativos passivos no contêiner de conteúdo (sem `preventDefault`); a navegação é a mesma do toque na aba. Ativo apenas em Progresso e Configurações.
+
 ## 2. Tratamento Centralizado de Erros e Contratos de API (D-10) [CONFIRMADO]
 
 1. **Contrato Universal de Resposta:**

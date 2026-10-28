@@ -3,8 +3,6 @@ import type { NavTab } from '../../navigation/nav-items';
 import { SwipeTabsArea } from '../../navigation/SwipeTabsArea';
 import { SegmentedNav } from './SegmentedNav';
 
-export type SectionLink = NavTab;
-
 interface SectionLayoutProps {
   title: string;
   description: string;
