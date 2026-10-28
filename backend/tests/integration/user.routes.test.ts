@@ -4,6 +4,11 @@ import assert from 'node:assert';
 import request from 'supertest';
 import { app } from '../../src/app.js';
 import { cleanupTestData } from '../helpers/db.js';
+import { pool } from '../../src/database/pool.js';
+import {
+  createVerifiedUser,
+  verificationCodeFor,
+} from '../helpers/auth.js';
 
 describe('User Routes (Integration - E2E)', () => {
   closeTestPool(async () => {
@@ -14,24 +19,29 @@ describe('User Routes (Integration - E2E)', () => {
   const testPassword = 'password123';
   let userToken: string;
 
-  it('POST /api/users/register - deve retornar 201 no caminho feliz real', async () => {
-    const response = await request(app).post('/api/users/register').send({
+  it('POST /api/auth/register - deve retornar 202 sem sessão e persistir termos', async () => {
+    const response = await request(app).post('/api/auth/register').send({
       name: 'Integração Tester',
       email: testEmail,
       password: testPassword,
       acceptTerms: true
     });
 
-    assert.strictEqual(response.status, 201);
+    assert.strictEqual(response.status, 202);
     assert.strictEqual(response.body.success, true);
-    assert.strictEqual(response.body.data.user.email, testEmail);
+    assert.strictEqual(response.body.data, undefined, 'cadastro não deve emitir sessão');
+
+    const row = await pool.query<{ terms_accepted_at: Date | null; email_verified_at: Date | null }>(
+      'SELECT terms_accepted_at, email_verified_at FROM users WHERE email = $1',
+      [testEmail]
+    );
     // BL-11 / SEC-020 — o aceite dos termos é persistido no cadastro.
-    assert.ok(response.body.data.user.terms_accepted_at, 'terms_accepted_at deve ser registrado no cadastro');
-    userToken = response.body.data.token;
+    assert.ok(row.rows[0]?.terms_accepted_at, 'terms_accepted_at deve ser registrado no cadastro');
+    assert.strictEqual(row.rows[0]?.email_verified_at, null, 'conta nasce não verificada');
   });
 
-  it('POST /api/users/register - deve retornar 400 em caso de payload inválido', async () => {
-    const response = await request(app).post('/api/users/register').send({
+  it('POST /api/auth/register - deve retornar 400 em caso de payload inválido', async () => {
+    const response = await request(app).post('/api/auth/register').send({
       name: 'Tester',
       email: 'email_invalido',
       password: '123'
@@ -41,10 +51,38 @@ describe('User Routes (Integration - E2E)', () => {
     assert.strictEqual(response.body.success, false);
   });
 
-  it('POST /api/users/login - deve retornar 200 e um token no banco de dados', async () => {
-    const response = await request(app).post('/api/users/login').send({
-      email: testEmail,
+  it('POST /api/auth/register - deve responder 202 genérico para e-mail já cadastrado (A4)', async () => {
+    const duplicateEmail = `tester-user-duplicate-${Date.now()}@example.com`;
+    await createVerifiedUser({ email: duplicateEmail, password: testPassword });
+    const uppercaseEmail = duplicateEmail.toUpperCase();
+    const response = await request(app).post('/api/auth/register').send({
+      name: 'Integração Tester',
+      email: uppercaseEmail,
+      password: testPassword,
+      acceptTerms: true
+    });
+
+    assert.strictEqual(response.status, 202);
+    assert.strictEqual(response.body.success, true);
+    assert.strictEqual(response.body.data, undefined);
+    assert.doesNotMatch(JSON.stringify(response.body), /já está cadastrado/i);
+  });
+
+  it('POST /api/auth/login - deve bloquear conta não verificada com 403 (A1/A5)', async () => {
+    const response = await request(app).post('/api/auth/login').send({
+      email: testEmail.toUpperCase(),
       password: testPassword
+    });
+
+    assert.strictEqual(response.status, 403);
+    assert.strictEqual(response.body.success, false);
+    assert.strictEqual(response.body.code, 'EMAIL_NOT_VERIFIED');
+  });
+
+  it('POST /api/auth/verify-email - deve verificar o código e emitir sessão', async () => {
+    const response = await request(app).post('/api/auth/verify-email').send({
+      email: testEmail,
+      code: verificationCodeFor(testEmail),
     });
 
     assert.strictEqual(response.status, 200);
@@ -124,6 +162,28 @@ describe('User Routes (Integration - E2E)', () => {
     assert.match(res.body.message, /Onboarding já foi concluído/i);
   });
 
+  it('PUT /api/users/me - deve recalcular metas automaticamente quando peso for alterado e meta for auto (A-035)', async () => {
+    const initialGoal = await request(app)
+      .get('/api/users/me/goals')
+      .set('Authorization', `Bearer ${userToken}`);
+    const initialCalories = Number(initialGoal.body.data.calories);
+
+    // Atualiza peso de 80 para 95 kg
+    const updateRes = await request(app)
+      .put('/api/users/me')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ weight: 95 });
+    assert.strictEqual(updateRes.status, 200);
+
+    const updatedGoal = await request(app)
+      .get('/api/users/me/goals')
+      .set('Authorization', `Bearer ${userToken}`);
+    const updatedCalories = Number(updatedGoal.body.data.calories);
+
+    assert.strictEqual(updatedGoal.body.data.mode, 'auto');
+    assert.ok(updatedCalories > initialCalories, `Calorias recalculadas (${updatedCalories}) devem ser maiores que as iniciais (${initialCalories})`);
+  });
+
   it('POST /api/users/me/preview-goals - deve calcular prévia de metas energéticas', async () => {
     const res = await request(app)
       .post('/api/users/me/preview-goals')
@@ -138,6 +198,46 @@ describe('User Routes (Integration - E2E)', () => {
     assert.strictEqual(res.body.success, true);
     assert.ok(res.body.data.suggestedCalories > 0);
     assert.ok(res.body.data.suggestedMacros.proteins > 0);
+  });
+
+  it('POST /api/users/me/preview-goals - deve aceitar strings numéricas e valores nulos sem erro 400', async () => {
+    const res = await request(app)
+      .post('/api/users/me/preview-goals')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({
+        weight: '85.50',
+        height: '180.00',
+        body_fat: null,
+        sex: 'masculino',
+        birthDate: '1995-05-20',
+        goal: 'perder_peso',
+      });
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.success, true);
+    assert.ok(res.body.data.suggestedCalories > 0);
+  });
+
+  it('POST /api/users/me/preview-goals - deve retornar 422 quando a data de nascimento estiver ausente (A-043)', async () => {
+    const newUser = await createVerifiedUser({
+      name: 'User Sem Perfil',
+      email: `tester-meas-nobirth-${Date.now()}@example.com`,
+      password: testPassword,
+    });
+    const token = newUser.token;
+
+    const res = await request(app)
+      .post('/api/users/me/preview-goals')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        weight: 70,
+        height: 175,
+        goal: 'manter_peso',
+      });
+
+    assert.strictEqual(res.status, 422);
+    assert.strictEqual(res.body.success, false);
+    assert.strictEqual(res.body.message, 'Informe a data de nascimento para calcular as metas.');
   });
 
   it('PUT /api/users/me/goals - deve atualizar metas manuais e persistir vigência', async () => {
@@ -193,6 +293,9 @@ describe('User Routes (Integration - E2E)', () => {
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.success, true);
     assert.strictEqual(res.body.data.name, 'Nome Atualizado');
+    // A8: troca de senha revoga sessões antigas e devolve token novo.
+    assert.ok(res.body.data.token, 'token novo deve ser devolvido após troca de senha');
+    userToken = res.body.data.token;
   });
 
   it('DELETE /api/users/me - deve rejeitar exclusão com senha incorreta', async () => {
@@ -219,7 +322,7 @@ describe('User Routes (Integration - E2E)', () => {
     assert.strictEqual(res.body.success, true);
 
     // Tentativa de login subsequente deve falhar
-    const loginRes = await request(app).post('/api/users/login').send({
+    const loginRes = await request(app).post('/api/auth/login').send({
       email: testEmail,
       password: 'newpassword123'
     });

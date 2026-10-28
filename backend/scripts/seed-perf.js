@@ -5,11 +5,21 @@ dotenv.config();
 
 const { Pool } = pg;
 
+if (!process.env.DB_PASSWORD) {
+  console.error('Erro: DB_PASSWORD não definida nas variáveis de ambiente.');
+  process.exit(1);
+}
+
 const user = process.env.DB_USER || 'postgres';
-const pass = process.env.DB_PASSWORD || 'postgres';
+const pass = process.env.DB_PASSWORD;
 const host = process.env.DB_HOST || 'localhost';
 const port = parseInt(process.env.DB_PORT || '5432', 10);
-const dbName = 'contador_calorias_perf';
+const dbName = process.env.DB_NAME || 'contador_calorias_perf';
+
+if (!dbName.endsWith('_perf') && !dbName.endsWith('_test')) {
+  console.error('Erro: script de performance só pode rodar em banco com sufixo _perf ou _test.');
+  process.exit(1);
+}
 
 const pool = new Pool({
   host,
@@ -23,9 +33,12 @@ const pool = new Pool({
 async function seedPerf() {
   const client = await pool.connect();
   try {
-    console.log('--- Iniciando Seed de Performance (10k meal_items) em contador_calorias_perf ---');
+    console.log(`--- Iniciando Seed de Performance (10k meal_items) em ${dbName} ---`);
 
     await client.query('BEGIN');
+
+    // 0. Limpeza prévia do usuário de performance para garantir idempotência
+    await client.query(`DELETE FROM users WHERE email = 'perf-user@example.com'`);
 
     // 1. Criar usuário de teste de performance
     const userRes = await client.query(

@@ -1,6 +1,6 @@
 import React from 'react';
 import type { UseFormRegister, FieldErrors, UseFormSetValue } from 'react-hook-form';
-import { User, Mail } from 'lucide-react';
+import { User, Mail, Ruler } from 'lucide-react';
 import { DatePickerInput } from '../common/DatePickerInput';
 import type { PersonalInfoFormInputs } from '../../types/profile';
 
@@ -9,13 +9,13 @@ interface PersonalInfoSectionProps {
   errors: FieldErrors<PersonalInfoFormInputs>;
   setValue: UseFormSetValue<PersonalInfoFormInputs>;
   birthDateValue: string;
-  isEmailChanged: boolean;
+  userEmail: string;
 }
 
 const inputBase =
   'w-full pl-10 pr-4 py-2.5 bg-background border-2 rounded-none text-sm font-medium text-foreground outline-none transition-colors min-h-[48px]';
 const inputNormal =
-  'border-border hover:border-foreground focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
+  'border-border hover:border-foreground focus:border-ring focus:outline-none focus-visible:border-ring focus-visible:outline-none';
 const inputError =
   'border-destructive bg-destructive/10 text-destructive focus:border-destructive';
 
@@ -24,7 +24,7 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
   errors,
   setValue,
   birthDateValue,
-  isEmailChanged,
+  userEmail,
 }) => {
   return (
     <div className="space-y-6">
@@ -58,17 +58,15 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
           )}
         </div>
 
-        {/* E-mail */}
+        {/* E-mail (somente leitura) */}
         <div>
           <div className="flex items-center justify-between mb-2">
             <label htmlFor="edit-email" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
               E-MAIL
             </label>
-            {isEmailChanged && (
-              <span className="text-[10px] font-bold tracking-widest text-primary-ink uppercase">
-                *EXIGE SENHA
-              </span>
-            )}
+            <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+              (NÃO ALTERÁVEL)
+            </span>
           </div>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
@@ -77,15 +75,38 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
             <input
               id="edit-email"
               type="email"
-              placeholder="SEU@EMAIL.COM"
-              className={`${inputBase} ${errors.email ? inputError : inputNormal}`}
-              aria-invalid={!!errors.email}
-              {...register('email')}
+              value={userEmail}
+              disabled
+              readOnly
+              className={`${inputBase} border-border bg-muted/40 text-muted-foreground cursor-not-allowed`}
             />
           </div>
-          {errors.email && (
+        </div>
+
+        {/* Altura */}
+        <div>
+          <label htmlFor="edit-height" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+            ALTURA (CM)
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
+              <Ruler className="w-4 h-4" aria-hidden="true" />
+            </div>
+            <input
+              id="edit-height"
+              type="number"
+              step="any"
+              min="1"
+              max="300"
+              placeholder="EX: 175"
+              className={`${inputBase} ${errors.height ? inputError : inputNormal}`}
+              aria-invalid={!!errors.height}
+              {...register('height', { valueAsNumber: true })}
+            />
+          </div>
+          {errors.height && (
             <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-destructive">
-              {errors.email.message}
+              {errors.height.message}
             </p>
           )}
         </div>

@@ -6,29 +6,36 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { RegisterFormData } from '../../types/auth';
-import { useAuth } from '../../context/AuthContext';
 import { registerUser } from '../../services/auth.service';
+import { registerUserSchema } from '@caloriesync/shared';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Button } from '../ui/button';
 
-const registerSchema = z
-  .object({
-    name: z.string().trim().min(1, 'O nome é obrigatório.'),
+const registerSchema = registerUserSchema
+  .extend({
+    name: z
+      .string()
+      .trim()
+      .min(1, 'O nome é obrigatório.')
+      .min(2, 'O nome deve ter no mínimo 2 caracteres.')
+      .max(100, 'O nome deve ter no máximo 100 caracteres.'),
     email: z
       .string()
       .trim()
       .min(1, 'O email é obrigatório.')
-      .email('Digite um email válido.'),
+      .email('Digite um email válido.')
+      .max(255, 'O email deve ter no máximo 255 caracteres.'),
     password: z
       .string()
       .min(1, 'A senha é obrigatória.')
+      .max(72, 'A senha deve ter no máximo 72 caracteres.')
       .refine(
         (val) => val.length >= 8 && /(?=.*[a-zA-Z])(?=.*[0-9])/.test(val),
         { message: 'Mínimo 8 caracteres com letra e número.' }
       ),
     confirmPassword: z.string().min(1, 'Confirme sua senha.'),
-    acceptTerms: z.boolean().refine((value) => value === true, {
+    acceptTerms: z.boolean().refine((val) => val === true, {
       message: 'Aceite os Termos de Uso e a Política de Privacidade para continuar.',
     }),
   })
@@ -40,11 +47,10 @@ const registerSchema = z
 type RegisterFormInputs = z.infer<typeof registerSchema>;
 
 interface RegisterFormProps {
-  onSuccess?: () => void;
+  onSuccess?: (email: string) => void;
 }
 
 export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
-  const { setAuthSession } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -67,9 +73,9 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
 
   const registerMutation = useMutation({
     mutationFn: (data: RegisterFormData) => registerUser(data),
-    onSuccess: (response) => {
-      setAuthSession(response.user, response.token);
-      if (onSuccess) onSuccess();
+    onSuccess: (_result, variables) => {
+      // 202 genérico: a conta existe, mas só recebe sessão após verificar o e-mail.
+      if (onSuccess) onSuccess(variables.email.trim());
     },
     onError: (err: unknown) => {
       const errorMsg = err instanceof Error ? err.message : String(err);
@@ -114,7 +120,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
             placeholder="NOME COMPLETO"
             aria-invalid={!!errors.name}
             aria-describedby={errors.name ? 'register-name-error' : undefined}
-            className={`pl-10 ${errors.name ? 'border-destructive focus-visible:border-destructive' : ''}`}
+            className={`pl-10 ${errors.name ? 'border-destructive focus:border-destructive focus-visible:border-destructive' : ''}`}
             {...register('name')}
           />
         </div>
@@ -136,7 +142,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
             placeholder="SEU@EMAIL.COM"
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? 'register-email-error' : undefined}
-            className={`pl-10 ${errors.email ? 'border-destructive focus-visible:border-destructive' : ''}`}
+            className={`pl-10 ${errors.email ? 'border-destructive focus:border-destructive focus-visible:border-destructive' : ''}`}
             {...register('email')}
           />
         </div>
@@ -155,10 +161,10 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
           <Input
             id="register-password"
             type={showPassword ? 'text' : 'password'}
-            placeholder="MÍNIMO 6 CARACTERES"
+            placeholder="MÍNIMO 8 CARACTERES COM LETRA E NÚMERO"
             aria-invalid={!!errors.password}
             aria-describedby={errors.password ? 'register-password-error' : undefined}
-            className={`pl-10 pr-10 font-mono tracking-widest ${errors.password ? 'border-destructive focus-visible:border-destructive' : ''}`}
+            className={`pl-10 pr-10 font-mono tracking-widest ${errors.password ? 'border-destructive focus:border-destructive focus-visible:border-destructive' : ''}`}
             {...register('password')}
           />
           <button
@@ -188,7 +194,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
             placeholder="REPITA SUA SENHA"
             aria-invalid={!!errors.confirmPassword}
             aria-describedby={errors.confirmPassword ? 'register-confirm-password-error' : undefined}
-            className={`pl-10 pr-10 font-mono tracking-widest ${errors.confirmPassword ? 'border-destructive focus-visible:border-destructive' : ''}`}
+            className={`pl-10 pr-10 font-mono tracking-widest ${errors.confirmPassword ? 'border-destructive focus:border-destructive focus-visible:border-destructive' : ''}`}
             {...register('confirmPassword')}
           />
           <button

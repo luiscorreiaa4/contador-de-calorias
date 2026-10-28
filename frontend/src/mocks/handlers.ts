@@ -2,32 +2,125 @@ import { http, HttpResponse } from 'msw';
 
 const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
+const GENERIC_EMAIL_MESSAGE =
+  'Se os dados estiverem corretos, enviaremos uma mensagem para o e-mail informado.';
+
+const testUser = {
+  id: '1',
+  name: 'Test User',
+  email: 'test@example.com',
+  goal: 'manter_peso',
+  sex: 'masculino',
+  birth_date: '1990-01-01',
+  weight: 75,
+  height: 175,
+  body_fat: 15,
+  activity_level: 'moderadamente_ativo',
+  daily_calories_goal: 2200,
+  daily_proteins_goal: 150,
+  onboarding_completed: true,
+  email_verified_at: '2026-01-01T00:00:00Z',
+  token_version: 0,
+  role: 'user' as const,
+  created_at: '2026-01-01T00:00:00Z',
+  updated_at: '2026-01-01T00:00:00Z',
+};
+
 export const handlers = [
-  http.post(`${baseURL}/users/login`, async ({ request }) => {
+  http.post(`${baseURL}/auth/login`, async ({ request }) => {
     const body = await request.json() as { email?: string; password?: string };
-    if (body.email === 'test@example.com' && body.password === '123456') {
+
+    if (body.email === 'unverified@example.com' && body.password === 'senha123') {
+      return HttpResponse.json(
+        {
+          success: false,
+          code: 'EMAIL_NOT_VERIFIED',
+          message: 'Confirme seu e-mail para entrar.',
+        },
+        { status: 403 }
+      );
+    }
+
+    if (body.email === 'test@example.com' && body.password === 'senha123') {
       return HttpResponse.json({
         success: true,
+        message: 'Login realizado com sucesso!',
         data: {
-          user: { id: '1', name: 'Test User', email: 'test@example.com' },
-          token: 'fake-token'
-        }
+          user: testUser,
+          token: 'fake-token',
+        },
       });
     }
-    return HttpResponse.json({ success: false, message: 'Credenciais inválidas' }, { status: 400 });
+
+    return HttpResponse.json(
+      { success: false, message: 'E-mail ou senha incorretos.' },
+      { status: 401 }
+    );
   }),
-  
-  http.post(`${baseURL}/users/register`, async ({ request }) => {
-    const body = await request.json() as { email?: string; name?: string };
-    if (body.email === 'test@example.com') {
-      return HttpResponse.json({ success: false, message: 'Email já em uso' }, { status: 400 });
+
+  http.post(`${baseURL}/auth/register`, async () => {
+    // A4/A6: sempre 202 genérico, sem revelar existência da conta e sem sessão.
+    return HttpResponse.json(
+      { success: true, message: GENERIC_EMAIL_MESSAGE },
+      { status: 202 }
+    );
+  }),
+
+  http.post(`${baseURL}/auth/verify-email`, async ({ request }) => {
+    const body = await request.json() as { email?: string; code?: string };
+
+    if (body.code !== '123456') {
+      return HttpResponse.json(
+        {
+          success: false,
+          code: 'INVALID_VERIFICATION_CODE',
+          message: 'Código inválido ou expirado.',
+        },
+        { status: 400 }
+      );
     }
+
     return HttpResponse.json({
       success: true,
+      message: 'E-mail verificado com sucesso!',
       data: {
-        user: { id: '1', name: body.name, email: body.email },
-        token: 'fake-token'
-      }
+        user: { ...testUser, email: body.email ?? testUser.email },
+        token: 'verified-token',
+      },
+    });
+  }),
+
+  http.post(`${baseURL}/auth/resend-code`, () => {
+    return HttpResponse.json(
+      { success: true, message: GENERIC_EMAIL_MESSAGE },
+      { status: 202 }
+    );
+  }),
+
+  http.post(`${baseURL}/auth/forgot-password`, () => {
+    return HttpResponse.json(
+      { success: true, message: GENERIC_EMAIL_MESSAGE },
+      { status: 202 }
+    );
+  }),
+
+  http.post(`${baseURL}/auth/reset-password`, async ({ request }) => {
+    const body = await request.json() as { token?: string; password?: string };
+
+    if (!body.token || body.token.startsWith('invalid')) {
+      return HttpResponse.json(
+        {
+          success: false,
+          code: 'INVALID_RESET_TOKEN',
+          message: 'Link inválido ou expirado.',
+        },
+        { status: 400 }
+      );
+    }
+
+    return HttpResponse.json({
+      success: true,
+      message: 'Senha redefinida com sucesso. Entre com a nova senha.',
     });
   }),
   
@@ -259,6 +352,13 @@ export const handlers = [
     });
   }),
 
+  http.delete(`${baseURL}/users/me/measurements/:id`, () => {
+    return HttpResponse.json({
+      success: true,
+      message: 'Medição excluída com sucesso.',
+    });
+  }),
+
   http.get(`${baseURL}/push/public-key`, () => {
     return HttpResponse.json({
       success: true,
@@ -289,7 +389,11 @@ export const handlers = [
     return HttpResponse.json({
       success: true,
       message: 'Lembrete enviado com sucesso!',
-      data: { sent: true, recipientCount: 1 },
+      data: {
+        sent: true,
+        recipientCount: 1,
+        message: 'Notificação teste despachada com sucesso.',
+      },
     });
   }),
 
@@ -368,25 +472,15 @@ export const handlers = [
     });
   }),
 
-  http.get(`${baseURL}/users/me`, () => {
+  http.get(`${baseURL}/users/me`, ({ request }) => {
+    const authHeader = request.headers.get('Authorization') || '';
+    const isAdmin = authHeader.includes('admin-token');
     return HttpResponse.json({
       success: true,
       data: {
-        id: '1',
-        name: 'Test User',
-        email: 'test@example.com',
-        goal: 'manter_peso',
-        sex: 'masculino',
-        birth_date: '1990-01-01',
-        weight: 75,
-        height: 175,
-        body_fat: 15,
-        activity_level: 'moderadamente_ativo',
-        daily_calories_goal: 2200,
-        daily_proteins_goal: 150,
-        onboarding_completed: true,
-        created_at: '2026-01-01T00:00:00Z',
-        updated_at: '2026-01-01T00:00:00Z',
+        ...testUser,
+        role: isAdmin ? 'admin' : (testUser.role || 'user'),
+        name: isAdmin ? 'Admin Teste' : testUser.name,
       },
     });
   }),
@@ -466,6 +560,126 @@ export const handlers = [
         name: body.name || 'Test User',
         email: 'test@example.com',
         goal: 'perder_peso',
+      },
+    });
+  }),
+
+  // Admin Catalog Handlers (D-22 / B11)
+  http.get(`${baseURL}/admin/foods`, ({ request }) => {
+    const url = new URL(request.url);
+    const search = url.searchParams.get('search')?.toLowerCase() || '';
+    const status = url.searchParams.get('status') || 'all';
+
+    let filtered = [
+      {
+        id: 'food-admin-1',
+        name: 'Arroz Branco Cozido',
+        calories: 130,
+        proteins: 2.7,
+        carbs: 28,
+        fats: 0.3,
+        base_unit: 'g',
+        serving_weight: 100,
+        unit_name: 'colher de sopa',
+        unit_weight: 25,
+        source: 'TACO',
+        source_ref: 'TACO 4ª ed., código 001',
+        active: true,
+        admin_edited_at: null,
+        created_at: '2026-01-01T00:00:00Z',
+        updated_at: '2026-01-01T00:00:00Z',
+      },
+      {
+        id: 'food-admin-2',
+        name: 'Feijão Carioca Cozido',
+        calories: 76,
+        proteins: 4.8,
+        carbs: 13.6,
+        fats: 0.5,
+        base_unit: 'g',
+        serving_weight: 100,
+        unit_name: 'concha',
+        unit_weight: 130,
+        source: 'TACO',
+        source_ref: 'TACO 4ª ed., código 002',
+        active: false,
+        admin_edited_at: '2026-01-02T00:00:00Z',
+        created_at: '2026-01-01T00:00:00Z',
+        updated_at: '2026-01-02T00:00:00Z',
+      },
+    ];
+
+    if (search) {
+      filtered = filtered.filter((f) => f.name.toLowerCase().includes(search));
+    }
+
+    if (status === 'active') {
+      filtered = filtered.filter((f) => f.active);
+    } else if (status === 'inactive') {
+      filtered = filtered.filter((f) => !f.active);
+    }
+
+    return HttpResponse.json({
+      success: true,
+      data: {
+        foods: filtered,
+        pagination: {
+          page: 1,
+          limit: 20,
+          total: filtered.length,
+          totalPages: 1,
+        },
+      },
+    });
+  }),
+
+  http.post(`${baseURL}/admin/foods`, async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const created = {
+      id: 'food-new-123',
+      ...body,
+      active: true,
+      created_at: '2026-01-01T00:00:00Z',
+      updated_at: '2026-01-01T00:00:00Z',
+    };
+    return HttpResponse.json({
+      success: true,
+      message: 'Alimento criado com sucesso no catálogo global.',
+      data: {
+        food: created,
+        warnings: [],
+      },
+    });
+  }),
+
+  http.put(`${baseURL}/admin/foods/:id`, async ({ request, params }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const updated = {
+      id: params.id,
+      ...body,
+      active: true,
+      admin_edited_at: '2026-01-01T00:00:00Z',
+      updated_at: '2026-01-01T00:00:00Z',
+    };
+    return HttpResponse.json({
+      success: true,
+      message: 'Alimento atualizado com sucesso no catálogo global.',
+      data: {
+        food: updated,
+        warnings: [],
+      },
+    });
+  }),
+
+  http.patch(`${baseURL}/admin/foods/:id/status`, async ({ request, params }) => {
+    const body = (await request.json()) as { active: boolean };
+    return HttpResponse.json({
+      success: true,
+      message: 'Status do alimento atualizado com sucesso.',
+      data: {
+        id: params.id,
+        name: 'Alimento Status Alterado',
+        active: body.active,
       },
     });
   }),

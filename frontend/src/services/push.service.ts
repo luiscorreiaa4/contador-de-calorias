@@ -32,35 +32,9 @@ export const unsubscribePush = async (endpoint: string): Promise<void> => {
 };
 
 export const sendTestPush = async (): Promise<{ message: string }> => {
-  const result = await apiFetch<{ message: string }>('/push/test', {
+  return apiFetch<{ message: string }>('/push/test', {
     method: 'POST',
   });
-
-  // Dispara a notificação visualmente no navegador se a permissão estiver concedida
-  try {
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-      if ('serviceWorker' in navigator) {
-        const registration = await navigator.serviceWorker.getRegistration();
-        if (registration) {
-          await registration.showNotification('CalorieSync', {
-            body: 'Lembrete de teste: Não se esqueça de registrar suas refeições de hoje!',
-            icon: '/favicon.svg',
-            badge: '/favicon.svg',
-            data: { url: '/' },
-          });
-          return result;
-        }
-      }
-      new Notification('CalorieSync', {
-        body: 'Lembrete de teste: Não se esqueça de registrar suas refeições de hoje!',
-        icon: '/favicon.svg',
-      });
-    }
-  } catch (err) {
-    console.warn('Falha ao acionar notificação visual no navegador:', err);
-  }
-
-  return result;
 };
 
 export interface PushStatus {
@@ -116,14 +90,21 @@ async function ensureServiceWorkerReady(): Promise<ServiceWorkerRegistration> {
     await navigator.serviceWorker.register('/sw.js');
   }
 
-  // Timeout defensivo de 8 segundos para evitar promise travada eternamente
+  // Timeout defensivo de 8 segundos com limpeza no finally para evitar timer orfao (A-086)
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
   const timeoutPromise = new Promise<never>((_, reject) => {
-    setTimeout(() => {
+    timeoutId = setTimeout(() => {
       reject(new Error('Tempo limite esgotado ao aguardar o Service Worker.'));
     }, 8000);
   });
 
-  return Promise.race([navigator.serviceWorker.ready, timeoutPromise]);
+  try {
+    return await Promise.race([navigator.serviceWorker.ready, timeoutPromise]);
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  }
 }
 
 export const registerPushNotifications = async (): Promise<boolean> => {

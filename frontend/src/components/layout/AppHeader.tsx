@@ -1,36 +1,23 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
-import {
-  Flame,
-  Sun,
-  Moon,
-  UserCog,
-  Settings,
-  Bell,
-  Lock,
-  Shield,
-  LogOut,
-  ChevronDown,
-  Target,
-  LayoutDashboard,
-  TrendingUp,
-} from 'lucide-react';
+import { Flame, Bell, Lock, Shield, LogOut, ChevronDown } from 'lucide-react';
+import { ThemeToggle } from './ThemeToggle';
+import { CONFIG_TABS, DESKTOP_NAV_ITEMS, visibleItems } from '../../navigation/nav-items';
+
+const SETTINGS_ICONS = [Bell, Lock, Shield];
+const SETTINGS_LINKS = CONFIG_TABS.map((tab, index) => ({ ...tab, icon: SETTINGS_ICONS[index] }));
 
 interface AppHeaderProps {
-  darkMode: boolean;
-  onToggleTheme: () => void;
   onNavigateToEditProfile?: () => void;
   onNavigateToStats?: () => void;
-  onNavigateToDashboard?: () => void;
+  onNavigateToDiary?: () => void;
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
-  darkMode,
-  onToggleTheme,
   onNavigateToEditProfile,
   onNavigateToStats,
-  onNavigateToDashboard,
+  onNavigateToDiary,
 }) => {
   const { user, isAuthenticated, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -38,8 +25,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
 
-  const handleDashboard = () => {
-    if (onNavigateToDashboard) onNavigateToDashboard();
+  const handleDiary = () => {
+    if (onNavigateToDiary) onNavigateToDiary();
     else navigate('/');
     setMenuOpen(false);
   };
@@ -56,13 +43,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     setMenuOpen(false);
   };
 
-  const primaryLinks = [
-    { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/evolucao', label: 'Evolução', icon: TrendingUp },
-    { to: '/metas', label: 'Metas', icon: Target },
-    { to: '/perfil', label: 'Perfil', icon: UserCog },
-    { to: '/configuracoes', label: 'Configurações', icon: Settings },
-  ];
+  const primaryLinks = visibleItems(DESKTOP_NAV_ITEMS, user?.role === 'admin');
 
   // Desktop usa a barra de abas; o dropdown só repete os links no mobile.
   const showMainNav = isAuthenticated && !!user?.onboarding_completed;
@@ -110,8 +91,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
         {/* Logo */}
-        <button type="button" aria-label="CalorieSync — Dashboard" className="flex items-center gap-3 shrink-0 cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background" onClick={handleDashboard}>
-          <div className="w-10 h-10 bg-primary text-primary-foreground border-2 border-black flex items-center justify-center shadow-hard transition-transform group-hover:-translate-y-0.5 group-hover:shadow-hard-hover">
+        <button type="button" aria-label="CalorieSync — Diário" className="flex items-center gap-3 shrink-0 cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background" onClick={handleDiary}>
+          <div className="w-10 h-10 bg-primary text-primary-foreground border-2 border-edge flex items-center justify-center shadow-hard transition-transform group-hover:-translate-y-0.5 group-hover:shadow-hard-hover">
             <Flame className="w-6 h-6 fill-current" aria-hidden="true" />
           </div>
 
@@ -129,24 +110,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
         {/* Right side controls */}
         <div className="flex items-center gap-4">
-          {!isAuthenticated && (
-            <button
-              type="button"
-              onClick={onToggleTheme}
-              aria-label={darkMode ? 'Modo claro' : 'Modo escuro'}
-              className="flex items-center justify-center w-10 h-10 border-2 border-border bg-card hover:bg-secondary transition-colors text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background group"
-            >
-              {darkMode ? (
-                <Sun className="w-5 h-5 group-hover:text-primary-ink transition-colors" />
-              ) : (
-                <Moon className="w-5 h-5 group-hover:text-primary-ink transition-colors" />
-              )}
-            </button>
-          )}
+          {!isAuthenticated && <ThemeToggle />}
 
-          {/* User dropdown — when authenticated */}
+          {/* User dropdown — when authenticated; no mobile, a tela /conta o substitui. */}
           {isAuthenticated && user ? (
-            <div ref={menuRef} className="relative">
+            <div ref={menuRef} className={`relative ${showMainNav ? 'hidden md:block' : ''}`}>
               <button
                 type="button"
                 onClick={() => setMenuOpen((prev) => !prev)}
@@ -187,21 +155,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                         {user.email}
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleTheme();
-                      }}
-                      aria-label={darkMode ? 'Modo claro' : 'Modo escuro'}
-                      className="shrink-0 flex items-center justify-center w-8 h-8 border-2 border-border bg-card hover:bg-secondary transition-colors text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background group"
-                    >
-                      {darkMode ? (
-                        <Sun className="w-4 h-4 group-hover:text-primary-ink transition-colors" />
-                      ) : (
-                        <Moon className="w-4 h-4 group-hover:text-primary-ink transition-colors" />
-                      )}
-                    </button>
+                    <ThemeToggle size="sm" />
                   </div>
 
                   <nav aria-label="Menu da conta" className="p-2 flex flex-col gap-1 max-h-[60vh] overflow-y-auto">
@@ -209,20 +163,16 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                       {primaryLinks.map(({ to, label, icon: Icon }) => (
                         <NavLink key={to} to={to} end={to === '/'} onClick={event => {
                           setMenuOpen(false);
-                          if (to === '/' && onNavigateToDashboard) { event.preventDefault(); handleDashboard(); }
+                          if (to === '/' && onNavigateToDiary) { event.preventDefault(); handleDiary(); }
                           if (to === '/evolucao' && onNavigateToStats) { event.preventDefault(); handleStats(); }
                           if (to === '/perfil' && onNavigateToEditProfile) { event.preventDefault(); handleEditProfile(); }
-                        }} className={({ isActive }) => `flex items-center px-3 py-3 text-xs font-bold uppercase tracking-wider focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${isActive ? 'bg-primary text-primary-foreground border-2 border-black' : 'hover:bg-secondary'}`}>
+                        }} className={({ isActive }) => `flex items-center px-3 py-3 text-xs font-bold uppercase tracking-wider focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${isActive ? 'bg-primary text-primary-foreground border-2 border-edge' : 'hover:bg-secondary'}`}>
                           <Icon className="w-4 h-4 mr-3" aria-hidden="true" />{label}
                         </NavLink>
                       ))}
                     </div>
                     <div className={`border-t-2 border-border mt-1 pt-2 ${showMainNav ? 'md:border-t-0 md:mt-0 md:pt-0' : ''}`}>
-                      {[
-                        { to: '/configuracoes/notificacoes', label: 'Notificações', icon: Bell },
-                        { to: '/configuracoes/seguranca', label: 'Segurança', icon: Lock },
-                        { to: '/configuracoes/privacidade', label: 'Privacidade e dados', icon: Shield },
-                      ].map(({ to, label, icon: Icon }) => <NavLink key={to} to={to} onClick={() => setMenuOpen(false)} className="flex items-center px-3 py-3 text-xs font-bold uppercase tracking-wider hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><Icon className="w-4 h-4 mr-3" aria-hidden="true" />{label}</NavLink>)}
+                      {SETTINGS_LINKS.map(({ to, label, icon: Icon }) => <NavLink key={to} to={to} onClick={() => setMenuOpen(false)} className="flex items-center px-3 py-3 text-xs font-bold uppercase tracking-wider hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><Icon className="w-4 h-4 mr-3" aria-hidden="true" />{label}</NavLink>)}
                     </div>
                   </nav>
 

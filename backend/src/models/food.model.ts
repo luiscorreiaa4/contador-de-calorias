@@ -7,6 +7,33 @@ interface FoodRowWithCount extends Food {
 
 const FOOD_COLUMNS = 'id, name, calories, proteins, carbs, fats, base_unit, serving_weight, unit_name, unit_weight, source';
 
+/**
+ * Converte de forma centralizada uma linha do banco para a entidade Food tipada (A-014).
+ * Assegura conversões numéricas consistentes e preservação de campos nulos.
+ */
+export function mapFoodRow(row: Record<string, unknown>): Food {
+  return {
+    id: String(row.id),
+    name: String(row.name),
+    calories: Number(row.calories),
+    proteins: Number(row.proteins),
+    carbs: Number(row.carbs),
+    fats: Number(row.fats),
+    base_unit: row.base_unit as 'g' | 'ml',
+    serving_weight: Number(row.serving_weight),
+    unit_name: (row.unit_name as string | null) ?? null,
+    unit_weight: row.unit_weight != null ? Number(row.unit_weight) : null,
+    source: (row.source as 'taco' | 'custom' | null) ?? null,
+  };
+}
+
+/**
+ * Mapeia uma coleção de linhas para entidades Food (A-014).
+ */
+export function mapFoodRows(rows: Record<string, unknown>[]): Food[] {
+  return rows.map(mapFoodRow);
+}
+
 export async function searchFoods(
   query: string,
   limit: number,
@@ -48,20 +75,7 @@ export async function searchFoods(
       total = parseInt(countResult.rows[0].count, 10);
     }
 
-    const foods: Food[] = rows.map((r) => ({
-      id: r.id,
-      name: r.name,
-      calories: r.calories,
-      proteins: r.proteins,
-      carbs: r.carbs,
-      fats: r.fats,
-      base_unit: r.base_unit,
-      serving_weight: r.serving_weight,
-      unit_name: r.unit_name,
-      unit_weight: r.unit_weight,
-      source: r.source,
-    }));
-    return { foods, total };
+    return { foods: mapFoodRows(rows as unknown as Record<string, unknown>[]), total };
   } else {
     const userFilter = userId ? `(user_id IS NULL OR user_id = $3)` : `user_id IS NULL`;
     const sql = `
@@ -88,35 +102,43 @@ export async function searchFoods(
       total = parseInt(countResult.rows[0].count, 10);
     }
 
-    const foods: Food[] = rows.map((r) => ({
-      id: r.id,
-      name: r.name,
-      calories: r.calories,
-      proteins: r.proteins,
-      carbs: r.carbs,
-      fats: r.fats,
-      base_unit: r.base_unit,
-      serving_weight: r.serving_weight,
-      unit_name: r.unit_name,
-      unit_weight: r.unit_weight,
-      source: r.source,
-    }));
-    return { foods, total };
+    return { foods: mapFoodRows(rows as unknown as Record<string, unknown>[]), total };
   }
 }
 
-export async function findById(id: string): Promise<Food | null> {
-  const result = await pool.query<Food>(`SELECT ${FOOD_COLUMNS} FROM foods WHERE id = $1`, [id]);
-  return result.rows[0] ?? null;
+export async function findById(id: string, userId?: string): Promise<Food | null> {
+  let query = `SELECT ${FOOD_COLUMNS} FROM foods WHERE id = $1 AND active = true`;
+  const params: unknown[] = [id];
+  if (userId) {
+    query += ` AND (user_id IS NULL OR user_id = $2)`;
+    params.push(userId);
+  }
+  const result = await pool.query(query, params);
+  return result.rows[0] ? mapFoodRow(result.rows[0] as unknown as Record<string, unknown>) : null;
 }
 
-export async function findByIds(ids: string[]): Promise<Food[]> {
+export async function findByIds(
+  ids: string[],
+  userId?: string,
+  options?: { includeInactive?: boolean }
+): Promise<(Food & { active?: boolean })[]> {
   if (ids.length === 0) return [];
-  const result = await pool.query<Food>(`SELECT ${FOOD_COLUMNS} FROM foods WHERE id = ANY($1::uuid[])`, [ids]);
-  return result.rows;
+  const activeFilter = options?.includeInactive ? '' : ' AND active = true';
+  let query = `SELECT ${FOOD_COLUMNS}, active FROM foods WHERE id = ANY($1::uuid[])${activeFilter}`;
+  const params: unknown[] = [ids];
+  if (userId) {
+    query += ` AND (user_id IS NULL OR user_id = $2)`;
+    params.push(userId);
+  }
+  const result = await pool.query(query, params);
+  return result.rows.map((row) => ({
+    ...mapFoodRow(row as Record<string, unknown>),
+    active: Boolean(row.active),
+  }));
 }
 
 export async function getRecentFoods(userId: string, limit: number = 20): Promise<Food[]> {
+  const safeLimit = Math.min(Math.max(1, limit), 100);
   const sql = `
     SELECT 
       f.id, f.name, f.calories, f.proteins, f.carbs, f.fats, f.base_unit, f.serving_weight, f.unit_name, f.unit_weight, f.source,
@@ -132,20 +154,8 @@ export async function getRecentFoods(userId: string, limit: number = 20): Promis
     ORDER BY consumption_count DESC, last_consumed DESC
     LIMIT $2
   `;
-  const result = await pool.query(sql, [userId, limit]);
-  return result.rows.map(r => ({
-    id: r.id,
-    name: r.name,
-    calories: Number(r.calories),
-    proteins: Number(r.proteins),
-    carbs: Number(r.carbs),
-    fats: Number(r.fats),
-    base_unit: r.base_unit,
-    serving_weight: Number(r.serving_weight),
-    unit_name: r.unit_name,
-    unit_weight: r.unit_weight ? Number(r.unit_weight) : null,
-    source: r.source,
-  }));
+  const result = await pool.query(sql, [userId, safeLimit]);
+  return mapFoodRows(result.rows as unknown as Record<string, unknown>[]);
 }
 
 export async function getFavoriteFoods(userId: string): Promise<Food[]> {
@@ -155,31 +165,21 @@ export async function getFavoriteFoods(userId: string): Promise<Food[]> {
     JOIN foods f ON f.id = uff.food_id
     WHERE uff.user_id = $1 AND f.active = true
     ORDER BY uff.created_at DESC
+    LIMIT 100
   `;
   const result = await pool.query(sql, [userId]);
-  return result.rows.map(r => ({
-    id: r.id,
-    name: r.name,
-    calories: Number(r.calories),
-    proteins: Number(r.proteins),
-    carbs: Number(r.carbs),
-    fats: Number(r.fats),
-    base_unit: r.base_unit,
-    serving_weight: Number(r.serving_weight),
-    unit_name: r.unit_name,
-    unit_weight: r.unit_weight ? Number(r.unit_weight) : null,
-    source: r.source,
-  }));
+  return mapFoodRows(result.rows as unknown as Record<string, unknown>[]);
 }
 
 export async function addFavoriteFood(userId: string, foodId: string): Promise<boolean> {
-  await pool.query(
+  const result = await pool.query(
     `INSERT INTO user_favorite_foods (user_id, food_id)
      VALUES ($1, $2)
-     ON CONFLICT (user_id, food_id) DO NOTHING`,
+     ON CONFLICT (user_id, food_id) DO NOTHING
+     RETURNING food_id`,
     [userId, foodId]
   );
-  return true;
+  return (result.rowCount ?? 0) > 0;
 }
 
 export async function removeFavoriteFood(userId: string, foodId: string): Promise<boolean> {
@@ -192,7 +192,7 @@ export async function removeFavoriteFood(userId: string, foodId: string): Promis
 
 export async function getFavoriteFoodIds(userId: string): Promise<string[]> {
   const result = await pool.query<{ food_id: string }>(
-    `SELECT food_id FROM user_favorite_foods WHERE user_id = $1`,
+    `SELECT food_id FROM user_favorite_foods WHERE user_id = $1 LIMIT 100`,
     [userId]
   );
   return result.rows.map(r => r.food_id);
@@ -212,7 +212,7 @@ export async function createCustomFood(
     unit_weight?: number;
   }
 ): Promise<Food> {
-  const result = await pool.query<Food>(
+  const result = await pool.query(
     `INSERT INTO foods (
        name, calories, proteins, carbs, fats, base_unit, serving_weight, unit_name, unit_weight, source, user_id, active
      )
@@ -231,6 +231,5 @@ export async function createCustomFood(
       userId,
     ]
   );
-  return result.rows[0];
+  return mapFoodRow(result.rows[0] as unknown as Record<string, unknown>);
 }
-

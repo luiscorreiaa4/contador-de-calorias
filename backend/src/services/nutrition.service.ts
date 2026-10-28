@@ -19,7 +19,9 @@ export interface EnergyTargets {
   };
 }
 
-const ACTIVITY_MULTIPLIERS: Record<string, number> = {
+export type ActivityLevel = UserProfile['activity_level'];
+
+const ACTIVITY_MULTIPLIERS: Record<ActivityLevel, number> = {
   sedentario: 1.2,
   pouco_ativo: 1.375,
   moderadamente_ativo: 1.55,
@@ -73,21 +75,20 @@ export function calculateEnergyTargets(profile: UserProfile): EnergyTargets {
   } else {
     // Mifflin-St Jeor se não souber BF
     const age = calculateAge(profile.birthDate);
-    const isMale = profile.sex === 'masculino';
-    
-    // Formula base Mifflin
     const baseTmb = (10 * profile.weight) + (6.25 * profile.height) - (5 * age);
-    
-    if (isMale) {
+
+    if (profile.sex === 'masculino') {
       tmb = baseTmb + 5;
-    } else {
-      // Para mulheres e 'prefiro_nao_responder', usamos a fórmula mais conservadora
+    } else if (profile.sex === 'feminino') {
       tmb = baseTmb - 161;
+    } else {
+      // prefiro_nao_responder (A-061): média aritmética entre as fórmulas masculina e feminina ((+5 + -161)/2 = -78)
+      tmb = baseTmb - 78;
     }
   }
 
   // 2. Gasto Energético Total (TDEE)
-  const multiplier = ACTIVITY_MULTIPLIERS[profile.activity_level] || 1.2;
+  const multiplier = ACTIVITY_MULTIPLIERS[profile.activity_level] ?? 1.2;
   const tdee = tmb * multiplier;
 
   // 3. Calorias Sugeridas (Objetivo)
@@ -98,8 +99,8 @@ export function calculateEnergyTargets(profile: UserProfile): EnergyTargets {
     suggestedCalories = tdee * 1.15; // Superávit de 15%
   }
 
-  // Piso mínimo de segurança (Evitar dietas extremas)
-  const minCalories = profile.sex === 'masculino' ? 1500 : 1200;
+  // Piso mínimo de segurança (Evitar dietas extremas: 1500 masc, 1200 fem, 1350 prefiro_nao_responder)
+  const minCalories = profile.sex === 'masculino' ? 1500 : profile.sex === 'feminino' ? 1200 : 1350;
   if (suggestedCalories < minCalories) {
     suggestedCalories = minCalories;
   }

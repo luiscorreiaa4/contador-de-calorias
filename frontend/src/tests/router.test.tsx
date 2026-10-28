@@ -108,4 +108,37 @@ describe('Router & Navigation (PC-21 / D-16)', () => {
       expect(router.state.location.pathname).toBe('/perfil');
     });
   });
+
+  it('renderiza a recuperação de senha como rota pública', async () => {
+    const router = createTestRouter(['/esqueci-senha']);
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <RouterProvider router={router} />
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: /recuperar senha/i }, { timeout: 5000 })
+    ).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/esqueci-senha');
+  });
+
+  it('renderiza a confirmação de e-mail sem estado do router', async () => {
+    const router = createTestRouter(['/verificar-email']);
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <RouterProvider router={router} />
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: /confirme seu e-mail/i })
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/e-mail da conta/i)).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/verificar-email');
+  });
 });

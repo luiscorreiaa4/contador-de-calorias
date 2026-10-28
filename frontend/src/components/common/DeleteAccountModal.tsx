@@ -18,54 +18,82 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
 }) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
+    if (isOpen) {
+      setPassword('');
+      setShowPassword(false);
+    }
+  }
+
   const modalRef = useRef<HTMLDivElement>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
+  const onCloseRef = useRef(onClose);
+  const isLoadingRef = useRef(isLoading);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+    isLoadingRef.current = isLoading;
+  });
+
+  const handleClose = () => {
+    if (!isLoadingRef.current) {
+      setPassword('');
+      setShowPassword(false);
+      onCloseRef.current();
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setPassword('');
-      setShowPassword(false);
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         passwordInputRef.current?.focus();
       }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape' && !isLoading) {
-          onClose();
-        }
+  useEffect(() => {
+    if (!isOpen) return;
 
-        // Trap focus inside modal
-        if (e.key === 'Tab' && modalRef.current) {
-          const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
-            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-          );
-          const firstElement = focusableElements[0];
-          const lastElement = focusableElements[focusableElements.length - 1];
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleClose();
+      }
 
-          if (e.shiftKey) {
-            if (document.activeElement === firstElement) {
-              lastElement?.focus();
-              e.preventDefault();
-            }
-          } else {
-            if (document.activeElement === lastElement) {
-              firstElement?.focus();
-              e.preventDefault();
-            }
+      // Trap focus inside modal
+      if (e.key === 'Tab' && modalRef.current) {
+        const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusableElements.length === 0) return;
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            lastElement?.focus();
+            e.preventDefault();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            firstElement?.focus();
+            e.preventDefault();
           }
         }
-      };
+      }
+    };
 
-      document.addEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', handleKeyDown);
+    document.body.style.overflow = 'hidden';
 
-      return () => {
-        document.removeEventListener('keydown', handleKeyDown);
-        document.body.style.overflow = '';
-      };
-    }
-  }, [isOpen, isLoading, onClose]);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -79,8 +107,8 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
     <div
       className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-background/90 backdrop-blur-sm"
       onClick={(e) => {
-        if (e.target === e.currentTarget && !isLoading) {
-          onClose();
+        if (e.target === e.currentTarget) {
+          handleClose();
         }
       }}
     >
@@ -111,7 +139,7 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             disabled={isLoading}
             className="p-2 border-2 border-border bg-background text-foreground hover:bg-secondary transition-colors disabled:opacity-50 focus:outline-none focus:border-ring"
             aria-label="Fechar janela"
@@ -149,7 +177,7 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="SUA SENHA ATUAL"
-                  className={`w-full pl-10 pr-12 py-2.5 bg-background border-2 rounded-none text-sm font-medium text-foreground outline-none transition-colors min-h-[48px] ${error ? 'border-destructive bg-destructive/10 text-destructive focus:border-destructive' : 'border-border hover:border-foreground/60 focus:border-ring focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background'}`}
+                  className={`w-full pl-10 pr-12 py-2.5 bg-background border-2 rounded-none text-sm font-medium text-foreground outline-none transition-colors min-h-[48px] ${error ? 'border-destructive bg-destructive/10 text-destructive focus:border-destructive' : 'border-border hover:border-foreground/60 focus:border-ring focus:outline-none focus-visible:border-ring focus-visible:outline-none'}`}
                   disabled={isLoading}
                   aria-invalid={!!error}
                   aria-describedby={error ? 'delete-password-error' : undefined}
@@ -180,7 +208,7 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
             <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-4 pt-4 border-t-2 border-border">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleClose}
                 disabled={isLoading}
                 className="w-full sm:w-auto px-6 py-3 font-black uppercase tracking-widest text-xs text-foreground bg-background border-2 border-border hover:bg-secondary transition-colors focus:outline-none focus:border-ring disabled:opacity-50"
               >

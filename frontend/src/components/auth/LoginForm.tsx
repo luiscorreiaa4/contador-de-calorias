@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import type { LoginFormData, FormErrors } from '../../types/auth';
 import { useAuth } from '../../context/AuthContext';
 import { loginUser } from '../../services/auth.service';
+import { ApiError } from '../../services/api';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Button } from '../ui/button';
 
 interface LoginFormProps {
   onSuccess?: () => void;
+  onEmailNotVerified?: (email: string, rememberMe: boolean) => void;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
+export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onEmailNotVerified }) => {
   const { setAuthSession } = useAuth();
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
@@ -26,10 +29,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   const loginMutation = useMutation({
     mutationFn: (data: LoginFormData) => loginUser(data),
     onSuccess: (response) => {
-      setAuthSession(response.user, response.token);
+      setAuthSession(response.user, response.token, formData.rememberMe);
       if (onSuccess) onSuccess();
     },
     onError: (err: unknown) => {
+      if (err instanceof ApiError && err.code === 'EMAIL_NOT_VERIFIED') {
+        onEmailNotVerified?.(formData.email.trim(), formData.rememberMe);
+        return;
+      }
+
       const errorMsg = err instanceof Error ? err.message : String(err);
       if (errorMsg.includes('Failed to fetch') || errorMsg.includes('fetch')) {
         setServerError('Não foi possível conectar ao servidor.');
@@ -82,7 +90,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
             placeholder="SEU@EMAIL.COM"
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? 'login-email-error' : undefined}
-            className={`pl-10 ${errors.email ? 'border-destructive focus-visible:border-destructive' : ''}`}
+            className={`pl-10 ${errors.email ? 'border-destructive focus:border-destructive focus-visible:border-destructive' : ''}`}
           />
         </div>
         {errors.email && (
@@ -110,7 +118,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
             placeholder="••••••••"
             aria-invalid={!!errors.password}
             aria-describedby={errors.password ? 'login-password-error' : undefined}
-            className={`pl-10 pr-10 font-mono tracking-widest ${errors.password ? 'border-destructive focus-visible:border-destructive' : ''}`}
+            className={`pl-10 pr-10 font-mono tracking-widest ${errors.password ? 'border-destructive focus:border-destructive focus-visible:border-destructive' : ''}`}
           />
           <button
             type="button"
@@ -142,13 +150,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
             Lembrar-me
           </Label>
         </div>
-        <a
-          href="#forgot-password"
-          onClick={(e) => e.preventDefault()}
-          className="text-xs font-bold uppercase tracking-widest text-primary-ink hover:text-primary-ink/80 transition-colors focus:outline-none focus:underline"
+        <Link
+          to="/esqueci-senha"
+          className="text-xs font-bold uppercase tracking-widest text-primary-ink hover:text-primary-ink/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           Esqueci minha senha
-        </a>
+        </Link>
       </div>
 
       {/* Submit */}
@@ -157,7 +164,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           <Loader2 className="w-5 h-5 animate-spin" />
         ) : (
           <>
-            <span>Acessar Dashboard</span>
+            <span>Acessar Diário</span>
             <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
           </>
         )}

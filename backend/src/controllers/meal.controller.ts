@@ -1,96 +1,48 @@
-import { Response } from 'express';
-import { AuthenticatedRequest } from '../middlewares/auth.js';
+import { Request, Response } from 'express';
+import { requireUserId } from '../middlewares/auth.js';
 import * as MealService from '../services/meal.service.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
 
-interface CustomError {
-  statusCode?: number;
-  message?: string;
-}
+export const create = asyncHandler(async (req: Request, res: Response) => {
+  const userId = requireUserId(req);
+  const newMeal = await MealService.createMeal(userId, req.body);
+  return res.status(201).json({ success: true, message: 'Refeição registrada com sucesso!', data: newMeal });
+});
 
-export async function create(req: AuthenticatedRequest, res: Response) {
-  try {
-    const userId = req.userId!;
-    const newMeal = await MealService.createMeal(userId, req.body);
-    return res.status(201).json({ success: true, message: 'Refeição registrada com sucesso!', data: newMeal });
-  } catch (error: unknown) {
-    const err = error as CustomError;
-    const statusCode = err.statusCode ?? 500;
-    const message = statusCode === 500 ? 'Erro interno no servidor.' : (err.message ?? 'Erro interno no servidor.');
-    return res.status(statusCode).json({ success: false, message });
-  }
-}
+export const getToday = asyncHandler(async (req: Request, res: Response) => {
+  const userId = requireUserId(req);
+  const clientDate = req.query.date as string;
+  const meals = await MealService.getTodayMeals(userId, clientDate);
+  return res.status(200).json({ success: true, data: meals });
+});
 
-export async function getToday(req: AuthenticatedRequest, res: Response) {
-  try {
-    const userId = req.userId!;
-    const clientDate = req.query.date as string; // YYYY-MM-DD passed from client to avoid timezone mismatches
-    
-    const meals = await MealService.getTodayMeals(userId, clientDate);
-    return res.status(200).json({ success: true, data: meals });
-  } catch (error: unknown) {
-    const err = error as CustomError;
-    const statusCode = err.statusCode ?? 500;
-    const message = statusCode === 500 ? 'Erro interno no servidor.' : (err.message ?? 'Erro interno no servidor.');
-    return res.status(statusCode).json({ success: false, message });
-  }
-}
+export const update = asyncHandler(async (req: Request, res: Response) => {
+  const userId = requireUserId(req);
+  const mealId = req.params.id as string;
+  const updatedMeal = await MealService.updateMeal(userId, mealId, req.body);
+  return res.status(200).json({ success: true, message: 'Refeição atualizada com sucesso!', data: updatedMeal });
+});
 
-export async function update(req: AuthenticatedRequest, res: Response) {
-  try {
-    const userId = req.userId!;
-    const mealId = req.params.id as string;
-    const updatedMeal = await MealService.updateMeal(userId, mealId, req.body);
-    return res.status(200).json({ success: true, message: 'Refeição atualizada com sucesso!', data: updatedMeal });
-  } catch (error: unknown) {
-    const err = error as CustomError;
-    const statusCode = err.statusCode ?? 500;
-    const message = statusCode === 500 ? 'Erro interno no servidor.' : (err.message ?? 'Erro interno no servidor.');
-    return res.status(statusCode).json({ success: false, message });
-  }
-}
+export const remove = asyncHandler(async (req: Request, res: Response) => {
+  const userId = requireUserId(req);
+  const mealId = req.params.id as string;
+  await MealService.deleteMeal(userId, mealId);
+  return res.status(200).json({ success: true, message: 'Refeição excluída com sucesso!' });
+});
 
-export async function remove(req: AuthenticatedRequest, res: Response) {
-  try {
-    const userId = req.userId!;
-    const mealId = req.params.id as string;
-    await MealService.deleteMeal(userId, mealId);
-    return res.status(200).json({ success: true, message: 'Refeição excluída com sucesso!' });
-  } catch (error: unknown) {
-    const err = error as CustomError;
-    const statusCode = err.statusCode ?? 500;
-    const message = statusCode === 500 ? 'Erro interno no servidor.' : (err.message ?? 'Erro interno no servidor.');
-    return res.status(statusCode).json({ success: false, message });
-  }
-}
+export const getStats = asyncHandler(async (req: Request, res: Response) => {
+  const userId = requireUserId(req);
+  const clientDate = req.query.date as string;
+  const period = (req.query.period as string) === 'week' ? 'week' : 'month';
+  const stats = await MealService.getMealStats(userId, period, clientDate);
+  return res.status(200).json({ success: true, data: stats });
+});
 
-export async function getStats(req: AuthenticatedRequest, res: Response) {
-  try {
-    const userId = req.userId!;
-    const clientDate = req.query.date as string;
-    const period = (req.query.period as string) === 'week' ? 'week' : 'month';
-    
-    const stats = await MealService.getMealStats(userId, period, clientDate);
-    return res.status(200).json({ success: true, data: stats });
-  } catch (error: unknown) {
-    const err = error as CustomError;
-    const statusCode = err.statusCode ?? 500;
-    const message = statusCode === 500 ? 'Erro interno no servidor.' : (err.message ?? 'Erro interno no servidor.');
-    return res.status(statusCode).json({ success: false, message });
-  }
-}
-
-export async function copy(req: AuthenticatedRequest, res: Response) {
-  try {
-    const userId = req.userId!;
-    const result = await MealService.copyMealOrDay(userId, req.body);
-    const message = Array.isArray(result)
-      ? 'Refeições do dia copiadas com sucesso!'
-      : 'Refeição copiada com sucesso!';
-    return res.status(201).json({ success: true, message, data: result });
-  } catch (error: unknown) {
-    const err = error as CustomError;
-    const statusCode = err.statusCode ?? 500;
-    const message = statusCode === 500 ? 'Erro interno no servidor.' : (err.message ?? 'Erro interno no servidor.');
-    return res.status(statusCode).json({ success: false, message });
-  }
-}
+export const copy = asyncHandler(async (req: Request, res: Response) => {
+  const userId = requireUserId(req);
+  const result = await MealService.copyMealOrDay(userId, req.body);
+  const message = Array.isArray(result)
+    ? 'Refeições do dia copiadas com sucesso!'
+    : 'Refeição copiada com sucesso!';
+  return res.status(201).json({ success: true, message, data: result });
+});

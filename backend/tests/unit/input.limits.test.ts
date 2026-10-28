@@ -96,7 +96,7 @@ describe('Input Limits & Sanitization (CA-11)', () => {
     };
 
     const res = await request(app)
-      .post('/api/users/login')
+      .post('/api/auth/login')
       .send(hugePayload)
       .set('Content-Type', 'application/json');
 

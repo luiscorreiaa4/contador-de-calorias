@@ -36,3 +36,5 @@ backend/.env
 # Raw data
 backend/data/*.json
 backend/data/*.csv
+!backend/data/curated-foods.json
+!backend/data/catalog-decisions.csv

@@ -12,7 +12,7 @@ interface SecuritySectionProps {
 const inputBase =
   'w-full min-w-0 h-12 pl-10 pr-12 py-2.5 bg-background border-2 rounded-none text-sm font-medium text-foreground outline-none transition-colors';
 const inputNormal =
-  'border-border hover:border-foreground focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
+  'border-border hover:border-foreground focus:border-ring focus:outline-none focus-visible:border-ring focus-visible:outline-none';
 const inputError =
   'border-destructive bg-destructive/10 text-destructive focus:border-destructive';
 

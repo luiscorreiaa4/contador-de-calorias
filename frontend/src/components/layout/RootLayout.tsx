@@ -1,36 +1,16 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { Outlet } from 'react-router';
+import { useAuth } from '../../context/AuthContext';
+import { NewMealModalProvider } from '../../context/NewMealModalProvider';
+import { ThemeProvider } from '../../context/ThemeProvider';
 import { AppHeader } from './AppHeader';
+import { SwipeMain } from '../../navigation/SwipeMain';
+import { BottomNav } from './BottomNav';
 import { Footer } from './Footer';
 
-export const RootLayout: React.FC = () => {
-  const [darkMode, setDarkMode] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      return (
-        localStorage.getItem('theme') === 'dark' ||
-        (!('theme' in localStorage) &&
-          typeof window.matchMedia === 'function' &&
-          window.matchMedia('(prefers-color-scheme: dark)').matches)
-      );
-    }
-    return false;
-  });
-
-  useEffect(() => {
-    const root = document.documentElement;
-    if (darkMode) {
-      root.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      root.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [darkMode]);
-
-  const toggleTheme = () => {
-    setDarkMode((prev) => !prev);
-  };
-
+const RootShell: React.FC = () => {
+  const { user, isAuthenticated } = useAuth();
+  const showBottomNav = isAuthenticated && !!user?.onboarding_completed;
   const [isOffline, setIsOffline] = useState(() => (typeof navigator !== 'undefined' ? !navigator.onLine : false));
 
   useEffect(() => {
@@ -45,17 +25,21 @@ export const RootLayout: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors duration-300 flex flex-col justify-between relative overflow-x-hidden">
+    <div
+      className={`min-h-screen bg-background text-foreground transition-colors duration-300 flex flex-col justify-between relative overflow-x-hidden ${
+        showBottomNav ? 'pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0' : ''
+      }`}
+    >
       {isOffline && (
         <div role="status" className="w-full bg-warning text-warning-foreground py-1.5 px-4 text-center font-black text-xs uppercase tracking-wider border-b-2 border-border flex items-center justify-center gap-2">
           <span>MODO OFFLINE ATIVADO — DADOS CARREGADOS DO CACHE LOCAL</span>
         </div>
       )}
       {/* App Header */}
-      <AppHeader darkMode={darkMode} onToggleTheme={toggleTheme} />
+      <AppHeader />
 
       {/* Main Content (Routes Area) */}
-      <main className="flex-1 flex items-center justify-center z-10 my-8 sm:my-12 pb-8 sm:pb-16">
+      <SwipeMain enabled={showBottomNav} className="flex-1 flex items-center justify-center z-10 my-8 sm:my-12 pb-8 sm:pb-16">
         <Suspense
           fallback={
             <div className="flex items-center justify-center w-full h-64">
@@ -65,10 +49,20 @@ export const RootLayout: React.FC = () => {
         >
           <Outlet />
         </Suspense>
-      </main>
+      </SwipeMain>
 
       {/* Footer */}
       <Footer />
+
+      {showBottomNav && <BottomNav />}
     </div>
   );
 };
+
+export const RootLayout: React.FC = () => (
+  <ThemeProvider>
+    <NewMealModalProvider>
+      <RootShell />
+    </NewMealModalProvider>
+  </ThemeProvider>
+);

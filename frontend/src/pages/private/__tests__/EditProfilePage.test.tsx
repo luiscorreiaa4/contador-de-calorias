@@ -50,6 +50,8 @@ describe('EditProfilePage Component (PC-34 / TST-011)', () => {
     expect(screen.getByRole('heading', { name: /^perfil$/i })).toBeInTheDocument();
     expect(await screen.findByLabelText(/nome completo/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/e-mail/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/e-mail/i)).toBeDisabled();
+    expect(screen.getByLabelText(/altura/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /salvar alterações/i })).toBeInTheDocument();
   });
 

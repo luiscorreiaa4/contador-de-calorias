@@ -1,6 +1,6 @@
 # Guia de Cores e Identidade Visual — CalorieSync
 
-Este documento documenta de forma completa todas as cores, variáveis, códigos hexadecimais e regras de sombra do projeto **CalorieSync** (extraídos do Dashboard, `tailwind.config.js`, `index.css` e da identidade brutalista da aplicação).
+Este documento documenta de forma completa todas as cores, variáveis, códigos hexadecimais e regras de sombra do projeto **CalorieSync** (extraídos do Diário, `tailwind.config.js`, `index.css` e da identidade brutalista da aplicação).
 
 > **Revisão v2 — "Neo-Brutalismo de Tinta":** o modo claro foi redesenhado porque o verde neon `#CCFF00` tinha contraste de apenas **1,17 : 1** sobre o branco (praticamente invisível). O modo escuro permanece como estava.
 >
@@ -51,7 +51,7 @@ Este documento documenta de forma completa todas as cores, variáveis, códigos 
 | **Verde Neon Principal (Fill)** | `--primary`, `--accent` | `72 100% 50%` | **`#CCFF00`** | `rgb(204, 255, 0)` |
 | **Verde Tinta (Modo Claro)** | `--primary-ink` | `75 100% 20%` | **`#4D6600`** | `rgb(77, 102, 0)` |
 | **Verde Tinta (Modo Escuro)** | `--primary-ink` | `72 100% 50%` | **`#CCFF00`** | `rgb(204, 255, 0)` |
-| **Sombra dos Cards (Claro)** | `--shadow` + `--shadow-alpha` | `0 0% 4%` / `1` | **`#0A0A0A`** | `rgba(10, 10, 10, 1)` |
+| **Sombra dos Cards (Claro)** | `--shadow` + `--shadow-alpha` | `75 100% 20%` / `0.35` | **`#4D6600`** | `rgba(77, 102, 0, 0.35)` |
 | **Sombra dos Cards (Escuro, Normal)** | `--shadow` + `--shadow-alpha` | `72 100% 50%` / `0.2` | **`#CCFF00` (20% alfa)** | `rgba(204, 255, 0, 0.2)` |
 | **Sombra dos Cards (Escuro, Hover)** | `--shadow` + `--shadow-alpha-hover` | `72 100% 50%` / `0.4` | **`#CCFF00` (40% alfa)** | `rgba(204, 255, 0, 0.4)` |
 | **Fundo da Página (Modo Claro)** | `--background` | `60 20% 95%` | **`#F5F5F0`** | `rgb(245, 245, 240)` |
@@ -62,9 +62,9 @@ Este documento documenta de forma completa todas as cores, variáveis, códigos 
 | **Texto Principal (Modo Escuro)** | `--foreground` | `0 0% 100%` | **`#FFFFFF`** | `rgb(255, 255, 255)` |
 | **Texto Secundário / Muted (Claro)** | `--muted-foreground` | `0 0% 32%` | **`#525252`** | `rgb(82, 82, 82)` |
 | **Texto Secundário / Muted (Escuro)** | `--muted-foreground` | `0 0% 80%` | **`#CCCCCC`** | `rgb(204, 204, 204)` |
-| **Bordas e Inputs (Modo Claro)** | `--border`, `--input` | `0 0% 4%` | **`#0A0A0A`** | `rgb(10, 10, 10)` |
+| **Bordas e Inputs (Modo Claro)** | `--border`, `--input` | `75 55% 14%` | **`#2A3810`** | `rgb(42, 56, 16)` |
 | **Bordas e Inputs (Modo Escuro)** | `--border`, `--input` | `0 0% 15%` | **`#262626`** | `rgb(38, 38, 38)` |
-| **Anel de Foco (Modo Claro)** | `--ring` | `0 0% 4%` | **`#0A0A0A`** | `rgb(10, 10, 10)` |
+| **Anel de Foco (Modo Claro)** | `--ring` | `75 100% 20%` | **`#4D6600`** | `rgb(77, 102, 0)` |
 | **Anel de Foco (Modo Escuro)** | `--ring` | `72 100% 50%` | **`#CCFF00`** | `rgb(204, 255, 0)` |
 | **Superfície de Apoio / Tag (Claro)** | `--secondary` | `60 10% 88%` | **`#E3E3DC`** | `rgb(227, 227, 220)` |
 | **Superfície de Apoio / Tag (Escuro)**| `--secondary` | `0 0% 15%` | **`#262626`** | `rgb(38, 38, 38)` |
@@ -75,14 +75,14 @@ Este documento documenta de forma completa todas as cores, variáveis, códigos 
 
 ---
 
-## 🔎 Detalhamento por Elemento do Dashboard
+## 🔎 Detalhamento por Elemento do Diário
 
 ### 1. Cor Verde Principal (Primary / Accent / Neon)
 - **Código HEX:** `#CCFF00`
 - **RGB:** `rgb(204, 255, 0)`
 - **HSL:** `hsl(72, 100%, 50%)`
 - **Variante de tinta (modo claro):** `#4D6600` — `hsl(75, 100%, 20%)`, via `--primary-ink`.
-- **Onde aparece no Dashboard e como aplicar:**
+- **Onde aparece no Diário e como aplicar:**
 
 | Elemento | Classe / Tratamento | Modo Claro | Modo Escuro |
 | :--- | :--- | :--- | :--- |
@@ -91,8 +91,8 @@ Este documento documenta de forma completa todas as cores, variáveis, códigos 
 | Subtítulo "PAINEL DE PERFORMANCE" | `text-primary-ink` | Oliva | Neon |
 | Barras de progresso (Calorias, Proteínas, Carboidratos, Gorduras) | Trilho `bg-secondary`, fill `bg-primary`, `border-2 border-foreground` no claro | Neon com contorno preto | Neon |
 | Ícones dos cards de métricas | `text-primary-ink` | Oliva | Neon |
-| Badge de contagem de refeições | `bg-primary text-primary-foreground border-2 border-black` | Neon + borda preta | Neon + borda preta |
-| Botão **"NOVA REFEIÇÃO"** | `bg-primary text-primary-foreground border-2 border-black shadow-hard` | Neon, borda e sombra pretas | Neon, sombra neon |
+| Badge de contagem de refeições | `bg-primary text-primary-foreground border-2 border-edge` | Neon + borda preta | Neon + borda preta |
+| Botão **"NOVA REFEIÇÃO"** | `bg-primary text-primary-foreground border-2 border-edge shadow-hard` | Neon, borda e sombra pretas | Neon, sombra neon |
 | Linha de realce do cabeçalho | `bg-primary` + `border-b-2 border-foreground` | Faixa neon com base preta | Faixa neon |
 | Foco de teclado | `ring-ring` / `focus:border-ring` | Preto | Neon |
 | Seleção de texto (`::selection`) | Fundo `--primary`, texto `--primary-foreground` | Neon + preto | Neon + preto |
@@ -158,7 +158,7 @@ Para elementos que já têm o fundo totalmente verde neon (como abas selecionada
 - **Espessura Obrigatória:** `border-2` (2 pixels de contorno sólido).
 - **Modo Claro:** `#0A0A0A` (`rgb(10, 10, 10)`) — contorno preto, brutalismo "de tinta".
 - **Modo Escuro:** `#262626` (`rgb(38, 38, 38)`).
-- **Fills neon:** use `border-black` (fixo) quando quiser o contorno preto também no modo escuro.
+- **Fills neon:** use `border-edge` (verde-oliva escuro no claro, preto no escuro).
 
 ---
 
@@ -181,7 +181,7 @@ Para elementos que já têm o fundo totalmente verde neon (como abas selecionada
 - **Código HEX:** `#EF4343`
 - **RGB:** `rgb(239, 67, 67)`
 - **Fundo com transparência (Alertas e banners):** `bg-destructive/10` (`rgba(239, 67, 67, 0.1)`).
-- **Onde aparece no Dashboard:**
+- **Onde aparece no Diário:**
   - Botão e ícone de lixeira para exclusão de refeição.
   - Modal de confirmação "EXCLUIR REFEIÇÃO".
   - Banner de erro quando as refeições falham em carregar.
@@ -221,9 +221,10 @@ Para elementos que já têm o fundo totalmente verde neon (como abas selecionada
      --shadow-alpha-hover: 1;
 
      /* Sombra neutra para fills neon */
-     --shadow-fill: 0 0% 0%;
-     --shadow-fill-alpha: 1;
+     --shadow-fill: 75 55% 14%;
+     --shadow-fill-alpha: 0.85;
      --shadow-fill-alpha-hover: 1;
+     --edge: 75 55% 14%;      /* border-edge: contorno de fills neon (preto no escuro) */
    }
 
    .dark {
@@ -286,12 +287,17 @@ Para elementos que já têm o fundo totalmente verde neon (como abas selecionada
 
 4. **Checklist de Migração no Código:**
    - [x] Substituir `text-primary` usado em **textos e ícones sobre fundo** por `text-primary-ink`.
-   - [x] Manter `bg-primary` nos fills (botões, barras, badges) e adicionar `border-2 border-black` (ou `border-foreground`).
+   - [x] Manter `bg-primary` nos fills (botões, barras, badges) e adicionar `border-2 border-edge` (ou `border-foreground`).
    - [x] Trocar `focus:border-primary` / `ring-primary` por `focus:border-ring` / `ring-ring`.
    - [x] Transformar o "SYNC" do logo em marca-texto (`bg-primary text-primary-foreground px-1`).
    - [x] Verificar se nenhuma sombra está com `rgba(204, 255, 0, …)` fixo no código (usar `shadow-hard` / `shadow-hard-hover`).
 
 ---
+
+## 🫧 Exceção Documentada: Vidro Translúcido da Barra Inferior
+
+O "sem blur" deste guia vale para **sombras**. A barra inferior mobile (`BottomNav`) é a única superfície com translucidez: `bg-background supports-[backdrop-filter]:bg-background/85 backdrop-blur-2xl backdrop-saturate-150`, com `border-t border-border/40` (borda superior fina, exceção consciente ao `border-2`). Sem `backdrop-filter` o fundo continua sólido (`bg-background`). Só tokens, com opacidade em token; sem hex/rgba, sem sombra e sem `rounded`.
+
 
 ## 🛡️ Como Evitar Regressão
 
@@ -307,7 +313,7 @@ Para garantir que novos componentes e refatorações preservem a integridade da 
 2. **Exceção Pontual Controlada:**
    - Se um elemento estritamente necessitar de uma exceção, use o comentário `/* color-guard-allow: <motivo> */` ou `// color-guard-allow: <motivo>` na mesma linha ou na anterior.
 3. **Preenchimento vs. Tinta:**
-   - **`bg-primary`** é apenas para **superfície** (botão, badge, progresso), acompanhado de `text-primary-foreground` e `border-2 border-black`.
+   - **`bg-primary`** é apenas para **superfície** (botão, badge, progresso), acompanhado de `text-primary-foreground` e `border-2 border-edge`.
    - **`text-primary-ink`** é para **tinta** (textos, ícones, traços).
 4. **Foco Visível:**
    - Use `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background`.

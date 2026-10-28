@@ -119,36 +119,42 @@ async function hydrateMealsWithItems(meals: Meal[]): Promise<Meal[]> {
     const items = itemsByMeal[meal.id] || [];
     const total_calories = items.reduce((acc, it) => acc + Number(it.calories), 0);
     const total_proteins = items.reduce((acc, it) => acc + Number(it.proteins), 0);
+    const total_carbs = items.reduce((acc, it) => acc + Number(it.carbs), 0);
+    const total_fats = items.reduce((acc, it) => acc + Number(it.fats), 0);
 
     return {
       ...meal,
       items,
-      total_calories,
-      total_proteins
+      total_calories: Math.round(total_calories * 100) / 100,
+      total_proteins: Math.round(total_proteins * 100) / 100,
+      total_carbs: Math.round(total_carbs * 100) / 100,
+      total_fats: Math.round(total_fats * 100) / 100,
     };
   });
 }
 
 export async function findMealsByUserAndDate(userId: string, dateStart: string, dateEnd: string): Promise<Meal[]> {
-  // Retorna as refeições de um dia com agregação de calorias e proteínas em memória (PERF-001)
+  // Retorna as refeições de um dia com agregação de calorias, proteínas, carbs e fats em memória (PERF-001 / A-026)
   const mealsResult = await pool.query<Meal>(
     `SELECT m.id, m.user_id, m.name, m.meal_time, m.created_at, m.updated_at
      FROM meals m 
      WHERE m.user_id = $1 AND m.meal_time >= $2 AND m.meal_time < $3
-     ORDER BY m.meal_time DESC`,
+     ORDER BY m.meal_time DESC
+     LIMIT 100`,
     [userId, dateStart, dateEnd]
   );
 
   return hydrateMealsWithItems(mealsResult.rows);
 }
 
-/** Retorna todo o histórico de refeições do usuário (com itens) para exportação. */
+/** Retorna todo o histórico de refeições do usuário (com itens) para exportação (limitado a 2000 registros para evitar estouro de memória, A-033). */
 export async function findAllMealsByUser(userId: string): Promise<Meal[]> {
   const mealsResult = await pool.query<Meal>(
     `SELECT m.id, m.user_id, m.name, m.meal_time, m.created_at, m.updated_at
      FROM meals m
      WHERE m.user_id = $1
-     ORDER BY m.meal_time ASC, m.created_at ASC`,
+     ORDER BY m.meal_time ASC, m.created_at ASC
+     LIMIT 2000`,
     [userId]
   );
 
@@ -177,10 +183,13 @@ export async function findMealById(userId: string, mealId: string): Promise<Meal
 
 export async function copyMeal(
   userId: string,
-  sourceMealId: string,
+  sourceMealOrId: string | Meal,
   targetMealTime: Date
 ): Promise<Meal> {
-  const sourceMeal = await findMealById(userId, sourceMealId);
+  const sourceMeal = typeof sourceMealOrId === 'string'
+    ? await findMealById(userId, sourceMealOrId)
+    : sourceMealOrId;
+
   if (!sourceMeal) {
     const error: Error & { statusCode?: number } = new Error('Refeição não encontrada ou não pertence a este usuário.');
     error.statusCode = 404;

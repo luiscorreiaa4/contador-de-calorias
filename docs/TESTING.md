@@ -12,9 +12,9 @@ O runner resolve os caminhos a partir do script, fixa o CWD, `NODE_ENV=test`, `D
 
 Toda suíte que alcance pool/app, inclusive por services, models ou helpers, registra `closeTestPool()` de `backend/tests/helpers/lifecycle.ts` antes dos testes; passe a limpeza como callback. O helper executa a limpeza em `try` e `await pool.end()` em `finally`. Não combine encerramentos próprios com o helper. A guarda AST `node scripts/check-test-hygiene.mjs`, integrada ao lint, verifica imports transitivos locais.
 
-`test` usa `--test-force-exit` como proteção extra. `test:strict` e `test:file` não usam essa flag e desabilitam `allowExitOnIdle` para expor sockets esquecidos. Execute strict na verificação final e no CI. O timeout de 30 s do Node é herdado pelos subtestes e não substitui o teto global: handles após o fim dos testes ainda podem manter o processo vivo. Frontend: `vitest run`, teste/hook 10 s e teardown 5 s; MSW fecha em `afterAll`.
+`test` usa `--test-force-exit` como proteção extra. `test:strict` e `test:file` não usam essa flag e desabilitam `allowExitOnIdle` para expor sockets esquecidos. Execute strict na verificação final e no CI. O timeout de 30 s do Node é herdado pelos subtestes e não substitui o teto global: handles após o fim dos testes ainda podem manter o processo vivo. Frontend: `vitest run`, teste/hook 20 s e teardown 10 s (`frontend/vite.config.ts`); MSW fecha em `afterAll`.
 
-Os resultados históricos abaixo não representam a validação desta mudança; os resultados atuais e a tabela completa estão em [TEST_HYGIENE_REPORT.md](TEST_HYGIENE_REPORT.md).
+Os resultados na tabela abaixo representam o status verificado da suíte de testes.
 
 Comandos executados a partir da **raiz** do monorepo:
 
@@ -23,7 +23,7 @@ Comandos executados a partir da **raiz** do monorepo:
 npm run test
 
 # 2. Testes de Frontend (Vitest + RTL + MSW)
-npm --prefix frontend test
+npm run test:frontend
 
 # 3. Validação de Linter (ESLint em todo o projeto)
 npm run lint
@@ -40,45 +40,69 @@ Abaixo está o status real verificado através da execução direta dos comandos
 
 | Camada | Ferramenta / Runner | Total de Testes | Status Atual | Detalhes / Observações |
 | :--- | :--- | :--- | :--- | :--- |
-| **Backend** | `node:test` + `node:assert` + `supertest` via `tsx --test` | **110 testes em 27 suítes** | ✅ **110 PASSOU / 0 FALHOU** (~10s) | Roda exclusivamente contra o banco `contador_calorias_test` com trava `_test` e limpeza via `cleanupTestData`. |
-| **Frontend** | `Vitest 5.0.3` + `React Testing Library` + `MSW 2.15.0` + `@vitest/coverage-v8` | **24 testes em 8 arquivos** | ✅ **24 PASSOU / 0 FALHOU** (~7s) | Suporte completo a relatório de cobertura v8 via `npm --prefix frontend run test:coverage`. |
-| **Linter** | `ESLint 10` + `check-test-hygiene.mjs` | Monorepo completo | ✅ **0 Erros / 0 Warnings** | Higiene de testes, guarda AST de pool e regras de código sem apontamentos. |
-| **Build** | `tsc -b && vite build` | Frontend | ✅ **Compilação com Sucesso** | Code-splitting por rota com chunks separados de vendor (`react-vendor`, `tanstack-vendor`, etc.). |
+| **Backend** | `node:test` + `node:assert` + `supertest` via `tsx --test` | **263 testes em 52 suítes** | ✅ **263 PASSOU / 0 FALHOU** (~41s) | Roda exclusivamente contra o banco `contador_calorias_test` com trava `_test` e limpeza via `cleanupTestData`. |
+| **Frontend** | `Vitest 5.0.3` + `React Testing Library` + `MSW 2.15.0` + `@vitest/coverage-v8` | **185 testes em 26 arquivos** | ✅ **185 PASSOU / 0 FALHOU** (~19s) | Suporte completo a relatório de cobertura v8 via `npm --prefix frontend run test:coverage`. |
+| **Linter** | `ESLint 10` + `check-test-hygiene.mjs` + `check:colors` | Monorepo completo | ✅ **0 Erros / 1 Warning** | Higiene de testes, guarda AST de pool, guarda de cores semânticas e regras de código sem apontamentos. |
+| **Build** | `tsc -b && vite build` | Frontend | ✅ **Compilação com Sucesso** | Code-splitting por rota com chunks separados de vendor (`react-vendor`, `tanstack-vendor`, `chart-vendor`, etc.). |
 
 ### Suítes Existentes no Backend (`backend/tests/`) [CONFIRMADO]
 1. **Unitários (`tests/unit/`):**
    - `nutrition.service.test.ts`: Validação matemática de cálculo de TMB (Mifflin-St Jeor, Katch-McArdle com LBM), TDEE, superávit/déficit e distribuição de macros para IMC alto conforme D-15.
    - `meal.test.ts`: Cálculos nutricionais proporcionais de itens (`calculateItemNutrients`) para porções em gramas, ml e unidades.
-   - `auth_middleware.test.ts`: Rejeição de segredos legados/fallback (`fallback_jwt_secret`), autenticação estrita com `env.JWT_SECRET` e cabeçalhos ausentes.
-   - `date_utils.test.ts`: Conformidade de datas civis e fuso horário `America/Sao_Paulo` (D-01).
+   - `auth.middleware.test.ts`: Claim `tv` obrigatório, divergência de `token_version`, usuário removido e cabeçalhos ausentes (BL-12 / A8).
+   - `authTokens.test.ts`: Geração de código, HMAC-SHA256 com pepper, token base64url, SHA-256, comparação em tempo constante e normalização de e-mail (BL-12/BL-05).
+   - `mailer.test.ts`: `MemoryMailer`, templates pt-BR e ausência de segredos nos conteúdos (D-21/A10).
+   - `date.util.test.ts`: Conformidade de datas civis e fuso horário `America/Sao_Paulo` (D-01).
    - `db_cleanup.test.ts`: Trava de segurança de runtime checando `_test` e padrão `tester-%` (D-11 / PC-14).
-   - `input_limits.test.ts`: Validação de tetos de payload e sanitização Zod (CA-11).
+   - `input.limits.test.ts`: Validação de tetos de payload e sanitização Zod (CA-11).
    - `password_security.test.ts`: Política de senha forte e mitigação de timing attacks via compare dummy (PC-08).
-   - `pool_ssl.test.ts`: Validação de SSL estrito em produção com suporte a certificado CA customizado (CA-05 / D-19).
+   - `pool.ssl.test.ts`: Validação de SSL estrito em produção com suporte a certificado CA customizado (CA-05 / D-19).
    - `reset_db_guard.test.ts`: Trava de segurança impedindo execução de reset de banco fora do ambiente isolado (CA-12).
    - `routes_registration.test.ts`: Verificação de unicidade no registro de sub-roteadores no Express (PC-04).
-   - `validate_middleware.test.ts`: Validação particionada de body, query e params (CA-15).
-   - `user.schema.test.ts`: Validação de contratos de schemas Zod para registro, login, onboarding, atualização e exclusão.
+   - `validate.middleware.test.ts`: Validação particionada de body, query e params (CA-15).
+   - `threadpool.test.ts`: Dimensionamento do pool de threads libuv (BL-17 / PERF-011).
+   - `trust_proxy.test.ts`: Configuração e validação de saltos de proxy reverso (BL-01 / D-19).
 2. **Integração (`tests/integration/`):**
    - `user.routes.test.ts`: Registro, login, obtenção de perfil, fluxo de onboarding, prévia e atualização de metas com vigência, atualização protegida de perfil com senha e exclusão com senha.
    - `meal.routes.test.ts`: Criação de refeição com múltiplos itens, listagem de refeições do dia (`/today`), atualização com substituição atômica, exclusão e estatísticas por período.
    - `food.routes.test.ts`: Busca de alimentos com tolerância a acentos (`unaccent`) e caixa (`ILIKE`), proximidade trigram (`pg_trgm`), paginação, cache privado HTTP (PC-03 / D-07) e projeção explícita de colunas com `source` (PC-09 / D-08).
    - `authorization.test.ts`: Testes rigorosos de autorização multiusuário (IDOR) cobrindo isolamento total de refeições, metas e dados de perfil (PC-18 / D-14).
    - `user_transactions.test.ts`: Transações atômicas com `BEGIN`/`COMMIT`/`ROLLBACK` e rollback automático sob falhas em onboarding, perfil e metas (PC-17).
-   - `health.routes.test.ts`: Probe ativo de saúde do banco de dados no contrato `{ success, data }` (PC-11).
+   - `health.routes.test.ts`: Probe ativo de saúde do banco de dados no contrato `{ success, data }` com timeout dedicado (PC-11 / A-040).
    - `meal_items_batch.test.ts`: Inserção multi-row em lote de itens de refeição (PC-22 / D-14).
+   - `auth_rate_limit.test.ts`: Rate limiting de autenticação por IP e por e-mail com limite global (BL-01 / SEC-006 / A-117).
+   - `auth_email_verification.test.ts`: Cadastro 202 sem sessão, hard gate 403 `EMAIL_NOT_VERIFIED`, código expirado/5 tentativas/uso único, reenvio com cooldown e teto, conta verificada e troca de e-mail (BL-12 / A1–A6).
+   - `auth_password_reset.test.ts`: Resposta genérica, token de uso único/expirado, política de senha, incremento de `token_version` e ausência de auto-login (BL-05 / A3/A4/A7/A8).
+   - `foods_uniqueness.test.ts`: Índices parciais de unicidade multi-tenant em catálogo e personalizados (A-003 / BL-09 / A-118).
+   - `user_measurements.test.ts`: Evolução de medidas corporais, ordenação cronológica e não-sobrescrita retroativa (BL-21 / FEAT-C04 / A-119).
+   - `request_logging.test.ts`: Logging estruturado assíncrono com correlation ID e sincronização determinística (BL-08 / ARCH-020 / A-120).
+   - `saved_meals.test.ts`: Gerenciamento de refeições salvas e combos com cálculo nutricional.
+   - `push_notifications.test.ts`: Gerenciamento de inscrições de push notifications (BL-27).
+   - `admin_rbac.test.ts`: Role padrão 'user', CHECK constraint, autenticação recarregando role do banco a cada requisição (B1), e rebaixamento imediato sem esperar expiração de token.
+   - `admin_foods.test.ts`: Matriz de autorização com guard em `/api/admin` (401/403/200), CRUD administrativo, auditoria atômica (B5), rejeição de item inativo novo na refeição com 422 (B7), validação de 100g e warnings de divergência calórica.
+   - `admin_cli.test.ts`: CLI de administração de usuários (`admin:promote`, `admin:demote`, `admin:list`), validação de e-mail verificado, proteção contra remoção do último admin, auditoria CLI (`actor_type: 'cli'`), incremento de `token_version`.
+   - `catalog_curation.test.ts`: Curadoria de catálogo: exportação CSV (BOM, `;`), aplicação de decisões de curadoria (simulação por padrão, `--apply`), importação de alimentos curados com `source` e `source_ref` obrigatórios, e proteção do script `import-foods.ts` contra reativação e sobrescrita de curados (B10).
 3. **Carga (`tests/load/autocannon.js`):**
    - Script de estresse com `autocannon` para medição de requisições por segundo e latência da API sob concorrência.
 
 ### Suítes Existentes no Frontend (`frontend/src/`) [CONFIRMADO]
-1. `src/tests/router.test.tsx`: Testes de roteamento SPA declarativo via `react-router` v7, redirecionamentos de rotas públicas/protegidas e sincronização de histórico (PC-21 / D-16).
-2. `src/tests/api.test.ts`: Resiliência contra respostas não-JSON (502 HTML) e sincronização do evento global `auth:unauthorized` sob status 401 (PC-06).
-3. `src/tests/auth_storage.test.tsx`: Sanitização do `localStorage` mantendo apenas metadados de sessão não-sensíveis e hidratação em memória de dados biométricos (PC-19).
-4. `src/tests/LoginPage.test.tsx`: Renderização da tela de login e alternância de abas.
-5. `src/components/auth/LoginForm.test.tsx`: Renderização, preenchimento, submissão e tratamento de erros via MSW.
-6. `src/components/auth/RegisterForm.test.tsx`: Validação de senha forte, campos obrigatórios, conflito de e-mail e cadastro com sucesso.
-7. `src/components/meals/NewMealModal.test.tsx`: Abertura do modal, autocomplete de alimentos com cancelamento de requisição e preservação de macros base ao editar refeição (PC-15).
-8. `src/pages/private/__tests__/StatsPage.test.tsx`: Renderização de métricas e gráficos nutricionais via Recharts.
+1. `src/tests/router.test.tsx`: Testes de roteamento SPA declarativo via `react-router` v7, redirecionamentos e histórico.
+2. `src/tests/navigation.test.tsx`: Navegação profunda por finalidade, roteamento de abas, rotas protegidas e breadcrumbs.
+3. `src/tests/api.test.ts`: Resiliência contra respostas não-JSON e disparo de evento `auth:unauthorized` sob 401.
+4. `src/tests/auth_storage.test.tsx`: Sanitização do `localStorage`, privacidade de biometrias e hidratação segura (A-129).
+5. `src/tests/LoginPage.test.tsx`: Renderização da tela de login e alternância de abas.
+6. `src/components/auth/LoginForm.test.tsx`: Renderização, preenchimento, submissão, erro 401 genérico, encaminhamento 403 `EMAIL_NOT_VERIFIED` e link de recuperação.
+7. `src/components/auth/RegisterForm.test.tsx`: Validação de senha forte, termos LGPD, resposta 202 genérica e ausência de sessão antes da verificação.
+8. `src/components/meals/NewMealModal.test.tsx`: Autocomplete, paginação, combos salvos, edição inline e alimentos customizados.
+9. `src/pages/private/__tests__/DiaryPage.test.tsx`: Resumo de calorias, expansão de macros, estados vazios e registro de refeições.
+10. `src/pages/private/__tests__/StatsPage.test.tsx`: Renderização de métricas e gráficos nutricionais via Recharts.
+11. `src/pages/private/__tests__/SettingsSeparation.test.tsx`: Isolamento das tarefas de perfil, rotina, segurança e privacidade.
+12. `src/pages/public/__tests__/LegalPage.test.tsx`: Páginas públicas de Termos de Uso, Política de Privacidade e Segurança.
+13. `src/styles/tokens.contrast.test.ts`: Validação WCAG AA de contraste para todos os tokens de cores no modo claro e escuro.
+14. `src/pages/public/VerifyEmailPage.test.tsx`: Estado do router sem persistência de e-mail, campo `autocomplete="one-time-code"`, contagem de 60 s, código inválido, verificação com sessão e reenvio (BL-12).
+15. `src/pages/public/ForgotPasswordPage.test.tsx`: Validação local de e-mail e resposta genérica idêntica para conta existente ou inexistente (BL-05 / A4).
+16. `src/pages/public/ResetPasswordPage.test.tsx`: Leitura do token no fragmento, limpeza da URL, senha forte/confirmação, sucesso sem sessão (e encerramento da sessão local antiga) e token inválido/expirado (BL-05 / A3).
+17. `src/pages/admin/__tests__/AdminCatalogPage.test.tsx`: Painel de administração de catálogo, proteção de rota por `AdminRoute`, tabela desktop e cards mobile, badges de status, modais com avisos de divergência calórica e diálogo de confirmação.
 
 ---
 
@@ -87,7 +111,7 @@ Abaixo está o status real verificado através da execução direta dos comandos
 ### Backend: Isolamento Mandatório de Banco
 - **Fail-Safe no Pool (`backend/src/database/pool.ts`):** O pool de conexões possui uma trava em código que verifica:
   ```ts
-  if (process.env.NODE_ENV === 'test' && !dbName.endsWith('_test')) {
+  if (currentEnv === 'test' && !dbName.endsWith('_test')) {
     console.error('FATAL: Testes devem rodar exclusivamente em banco terminado em _test!');
     process.exit(1);
   }
@@ -109,25 +133,10 @@ Abaixo está o status real verificado através da execução direta dos comandos
 
 ---
 
-## 4. O Que NÃO Está Coberto (Gaps da Suíte) [CONFIRMADO]
+## 4. O Que NÃO Está Coberto (Gaps Reais da Suíte) [CONFIRMADO]
 
-Os seguintes itens foram verificados no código e **não possuem cobertura de testes automatizados**:
-
-### No Frontend:
-1. **`DashboardPage.tsx`:** A tela principal (resumo de calorias de hoje, barras de progresso de macronutrientes e listagem de refeições consumidas) não possui suite de teste no Vitest.
-2. **`ProfilePage.tsx` / `EditProfilePage.tsx`:** Telas de visualização e edição de perfil do usuário (atualização de peso, altura, e-mail e senha) não possuem testes de frontend.
-3. **`OnboardingPage.tsx` / `OnboardingFlow.tsx`:** O fluxo de primeiro acesso onde o usuário preenche suas medidas e gera o cálculo inicial de metas não possui teste automatizado.
-4. **Modais de Ação Específica:**
-   - `EditMealModal.tsx`: Fluxo de edição de refeição existente.
-   - `GoalsModal.tsx`: Modal de alteração de metas automáticas/manuais.
-   - `MeasurementModal.tsx`: Modal de registro de novas medições de peso/gordura.
-   - `DeleteAccountModal.tsx`: Confirmação com senha para exclusão definitiva de conta.
-5. **Tema Escuro / Claro:** Não há testes visuais ou de regressão para alternância do tema via tokens de CSS.
-
-### No Backend:
-1. **Rotas de Medições Corporais:** Não há arquivo `measurement.routes.test.ts` dedicado. As medições em `body_measurements` são testadas apenas como efeito colateral do onboarding ou updateProfile.
-2. **Rate Limiting em Cenário Real:** Os limites de requisição do `express-rate-limit` não são testados na suíte de integração para evitar falsos positivos nos testes normais.
+Os seguintes itens representam oportunidades futuras de ampliação de testes:
 
 ### Ponta a Ponta (E2E):
-1. **Testes E2E (Playwright / Cypress):** Inexistentes no repositório. Não há testes cobrindo o fluxo completo real com navegador interagindo com o backend vivo e banco de dados simultaneamente.
-2. **Race Conditions de Concorrência:** Comportamento sob múltiplos acessos simultâneos ao mesmo registro de refeição não possui teste específico de isolamento de transação.
+1. **Testes E2E Completos (Playwright / Cypress):** Inexistentes no repositório. O projeto prioriza testes de integração rápida no backend e testes de componentes com MSW no frontend.
+2. **Concorrência Extrema de Conexões:** Cenários de centenas de usuários concorrentes salvando refeições na mesma fração de segundo são cobertos apenas por scripts manuais de estresse (`autocannon.js`).

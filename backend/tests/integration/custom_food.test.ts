@@ -4,6 +4,7 @@ import assert from 'node:assert';
 import request from 'supertest';
 import { app } from '../../src/app.js';
 import { cleanupTestData } from '../helpers/db.js';
+import { createVerifiedUser } from '../helpers/auth.js';
 
 describe('Custom Foods Feature (BL-22 / FEAT-C05 / D-07)', () => {
   closeTestPool(async () => {
@@ -15,23 +16,19 @@ describe('Custom Foods Feature (BL-22 / FEAT-C05 / D-07)', () => {
   let customFoodId: string;
 
   it('Setup: Registrar usuários de teste', async () => {
-    const res1 = await request(app).post('/api/users/register').send({
+    const user1 = await createVerifiedUser({
       name: 'Custom Food Tester 1',
       email: `tester-food-1-${Date.now()}@example.com`,
       password: 'password123',
-      acceptTerms: true,
     });
-    assert.strictEqual(res1.status, 201);
-    user1Token = res1.body.data.token;
+    user1Token = user1.token;
 
-    const res2 = await request(app).post('/api/users/register').send({
+    const user2 = await createVerifiedUser({
       name: 'Custom Food Tester 2',
       email: `tester-food-2-${Date.now()}@example.com`,
       password: 'password123',
-      acceptTerms: true,
     });
-    assert.strictEqual(res2.status, 201);
-    user2Token = res2.body.data.token;
+    user2Token = user2.token;
   });
 
   it('POST /api/foods/custom - deve retornar 401 sem autenticação', async () => {
@@ -102,5 +99,64 @@ describe('Custom Foods Feature (BL-22 / FEAT-C05 / D-07)', () => {
     assert.strictEqual(res.body.success, true);
     const found = res.body.data.foods.find((f: { id: string }) => f.id === customFoodId);
     assert.strictEqual(found, undefined, 'Usuário 2 não deve acessar alimento privado de outro usuário');
+  });
+
+  it('POST /api/foods/custom - deve rejeitar criação de alimento com mesmo nome pelo mesmo usuário com 409 (A-003)', async () => {
+    const res = await request(app)
+      .post('/api/foods/custom')
+      .set('Authorization', `Bearer ${user1Token}`)
+      .send({
+        name: 'Whey Isolado Gourmet',
+        calories: 120,
+        proteins: 25,
+        carbs: 2,
+        fats: 1,
+      });
+
+    assert.strictEqual(res.status, 409);
+    assert.strictEqual(res.body.success, false);
+    assert.strictEqual(res.body.message, 'Você já possui um alimento ativo cadastrado com este nome.');
+  });
+
+  it('POST /api/foods/custom - usuário 2 deve conseguir criar alimento com o mesmo nome de usuário 1 (A-003)', async () => {
+    const res = await request(app)
+      .post('/api/foods/custom')
+      .set('Authorization', `Bearer ${user2Token}`)
+      .send({
+        name: 'Whey Isolado Gourmet',
+        calories: 125,
+        proteins: 24,
+        carbs: 3,
+        fats: 1.2,
+      });
+
+    assert.strictEqual(res.status, 201);
+    assert.strictEqual(res.body.success, true);
+    assert.ok(res.body.data.id);
+  });
+
+  it('POST /api/foods/:id/favorite - deve rejeitar favoritar alimento privado de outro usuário com 404 (A-015)', async () => {
+    const res = await request(app)
+      .post(`/api/foods/${customFoodId}/favorite`)
+      .set('Authorization', `Bearer ${user2Token}`);
+
+    assert.strictEqual(res.status, 404);
+    assert.strictEqual(res.body.success, false);
+    assert.strictEqual(res.body.message, 'Alimento não encontrado.');
+  });
+
+  it('POST /api/meals - deve rejeitar registrar refeição com alimento privado de outro usuário com 404 (A-015)', async () => {
+    const res = await request(app)
+      .post('/api/meals')
+      .set('Authorization', `Bearer ${user2Token}`)
+      .send({
+        name: 'Tentativa Alimento Alheio',
+        mealTime: new Date().toISOString(),
+        items: [{ foodId: customFoodId, quantity: 50 }],
+      });
+
+    assert.strictEqual(res.status, 404);
+    assert.strictEqual(res.body.success, false);
+    assert.strictEqual(res.body.message, `Alimento com ID ${customFoodId} não encontrado.`);
   });
 });

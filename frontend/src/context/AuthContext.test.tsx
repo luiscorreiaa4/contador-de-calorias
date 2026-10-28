@@ -7,6 +7,7 @@ import type { UserProfile } from '../services/auth.service';
 describe('AuthContext Component & State (PC-34 / TST-011)', () => {
   beforeEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
   });
 
   const mockUser: UserProfile = {
@@ -88,5 +89,86 @@ describe('AuthContext Component & State (PC-34 / TST-011)', () => {
       expect(result.current.user).toBeNull();
       expect(result.current.token).toBeNull();
     });
+  });
+
+  it('recupera-se graciosamente sem travar quando user_session no localStorage estiver corrompido (A-074)', () => {
+    localStorage.setItem('user_session', '{corrupted_json_content:');
+    localStorage.setItem('auth_token', 'token-corrompido');
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    expect(result.current.user).toBeNull();
+    expect(localStorage.getItem('user_session')).toBeNull();
+    expect(localStorage.getItem('auth_token')).toBeNull();
+  });
+
+  it('hidrata corretamente a sessão e o token salvos no localStorage (A-129)', () => {
+    localStorage.setItem(
+      'user_session',
+      JSON.stringify({
+        id: 'user-hidrata',
+        name: 'Usuário Hidratado',
+        email: 'hidrata@teste.com',
+        onboarding_completed: true,
+      })
+    );
+    localStorage.setItem('auth_token', 'token-recuperado');
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    expect(result.current.isAuthenticated).toBe(true);
+    expect(result.current.token).toBe('token-recuperado');
+    expect(result.current.user?.id).toBe('user-hidrata');
+    expect(result.current.user?.email).toBe('hidrata@teste.com');
+    expect(result.current.isLoadingProfile).toBe(true);
+  });
+
+  it('rejeita e limpa sessão parcial sem email ou sem id no localStorage (A-129)', () => {
+    localStorage.setItem('user_session', JSON.stringify({ id: 'user-sem-email' }));
+    localStorage.setItem('auth_token', 'token-sem-email');
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    expect(result.current.isAuthenticated).toBe(false);
+    expect(result.current.user).toBeNull();
+    expect(localStorage.getItem('user_session')).toBeNull();
+  });
+
+  it('grava no sessionStorage quando rememberMe for falso (A-081)', () => {
+    sessionStorage.clear();
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    act(() => {
+      result.current.setAuthSession(mockUser, 'test-jwt-session', false);
+    });
+
+    expect(result.current.isAuthenticated).toBe(true);
+    expect(sessionStorage.getItem('auth_token')).toBe('test-jwt-session');
+    expect(localStorage.getItem('auth_token')).toBeNull();
+
+    act(() => {
+      result.current.logout();
+    });
+
+    expect(sessionStorage.getItem('auth_token')).toBeNull();
+    expect(result.current.isAuthenticated).toBe(false);
+  });
+
+  it('persiste o token renovado após troca de senha ou e-mail (A8)', () => {
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    act(() => {
+      result.current.setAuthSession(mockUser, 'token-antigo', false);
+    });
+
+    act(() => {
+      result.current.updateUserSession({ ...mockUser, name: 'Nome Atualizado' }, 'token-renovado');
+    });
+
+    expect(result.current.token).toBe('token-renovado');
+    expect(result.current.user?.name).toBe('Nome Atualizado');
+    expect(sessionStorage.getItem('auth_token')).toBe('token-renovado');
+    expect(localStorage.getItem('auth_token')).toBeNull();
+    expect(JSON.parse(sessionStorage.getItem('user_session') || '{}').name).toBe('Nome Atualizado');
   });
 });

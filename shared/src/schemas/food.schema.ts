@@ -8,8 +8,6 @@ export const listFoodsQuerySchema = z.object({
 
 export type ListFoodsQueryDTO = z.infer<typeof listFoodsQuerySchema>;
 
-export const listFoodsSchema = z.object({});
-
 export const createCustomFoodSchema = z.object({
   name: z.string().trim().min(2, 'O nome deve ter no mínimo 2 caracteres.').max(100, 'O nome deve ter no máximo 100 caracteres.'),
   calories: z.number().nonnegative('Calorias não podem ser negativas.').max(1000, 'Calorias excessivas por porção base.'),

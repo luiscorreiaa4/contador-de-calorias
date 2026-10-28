@@ -76,7 +76,7 @@ export const MealItemList: React.FC<MealItemListProps> = ({
       <div className="flex items-center justify-between pb-2 border-b-2 border-border">
         <span className="text-[11px] font-bold text-foreground uppercase tracking-widest flex items-center gap-2">
           ITENS ADICIONADOS
-          <span className="px-2 py-0.5 bg-primary text-primary-foreground border-2 border-black text-[10px] font-black">
+          <span className="px-2 py-0.5 bg-primary text-primary-foreground border-2 border-edge text-[10px] font-black">
             {items.length}
           </span>
         </span>

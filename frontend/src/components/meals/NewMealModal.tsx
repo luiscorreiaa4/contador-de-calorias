@@ -9,7 +9,8 @@ import { FoodQuantityForm } from './FoodQuantityForm';
 import { MealItemList } from './MealItemList';
 import { MealModalFooter } from './MealModalFooter';
 import { calculateNutrients, type MealItem, type FoodOption } from '../../types/meal-modal';
-import { parseLocalDateString } from '../../utils/date';
+import { getLocalDateString, parseLocalDateOrToday } from '../../utils/date';
+import { ConfirmDialog } from '../common/ConfirmDialog';
 
 /** Tamanho da página do autocomplete de alimentos. */
 const FOOD_PAGE_SIZE = 50;
@@ -24,6 +25,8 @@ interface NewMealModalProps {
 
 export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mealToEdit, mealDate }) => {
   const queryClient = useQueryClient();
+  const [comboToDelete, setComboToDelete] = useState<SavedMeal | null>(null);
+  const initialMealTimeStrRef = useRef<string>('');
   const [searchTerm, setSearchTerm] = useState('');
 
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -205,20 +208,24 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
     mutationFn: (id: string) => deleteSavedMeal(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['savedMeals'] });
+      setComboToDelete(null);
     },
   });
 
   const handleApplyCombo = (combo: SavedMeal) => {
     const newItems: MealItem[] = combo.items.map((it) => {
+      // Reconstroi densidade nutricional correta por 100g/100ml a partir da quantidade salva (A-092)
+      const qty = Number(it.quantity) || 100;
+      const factor = qty > 0 ? 100 / qty : 1;
       const food: Food = {
         id: it.food_id,
         name: it.food_name,
         base_unit: (it.food_base_unit as 'g' | 'ml') || 'g',
         serving_weight: 100,
-        calories: it.calories,
-        proteins: it.proteins,
-        carbs: it.carbs,
-        fats: it.fats,
+        calories: Math.round(Number(it.calories) * factor * 100) / 100,
+        proteins: Math.round(Number(it.proteins) * factor * 100) / 100,
+        carbs: Math.round(Number(it.carbs) * factor * 100) / 100,
+        fats: Math.round(Number(it.fats) * factor * 100) / 100,
         unit_name: it.food_unit_name,
         unit_weight: it.food_unit_weight,
       };
@@ -261,9 +268,14 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setMealName(mealToEdit.name.toUpperCase());
         const editDate = new Date(mealToEdit.meal_time);
-        setMealTimeStr(
-          `${editDate.getHours().toString().padStart(2, '0')}:${editDate.getMinutes().toString().padStart(2, '0')}`
-        );
+        const formattedTime = new Intl.DateTimeFormat('pt-BR', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+          timeZone: 'America/Sao_Paulo',
+        }).format(editDate);
+        setMealTimeStr(formattedTime);
+        initialMealTimeStrRef.current = formattedTime;
 
         const initialItems = mealToEdit.items
           .map((item) => {
@@ -440,28 +452,43 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
     if (mealItems.length === 0) return;
 
     const mealLabel = mealName.trim() || `REFEIÇÃO ${((mealDate ? queryClient.getQueryData<Meal[]>(['todayMeals', mealDate]) : undefined) ?? queryClient.getQueryData<Meal[]>(['todayMeals']) ?? []).length + 1}`;
-    // Ao editar preserva a data original; ao criar usa a data selecionada no Dashboard.
-    const timeToUse = mealToEdit ? new Date(mealToEdit.meal_time) : parseLocalDateString(mealDate);
+    
+    let finalMealTime: string;
 
-    if (mealTimeStr.trim()) {
-      if (mealTimeStr.length !== 5) {
-        setErrorMessage('FORMATO DE HORÁRIO INVÁLIDO. USE HH:MM (EX: 14:30).');
-        return;
-      }
-      const [hoursStr, minutesStr] = mealTimeStr.split(':');
-      const hours = Number(hoursStr);
-      const minutes = Number(minutesStr);
+    // Se estiver editando e o horário não foi modificado pelo usuário, preserva o instante exato (A-094)
+    if (mealToEdit && mealTimeStr.trim() === initialMealTimeStrRef.current) {
+      finalMealTime = mealToEdit.meal_time instanceof Date
+        ? mealToEdit.meal_time.toISOString()
+        : String(mealToEdit.meal_time);
+    } else {
+      if (mealTimeStr.trim()) {
+        if (mealTimeStr.length !== 5 || !/^\d{2}:\d{2}$/.test(mealTimeStr)) {
+          setErrorMessage('FORMATO DE HORÁRIO INVÁLIDO. USE HH:MM (EX: 14:30).');
+          return;
+        }
+        const [hoursStr, minutesStr] = mealTimeStr.split(':');
+        const hours = Number(hoursStr);
+        const minutes = Number(minutesStr);
 
-      if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
-        setErrorMessage('HORÁRIO INVÁLIDO. POR FAVOR, INSIRA UM HORÁRIO REAL.');
-        return;
+        if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+          setErrorMessage('HORÁRIO INVÁLIDO. POR FAVOR, INSIRA UM HORÁRIO REAL.');
+          return;
+        }
+
+        const baseDateStr = mealToEdit
+          ? new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date(mealToEdit.meal_time))
+          : (mealDate || getLocalDateString());
+
+        finalMealTime = new Date(`${baseDateStr}T${hoursStr.padStart(2, '0')}:${minutesStr.padStart(2, '0')}:00-03:00`).toISOString();
+      } else {
+        const timeToUse = mealToEdit ? new Date(mealToEdit.meal_time) : parseLocalDateOrToday(mealDate);
+        finalMealTime = timeToUse.toISOString();
       }
-      timeToUse.setHours(hours, minutes, 0, 0);
     }
 
     const payload: CreateMealDTO = {
       name: mealLabel,
-      mealTime: timeToUse.toISOString(),
+      mealTime: finalMealTime,
       items: mealItems.map((item) => ({
         foodId: item.food.id,
         quantity: item.quantity,
@@ -544,7 +571,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                   value={mealName}
                   onChange={(e) => setMealName(e.target.value.toUpperCase())}
                   placeholder="EX: ALMOÇO..."
-                  className="w-full px-4 py-3 bg-background border-2 border-border text-sm font-black text-foreground uppercase placeholder:text-muted-foreground focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background outline-none transition-colors"
+                  className="w-full px-4 py-3 bg-background border-2 border-border text-sm font-black text-foreground uppercase placeholder:text-muted-foreground focus:border-ring focus:outline-none focus-visible:border-ring focus-visible:outline-none outline-none transition-colors"
                   disabled={isSubmitting}
                 />
               </div>
@@ -565,7 +592,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                     setMealTimeStr(val);
                   }}
                   placeholder="00:00"
-                  className="w-full px-4 py-3 bg-background border-2 border-border text-sm font-black text-foreground uppercase placeholder:text-muted-foreground focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background outline-none transition-colors text-center"
+                  className="w-full px-4 py-3 bg-background border-2 border-border text-sm font-black text-foreground uppercase placeholder:text-muted-foreground focus:border-ring focus:outline-none focus-visible:border-ring focus-visible:outline-none outline-none transition-colors text-center"
                   disabled={isSubmitting}
                 />
               </div>
@@ -598,7 +625,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                     onClick={() => setActiveFoodTab('search')}
                     className={`flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-wider border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-x-px active:translate-y-px ${
                       activeFoodTab === 'search'
-                        ? 'bg-primary text-primary-foreground border-black'
+                        ? 'bg-primary text-primary-foreground border-edge'
                         : 'bg-card text-foreground border-border hover:bg-background'
                     }`}
                   >
@@ -609,7 +636,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                     onClick={() => setActiveFoodTab('recents')}
                     className={`flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-wider border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-x-px active:translate-y-px ${
                       activeFoodTab === 'recents'
-                        ? 'bg-primary text-primary-foreground border-black'
+                        ? 'bg-primary text-primary-foreground border-edge'
                         : 'bg-card text-foreground border-border hover:bg-background'
                     }`}
                   >
@@ -621,7 +648,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                     onClick={() => setActiveFoodTab('favorites')}
                     className={`flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-wider border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-x-px active:translate-y-px ${
                       activeFoodTab === 'favorites'
-                        ? 'bg-primary text-primary-foreground border-black'
+                        ? 'bg-primary text-primary-foreground border-edge'
                         : 'bg-card text-foreground border-border hover:bg-background'
                     }`}
                   >
@@ -633,7 +660,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                     onClick={() => setActiveFoodTab('combos')}
                     className={`flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-wider border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-x-px active:translate-y-px ${
                       activeFoodTab === 'combos'
-                        ? 'bg-primary text-primary-foreground border-black'
+                        ? 'bg-primary text-primary-foreground border-edge'
                         : 'bg-card text-foreground border-border hover:bg-background'
                     }`}
                   >
@@ -645,7 +672,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                     onClick={() => setActiveFoodTab('custom')}
                     className={`col-span-2 flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-widest border-2 border-dashed transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-x-px active:translate-y-px ${
                       activeFoodTab === 'custom'
-                        ? 'bg-primary text-primary-foreground border-black'
+                        ? 'bg-primary text-primary-foreground border-edge'
                         : 'bg-secondary text-foreground border-border hover:bg-card'
                     }`}
                   >
@@ -823,7 +850,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                             unit_weight: uWeight && !isNaN(uWeight) ? uWeight : undefined,
                           });
                         }}
-                        className="px-4 py-1.5 bg-primary text-primary-foreground text-xs font-black uppercase tracking-wider hover:bg-primary/90 border-2 border-black disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        className="px-4 py-1.5 bg-primary text-primary-foreground text-xs font-black uppercase tracking-wider hover:bg-primary/90 border-2 border-edge disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
                         {createCustomFoodMutation.isPending ? 'SALVANDO...' : 'CADASTRAR E SELECIONAR'}
                       </button>
@@ -875,7 +902,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                             <button
                               type="button"
                               onClick={() => handleSelectFood(food)}
-                              className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-primary text-primary-foreground border-2 border-black hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-primary text-primary-foreground border-2 border-edge hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                             >
                               Adicionar
                             </button>
@@ -914,7 +941,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                             <button
                               type="button"
                               onClick={() => handleSelectFood(food)}
-                              className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-primary text-primary-foreground border-2 border-black hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-primary text-primary-foreground border-2 border-edge hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                             >
                               Adicionar
                             </button>
@@ -944,7 +971,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                           <div className="flex items-center gap-2">
                             <button
                               type="button"
-                              onClick={() => deleteComboMutation.mutate(combo.id)}
+                              onClick={() => setComboToDelete(combo)}
                               className="p-1.5 border-2 border-border text-destructive hover:bg-destructive hover:text-destructive-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                               title="Excluir combo"
                             >
@@ -953,7 +980,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                             <button
                               type="button"
                               onClick={() => handleApplyCombo(combo)}
-                              className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-primary text-primary-foreground border-2 border-black hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-primary text-primary-foreground border-2 border-edge hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                             >
                               Usar Combo
                             </button>
@@ -1041,7 +1068,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
                               })),
                             });
                           }}
-                          className="flex-1 sm:flex-none px-4 py-2 bg-primary text-primary-foreground text-xs font-black uppercase tracking-wider hover:bg-primary/90 border-2 border-black disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          className="flex-1 sm:flex-none px-4 py-2 bg-primary text-primary-foreground text-xs font-black uppercase tracking-wider hover:bg-primary/90 border-2 border-edge disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         >
                           {createComboMutation.isPending ? 'Salvando...' : 'Salvar'}
                         </button>
@@ -1070,6 +1097,25 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({ isOpen, onClose, mea
           />
         </form>
       </div>
+
+      {/* Modal de confirmacao para exclusao de combo (A-093) */}
+      <ConfirmDialog
+        isOpen={!!comboToDelete}
+        title="EXCLUIR COMBO SALVO"
+        description={
+          <>
+            DESEJA EXCLUIR O COMBO <strong className="text-foreground">{comboToDelete?.name}</strong>? ESSA AÇÃO NÃO PODE SER DESFEITA.
+          </>
+        }
+        confirmLabel="Sim, Excluir"
+        cancelLabel="Cancelar"
+        variant="destructive"
+        isLoading={deleteComboMutation.isPending}
+        onConfirm={() => {
+          if (comboToDelete) deleteComboMutation.mutate(comboToDelete.id);
+        }}
+        onCancel={() => setComboToDelete(null)}
+      />
     </div>
   );
 };

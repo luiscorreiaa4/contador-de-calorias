@@ -48,7 +48,10 @@ function roundToTenth(value: number): number {
  * (g/ml). Base padrão de 100 g/ml quando `serving_weight` não é informado.
  */
 export function calculateNutrients(food: FoodNutrientSource, quantityInBaseUnit: number): NutrientValues {
-  const serving = Number(food.serving_weight) || 100;
+  const serving =
+    food.serving_weight != null && !isNaN(Number(food.serving_weight)) && Number(food.serving_weight) > 0
+      ? Number(food.serving_weight)
+      : 100;
   const factor = quantityInBaseUnit / serving;
   return {
     calories: roundToTenth(Number(food.calories) * factor),
@@ -64,16 +67,31 @@ export function calculateNutrients(food: FoodNutrientSource, quantityInBaseUnit:
  */
 export function calculateItemNutrients(item: MealItemInput, food: FoodNutrientSource): CalculatedMealItem {
   let finalQuantity = Number(item.quantity);
-  let displayAmount = item.displayAmount ? Number(item.displayAmount) : undefined;
+  let displayAmount =
+    item.displayAmount !== undefined && item.displayAmount !== null ? Number(item.displayAmount) : undefined;
   const unit = item.unit || food.base_unit || 'g';
 
-  // Se a unidade for 'un' e houver peso por unidade cadastrado, converte para gramas.
-  if (unit === 'un' && food.unit_weight) {
-    if (!displayAmount) {
-      displayAmount = finalQuantity;
+  // Se a unidade for 'un'
+  if (unit === 'un') {
+    if (food.unit_weight != null && !isNaN(Number(food.unit_weight)) && Number(food.unit_weight) > 0) {
+      if (displayAmount === undefined) {
+        displayAmount = finalQuantity;
+      }
+      finalQuantity = displayAmount * Number(food.unit_weight);
+    } else if (food.serving_weight != null && !isNaN(Number(food.serving_weight)) && Number(food.serving_weight) > 0) {
+      // Fallback para porção cadastrada quando unidade não tiver peso específico
+      if (displayAmount === undefined) {
+        displayAmount = finalQuantity;
+      }
+      finalQuantity = displayAmount * Number(food.serving_weight);
+    } else {
+      // Fallback conservador para porção padrão (100g)
+      if (displayAmount === undefined) {
+        displayAmount = finalQuantity;
+      }
+      finalQuantity = displayAmount * 100;
     }
-    finalQuantity = displayAmount * Number(food.unit_weight);
-  } else if (!displayAmount) {
+  } else if (displayAmount === undefined) {
     displayAmount = finalQuantity;
   }
 

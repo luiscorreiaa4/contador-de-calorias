@@ -15,9 +15,9 @@ export function useProfileUpdate() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: updateUserProfile,
-    onSuccess: (user) => {
-      updateUserSession(user);
-      queryClient.setQueryData(['currentUserProfile'], user);
+    onSuccess: ({ token, ...profile }) => {
+      updateUserSession(profile, token);
+      queryClient.setQueryData(['currentUserProfile'], profile);
       for (const key of ['currentUserProfile', 'active-goal', 'preview-goal', 'mealStats', 'todayMeals']) {
         void queryClient.invalidateQueries({ queryKey: [key] });
       }

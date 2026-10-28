@@ -6,6 +6,9 @@ import {
   updateUserSchema,
   deleteUserSchema,
   completeOnboardingSchema,
+  createMeasurementSchema,
+  dateQuerySchema,
+  statsQuerySchema,
 } from '@caloriesync/shared';
 
 describe('User Schema Validation (registerUserSchema)', () => {
@@ -208,3 +211,65 @@ describe('User Schema Validation (deleteUserSchema)', () => {
     assert.strictEqual(result.success, false);
   });
 });
+
+describe('Date and Query Schemas (A-011)', () => {
+  it('dateQuerySchema deve rejeitar datas inexistentes como 2026-02-31 ou 2026-13-45', () => {
+    assert.strictEqual(dateQuerySchema.safeParse({ date: '2026-02-31' }).success, false);
+    assert.strictEqual(dateQuerySchema.safeParse({ date: '2026-13-45' }).success, false);
+  });
+
+  it('dateQuerySchema deve aceitar data ISO válida', () => {
+    assert.strictEqual(dateQuerySchema.safeParse({ date: '2026-02-28' }).success, true);
+  });
+
+  it('statsQuerySchema deve validar datas e períodos permitidos', () => {
+    assert.strictEqual(statsQuerySchema.safeParse({ date: '2026-02-31' }).success, false);
+    assert.strictEqual(statsQuerySchema.safeParse({ period: 'month', date: '2026-10-15' }).success, true);
+  });
+});
+
+describe('BirthDate and Measurement Validation (A-012)', () => {
+  it('completeOnboardingSchema deve aceitar formato brasileiro DD/MM/AAAA e normalizar para YYYY-MM-DD', () => {
+    const result = completeOnboardingSchema.safeParse({
+      sex: 'masculino',
+      birthDate: '15/05/1990',
+      goal: 'manter_peso',
+      weight: 75,
+      height: 175,
+      activity_level: 'sedentario',
+    });
+    assert.strictEqual(result.success, true);
+    if (result.success) {
+      assert.strictEqual(result.data.birthDate, '1990-05-15');
+    }
+  });
+
+  it('completeOnboardingSchema deve rejeitar datas impossíveis e futuras', () => {
+    const impossible = completeOnboardingSchema.safeParse({
+      sex: 'masculino',
+      birthDate: '2026-02-31',
+      goal: 'manter_peso',
+      weight: 75,
+      height: 175,
+      activity_level: 'sedentario',
+    });
+    assert.strictEqual(impossible.success, false);
+
+    const future = completeOnboardingSchema.safeParse({
+      sex: 'masculino',
+      birthDate: '2099-01-01',
+      goal: 'manter_peso',
+      weight: 75,
+      height: 175,
+      activity_level: 'sedentario',
+    });
+    assert.strictEqual(future.success, false);
+  });
+
+  it('createMeasurementSchema deve validar measured_at e rejeitar lixo ou data futura', () => {
+    assert.strictEqual(createMeasurementSchema.safeParse({ weight: 70, measured_at: 'lixo' }).success, false);
+    assert.strictEqual(createMeasurementSchema.safeParse({ weight: 70, measured_at: '2099-01-01T00:00:00Z' }).success, false);
+    assert.strictEqual(createMeasurementSchema.safeParse({ weight: 70, measured_at: '2026-10-01T12:00:00Z' }).success, true);
+  });
+});
+

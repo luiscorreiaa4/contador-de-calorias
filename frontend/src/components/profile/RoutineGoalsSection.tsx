@@ -34,50 +34,49 @@ export const RoutineGoalsSection: React.FC<RoutineGoalsSectionProps> = ({
 }) => {
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-heading font-black uppercase tracking-tight text-foreground border-b-2 border-border pb-2">
-        OBJETIVO E ROTINA
-      </h2>
+      {/* A aba "Objetivo e rotina" já nomeia a página; o título só existe para a hierarquia de cabeçalhos. */}
+      <h2 className="sr-only">OBJETIVO E ROTINA</h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-        {/* Objetivo */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
+        {/* Objetivo: 3 opções em linha */}
         <div>
           <p id="goal-group-label" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3">
             SEU FOCO PRINCIPAL
           </p>
-          <div role="radiogroup" aria-labelledby="goal-group-label" className="flex flex-col gap-3">
+          <div role="radiogroup" aria-labelledby="goal-group-label" className="grid grid-cols-3 gap-2">
             {goals.map(({ key, label, icon }) => (
               <label
                 key={key}
                 htmlFor={`routine-goal-${key}`}
-                className={`p-4 border-2 flex items-center gap-4 transition-all cursor-pointer focus-within:ring-2 focus-within:ring-ring ${
+                className={`min-w-0 p-3 border-2 flex flex-col items-center justify-center gap-1.5 text-center transition-colors cursor-pointer focus-within:ring-2 focus-within:ring-ring ${
                   goalValue === key
-                    ? 'border-black bg-primary text-primary-foreground shadow-hard-fill'
+                    ? 'border-edge bg-primary text-primary-foreground shadow-hard-fill'
                     : 'border-border bg-background text-foreground hover:border-foreground hover:bg-secondary'
                 }`}
               >
-                <input id={`routine-goal-${key}`} type="radio" name="routine-goal" value={key} checked={goalValue === key} onChange={() => onSelectGoal(key)} className="accent-primary-ink" />
+                <input id={`routine-goal-${key}`} type="radio" name="routine-goal" value={key} checked={goalValue === key} onChange={() => onSelectGoal(key)} className="sr-only" />
                 <div className={goalValue === key ? 'text-primary-foreground' : 'text-primary-ink'}>
                   {icon}
                 </div>
-                <span className="font-black uppercase tracking-widest text-sm">{label}</span>
+                <span className="font-black uppercase tracking-wider text-[11px] sm:text-xs leading-tight">{label}</span>
               </label>
             ))}
           </div>
         </div>
 
-        {/* Nível de Atividade */}
+        {/* Nível de atividade: lista vertical compacta */}
         <div>
           <p id="activity-group-label" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3">
             NÍVEL DE ATIVIDADE FÍSICA
           </p>
-          <div role="radiogroup" aria-labelledby="activity-group-label" className="grid gap-3">
+          <div role="radiogroup" aria-labelledby="activity-group-label" className="grid gap-2">
             {activityLevels.map((a) => (
               <label
                 key={a.key}
                 htmlFor={`routine-activity-${a.key}`}
-                className={`p-3 border-2 flex flex-col text-left transition-all cursor-pointer focus-within:ring-2 focus-within:ring-ring ${
+                className={`min-w-0 px-3 py-2.5 border-2 flex flex-col text-left transition-colors cursor-pointer focus-within:ring-2 focus-within:ring-ring ${
                   activityLevelValue === a.key
-                    ? 'border-black bg-primary text-primary-foreground shadow-hard-fill'
+                    ? 'border-edge bg-primary text-primary-foreground shadow-hard-fill'
                     : 'border-border bg-background hover:border-foreground text-foreground'
                 }`}
               >
@@ -86,7 +85,7 @@ export const RoutineGoalsSection: React.FC<RoutineGoalsSectionProps> = ({
                   {a.label}
                 </span>
                 <span
-                  className={`text-[10px] font-bold tracking-widest uppercase mt-1 ${
+                  className={`text-[10px] font-bold tracking-widest uppercase mt-0.5 ${
                     activityLevelValue === a.key ? 'text-primary-foreground/80' : 'text-muted-foreground'
                   }`}
                 >

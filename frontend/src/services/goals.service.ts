@@ -1,4 +1,5 @@
 import { apiFetch } from './api';
+import type { UpdateGoalsDTO } from '@caloriesync/shared';
 
 export interface UserGoal {
   id: string;
@@ -35,7 +36,7 @@ export async function previewGoals(data: Record<string, unknown>): Promise<Energ
   });
 }
 
-export async function updateGoals(data: { calories: number; proteins: number; carbs: number; fats: number; mode: 'auto' | 'manual' }): Promise<UserGoal> {
+export async function updateGoals(data: UpdateGoalsDTO): Promise<UserGoal> {
   return apiFetch<UserGoal>('/users/me/goals', {
     method: 'PUT',
     body: JSON.stringify(data),

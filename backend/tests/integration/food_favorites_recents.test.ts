@@ -4,6 +4,7 @@ import assert from 'node:assert';
 import request from 'supertest';
 import { app } from '../../src/app.js';
 import { cleanupTestData } from '../helpers/db.js';
+import { createVerifiedUser } from '../helpers/auth.js';
 
 describe('Food Favorites and Recents (BL-19 / FEAT-C01 / D-20)', () => {
   closeTestPool(async () => {
@@ -16,21 +17,19 @@ describe('Food Favorites and Recents (BL-19 / FEAT-C01 / D-20)', () => {
   let food2Id: string;
 
   it('Setup: Registrar usuários e obter alimentos', async () => {
-    const res1 = await request(app).post('/api/users/register').send({
+    const user1 = await createVerifiedUser({
       name: 'Favorite Tester 1',
       email: `tester-fav-1-${Date.now()}@example.com`,
       password: 'password123',
-      acceptTerms: true,
     });
-    user1Token = res1.body.data.token;
+    user1Token = user1.token;
 
-    const res2 = await request(app).post('/api/users/register').send({
+    const user2 = await createVerifiedUser({
       name: 'Favorite Tester 2',
       email: `tester-fav-2-${Date.now()}@example.com`,
       password: 'password123',
-      acceptTerms: true,
     });
-    user2Token = res2.body.data.token;
+    user2Token = user2.token;
 
     const foodsRes = await request(app)
       .get('/api/foods')
@@ -139,5 +138,15 @@ describe('Food Favorites and Recents (BL-19 / FEAT-C01 / D-20)', () => {
 
     assert.strictEqual(listRes.status, 200);
     assert.strictEqual(listRes.body.data.length, 0);
+  });
+
+  it('DELETE /api/foods/:id/favorite - retorna 404 quando o alimento não estiver nos favoritos (A-037 / A-063)', async () => {
+    const res = await request(app)
+      .delete(`/api/foods/${food1Id}/favorite`)
+      .set('Authorization', `Bearer ${user1Token}`);
+
+    assert.strictEqual(res.status, 404);
+    assert.strictEqual(res.body.success, false);
+    assert.strictEqual(res.body.message, 'Alimento não encontrado nos favoritos.');
   });
 });

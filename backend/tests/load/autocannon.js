@@ -14,11 +14,15 @@ const instance = autocannon({
 autocannon.track(instance, { renderProgressBar: true });
 
 instance.on('done', (result) => {
-  console.log('\\n--- RESULTADOS DO TESTE DE CARGA ---');
+  console.log('\n--- RESULTADOS DO TESTE DE CARGA ---');
   console.log(`Requisições completadas: ${result.requests.total}`);
   console.log(`Média de req/s: ${result.requests.average}`);
   console.log(`Latência P99: ${result.latency.p99} ms`);
   console.log(`Erros (timeout/conexão): ${result.errors}`);
   console.log(`Erros HTTP 4xx/5xx: ${result.non2xx}`);
-  console.log('--------------------------------------\\n');
+  console.log('--------------------------------------\n');
+
+  if (result.errors > 0 || result.non2xx > 0) {
+    process.exitCode = 1;
+  }
 });

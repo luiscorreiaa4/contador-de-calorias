@@ -39,7 +39,15 @@ describe('Logging HTTP estruturado (BL-08 / ARCH-020)', () => {
     try {
       const res = await request(app).get('/health').set('X-Request-Id', 'req-teste-123');
       assert.strictEqual(res.headers['x-request-id'], 'req-teste-123');
-      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Sincronização determinística aguardando a emissão do log assíncrono (A-120)
+      const start = Date.now();
+      while (Date.now() - start < 1500) {
+        if (parseLogLines(captured).some((entry) => entry.requestId === 'req-teste-123')) {
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
     } finally {
       console.log = originalLog;
     }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { Flame } from 'lucide-react';
 import type { AuthMode } from '../../types/auth';
@@ -21,37 +21,60 @@ export const AuthCard: React.FC<AuthCardProps> = ({ initialMode }) => {
   const [mode, setMode] = useState<AuthMode>(defaultMode);
   const [isSuccessMessage, setIsSuccessMessage] = useState<string | null>(null);
 
-  const switchMode = (newMode: AuthMode) => {
+  const loginTabRef = useRef<HTMLButtonElement>(null);
+  const registerTabRef = useRef<HTMLButtonElement>(null);
+
+  const switchMode = (newMode: AuthMode, focus = false) => {
     setMode(newMode);
     if (navigate) {
       navigate(newMode === 'register' ? '/cadastro' : '/login');
     }
-  };
-
-  const handleAuthSuccess = () => {
-    if (mode === 'login') {
-      setIsSuccessMessage('Login efetuado com sucesso! Redirecionando...');
-      if (navigate) {
-        navigate('/');
-      }
-    } else {
-      setIsSuccessMessage('Conta criada! Faça login para continuar.');
-      setMode('login');
-      if (navigate) {
-        navigate('/login');
+    if (focus) {
+      if (newMode === 'login') {
+        loginTabRef.current?.focus();
+      } else {
+        registerTabRef.current?.focus();
       }
     }
+  };
+
+  const handleTabKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      e.preventDefault();
+      switchMode(mode === 'login' ? 'register' : 'login', true);
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      switchMode('login', true);
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      switchMode('register', true);
+    }
+  };
+
+  const handleAuthSuccess = (email?: string) => {
+    if (mode === 'register') {
+      // A4/A6: cadastro responde 202 sem sessão; segue para a verificação do e-mail.
+      navigate('/verificar-email', { state: { email, codeSent: true } });
+      return;
+    }
+
+    setIsSuccessMessage('Login efetuado com sucesso! Redirecionando...');
+    navigate('/');
     setTimeout(() => setIsSuccessMessage(null), 4000);
+  };
+
+  const handleEmailNotVerified = (email: string, rememberMe: boolean) => {
+    navigate('/verificar-email', { state: { email, codeSent: true, rememberMe } });
   };
 
   return (
     <div className="w-full max-w-sm mx-auto animate-in">
       <div className="mb-10 text-center">
-        <div className="inline-flex items-center justify-center w-12 h-12 bg-primary text-primary-foreground border-2 border-black mb-6 shadow-hard">
+        <div className="inline-flex items-center justify-center w-12 h-12 bg-primary text-primary-foreground border-2 border-edge mb-6 shadow-hard">
           <Flame className="w-6 h-6 fill-current" aria-hidden="true" />
         </div>
         <h1 className="text-3xl font-heading font-black tracking-tighter text-foreground uppercase">
-          Bem-vindo de volta
+          {mode === 'register' ? 'Crie sua conta' : 'Bem-vindo de volta'}
         </h1>
         <p className="mt-2 text-sm font-medium text-muted-foreground uppercase tracking-widest">
           Monitore calorias. Supere metas.
@@ -64,16 +87,19 @@ export const AuthCard: React.FC<AuthCardProps> = ({ initialMode }) => {
         <div
           role="tablist"
           aria-label="Opções de acesso"
+          onKeyDown={handleTabKeyDown}
           className="flex border-b-2 border-border bg-background"
         >
           <button
+            ref={loginTabRef}
             id="tab-login"
             role="tab"
             type="button"
             aria-selected={mode === 'login'}
             aria-controls="panel-auth"
+            tabIndex={mode === 'login' ? 0 : -1}
             onClick={() => switchMode('login')}
-            className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-all duration-200 border-r-2 border-border ${
+            className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-all duration-200 border-r-2 border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset ${
               mode === 'login'
                 ? 'bg-primary text-primary-foreground'
                 : 'text-muted-foreground hover:bg-secondary hover:text-secondary-foreground'
@@ -83,13 +109,15 @@ export const AuthCard: React.FC<AuthCardProps> = ({ initialMode }) => {
           </button>
 
           <button
+            ref={registerTabRef}
             id="tab-register"
             role="tab"
             type="button"
             aria-selected={mode === 'register'}
             aria-controls="panel-auth"
+            tabIndex={mode === 'register' ? 0 : -1}
             onClick={() => switchMode('register')}
-            className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-all duration-200 ${
+            className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset ${
               mode === 'register'
                 ? 'bg-primary text-primary-foreground'
                 : 'text-muted-foreground hover:bg-secondary hover:text-secondary-foreground'
@@ -103,7 +131,7 @@ export const AuthCard: React.FC<AuthCardProps> = ({ initialMode }) => {
         <div className="p-8">
           {/* Success Alert */}
           {isSuccessMessage && (
-            <div className="mb-6 p-4 bg-primary text-primary-foreground border-2 border-black text-xs font-bold uppercase tracking-widest text-center animate-in shadow-hard">
+            <div className="mb-6 p-4 bg-primary text-primary-foreground border-2 border-edge text-xs font-bold uppercase tracking-widest text-center animate-in shadow-hard">
               {isSuccessMessage}
             </div>
           )}
@@ -111,7 +139,10 @@ export const AuthCard: React.FC<AuthCardProps> = ({ initialMode }) => {
           {/* Tab Panels */}
           <div id="panel-auth" role="tabpanel" tabIndex={0} className="focus:outline-none">
             {mode === 'login' ? (
-              <LoginForm onSuccess={handleAuthSuccess} />
+              <LoginForm
+                onSuccess={handleAuthSuccess}
+                onEmailNotVerified={handleEmailNotVerified}
+              />
             ) : (
               <RegisterForm onSuccess={handleAuthSuccess} />
             )}

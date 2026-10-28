@@ -23,5 +23,12 @@ export function structuredLog(level: LogLevel, message: string, context: LogCont
     ...context,
   };
 
-  console.log(JSON.stringify(record));
+  const line = JSON.stringify(record);
+  if (level === 'error') {
+    console.error(line);
+  } else if (level === 'warn') {
+    console.warn(line);
+  } else {
+    console.log(line);
+  }
 }

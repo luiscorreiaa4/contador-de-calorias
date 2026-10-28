@@ -151,11 +151,11 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
 
   const inputBase =
     'w-full pl-10 pr-10 py-2.5 bg-background border-2 rounded-none text-sm font-black text-foreground uppercase placeholder:text-muted-foreground outline-none transition-colors min-h-[48px]';
-  const inputNormal = 'border-border hover:border-foreground/60 focus:border-ring focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
+  const inputNormal = 'border-border hover:border-foreground/60 focus:border-ring focus:outline-none focus-visible:border-ring focus-visible:outline-none';
   const inputError = 'border-destructive bg-destructive/10 text-destructive focus:border-destructive';
 
   return (
-    <div ref={containerRef} className="relative w-full">
+    <div ref={containerRef} data-no-swipe className="relative w-full">
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
           <CalendarIcon className="w-4 h-4" aria-hidden="true" />
@@ -252,7 +252,7 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
                   onClick={() => handleSelectDay(day)}
                   className={`h-8 w-8 flex items-center justify-center font-black text-xs transition-colors rounded-none border-2 border-transparent focus:outline-none focus:border-ring ${
                     selected
-                      ? 'bg-primary text-primary-foreground border-black'
+                      ? 'bg-primary text-primary-foreground border-edge'
                       : disabled
                       ? 'text-muted-foreground opacity-30 cursor-not-allowed'
                       : 'text-foreground hover:bg-secondary hover:border-border'

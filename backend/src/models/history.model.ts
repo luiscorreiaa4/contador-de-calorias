@@ -80,16 +80,16 @@ export async function insertBodyMeasurement(
   return result.rows[0];
 }
 
-/** Lista todas as metas do usuário em ordem cronológica para exportação. */
+/** Lista todas as metas do usuário em ordem cronológica para exportação (limitado a 500 registros, A-034). */
 export async function listGoalsByUser(userId: string): Promise<UserGoal[]> {
   const result = await pool.query<UserGoal>(
-    `SELECT * FROM user_goals WHERE user_id = $1 ORDER BY effective_from ASC, created_at ASC`,
+    `SELECT * FROM user_goals WHERE user_id = $1 ORDER BY effective_from ASC, created_at ASC LIMIT 500`,
     [userId]
   );
   return result.rows;
 }
 
-/** Lista todas as medições corporais do usuário em ordem cronológica (com filtro opcional de período). */
+/** Lista todas as medições corporais do usuário em ordem cronológica com limite de segurança (A-034). */
 export async function listBodyMeasurementsByUser(
   userId: string,
   period: '30d' | '90d' | 'all' = 'all'
@@ -103,7 +103,7 @@ export async function listBodyMeasurementsByUser(
     query += ` AND measured_at >= NOW() - INTERVAL '90 days'`;
   }
 
-  query += ` ORDER BY measured_at ASC, created_at ASC`;
+  query += ` ORDER BY measured_at ASC, created_at ASC LIMIT 1000`;
 
   const result = await pool.query<BodyMeasurement>(query, params);
   return result.rows;
@@ -121,16 +121,74 @@ export async function addBodyMeasurement(
   try {
     await client.query('BEGIN');
     const measurement = await insertBodyMeasurement(userId, weight, bodyFat, dateToUse, client);
-    await client.query(
-      `UPDATE users 
-       SET weight = $1, 
-           body_fat = COALESCE($2, body_fat), 
-           updated_at = NOW() 
-       WHERE id = $3`,
-      [weight, bodyFat, userId]
+
+    // A-006: Só atualiza o peso do perfil se esta medição for a mais recente do usuário
+    const newerMeasurementCheck = await client.query(
+      `SELECT 1 FROM body_measurements WHERE user_id = $1 AND measured_at > $2 LIMIT 1`,
+      [userId, dateToUse]
     );
+
+    if (newerMeasurementCheck.rowCount === 0) {
+      await client.query(
+        `UPDATE users 
+         SET weight = $1, 
+             body_fat = COALESCE($2, body_fat), 
+             updated_at = NOW() 
+         WHERE id = $3`,
+        [weight, bodyFat, userId]
+      );
+    }
     await client.query('COMMIT');
     return measurement;
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+/** Exclui uma medição corporal específica do usuário e sincroniza users.weight com a medição mais recente restante em transação atômica. */
+export async function deleteBodyMeasurement(
+  userId: string,
+  measurementId: string
+): Promise<boolean> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const deleteResult = await client.query(
+      `DELETE FROM body_measurements WHERE id = $1 AND user_id = $2 RETURNING id`,
+      [measurementId, userId]
+    );
+
+    if (!deleteResult.rowCount || deleteResult.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return false;
+    }
+
+    // Busca a medição mais recente restante do usuário para sincronizar com users
+    const latestResult = await client.query<{ weight: number; body_fat: number | null }>(
+      `SELECT weight, body_fat FROM body_measurements 
+       WHERE user_id = $1 
+       ORDER BY measured_at DESC, created_at DESC 
+       LIMIT 1`,
+      [userId]
+    );
+
+    if (latestResult.rowCount && latestResult.rowCount > 0) {
+      const latest = latestResult.rows[0];
+      await client.query(
+        `UPDATE users 
+         SET weight = $1, 
+             body_fat = $2, 
+             updated_at = NOW() 
+         WHERE id = $3`,
+        [latest.weight, latest.body_fat, userId]
+      );
+    }
+
+    await client.query('COMMIT');
+    return true;
   } catch (err) {
     await client.query('ROLLBACK');
     throw err;

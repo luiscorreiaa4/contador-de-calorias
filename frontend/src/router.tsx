@@ -8,10 +8,25 @@ import {
 } from 'react-router';
 import { RootLayout } from './components/layout/RootLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { AdminRoute } from './components/AdminRoute';
 import { PublicRoute } from './components/PublicRoute';
 import { SectionLayout } from './components/layout/SectionLayout';
+import { CONFIG_TABS, EVOLUCAO_TABS, METAS_TABS, PROGRESSO_TABS } from './navigation/nav-items';
+
+const AdminCatalogPage = lazy(() =>
+  import('./pages/admin/AdminCatalogPage').then((m) => ({ default: m.AdminCatalogPage }))
+);
 const LoginPage = lazy(() =>
   import('./pages/public/LoginPage').then((m) => ({ default: m.LoginPage }))
+);
+const VerifyEmailPage = lazy(() =>
+  import('./pages/public/VerifyEmailPage').then((m) => ({ default: m.VerifyEmailPage }))
+);
+const ForgotPasswordPage = lazy(() =>
+  import('./pages/public/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage }))
+);
+const ResetPasswordPage = lazy(() =>
+  import('./pages/public/ResetPasswordPage').then((m) => ({ default: m.ResetPasswordPage }))
 );
 const OnboardingFlow = lazy(() =>
   import('./components/onboarding/OnboardingFlow').then((m) => ({
@@ -19,9 +34,9 @@ const OnboardingFlow = lazy(() =>
   }))
 );
 
-const DashboardPage = lazy(() =>
-  import('./pages/private/DashboardPage').then((m) => ({
-    default: m.DashboardPage,
+const DiaryPage = lazy(() =>
+  import('./pages/private/DiaryPage').then((m) => ({
+    default: m.DiaryPage,
   }))
 );
 const EditProfilePage = lazy(() =>
@@ -42,6 +57,9 @@ const AccountSecurityPage = lazy(() => import('./pages/private/AccountSecurityPa
 const AccountPrivacyPage = lazy(() => import('./pages/private/AccountPrivacyPage').then(m => ({ default: m.AccountPrivacyPage })));
 const TermsPage = lazy(() =>
   import('./pages/public/LegalPage').then((m) => ({ default: m.TermsPage }))
+);
+const AccountPage = lazy(() =>
+  import('./pages/private/AccountPage').then((m) => ({ default: m.AccountPage }))
 );
 const PrivacyPage = lazy(() =>
   import('./pages/public/LegalPage').then((m) => ({ default: m.PrivacyPage }))
@@ -66,15 +84,12 @@ export const routes: RouteObject[] = [
         element: <ProtectedRoute />,
         children: [
           { path: 'onboarding', element: <OnboardingFlow /> },
-          { index: true, element: <DashboardPage /> },
+          { index: true, element: <DiaryPage /> },
           { path: 'estatisticas', element: <Navigate to="/evolucao/alimentacao" replace /> },
           { path: 'medidas', element: <Navigate to="/evolucao/corpo" replace /> },
           {
             path: 'evolucao',
-            element: <SectionLayout title="Evolução" description="Acompanhe sua alimentação e suas medidas ao longo do tempo." links={[
-              { to: '/evolucao/alimentacao', label: 'Alimentação' },
-              { to: '/evolucao/corpo', label: 'Peso e medidas' },
-            ]} />,
+            element: <SectionLayout title="Progresso" description="Acompanhe sua evolução e defina as metas que orientam seu dia." parentTabs={PROGRESSO_TABS} parentLabel="Progresso" navLabel="Evolução" links={EVOLUCAO_TABS} />,
             children: [
               { index: true, element: <Navigate to="alimentacao" replace /> },
               { path: 'alimentacao', element: <StatsPage embedded /> },
@@ -83,10 +98,7 @@ export const routes: RouteObject[] = [
           },
           {
             path: 'metas',
-            element: <SectionLayout title="Metas" description="Defina seu objetivo, sua rotina e as metas que orientam seu dia." links={[
-              { to: '/metas/rotina', label: 'Objetivo e rotina' },
-              { to: '/metas/diarias', label: 'Metas diárias' },
-            ]} />,
+            element: <SectionLayout title="Progresso" description="Acompanhe sua evolução e defina as metas que orientam seu dia." parentTabs={PROGRESSO_TABS} parentLabel="Progresso" navLabel="Metas" links={METAS_TABS} />,
             children: [
               { index: true, element: <Navigate to="rotina" replace /> },
               { path: 'rotina', element: <RoutinePage /> },
@@ -95,11 +107,7 @@ export const routes: RouteObject[] = [
           },
           {
             path: 'configuracoes',
-            element: <SectionLayout title="Configurações" description="Gerencie lembretes, segurança e os dados da sua conta." links={[
-              { to: '/configuracoes/notificacoes', label: 'Notificações' },
-              { to: '/configuracoes/seguranca', label: 'Segurança' },
-              { to: '/configuracoes/privacidade', label: 'Privacidade e dados' },
-            ]} />,
+            element: <SectionLayout title="Configurações" description="Gerencie lembretes, segurança e os dados da sua conta." links={CONFIG_TABS} />,
             children: [
               { index: true, element: <Navigate to="notificacoes" replace /> },
               { path: 'notificacoes', element: <NotificationsPage /> },
@@ -107,10 +115,21 @@ export const routes: RouteObject[] = [
               { path: 'privacidade', element: <AccountPrivacyPage /> },
             ],
           },
+          { path: 'conta', element: <AccountPage /> },
           { path: 'perfil', element: <EditProfilePage /> },
-          { path: 'diario/:date', element: <DashboardPage /> },
+          { path: 'diario/:date', element: <DiaryPage /> },
         ],
       },
+      {
+        element: <AdminRoute />,
+        children: [
+          { path: 'admin/alimentos', element: <AdminCatalogPage /> },
+        ],
+      },
+      // Telas públicas de autenticação por e-mail (acessíveis também fora do login).
+      { path: 'verificar-email', element: <VerifyEmailPage /> },
+      { path: 'esqueci-senha', element: <ForgotPasswordPage /> },
+      { path: 'redefinir-senha', element: <ResetPasswordPage /> },
       // Páginas legais públicas (acessíveis mesmo autenticado).
       { path: 'termos', element: <TermsPage /> },
       { path: 'privacidade', element: <PrivacyPage /> },

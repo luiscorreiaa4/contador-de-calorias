@@ -4,6 +4,7 @@ import assert from 'node:assert';
 import request from 'supertest';
 import { app } from '../../src/app.js';
 import { cleanupTestData } from '../helpers/db.js';
+import { createVerifiedUser } from '../helpers/auth.js';
 
 describe('Meal Copy Feature (BL-18 / FEAT-C03 / D-20)', () => {
   closeTestPool(async () => {
@@ -16,21 +17,19 @@ describe('Meal Copy Feature (BL-18 / FEAT-C03 / D-20)', () => {
   let sourceMealId: string;
 
   it('Setup: Registrar usuários e obter alimentos', async () => {
-    const res1 = await request(app).post('/api/users/register').send({
+    const user1 = await createVerifiedUser({
       name: 'Copy Tester 1',
       email: `tester-copy-1-${Date.now()}@example.com`,
       password: 'password123',
-      acceptTerms: true
     });
-    user1Token = res1.body.data.token;
+    user1Token = user1.token;
 
-    const res2 = await request(app).post('/api/users/register').send({
+    const user2 = await createVerifiedUser({
       name: 'Copy Tester 2',
       email: `tester-copy-2-${Date.now()}@example.com`,
       password: 'password123',
-      acceptTerms: true
     });
-    user2Token = res2.body.data.token;
+    user2Token = user2.token;
 
     const foodsRes = await request(app)
       .get('/api/foods')

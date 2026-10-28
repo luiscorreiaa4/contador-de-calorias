@@ -21,8 +21,11 @@ export function validate(schemas: ValidationSchemas) {
         });
       }
       req.body = result.data;
+      res.locals.validated = { body: result.data };
       return next();
     }
+
+    res.locals.validated = res.locals.validated || {};
 
     if (schemas.params) {
       const result = schemas.params.safeParse(req.params);
@@ -33,6 +36,7 @@ export function validate(schemas: ValidationSchemas) {
         });
       }
       req.params = result.data as Record<string, string>;
+      res.locals.validated.params = result.data;
     }
 
     if (schemas.query) {
@@ -44,6 +48,7 @@ export function validate(schemas: ValidationSchemas) {
         });
       }
       req.query = result.data;
+      res.locals.validated.query = result.data;
     }
 
     if (schemas.body) {
@@ -55,6 +60,7 @@ export function validate(schemas: ValidationSchemas) {
         });
       }
       req.body = result.data;
+      res.locals.validated.body = result.data;
     }
 
     return next();

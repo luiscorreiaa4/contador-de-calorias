@@ -2,35 +2,49 @@ import { pool } from '../database/pool.js';
 import type { PoolClient } from 'pg';
 import { User, UserWithoutPassword } from '@caloriesync/shared';
 
+function mapUserRow(row: UserWithoutPassword | undefined): UserWithoutPassword | null {
+  if (!row) return null;
+  return {
+    ...row,
+    weight: row.weight != null ? Number(row.weight) : null,
+    height: row.height != null ? Number(row.height) : null,
+    body_fat: row.body_fat != null ? Number(row.body_fat) : null,
+    daily_calories_goal: Number(row.daily_calories_goal),
+    daily_proteins_goal: Number(row.daily_proteins_goal),
+  };
+}
+
 export async function createUser(
   name: string,
   email: string,
   passwordHash: string,
   termsAcceptedAt: Date
 ): Promise<UserWithoutPassword> {
+  const normalizedEmail = email.trim().toLowerCase();
   const result = await pool.query<UserWithoutPassword>(
     `INSERT INTO users (name, email, password_hash, terms_accepted_at)
      VALUES ($1, $2, $3, $4)
-     RETURNING id, name, email, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, terms_accepted_at, created_at, updated_at`,
-    [name, email, passwordHash, termsAcceptedAt]
+     RETURNING id, name, email, role, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, terms_accepted_at, email_verified_at, token_version, created_at, updated_at`,
+    [name.trim(), normalizedEmail, passwordHash, termsAcceptedAt]
   );
-  return result.rows[0];
+  return mapUserRow(result.rows[0])!;
 }
 
 export async function findUserByEmail(email: string): Promise<User | null> {
+  const normalizedEmail = email.trim().toLowerCase();
   const result = await pool.query<User>(
-    'SELECT * FROM users WHERE email = $1',
-    [email]
+    'SELECT * FROM users WHERE lower(email) = lower($1)',
+    [normalizedEmail]
   );
   return result.rows[0] ?? null;
 }
 
 export async function findUserById(id: string): Promise<UserWithoutPassword | null> {
   const result = await pool.query<UserWithoutPassword>(
-    'SELECT id, name, email, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, terms_accepted_at, created_at, updated_at FROM users WHERE id = $1',
+    'SELECT id, name, email, role, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, terms_accepted_at, email_verified_at, token_version, created_at, updated_at FROM users WHERE id = $1',
     [id]
   );
-  return result.rows[0] ?? null;
+  return mapUserRow(result.rows[0]);
 }
 
 export async function findFullUserById(id: string): Promise<User | null> {
@@ -49,7 +63,7 @@ export async function updateUser(
     passwordHash?: string;
     goal?: string;
     sex?: string;
-    birthDate?: string;
+    birthDate?: string | null;
     weight?: number | null;
     height?: number | null;
     body_fat?: number | null;
@@ -57,6 +71,7 @@ export async function updateUser(
     daily_calories_goal?: number;
     daily_proteins_goal?: number;
     onboarding_completed?: boolean;
+    emailVerifiedAt?: Date | null;
   },
   client?: PoolClient
 ): Promise<UserWithoutPassword> {
@@ -66,11 +81,11 @@ export async function updateUser(
 
   if (fields.name !== undefined) {
     updates.push(`name = $${paramIndex++}`);
-    values.push(fields.name);
+    values.push(fields.name.trim());
   }
   if (fields.email !== undefined) {
     updates.push(`email = $${paramIndex++}`);
-    values.push(fields.email);
+    values.push(fields.email.trim().toLowerCase());
   }
   if (fields.passwordHash !== undefined) {
     updates.push(`password_hash = $${paramIndex++}`);
@@ -85,10 +100,14 @@ export async function updateUser(
     values.push(fields.sex);
   }
   if (fields.birthDate !== undefined) {
-    let dbBirthDate = fields.birthDate;
-    if (fields.birthDate && fields.birthDate.includes('/')) {
-      const [d, m, y] = fields.birthDate.split('/');
-      dbBirthDate = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+    let dbBirthDate: string | null = fields.birthDate || null;
+    if (fields.birthDate) {
+      if (fields.birthDate.includes('/')) {
+        const [d, m, y] = fields.birthDate.split('/');
+        dbBirthDate = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+      } else if (fields.birthDate.includes('T')) {
+        dbBirthDate = fields.birthDate.split('T')[0];
+      }
     }
     updates.push(`birth_date = $${paramIndex++}`);
     values.push(dbBirthDate);
@@ -121,6 +140,10 @@ export async function updateUser(
     updates.push(`onboarding_completed = $${paramIndex++}`);
     values.push(fields.onboarding_completed);
   }
+  if (fields.emailVerifiedAt !== undefined) {
+    updates.push(`email_verified_at = $${paramIndex++}`);
+    values.push(fields.emailVerifiedAt);
+  }
 
   updates.push(`updated_at = CURRENT_TIMESTAMP`);
   values.push(id);
@@ -129,15 +152,17 @@ export async function updateUser(
     UPDATE users
     SET ${updates.join(', ')}
     WHERE id = $${paramIndex}
-    RETURNING id, name, email, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, terms_accepted_at, created_at, updated_at
+    RETURNING id, name, email, role, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, terms_accepted_at, email_verified_at, token_version, created_at, updated_at
   `;
 
   const db = client || pool;
   const result = await db.query<UserWithoutPassword>(query, values);
-  return result.rows[0];
+  return mapUserRow(result.rows[0])!;
 }
 
-export async function deleteUser(id: string): Promise<boolean> {
-  const result = await pool.query('DELETE FROM users WHERE id = $1', [id]);
+export async function deleteUser(id: string, client?: PoolClient): Promise<boolean> {
+  const db = client || pool;
+  const result = await db.query('DELETE FROM users WHERE id = $1', [id]);
   return (result.rowCount ?? 0) > 0;
 }
+

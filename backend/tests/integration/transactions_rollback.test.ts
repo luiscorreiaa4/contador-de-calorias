@@ -5,6 +5,7 @@ import { pool } from '../../src/database/pool.js';
 import * as UserService from '../../src/services/user.service.js';
 import * as UserModel from '../../src/models/user.model.js';
 import { cleanupTestData } from '../helpers/db.js';
+import { createVerifiedUser } from '../helpers/auth.js';
 
 describe('Atomic Transactions & Rollback on Failure (PC-17 / ARCH-002 / TST-012)', () => {
   closeTestPool(async () => {
@@ -16,13 +17,12 @@ describe('Atomic Transactions & Rollback on Failure (PC-17 / ARCH-002 / TST-012)
 
   it('completeOnboarding: deve fazer rollback total se falhar ao salvar body_measurement', async () => {
     const email = `tester-tx-onboard-${Date.now()}@example.com`;
-    const auth = await UserService.register({
+    const auth = await createVerifiedUser({
       name: 'Tester Rollback Onboard',
       email,
       password: 'senhaForte123', // gitleaks:allow
-      acceptTerms: true
     });
-    const userId = auth.user.id;
+    const userId = auth.id;
 
     // Adiciona restrição no PostgreSQL para forçar falha na 3ª etapa (insertBodyMeasurement)
     await pool.query('ALTER TABLE body_measurements ADD CONSTRAINT check_test_onboarding_fail CHECK (weight <= 300) NOT VALID');
@@ -59,13 +59,12 @@ describe('Atomic Transactions & Rollback on Failure (PC-17 / ARCH-002 / TST-012)
 
   it('updateGoals: deve fazer rollback total se a atualização do usuário falhar', async () => {
     const email = `tester-tx-goals-${Date.now()}@example.com`;
-    const auth = await UserService.register({
+    const auth = await createVerifiedUser({
       name: 'Tester Goals Rollback',
       email,
       password: 'senhaForte123', // gitleaks:allow
-      acceptTerms: true
     });
-    const userId = auth.user.id;
+    const userId = auth.id;
 
     // Adiciona restrição no PostgreSQL para forçar falha no UPDATE users (2ª etapa)
     await pool.query('ALTER TABLE users ADD CONSTRAINT check_test_goals_fail CHECK (daily_calories_goal <= 5000) NOT VALID');
@@ -94,13 +93,12 @@ describe('Atomic Transactions & Rollback on Failure (PC-17 / ARCH-002 / TST-012)
 
   it('updateProfile: deve fazer rollback total se a inserção da medida corporal falhar', async () => {
     const email = `tester-tx-prof-${Date.now()}@example.com`;
-    const auth = await UserService.register({
+    const auth = await createVerifiedUser({
       name: 'Tester Profile Original',
       email,
       password: 'senhaForte123', // gitleaks:allow
-      acceptTerms: true
     });
-    const userId = auth.user.id;
+    const userId = auth.id;
 
     // Adiciona restrição no PostgreSQL para forçar falha no insertBodyMeasurement (2ª etapa)
     await pool.query('ALTER TABLE body_measurements ADD CONSTRAINT check_test_profile_fail CHECK (weight <= 300) NOT VALID');

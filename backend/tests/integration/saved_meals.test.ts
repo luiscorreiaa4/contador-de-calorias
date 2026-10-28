@@ -4,6 +4,7 @@ import assert from 'node:assert';
 import request from 'supertest';
 import { app } from '../../src/app.js';
 import { cleanupTestData } from '../helpers/db.js';
+import { createVerifiedUser } from '../helpers/auth.js';
 
 describe('Saved Meals and Combos (BL-20 / FEAT-C02 / D-20)', () => {
   closeTestPool(async () => {
@@ -17,21 +18,19 @@ describe('Saved Meals and Combos (BL-20 / FEAT-C02 / D-20)', () => {
   let savedMealId: string;
 
   it('Setup: Registrar usuários e obter alimentos', async () => {
-    const res1 = await request(app).post('/api/users/register').send({
+    const user1 = await createVerifiedUser({
       name: 'Combo Tester 1',
       email: `tester-combo-1-${Date.now()}@example.com`,
       password: 'password123',
-      acceptTerms: true,
     });
-    user1Token = res1.body.data.token;
+    user1Token = user1.token;
 
-    const res2 = await request(app).post('/api/users/register').send({
+    const user2 = await createVerifiedUser({
       name: 'Combo Tester 2',
       email: `tester-combo-2-${Date.now()}@example.com`,
       password: 'password123',
-      acceptTerms: true,
     });
-    user2Token = res2.body.data.token;
+    user2Token = user2.token;
 
     const foodsRes = await request(app)
       .get('/api/foods')
@@ -85,6 +84,8 @@ describe('Saved Meals and Combos (BL-20 / FEAT-C02 / D-20)', () => {
     assert.strictEqual(res.body.data[0].id, savedMealId);
     assert.strictEqual(res.body.data[0].name, 'Café da Manhã Padrão');
     assert.ok(res.body.data[0].total_calories > 0);
+    assert.strictEqual(typeof res.body.data[0].total_carbs, 'number');
+    assert.strictEqual(typeof res.body.data[0].total_fats, 'number');
   });
 
   it('Isolamento IDOR: usuário 2 não vê combos do usuário 1', async () => {

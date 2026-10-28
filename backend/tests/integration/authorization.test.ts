@@ -4,6 +4,7 @@ import assert from 'node:assert';
 import request from 'supertest';
 import { app } from '../../src/app.js';
 import { cleanupTestData } from '../helpers/db.js';
+import { createVerifiedUser } from '../helpers/auth.js';
 
 describe('Multi-user Authorization & IDOR Protection (PC-18 / TST-003)', () => {
   closeTestPool(async () => {
@@ -18,23 +19,19 @@ describe('Multi-user Authorization & IDOR Protection (PC-18 / TST-003)', () => {
 
   it('Setup: Registrar Usuário A e Usuário B e obter alimento de teste', async () => {
     const timestamp = Date.now();
-    const resA = await request(app).post('/api/users/register').send({
+    const userA = await createVerifiedUser({
       name: 'Usuário A',
       email: `tester-auth-a-${timestamp}@example.com`,
       password: 'password123',
-      acceptTerms: true
     });
-    assert.strictEqual(resA.status, 201);
-    tokenA = resA.body.data.token;
+    tokenA = userA.token;
 
-    const resB = await request(app).post('/api/users/register').send({
+    const userB = await createVerifiedUser({
       name: 'Usuário B',
       email: `tester-auth-b-${timestamp}@example.com`,
       password: 'password123',
-      acceptTerms: true
     });
-    assert.strictEqual(resB.status, 201);
-    tokenB = resB.body.data.token;
+    tokenB = userB.token;
 
     const foodsRes = await request(app)
       .get('/api/foods?limit=1')

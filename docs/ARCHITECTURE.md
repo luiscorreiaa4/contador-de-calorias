@@ -34,34 +34,61 @@ O projeto é estruturado em um monorepo com separação estrita entre o cliente 
 4. **`models/`**: Consultas diretas ao PostgreSQL via driver nativo `pg.Pool`, com parametrização estrita de valores contra SQL Injection, projeções explícitas de colunas e inserções multi-row em lote.
 5. **`middlewares/`**:
    - `compression`: Compressão HTTP ativa de respostas no topo da cadeia.
-   - `auth.ts`: Validação de tokens JWT e extração de `userId`.
+   - `auth.ts`: Validação de tokens JWT, extração de `userId`, consulta de revogação no banco via `token_version` e carregamento de `role` por chave primária (`req.userRole`).
+   - `requireAdmin`: Middleware de autorização RBAC que exige `req.userRole === 'admin'`, rejeitando usuários comuns com 403 Forbidden.
+   - `authRateLimit.ts`: Limitadores das rotas `/api/auth/*`, com a chave isolada em uma única função.
    - `validate.ts`: Middleware genérico para validação particionada de esquemas Zod (body, params, query) retornando 400 em caso de falha.
    - `requestLogger.ts`: Logging HTTP estruturado em JSON e propagação/geração do header `X-Request-Id` (correlation ID) para rastreabilidade de ponta a ponta.
    - `errorHandler.ts`: Captura global de exceções não tratadas com resposta 500 mascarada sem vazamento de detalhes internos.
 
 ### Camadas do Frontend (`/frontend/src/`) [CONFIRMADO]
 1. **`router.tsx` (`react-router` v7)**: Roteamento SPA declarativo via `createBrowserRouter`, suporte a URLs amigáveis, rotas públicas/protegidas e code-splitting por rota com `React.lazy()`.
-2. **`services/api.ts` (`apiFetch`)**: Wrapper centralizado de `fetch` que injeta o token Bearer, trata respostas não-JSON (502 HTML) defensivamente e sincroniza o evento global `auth:unauthorized` sob 401.
+2. **`services/api.ts` (`apiFetch`)**: Wrapper centralizado de `fetch` que injeta o token Bearer, trata respostas não-JSON (502 HTML) defensivamente, propaga `ApiError` com `status`/`code` e sincroniza o evento global `auth:unauthorized` sob 401.
 3. **TanStack Query (React Query v5)**: Gerencia chamadas assíncronas, estado de cache, revalidação e invalidação cruzada de dados (`mealStats`, `todayMeals`, `active-goal`).
 4. **`context/AuthContext.tsx`**: Gerencia autenticação global, sincronização do token e perfil em memória, mantendo o `localStorage` sanitizado sem dados biométricos.
 5. **`components/` & `pages/`**: Componentes estilizados com Tailwind CSS em estética brutalista (`rounded-none`, bordas contrastantes) e modais acessíveis via Radix UI com focus trap.
+6. **`navigation/` (fonte única de navegação):** `nav-items.ts` guarda destinos, abas, ícones (contorno e preenchido, em `icons.tsx`) e a regra de rota ativa; consumido por `BottomNav`, `AppHeader`, `AccountPage` e `SegmentedNav`. Também abriga o swipe entre destinos da barra inferior com arrasto animado (`swipe.ts`, `useSwipeNav.ts`, `SwipeMain.tsx`, usado pelo `<main>` do `RootLayout`) e `useHideOnScroll.ts`.
+7. **Hosts globais no `RootLayout`:** `ThemeProvider` (tema claro/escuro, `useTheme`) e `NewMealModalProvider` (`useNewMealModal().open({ date?, meal? })`), que renderiza o `NewMealModal` lazy uma única vez e mantém a invalidação de queries do próprio modal.
 
 ### Pacote Compartilhado (`/shared/`) [CONFIRMADO]
 1. **Fonte única de contratos**: schemas Zod puros (`src/schemas/`), DTOs/tipos (`src/types/`) e cálculo nutricional (`src/nutrition/nutrients.ts`) consumidos por backend e frontend.
 2. **Resolução por alias**: `@caloriesync/shared` (barrel) e `@caloriesync/shared/nutrition` (subpath do cálculo) configurados em `backend/tsconfig.json`, `frontend/tsconfig.app.json` e `frontend/vite.config.ts`. Sem `npm workspaces` nesta branch.
 3. **Bundle enxuto**: imports de valores usam o subpath `nutrition` para não arrastar os schemas Zod ao bundle do frontend; imports apenas de tipos usam o barrel e são apagados na compilação.
 
+### Fluxo de autenticação por e-mail (D-21 / BL-12 / BL-05) [CONFIRMADO]
+
+1. **Cadastro:** `POST /api/auth/register` cria a conta com `email_verified_at = NULL` e responde
+   202 genérico. Um código de 6 dígitos é persistido apenas como HMAC-SHA256 e enviado após o
+   commit. Nenhuma sessão é emitida.
+2. **Verificação:** `POST /api/auth/verify-email` valida o código em transação (expiração, 5
+   tentativas, uso único), marca `email_verified_at` e emite JWT com `tv`.
+3. **Login:** `POST /api/auth/login` aplica o hard gate: conta não verificada recebe 403
+   `EMAIL_NOT_VERIFIED`, nunca JWT. O código é reemitido respeitando cooldown e teto por e-mail.
+4. **Recuperação:** `POST /api/auth/forgot-password` só gera token para conta verificada. O token
+   de 32 bytes é persistido como SHA-256, enviado no fragmento `#token=...` e consumido em
+   `POST /api/auth/reset-password`, que atualiza a senha e incrementa `token_version` na mesma
+   transação, sem auto-login.
+5. **Revogação:** o middleware compara `tv` com `users.token_version`; troca de senha, troca de
+   e-mail e reset invalidam tokens antigos. O frontend persiste o token renovado devolvido por
+   `PUT /api/users/me`.
+6. **Entrega:** `Mailer` plugável (`SmtpMailer`/`MemoryMailer`) escolhido por `MAIL_TRANSPORT`.
+   Mailpit captura mensagens em desenvolvimento (SMTP 1025 / UI 8025). Códigos, tokens e URLs de
+   reset nunca são logados.
+
 ---
 
 ## 2. Diagrama Entidade-Relacionamento (ER) [CONFIRMADO]
 
-O esquema do banco de dados é composto por **6 tabelas**, geradas pelas migrações em `backend/migrations/`:
+O esquema do banco de dados é composto por **9 tabelas**, geradas pelas migrações em `backend/migrations/`:
 
 ```mermaid
 erDiagram
     users ||--o{ meals : "possui"
     users ||--o{ body_measurements : "registra"
     users ||--o{ user_goals : "possui vigencia"
+    users ||--o{ email_verification_codes : "recebe codigos"
+    users ||--o{ password_reset_tokens : "solicita resets"
+    users ||--o{ admin_audit_log : "ator em"
     meals ||--o{ meal_items : "contem"
     foods ||--o{ meal_items : "referenciado em"
 
@@ -70,6 +97,7 @@ erDiagram
         VARCHAR name "NOT NULL"
         VARCHAR email UK "NOT NULL, UNIQUE"
         VARCHAR password_hash "NOT NULL"
+        VARCHAR role "NOT NULL, DEFAULT 'user', CHECK (role IN ('user', 'admin'))"
         VARCHAR goal "NOT NULL, DEFAULT 'perder_peso'"
         VARCHAR sex "NULLABLE"
         DATE birth_date "NULLABLE"
@@ -80,6 +108,8 @@ erDiagram
         NUMERIC daily_calories_goal "6,2 DEFAULT 2000"
         NUMERIC daily_proteins_goal "6,2 DEFAULT 100"
         BOOLEAN onboarding_completed "DEFAULT FALSE"
+        TIMESTAMPTZ email_verified_at "NULLABLE"
+        INTEGER token_version "NOT NULL, DEFAULT 0"
         TIMESTAMPTZ terms_accepted_at "NULLABLE"
         TIMESTAMPTZ created_at "DEFAULT CURRENT_TIMESTAMP"
         TIMESTAMPTZ updated_at "DEFAULT CURRENT_TIMESTAMP"
@@ -97,10 +127,24 @@ erDiagram
         VARCHAR unit_name "50 NULLABLE"
         NUMERIC unit_weight "8,2 NULLABLE"
         VARCHAR source "50 NULLABLE"
+        VARCHAR source_ref "255 NULLABLE"
         VARCHAR external_id "100 NULLABLE"
         BOOLEAN active "NOT NULL, DEFAULT TRUE"
+        TIMESTAMPTZ admin_edited_at "NULLABLE"
         TIMESTAMPTZ created_at "DEFAULT CURRENT_TIMESTAMP"
         TIMESTAMPTZ updated_at "DEFAULT CURRENT_TIMESTAMP"
+    }
+
+    admin_audit_log {
+        UUID id PK "default uuid_generate_v4()"
+        UUID actor_user_id FK "NULLABLE REFERENCES users(id)"
+        VARCHAR actor_type "NOT NULL, CHECK (actor_type IN ('user', 'cli'))"
+        VARCHAR action "NOT NULL"
+        VARCHAR entity_type "NOT NULL"
+        VARCHAR entity_id "NOT NULL"
+        JSONB before "NULLABLE"
+        JSONB after "NULLABLE"
+        TIMESTAMPTZ created_at "NOT NULL, DEFAULT CURRENT_TIMESTAMP"
     }
 
     meals {
@@ -146,16 +190,42 @@ erDiagram
         VARCHAR mode "20 NOT NULL, DEFAULT 'auto'"
         TIMESTAMPTZ created_at "DEFAULT CURRENT_TIMESTAMP"
     }
+
+    email_verification_codes {
+        UUID id PK "default gen_random_uuid()"
+        UUID user_id FK "NOT NULL, ON DELETE CASCADE"
+        TEXT code_hash "HMAC-SHA256 do codigo"
+        TIMESTAMPTZ expires_at "NOT NULL"
+        INTEGER attempts "NOT NULL, DEFAULT 0"
+        TIMESTAMPTZ consumed_at "NULLABLE"
+        TIMESTAMPTZ created_at "DEFAULT CURRENT_TIMESTAMP"
+    }
+
+    password_reset_tokens {
+        UUID id PK "default gen_random_uuid()"
+        UUID user_id FK "NOT NULL, ON DELETE CASCADE"
+        TEXT token_hash "SHA-256, UNIQUE"
+        TIMESTAMPTZ expires_at "NOT NULL"
+        TIMESTAMPTZ used_at "NULLABLE"
+        TIMESTAMPTZ created_at "DEFAULT CURRENT_TIMESTAMP"
+    }
 ```
 
 ### Índices e Constraints Críticas [CONFIRMADO]
+- `users`:
+  - `users_email_lower_key`: índice único em `lower(email)` (migração `1792600000000_add-users-email-lower-index.js`).
+  - `email_verified_at` e `token_version` adicionados pela migração de BL-12/BL-05.
+- `email_verification_codes`:
+  - Índice `ON email_verification_codes(user_id, created_at DESC)` para localizar o código mais recente e contar envios por janela.
+- `password_reset_tokens`:
+  - `token_hash` único (busca direta do token apresentado) e índice `ON password_reset_tokens(user_id, created_at DESC)` para contar pedidos por janela.
 - `foods`:
   - `foods_source_external_id_key`: Constraint de unicidade composta `UNIQUE (source, external_id)`.
   - `idx_foods_name_trgm`: Índice GIN de similaridade trigram: `CREATE INDEX idx_foods_name_trgm ON foods USING GIN (f_unaccent(name) gin_trgm_ops)`.
   - `idx_foods_active_name`: Índice parcial B-tree: `CREATE INDEX idx_foods_active_name ON foods (name) WHERE active` (migração `1792099463766_add-food-and-meal-indexes.js` / PC-10).
   - `idx_foods_active_unique_name`: Índice único parcial B-tree: `CREATE UNIQUE INDEX idx_foods_active_unique_name ON foods (f_unaccent(lower(name))) WHERE active = true` (migração `1792445063767_add-food-name-uniqueness.js` / BL-09).
 - `meals`:
-  - `idx_meals_user_id_meal_time`: Índice composto `ON meals(user_id, meal_time DESC)` para aceleração de buscas no dashboard diário.
+  - `idx_meals_user_id_meal_time`: Índice composto `ON meals(user_id, meal_time DESC)` para aceleração de buscas no Diário.
 - `meal_items`:
   - `idx_meal_items_meal_id`: Índice simples `ON meal_items(meal_id)`.
   - `idx_meal_items_food_id`: Índice de foreign key: `CREATE INDEX idx_meal_items_food_id ON meal_items (food_id)` (migração `1792099463766_add-food-and-meal-indexes.js` / PC-10).
@@ -175,6 +245,8 @@ erDiagram
 | **Denormalização Nutricional** | Macros gravados em `meal_items` | Quando uma refeição é criada, as calorias e macronutrientes da porção são calculados e persistidos diretamente no registro do item. Se os dados do alimento base forem alterados ou removidos futuramente, o registro histórico do que o usuário efetivamente consumiu naquele dia permanece íntegro e imutável. |
 | **Transações Atômicas** | `BEGIN` / `COMMIT` / `ROLLBACK` | Operações de gravação que tocam `meals` e múltiplos `meal_items` (criação e atualização) executam obrigatoriamente dentro de transações de banco para evitar registros órfãos. |
 | **Validação Universal** | Zod em todo o pipeline | O Zod é usado para validar variáveis de ambiente na inicialização (fail-fast), parâmetros HTTP nos middlewares do backend e entradas de formulários no frontend. |
+| **Autenticação por e-mail (D-21)** | Código OTP com HMAC-SHA256, reset com SHA-256, hard gate no login e `token_version` | Evita credenciais em texto puro, impede sessão para e-mail não comprovado, permite revogação de tokens e mantém respostas sem enumeração de contas. O token de reset viaja no fragmento da URL e nunca em logs de servidor. |
+| **E-mail transacional (D-21/A10)** | `Mailer` plugável (`SmtpMailer`/`MemoryMailer`) com escolha por env | Desacopla o código do provedor (sem SDK), permite Mailpit em desenvolvimento e caixa em memória nos testes, com o mesmo contrato de envio. |
 | **Catálogo Protegido** | `foods` somente-leitura para usuários | Usuários comuns não possuem endpoints para cadastrar, editar ou apagar alimentos globais, evitando corrupção do catálogo. A inserção é restrita a migrações e scripts de carga (`import-foods.ts`). Um índice único parcial (`f_unaccent(lower(name))` onde `active = true`, BL-09) garante a idempotência do seed sem duplicar nomes. |
 | **Estratégia de Fuso Horário (D-01)** | Opção A+B: servidor fixa `America/Sao_Paulo` via `Intl` e consultas com `AT TIME ZONE`; cliente envia `?date=YYYY-MM-DD` | Desacopla a consistência das datas civis do fuso do ambiente operacional e garante agregação correta independente de onde o servidor ou container esteja executando. |
 | **Tratamento de Falhas 500 (D-10)** | Mascaramento de erros internos nos controllers com mensagem genérica | Previne vazamento de detalhes estruturais, tabelas ou constraints do PostgreSQL em respostas HTTP 500. |
@@ -282,3 +354,20 @@ ORDER BY date_val ASC;
 - **Subconsulta Correlacionada Otimizada:** Para cada linha agrupada da CTE `daily_consumption`, a subconsulta lateral busca unicamente o registro mais recente de `user_goals` com `effective_from <= date_val`.
 - **Sem Junções Cartesianas:** Elimina a necessidade de fazer joins completos com filtros no `WHERE` que gerariam produtos cartesianos ou exigiriam funções de janela (`ROW_NUMBER() OVER`) sobre todo o histórico.
 - **Zero N+1 Queries:** O backend não precisa iterar em loops na memória para buscar as metas dia a dia; o PostgreSQL resolve toda a projeção analítica em um único plano de execução indexado.
+
+---
+
+## 6. Convenções de Nomenclatura e Contratos (A-038) [CONFIRMADO]
+
+1. **Banco de Dados e Modelos:** Nomes de tabelas e colunas utilizam estritamente `snake_case` (`meal_time`, `base_unit`, `measured_at`, `effective_from`).
+2. **Respostas da API:** Os payloads HTTP retornados pelo backend preservam os nomes do modelo relacional em `snake_case`, evitando camadas arbitrárias de transformação e deserialização.
+3. **Contratos Zod Compartilhados (`@caloriesync/shared`):**
+   - DTOs de entrada no shared devem respeitar os campos esperados pela camada de serviço e banco.
+   - Qualquer discrepância histórica pontual é absorvida nos schemas de validação Zod sem quebrar clientes legados.
+
+---
+
+## 7. Identificadores UUID e Compatibilidade PostgreSQL (A-065) [CONFIRMADO]
+
+1. **Requisito de Versão:** O CalorieSync requer PostgreSQL 14+ (o ambiente padrão utiliza PostgreSQL 16 via Docker Compose).
+2. **Geração Nativa:** A partir do PostgreSQL 13, a função criptográfica `gen_random_uuid()` integra o núcleo do banco de dados (core), não exigindo extensões externas como `pgcrypto`. As migrações novas utilizam `gen_random_uuid()` nativo com garantia de performance e portabilidade. Migrações de baseline mantêm a extensão `uuid-ossp` apenas para compatibilidade histórica de bootstrapping.

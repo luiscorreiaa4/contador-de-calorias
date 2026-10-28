@@ -56,7 +56,27 @@ function parseTokens(content: string) {
     throw new Error('Não foi possível encontrar :root ou .dark no index.css');
   }
 
-  function extractHslMap(block: string): Record<string, [number, number, number]> {
+  const requiredTokens = [
+    'background',
+    'foreground',
+    'card',
+    'card-foreground',
+    'primary',
+    'primary-foreground',
+    'primary-ink',
+    'secondary',
+    'secondary-foreground',
+    'muted',
+    'muted-foreground',
+    'accent',
+    'accent-foreground',
+    'destructive',
+    'destructive-foreground',
+    'border',
+    'ring',
+  ];
+
+  function extractHslMap(block: string, scopeName: string): Record<string, [number, number, number]> {
     const map: Record<string, [number, number, number]> = {};
     const varRegex = /--([a-z0-9-]+)\s*:\s*([0-9.]+)\s+([0-9.]+)%\s+([0-9.]+)%/g;
     let match;
@@ -64,12 +84,19 @@ function parseTokens(content: string) {
       const [, name, h, s, l] = match;
       map[name] = hslToRgb(parseFloat(h), parseFloat(s), parseFloat(l));
     }
+
+    for (const token of requiredTokens) {
+      if (!map[token]) {
+        throw new Error(`Token obrigatório --${token} ausente ou inválido no escopo ${scopeName}`);
+      }
+    }
+
     return map;
   }
 
   return {
-    light: extractHslMap(rootMatch[1]),
-    dark: extractHslMap(darkMatch[1]),
+    light: extractHslMap(rootMatch[1], ':root'),
+    dark: extractHslMap(darkMatch[1], '.dark'),
   };
 }
 
@@ -143,8 +170,16 @@ describe('WCAG Tokens Contrast Test (Fase 2a)', () => {
       expect(contrastRatio(dark['foreground'], dark['card'])).toBeGreaterThanOrEqual(7);
     });
 
+    it('muted-foreground/background >= 4.5', () => {
+      expect(contrastRatio(dark['muted-foreground'], dark['background'])).toBeGreaterThanOrEqual(4.5);
+    });
+
     it('muted-foreground/card >= 4.5', () => {
       expect(contrastRatio(dark['muted-foreground'], dark['card'])).toBeGreaterThanOrEqual(4.5);
+    });
+
+    it('muted-foreground/secondary >= 4.5', () => {
+      expect(contrastRatio(dark['muted-foreground'], dark['secondary'])).toBeGreaterThanOrEqual(4.5);
     });
 
     it('primary-ink/background >= 7', () => {
@@ -159,21 +194,24 @@ describe('WCAG Tokens Contrast Test (Fase 2a)', () => {
       expect(contrastRatio(dark['primary-foreground'], dark['primary'])).toBeGreaterThanOrEqual(7);
     });
 
+    it('secondary-foreground/secondary >= 4.5', () => {
+      expect(contrastRatio(dark['secondary-foreground'], dark['secondary'])).toBeGreaterThanOrEqual(4.5);
+    });
+
+    it('destructive/background >= 4.5', () => {
+      expect(contrastRatio(dark['destructive'], dark['background'])).toBeGreaterThanOrEqual(4.5);
+    });
+
     it('destructive/card >= 4.5', () => {
       expect(contrastRatio(dark['destructive'], dark['card'])).toBeGreaterThanOrEqual(4.5);
     });
 
+    it('destructive-foreground/destructive >= 4.5', () => {
+      expect(contrastRatio(dark['destructive-foreground'], dark['destructive'])).toBeGreaterThanOrEqual(4.5);
+    });
+
     it('ring/background >= 3', () => {
       expect(contrastRatio(dark['ring'], dark['background'])).toBeGreaterThanOrEqual(3);
-    });
-
-    it('destructive-foreground/destructive >= 3 (exceção conhecida: texto grande/negrito)', () => {
-      expect(contrastRatio(dark['destructive-foreground'], dark['destructive'])).toBeGreaterThanOrEqual(3);
-    });
-
-    it('nota: border/card no escuro (~1.15:1) não é imposto para contraste de texto', () => {
-      const ratio = contrastRatio(dark['border'], dark['card']);
-      expect(ratio).toBeGreaterThan(1);
     });
   });
 });

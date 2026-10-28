@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router';
 import { render } from '../../tests/setup/test-utils';
 import { RegisterForm } from './RegisterForm';
 
-const renderForm = (props: { onSuccess?: () => void } = {}) =>
+const renderForm = (props: { onSuccess?: (email: string) => void } = {}) =>
   render(
     <MemoryRouter>
       <RegisterForm {...props} />
@@ -56,8 +56,9 @@ describe('RegisterForm', () => {
     expect(await screen.findByText(/as senhas não coincidem/i)).toBeInTheDocument();
   });
 
-  it('deve falhar se email já existir (mockado pelo MSW)', async () => {
-    renderForm();
+  it('deve tratar o 202 genérico sem revelar se o e-mail já existe (A4/A6)', async () => {
+    const onSuccess = vi.fn();
+    renderForm({ onSuccess });
 
     await userEvent.type(screen.getByLabelText(/nome/i), 'Test');
     await userEvent.type(screen.getByLabelText(/email/i), 'test@example.com');
@@ -66,10 +67,12 @@ describe('RegisterForm', () => {
     await userEvent.click(screen.getByRole('checkbox', { name: /aceito os termos/i }));
     await userEvent.click(screen.getByRole('button', { name: /criar conta/i }));
 
-    expect(await screen.findByText(/email já em uso/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(onSuccess).toHaveBeenCalledWith('test@example.com');
+    });
   });
 
-  it('deve cadastrar com sucesso na API', async () => {
+  it('deve cadastrar com sucesso na API e não abrir sessão antes da verificação', async () => {
     const onSuccess = vi.fn();
     renderForm({ onSuccess });
 
@@ -81,7 +84,9 @@ describe('RegisterForm', () => {
     await userEvent.click(screen.getByRole('button', { name: /criar conta/i }));
 
     await waitFor(() => {
-      expect(onSuccess).toHaveBeenCalled();
+      expect(onSuccess).toHaveBeenCalledWith('novo@example.com');
     });
+    expect(localStorage.getItem('auth_token')).toBeNull();
+    expect(localStorage.getItem('user_session')).toBeNull();
   });
 });

@@ -13,6 +13,7 @@ export default {
       },
       colors: {
         border: "hsl(var(--border) / <alpha-value>)",
+        edge: "hsl(var(--edge) / <alpha-value>)",
         input: "hsl(var(--input) / <alpha-value>)",
         ring: "hsl(var(--ring) / <alpha-value>)",
         background: "hsl(var(--background) / <alpha-value>)",
