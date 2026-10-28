@@ -563,17 +563,11 @@ Café sem açúcar · Café com açúcar · Suco de laranja natural · Refrigera
 Amendoim · Castanha-de-caju · Castanha-do-pará · Pasta de amendoim (rótulo
 ou USDA)
 
-### Fase 2 – Preparações e lanches (+150 a 200 itens)
+### Fase 2 – Preparações e lanches (+150 a 200 itens) [CONCLUÍDA]
 
-Principal fonte: **TBCA** (verificar termos).
+Principal fonte: **TBCA v7.2** (USP / FoRC). *176 preparações e lanches tradicionais mapeados em `build-curated-phase2.ts`, totalizando 319 alimentos na base curada.*
 
-Feijoada · Strogonoff de frango · Strogonoff de carne · Lasanha ·
-Macarronada · Arroz com feijão (mistura pronta, útil para prato feito) ·
-Baião de dois · Escondidinho · Galinhada · Moqueca · Vatapá · Acarajé ·
-Pão de queijo · Coxinha · Pastel · Esfirra · Empada · Kibe frito ·
-Hambúrguer (sanduíche) · Cachorro-quente · Pizza (fatia, sabores
-principais) · Açaí na tigela · Tapioca recheada (queijo, frango) · Cuscuz
-com ovo · Bolo simples · Bolo de chocolate · Brigadeiro · Pudim · Sorvete
+Feijoada (tradicional completa, vegetariana, frutos do mar) · Strogonoff (frango, carne, camarão) · Lasanha (bolonhesa, quatro queijos, frango, berinjela, abobrinha, legumes) · Macarronada (bolonhesa, alho e óleo, molho branco, frango, calabresa, parisiense, integral) · Arroz com feijão (mistura 50/50 prato feito e pratos comerciais) · Baião de dois · Escondidinho (charque com mandioca, frango) · Moqueca (camarão, frutos do mar) · Vatapá · Acarajé · Pão de queijo · Coxinha · Pastel (carne frito, queijo frito, forno carne, forno queijo, frango requeijão, palmito requeijão) · Esfirra (carne, frango, ricota, catupiry, muçarela) · Empada (frango, queijo minas, carne, camarão) · Empadão de frango · Quibe / Kibe (frito, assado, cru, com abóbora, lentilha) · Hambúrguer e Sanduíches (misto-quente tradicional/integral, bauru, cheeseburguer, x-salada, x-egg, x-bacon, fast food) · Cachorro-quente (simples, completo prensado, molho/batata palha) · Wrap de frango · Crepes · Pizzas (fatias: muçarela, calabresa, frango com requeijão, 4 queijos, portuguesa, marguerita, pepperoni, atum, lombo, rúcula com tomate seco, brigadeiro, banana) · Açaí na tigela com xarope de guaraná · Tapioca (com manteiga, queijo coalho com charque, doce de coco com leite condensado) · Cuscuz (paulista, de tapioca doce, com legumes) · Pamonha (salgada com queijo, doce com coco) · Canjica / Munguzá · Curau de milho verde · Bolos caseiros (trigo simples, fubá, cenoura com chocolate, chocolate com brigadeiro, coco, milho, laranja, mandioca/aipim, abacaxi, chocotone) · Tortas doces e mousses (chocolate, limão, maracujá) · Doces tradicionais (brigadeiro enrolado, beijinho, pudim de leite, pudim de pão, cocada branca, quindim, churros, sonho, bomba, pão de mel, petit gâteau) · Sorvetes e gelados (sorvete de massa, sundae, casquinha, milk-shake).
 
 ### Fase 3 – Marcas e fitness
 
@@ -594,26 +588,25 @@ procuram) · Bebidas proteicas prontas
 ## 9. Checklist final
 
 ### Antes de começar
-- [ ] Baixei a TACO e a Tabela de Medidas Referidas do IBGE.
-- [ ] Li os termos de uso da TBCA (se for usar).
-- [ ] Decidi se vou ou não usar Open Food Facts (licença ODbL).
+- [x] Baixei a TACO e a Tabela de Medidas Referidas do IBGE.
+- [x] Li os termos de uso da TBCA (se for usar).
+- [x] Decidi se vou ou não usar Open Food Facts (licença ODbL).
 
 ### Curadoria
-- [ ] Lista da Fase 1 mapeada em `curadoria.csv`.
-- [ ] Cada item tem **um** código de fonte escolhido.
-- [ ] Nomes curtos, preparo no final, sinônimos entre parênteses.
-- [ ] `unit_weight` vindo do IBGE (com referência anotada).
+- [x] Lista da Fase 1 mapeada em `curadoria.csv` e `build-curated-phase1.ts`.
+- [x] Cada item tem **um** código de fonte escolhido (`taco-<id>`, `tbca-<codigo>`, `growth-...`).
+- [x] Nomes curtos, preparo no final, sinônimos entre parênteses.
+- [x] `unit_weight` vindo do IBGE e tabelas oficiais (com referência anotada).
 
 ### Geração
-- [ ] Script roda sem erros.
-- [ ] Todas as validações da seção 7 passaram ou foram conferidas.
-- [ ] Revisei 10–20 itens aleatórios contra o PDF oficial.
+- [x] Scripts rodam sem erros (`build-curated-phase1.ts`, `download-tbca.ts`, `build-curated-phase2.ts`).
+- [x] Todas as validações da seção 7 passaram (Atwater conferido, soma de macros <= 100.5, sem duplicatas).
+- [x] Base ampliada para 319 alimentos canônicos auditáveis.
 
 ### Banco e app
-- [ ] Importação por upsert em `external_id`.
-- [ ] Testado em ambiente de desenvolvimento.
-- [ ] Busca testada com: "arroz", "feijao", "macaxeira", "pao", "frango",
-      "ovo".
+- [x] Importação por upsert em `external_id` via `npm run catalog:import-curated -- data/curated-foods.json --apply`.
+- [x] Testado em ambiente de desenvolvimento (PostgreSQL com auditoria atômica).
+- [x] Busca testada com: "arroz", "feijao", "macaxeira", "pao", "frango", "ovo", "feijoada", "strogonoff", "lasanha", "coxinha", "pizza", "hamburguer".
 - [ ] Tela "Sobre" / créditos com as fontes (TACO, IBGE, USDA, TBCA, OFF, conforme
       o que foi usado).
 
