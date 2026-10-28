@@ -19,7 +19,13 @@ for (const file of frontend ? [] : files) {
   const rel = relative(resolve(cwd, 'tests'), file);
   if (rel.startsWith('..') || isAbsolute(rel) || !file.endsWith('.test.ts') || !(await stat(file)).isFile()) throw new Error('Informe um arquivo .test.ts dentro de backend/tests.');
 }
-const env = { ...process.env, NODE_ENV: 'test', TZ: 'America/Sao_Paulo', DB_NAME: 'contador_calorias_test' };
+const testDefaults = {
+  APP_BASE_URL: 'http://localhost:5173',
+  MAIL_FROM: 'CalorieSync <no-reply@caloriesync.local>',
+  MAIL_TRANSPORT: 'memory',
+  AUTH_TOKEN_PEPPER: 'super_secret_test_pepper_with_at_least_32_chars_456!',
+};
+const env = { ...testDefaults, ...process.env, NODE_ENV: 'test', TZ: 'America/Sao_Paulo', DB_NAME: 'contador_calorias_test' };
 // Sem force-exit, sockets ociosos também precisam permanecer visíveis ao diagnóstico.
 env.TEST_STRICT = mode === 'backend' ? '0' : '1';
 const args = frontend

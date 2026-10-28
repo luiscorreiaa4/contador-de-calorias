@@ -77,6 +77,10 @@ jobs:
         DATABASE_URL: postgres://postgres:postgres_test_password@localhost:5432/contador_calorias_test
         JWT_SECRET: super_secret_test_key_with_at_least_32_chars_123!
         CORS_ORIGIN: http://localhost:5173
+        APP_BASE_URL: http://localhost:5173
+        MAIL_FROM: CalorieSync <no-reply@caloriesync.local>
+        MAIL_TRANSPORT: memory
+        AUTH_TOKEN_PEPPER: super_secret_test_pepper_with_at_least_32_chars_456!
       run: |
         npm --prefix backend run migrate up
         npm run test:strict
