@@ -123,3 +123,11 @@ O usuário corrigiu o prompt original: o swipe deve ser **entre as telas da barr
 - **Animação:** o painel interno do `<main>` acompanha o dedo (`translateX` + opacidade), com resistência na ponta da fila; ao confirmar sai em 180 ms, navega e a nova tela entra pelo lado oposto em 220 ms; se não confirmar, volta em 220 ms. `prefers-reduced-motion`: navega direto. Nenhum `transform` permanece fora do gesto.
 - **Zonas sem swipe:** continuam valendo `data-no-swipe` (gráficos de Evolução, tabela e date picker de medidas, react-select), campos, sliders, overlays e rolagem horizontal real. Em Evolução, deslizar sobre o gráfico não troca de tela.
 - **Auditoria do swipe (substitui o item g):** (1) `touchstart/touchmove/touchend/touchcancel` só em `useSwipeNav.ts`, no `<main>`; (2) arquivos com `recharts` têm `data-no-swipe` (teste de guarda); (3) swipe só em rotas dos 3 destinos, nunca em `/admin` nem páginas legais; (4) nenhum `preventDefault`; (5) sem `onTouch*` do React; (6) a barra inferior funciona sem o swipe (testes do `BottomNav`).
+
+## Revisão: redesign de Evolução e Metas
+
+- **Problema:** quatro controles empilhados com o mesmo peso (barra `[EVOLUÇÃO|METAS]`, barra de sub-abas, cabeçalho repetido e seletor de período) pareciam uma grade 2x2 sem hierarquia.
+- **Solução:** nível 2 sublinhado (`SegmentedNav variant="underline"`), filtros como chips no cabeçalho do card (`SegmentedToggle` + `SectionCard`), títulos repetidos `sr-only`, resumos em um card (Alimentação) e em faixa de 4 colunas (Peso e medidas). Metas: foco em 3 colunas e atividade em lista compacta; Metas diárias com calorias em largura total e P/C/G em 3 colunas.
+- **Comportamento de Metas diárias (decisão do usuário):** AUTOMÁTICO é só visualização; MANUAL exige Aplicar metas; trocar de modo sem confirmar volta ao salvo/calculado; com meta salva manual, escolher AUTOMÁTICO exige Usar metas automáticas. Isso corrige a divergência anterior entre o código (salvava na hora) e o `docs/UX_NAVIGATION.md`.
+- **Sem mudança de API.** Os `data-no-swipe` dos gráficos e da tabela foram mantidos.
+- **Divergência de docs (não corrigida aqui):** os caminhos de endpoint de `docs/SPEC.md` (RF-003: `/api/users/goals/active`, `/api/users/goals/preview`, `/api/users/goals`) diferem dos usados pelo frontend (`/users/me/goals`, `/users/me/preview-goals`).
