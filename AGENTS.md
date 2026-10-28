@@ -110,4 +110,4 @@ Executar na **raiz** do monorepo:
     1. Acesse `http://localhost:5173/login`.
     2. Na aba "ENTRAR", insira `teste@teste.com` no campo de e-mail e `123456` na senha.
     3. Clique no botão de submissão ("ENTRAR").
-    4. O sistema autentica imediatamente e direciona para o Dashboard (`/`), com acesso liberado a todas as telas (`/`, `/evolucao`, `/metas`, `/configuracoes`, `/perfil`).
+    4. O sistema autentica imediatamente e direciona para o Diário (`/`), com acesso liberado a todas as telas (`/`, `/evolucao`, `/metas`, `/configuracoes`, `/perfil`).

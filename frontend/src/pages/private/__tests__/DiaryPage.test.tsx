@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect } from 'vitest';
 import { MemoryRouter, Routes, Route } from 'react-router';
 import { render } from '../../../tests/setup/test-utils';
-import { DashboardPage } from '../DashboardPage';
+import { DiaryPage } from '../DiaryPage';
 import { server } from '../../../mocks/server';
 import { http, HttpResponse } from 'msw';
 import { getLocalDateString, addDaysToDateString, parseLocalDateOrToday } from '../../../utils/date';
@@ -19,20 +19,20 @@ function formatDateLabel(dateStr: string): string {
   });
 }
 
-function renderDashboard(initialPath = '/') {
+function renderDiary(initialPath = '/') {
   return render(
     <MemoryRouter initialEntries={[initialPath]}>
       <Routes>
-        <Route path="/" element={<DashboardPage />} />
-        <Route path="/diario/:date" element={<DashboardPage />} />
+        <Route path="/" element={<DiaryPage />} />
+        <Route path="/diario/:date" element={<DiaryPage />} />
       </Routes>
     </MemoryRouter>
   );
 }
 
-describe('DashboardPage Async States (PC-27)', () => {
+describe('DiaryPage Async States (PC-27)', () => {
   it('inicia com macronutrientes recolhidos e permite expandir e recolher pelo mesmo controle', async () => {
-    renderDashboard();
+    renderDiary();
 
     const toggle = screen.getByRole('button', { name: /mostrar macronutrientes/i });
     const macros = screen.getByRole('group', { name: /macronutrientes/i });
@@ -56,19 +56,19 @@ describe('DashboardPage Async States (PC-27)', () => {
     expect(screen.getByRole('button', { name: /nova refeição/i })).toBeEnabled();
   });
 
-  it('abre o cadastro pela ação principal do dashboard', async () => {
-    renderDashboard();
+  it('abre o cadastro pela ação principal do diário', async () => {
+    renderDiary();
     await userEvent.click(screen.getByRole('button', { name: /nova refeição/i }));
     expect(await screen.findByRole('dialog', { name: /nova refeição/i })).toBeInTheDocument();
   });
 
   it('renderiza o estado de carregamento de refeições', () => {
-    renderDashboard();
+    renderDiary();
     expect(screen.getByText(/carregando refeições.../i)).toBeInTheDocument();
   });
 
   it('renderiza estado vazio quando não há refeições no dia', async () => {
-    renderDashboard();
+    renderDiary();
 
     expect(await screen.findByText(/nenhuma refeição registrada hoje/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /registrar refeição/i })).toBeInTheDocument();
@@ -81,7 +81,7 @@ describe('DashboardPage Async States (PC-27)', () => {
       })
     );
 
-    renderDashboard();
+    renderDiary();
 
     const alert = await screen.findByRole('alert');
     expect(alert).toBeInTheDocument();
@@ -123,7 +123,7 @@ describe('DashboardPage Async States (PC-27)', () => {
       })
     );
 
-    renderDashboard();
+    renderDiary();
 
     await waitFor(() => {
       expect(screen.getByText(/almoço pré-treino/i)).toBeInTheDocument();
@@ -132,12 +132,12 @@ describe('DashboardPage Async States (PC-27)', () => {
   });
 });
 
-describe('DashboardPage — navegação de datas (BL-02)', () => {
+describe('DiaryPage — navegação de datas (BL-02)', () => {
   it('exibe o dia de hoje e desabilita o próximo dia por padrão', async () => {
-    renderDashboard();
+    renderDiary();
 
     const today = getLocalDateString();
-    expect(await screen.findByTestId('dashboard-date')).toHaveTextContent(formatDateLabel(today));
+    expect(await screen.findByTestId('diary-date')).toHaveTextContent(formatDateLabel(today));
     expect(screen.getByText(/refeições de hoje/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /próximo dia/i })).toBeDisabled();
   });
@@ -153,7 +153,7 @@ describe('DashboardPage — navegação de datas (BL-02)', () => {
       })
     );
 
-    renderDashboard();
+    renderDiary();
 
     const today = getLocalDateString();
     const yesterday = addDaysToDateString(today, -1);
@@ -161,7 +161,7 @@ describe('DashboardPage — navegação de datas (BL-02)', () => {
     await userEvent.click(await screen.findByRole('button', { name: /dia anterior/i }));
 
     await waitFor(() => {
-      expect(screen.getByTestId('dashboard-date')).toHaveTextContent(formatDateLabel(yesterday));
+      expect(screen.getByTestId('diary-date')).toHaveTextContent(formatDateLabel(yesterday));
     });
 
     expect(requestedDates).toContain(yesterday);
@@ -171,7 +171,7 @@ describe('DashboardPage — navegação de datas (BL-02)', () => {
     // Voltar para hoje restaura o estado padrão.
     await userEvent.click(screen.getByRole('button', { name: /voltar para hoje/i }));
     await waitFor(() => {
-      expect(screen.getByTestId('dashboard-date')).toHaveTextContent(formatDateLabel(today));
+      expect(screen.getByTestId('diary-date')).toHaveTextContent(formatDateLabel(today));
     });
     expect(screen.getByRole('button', { name: /próximo dia/i })).toBeDisabled();
   });
@@ -180,15 +180,15 @@ describe('DashboardPage — navegação de datas (BL-02)', () => {
     const today = getLocalDateString();
     const twoDaysAgo = addDaysToDateString(today, -2);
 
-    renderDashboard(`/diario/${twoDaysAgo}`);
+    renderDiary(`/diario/${twoDaysAgo}`);
 
-    expect(await screen.findByTestId('dashboard-date')).toHaveTextContent(formatDateLabel(twoDaysAgo));
+    expect(await screen.findByTestId('diary-date')).toHaveTextContent(formatDateLabel(twoDaysAgo));
     expect(screen.getByText(/refeições do dia/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /próximo dia/i })).toBeEnabled();
   });
 });
 
-describe('DashboardPage — Copiar Refeição (BL-18 / FEAT-C03 / D-20)', () => {
+describe('DiaryPage — Copiar Refeição (BL-18 / FEAT-C03 / D-20)', () => {
   it('permite copiar todas as refeições do dia anterior com feedback visual', async () => {
     let copyCalled = false;
     server.use(
@@ -214,7 +214,7 @@ describe('DashboardPage — Copiar Refeição (BL-18 / FEAT-C03 / D-20)', () => 
       })
     );
 
-    renderDashboard();
+    renderDiary();
 
     const copyBtn = await screen.findByRole('button', { name: /copiar de ontem/i });
     expect(copyBtn).toBeInTheDocument();
@@ -280,7 +280,7 @@ describe('DashboardPage — Copiar Refeição (BL-18 / FEAT-C03 / D-20)', () => 
       })
     );
 
-    renderDashboard();
+    renderDiary();
 
     const duplicateBtn = await screen.findByTitle(/duplicar refeição/i);
     expect(duplicateBtn).toBeInTheDocument();

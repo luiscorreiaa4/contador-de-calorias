@@ -14,7 +14,7 @@ import { getActiveGoal } from '../../services/goals.service';
 import { getLocalDateString, isValidLocalDateString, addDaysToDateString, parseLocalDateOrToday } from '../../utils/date';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 
-export const DashboardPage: React.FC = () => {
+export const DiaryPage: React.FC = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const params = useParams<{ date?: string }>();
@@ -125,7 +125,7 @@ export const DashboardPage: React.FC = () => {
       {/* Greeting */}
       <div className="border-b-2 border-border pb-6">
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary-ink mb-2">
-          Painel de Performance
+          Seu dia em números
         </p>
         <h1 className="text-3xl sm:text-5xl font-heading font-black text-foreground uppercase tracking-tighter">
           OLÁ, {user?.name?.split(' ')[0] || 'ATLETA'}!
@@ -152,7 +152,7 @@ export const DashboardPage: React.FC = () => {
             <CalendarDays className="w-3.5 h-3.5" aria-hidden="true" />
             {isToday ? 'Hoje' : 'Diário'}
           </span>
-          <span data-testid="dashboard-date" className="text-xs sm:text-sm font-heading font-black uppercase tracking-tight text-foreground">
+          <span data-testid="diary-date" className="text-xs sm:text-sm font-heading font-black uppercase tracking-tight text-foreground">
             {selectedDateLabel}
           </span>
           {!isToday && (

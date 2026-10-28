@@ -48,9 +48,9 @@ Ao invocar o navegador (Claude in Chrome, navegador integrado ou Playwright), es
 3. Preencha o campo de e-mail (#login-email) com: teste@teste.com
 4. Preencha o campo de senha (#login-password) com: 123456
 5. Clique no botão de submissão "ENTRAR".
-6. Aguarde o redirecionamento para o Dashboard ("http://localhost:5173/").
+6. Aguarde o redirecionamento para o Diário ("http://localhost:5173/").
 7. Agora navegue diretamente até a rota solicitada:
-   - Dashboard / Diário: "/"
+   - Diário: "/"
    - Evolução / Estatísticas: "/evolucao"
    - Metas: "/metas"
    - Configurações: "/configuracoes"

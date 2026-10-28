@@ -20,12 +20,12 @@ describe('LoginForm', () => {
     renderForm();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/senha/i, { selector: 'input' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /acessar dashboard/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /acessar diário/i })).toBeInTheDocument();
   });
 
   it('deve exibir erro se enviar vazio', async () => {
     renderForm();
-    await userEvent.click(screen.getByRole('button', { name: /acessar dashboard/i }));
+    await userEvent.click(screen.getByRole('button', { name: /acessar diário/i }));
 
     expect(await screen.findByText(/o email é obrigatório/i)).toBeInTheDocument();
     expect(await screen.findByText(/a senha é obrigatória/i)).toBeInTheDocument();
@@ -36,7 +36,7 @@ describe('LoginForm', () => {
 
     await userEvent.type(screen.getByLabelText(/email/i), 'wrong@example.com');
     await userEvent.type(screen.getByLabelText(/senha/i, { selector: 'input' }), 'senha123');
-    await userEvent.click(screen.getByRole('button', { name: /acessar dashboard/i }));
+    await userEvent.click(screen.getByRole('button', { name: /acessar diário/i }));
 
     expect(await screen.findByText(/e-mail ou senha incorretos/i)).toBeInTheDocument();
   });
@@ -47,7 +47,7 @@ describe('LoginForm', () => {
 
     await userEvent.type(screen.getByLabelText(/email/i), 'unverified@example.com');
     await userEvent.type(screen.getByLabelText(/senha/i, { selector: 'input' }), 'senha123');
-    await userEvent.click(screen.getByRole('button', { name: /acessar dashboard/i }));
+    await userEvent.click(screen.getByRole('button', { name: /acessar diário/i }));
 
     await waitFor(() => {
       expect(onEmailNotVerified).toHaveBeenCalledWith('unverified@example.com', false);
@@ -69,7 +69,7 @@ describe('LoginForm', () => {
 
     await userEvent.type(screen.getByLabelText(/email/i), 'test@example.com');
     await userEvent.type(screen.getByLabelText(/senha/i, { selector: 'input' }), 'senha123');
-    await userEvent.click(screen.getByRole('button', { name: /acessar dashboard/i }));
+    await userEvent.click(screen.getByRole('button', { name: /acessar diário/i }));
 
     await waitFor(() => {
       expect(onSuccess).toHaveBeenCalled();

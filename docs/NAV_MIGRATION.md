@@ -49,17 +49,17 @@ Sem uso atual de Radix Slider/Dialog/Popover, carrossel, `touch-action`, `onTouc
 
 ## Exceções de grep ("dashboard")
 
-A preencher na Fase 2/6 (histórico em `docs/archive/**`, logs e nomes de bibliotecas).
+Zero "dashboard" em `frontend/` e docs vivos. Exceções: `docs/archive/**` (histórico), `docs/AGENT_LOG.md` e este arquivo (registro), e "antigo Dashboard" em `docs/UX_NAVIGATION.md` (nota de rename). Nenhuma biblioteca com o termo.
 
 ## CHECKLIST
 
 | Caminho | Ação | Status |
 | --- | --- | --- |
-| `frontend/src/pages/private/DashboardPage.tsx` (+ teste) | `git mv` → `DiaryPage` e rename de textos | [ ] |
+| `frontend/src/pages/private/DashboardPage.tsx` (+ teste) | `git mv` → `DiaryPage` e rename de textos | [x] |
 | `frontend/src/router.tsx` | import `DiaryPage`, rota `conta`, abas do módulo | [ ] |
 | `frontend/src/components/layout/AppHeader.tsx` | rename, consumir módulo, gatilho `hidden md:flex` | [ ] |
-| `frontend/src/components/auth/LoginForm.tsx` (+ teste), `VerifyEmailPage.test.tsx`, `StatsPage.tsx` | textos "Diário" | [ ] |
-| docs vivos, `.agents/`, `.claude/`, README, AGENTS.md, CLAUDE.md | rename | [ ] |
+| `frontend/src/components/auth/LoginForm.tsx` (+ teste), `VerifyEmailPage.test.tsx`, `StatsPage.tsx` | textos "Diário" | [x] |
+| docs vivos, `.agents/`, `.claude/`, README, AGENTS.md, CLAUDE.md | rename | [x] |
 | `frontend/src/navigation/nav-items.ts`, `icons.tsx` (+ testes) | criar | [ ] |
 | `frontend/src/components/layout/SegmentedNav.tsx`, `SectionLayout.tsx` | criar/evoluir | [ ] |
 | `frontend/src/navigation/swipe.ts`, `useSwipeTabs.ts`, `SwipeTabsArea.tsx` (+ testes e guarda fs) | criar | [ ] |

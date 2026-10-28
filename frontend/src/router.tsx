@@ -33,9 +33,9 @@ const OnboardingFlow = lazy(() =>
   }))
 );
 
-const DashboardPage = lazy(() =>
-  import('./pages/private/DashboardPage').then((m) => ({
-    default: m.DashboardPage,
+const DiaryPage = lazy(() =>
+  import('./pages/private/DiaryPage').then((m) => ({
+    default: m.DiaryPage,
   }))
 );
 const EditProfilePage = lazy(() =>
@@ -80,7 +80,7 @@ export const routes: RouteObject[] = [
         element: <ProtectedRoute />,
         children: [
           { path: 'onboarding', element: <OnboardingFlow /> },
-          { index: true, element: <DashboardPage /> },
+          { index: true, element: <DiaryPage /> },
           { path: 'estatisticas', element: <Navigate to="/evolucao/alimentacao" replace /> },
           { path: 'medidas', element: <Navigate to="/evolucao/corpo" replace /> },
           {
@@ -122,7 +122,7 @@ export const routes: RouteObject[] = [
             ],
           },
           { path: 'perfil', element: <EditProfilePage /> },
-          { path: 'diario/:date', element: <DashboardPage /> },
+          { path: 'diario/:date', element: <DiaryPage /> },
         ],
       },
       {

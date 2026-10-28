@@ -93,7 +93,7 @@ export const StatsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }
             NENHUM HISTÓRICO REGISTRADO NESTE PERÍODO
           </p>
           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground max-w-md">
-            VOCÊ AINDA NÃO REGISTROU NENHUMA REFEIÇÃO NOS {period === 'week' ? 'ÚLTIMOS 7 DIAS' : 'ÚLTIMOS 30 DIAS'}. REGISTRE SUAS REFEIÇÕES NO DASHBOARD PARA VER SUAS TENDÊNCIAS.
+            VOCÊ AINDA NÃO REGISTROU NENHUMA REFEIÇÃO NOS {period === 'week' ? 'ÚLTIMOS 7 DIAS' : 'ÚLTIMOS 30 DIAS'}. REGISTRE SUAS REFEIÇÕES NO DIÁRIO PARA VER SUAS TENDÊNCIAS.
           </p>
         </div>
       ) : stats ? (

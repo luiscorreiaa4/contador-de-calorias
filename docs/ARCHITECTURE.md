@@ -223,7 +223,7 @@ erDiagram
   - `idx_foods_active_name`: Índice parcial B-tree: `CREATE INDEX idx_foods_active_name ON foods (name) WHERE active` (migração `1792099463766_add-food-and-meal-indexes.js` / PC-10).
   - `idx_foods_active_unique_name`: Índice único parcial B-tree: `CREATE UNIQUE INDEX idx_foods_active_unique_name ON foods (f_unaccent(lower(name))) WHERE active = true` (migração `1792445063767_add-food-name-uniqueness.js` / BL-09).
 - `meals`:
-  - `idx_meals_user_id_meal_time`: Índice composto `ON meals(user_id, meal_time DESC)` para aceleração de buscas no dashboard diário.
+  - `idx_meals_user_id_meal_time`: Índice composto `ON meals(user_id, meal_time DESC)` para aceleração de buscas no Diário.
 - `meal_items`:
   - `idx_meal_items_meal_id`: Índice simples `ON meal_items(meal_id)`.
   - `idx_meal_items_food_id`: Índice de foreign key: `CREATE INDEX idx_meal_items_food_id ON meal_items (food_id)` (migração `1792099463766_add-food-and-meal-indexes.js` / PC-10).

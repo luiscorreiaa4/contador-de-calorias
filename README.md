@@ -219,7 +219,7 @@ O backend segue o fluxo `routes → controllers → services → models`, com SQ
 
 | Área | Páginas principais |
 | --- | --- |
-| Dashboard | Resumo e registro do dia (`/`), diário por data (`/diario/:date`) |
+| Diário | Resumo e registro do dia (`/`), diário por data (`/diario/:date`) |
 | Evolução | Alimentação (`/evolucao/alimentacao`) e corpo (`/evolucao/corpo`) |
 | Metas | Objetivo e rotina (`/metas/rotina`), calorias e macros (`/metas/diarias`) |
 | Perfil | Dados pessoais (`/perfil`) |

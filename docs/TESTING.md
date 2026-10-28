@@ -94,7 +94,7 @@ Abaixo está o status real verificado através da execução direta dos comandos
 6. `src/components/auth/LoginForm.test.tsx`: Renderização, preenchimento, submissão, erro 401 genérico, encaminhamento 403 `EMAIL_NOT_VERIFIED` e link de recuperação.
 7. `src/components/auth/RegisterForm.test.tsx`: Validação de senha forte, termos LGPD, resposta 202 genérica e ausência de sessão antes da verificação.
 8. `src/components/meals/NewMealModal.test.tsx`: Autocomplete, paginação, combos salvos, edição inline e alimentos customizados.
-9. `src/pages/private/__tests__/DashboardPage.test.tsx`: Resumo de calorias, expansão de macros, estados vazios e registro de refeições.
+9. `src/pages/private/__tests__/DiaryPage.test.tsx`: Resumo de calorias, expansão de macros, estados vazios e registro de refeições.
 10. `src/pages/private/__tests__/StatsPage.test.tsx`: Renderização de métricas e gráficos nutricionais via Recharts.
 11. `src/pages/private/__tests__/SettingsSeparation.test.tsx`: Isolamento das tarefas de perfil, rotina, segurança e privacidade.
 12. `src/pages/public/__tests__/LegalPage.test.tsx`: Páginas públicas de Termos de Uso, Política de Privacidade e Segurança.

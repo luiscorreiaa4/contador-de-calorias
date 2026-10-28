@@ -1,6 +1,6 @@
 # Guia de Cores e Identidade Visual — CalorieSync
 
-Este documento documenta de forma completa todas as cores, variáveis, códigos hexadecimais e regras de sombra do projeto **CalorieSync** (extraídos do Dashboard, `tailwind.config.js`, `index.css` e da identidade brutalista da aplicação).
+Este documento documenta de forma completa todas as cores, variáveis, códigos hexadecimais e regras de sombra do projeto **CalorieSync** (extraídos do Diário, `tailwind.config.js`, `index.css` e da identidade brutalista da aplicação).
 
 > **Revisão v2 — "Neo-Brutalismo de Tinta":** o modo claro foi redesenhado porque o verde neon `#CCFF00` tinha contraste de apenas **1,17 : 1** sobre o branco (praticamente invisível). O modo escuro permanece como estava.
 >
@@ -75,14 +75,14 @@ Este documento documenta de forma completa todas as cores, variáveis, códigos 
 
 ---
 
-## 🔎 Detalhamento por Elemento do Dashboard
+## 🔎 Detalhamento por Elemento do Diário
 
 ### 1. Cor Verde Principal (Primary / Accent / Neon)
 - **Código HEX:** `#CCFF00`
 - **RGB:** `rgb(204, 255, 0)`
 - **HSL:** `hsl(72, 100%, 50%)`
 - **Variante de tinta (modo claro):** `#4D6600` — `hsl(75, 100%, 20%)`, via `--primary-ink`.
-- **Onde aparece no Dashboard e como aplicar:**
+- **Onde aparece no Diário e como aplicar:**
 
 | Elemento | Classe / Tratamento | Modo Claro | Modo Escuro |
 | :--- | :--- | :--- | :--- |
@@ -181,7 +181,7 @@ Para elementos que já têm o fundo totalmente verde neon (como abas selecionada
 - **Código HEX:** `#EF4343`
 - **RGB:** `rgb(239, 67, 67)`
 - **Fundo com transparência (Alertas e banners):** `bg-destructive/10` (`rgba(239, 67, 67, 0.1)`).
-- **Onde aparece no Dashboard:**
+- **Onde aparece no Diário:**
   - Botão e ícone de lixeira para exclusão de refeição.
   - Modal de confirmação "EXCLUIR REFEIÇÃO".
   - Banner de erro quando as refeições falham em carregar.

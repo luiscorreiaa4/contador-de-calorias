@@ -13,7 +13,7 @@ import {
   LogOut,
   ChevronDown,
   Target,
-  LayoutDashboard,
+  BookOpen,
   TrendingUp,
   Database,
 } from 'lucide-react';
@@ -23,7 +23,7 @@ interface AppHeaderProps {
   onToggleTheme: () => void;
   onNavigateToEditProfile?: () => void;
   onNavigateToStats?: () => void;
-  onNavigateToDashboard?: () => void;
+  onNavigateToDiary?: () => void;
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
@@ -31,7 +31,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onToggleTheme,
   onNavigateToEditProfile,
   onNavigateToStats,
-  onNavigateToDashboard,
+  onNavigateToDiary,
 }) => {
   const { user, isAuthenticated, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -39,8 +39,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
 
-  const handleDashboard = () => {
-    if (onNavigateToDashboard) onNavigateToDashboard();
+  const handleDiary = () => {
+    if (onNavigateToDiary) onNavigateToDiary();
     else navigate('/');
     setMenuOpen(false);
   };
@@ -58,7 +58,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   };
 
   const primaryLinks = [
-    { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/', label: 'Diário', icon: BookOpen },
     { to: '/evolucao', label: 'Evolução', icon: TrendingUp },
     { to: '/metas', label: 'Metas', icon: Target },
     ...(user?.role === 'admin' ? [{ to: '/admin/alimentos', label: 'Catálogo', icon: Database }] : []),
@@ -112,7 +112,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
         {/* Logo */}
-        <button type="button" aria-label="CalorieSync — Dashboard" className="flex items-center gap-3 shrink-0 cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background" onClick={handleDashboard}>
+        <button type="button" aria-label="CalorieSync — Diário" className="flex items-center gap-3 shrink-0 cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background" onClick={handleDiary}>
           <div className="w-10 h-10 bg-primary text-primary-foreground border-2 border-edge flex items-center justify-center shadow-hard transition-transform group-hover:-translate-y-0.5 group-hover:shadow-hard-hover">
             <Flame className="w-6 h-6 fill-current" aria-hidden="true" />
           </div>
@@ -211,7 +211,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                       {primaryLinks.map(({ to, label, icon: Icon }) => (
                         <NavLink key={to} to={to} end={to === '/'} onClick={event => {
                           setMenuOpen(false);
-                          if (to === '/' && onNavigateToDashboard) { event.preventDefault(); handleDashboard(); }
+                          if (to === '/' && onNavigateToDiary) { event.preventDefault(); handleDiary(); }
                           if (to === '/evolucao' && onNavigateToStats) { event.preventDefault(); handleStats(); }
                           if (to === '/perfil' && onNavigateToEditProfile) { event.preventDefault(); handleEditProfile(); }
                         }} className={({ isActive }) => `flex items-center px-3 py-3 text-xs font-bold uppercase tracking-wider focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${isActive ? 'bg-primary text-primary-foreground border-2 border-edge' : 'hover:bg-secondary'}`}>

@@ -14,7 +14,7 @@ const renderPage = (
     >
       <Routes>
         <Route path="/verificar-email" element={<VerifyEmailPage />} />
-        <Route path="/" element={<div>Dashboard</div>} />
+        <Route path="/" element={<div>Diário</div>} />
         <Route path="/login" element={<div>Login</div>} />
       </Routes>
     </MemoryRouter>
@@ -53,16 +53,16 @@ describe('VerifyEmailPage (BL-12)', () => {
     await userEvent.type(screen.getByLabelText(/código de 6 dígitos/i), '123456');
     await userEvent.click(screen.getByRole('button', { name: /confirmar e-mail/i }));
 
-    expect(await screen.findByText('Dashboard')).toBeInTheDocument();
+    expect(await screen.findByText('Diário')).toBeInTheDocument();
   });
 
-  it('confirma o código, abre a sessão e navega para o dashboard', async () => {
+  it('confirma o código, abre a sessão e navega para o diário', async () => {
     renderPage({ email: 'novo@example.com', codeSent: true });
 
     await userEvent.type(screen.getByLabelText(/código de 6 dígitos/i), '123456');
     await userEvent.click(screen.getByRole('button', { name: /confirmar e-mail/i }));
 
-    expect(await screen.findByText('Dashboard')).toBeInTheDocument();
+    expect(await screen.findByText('Diário')).toBeInTheDocument();
     await waitFor(() => {
       expect(localStorage.getItem('auth_token')).toBe('verified-token');
     });

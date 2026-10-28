@@ -41,7 +41,7 @@
 ### 1.4 Frontend e Navegação
 - **Recepção do Usuário:** O endpoint `/api/auth/login` e `/api/users/me` retornam `UserProfile`. O `AuthContext` mantém `user` em estado e serializa `SafeUserSession` no `localStorage`/`sessionStorage`.
 - **Roteador (`frontend/src/router.tsx`):** Utiliza `createBrowserRouter` com `RootLayout`, `PublicRoute` e `ProtectedRoute`.
-- **Navegação (`frontend/src/components/layout/AppHeader.tsx`):** `primaryLinks` define as abas centrais (Dashboard, Evolução, Metas, Perfil, Configurações).
+- **Navegação (`frontend/src/components/layout/AppHeader.tsx`):** `primaryLinks` define as abas centrais (Diário, Evolução, Metas, Perfil, Configurações).
 
 ### 1.5 Pacote `@caloriesync/shared`
 - Tipos unificados em `shared/src/types/`: `User`, `UserWithoutPassword`, `Food`, `TokenPayload`.

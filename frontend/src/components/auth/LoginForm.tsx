@@ -164,7 +164,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onEmailNotVerif
           <Loader2 className="w-5 h-5 animate-spin" />
         ) : (
           <>
-            <span>Acessar Dashboard</span>
+            <span>Acessar Diário</span>
             <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
           </>
         )}
