@@ -214,3 +214,13 @@ Registro cronológico de linhas de base, migrações e decisões operacionais.
 - Validação completa executada com 100% de aprovação.
 
 
+
+---
+
+## 2026-10-28 — VERIFICAÇÃO PRÉ-NAVEGAÇÃO
+
+- BRANCH_BASE: `feat/admin-catalogo`; hash de partida: `c3744d0`; branch de trabalho: `feat/navegacao-mobile`.
+- Itens CA-xx / PC-xx: sem registro no `git log` nem neste log. Checkpoints `checkpoint/B`, `C`, `D` e `E` existem como tags; A: sem tag.
+- Migração de cores: checklist de `docs/CORES.md` todo `[x]`; `check:colors` existe e dá 0 violações.
+- Stash "falha <ID>": nenhum (`git stash list` vazio).
+- Linha de base: backend `npm run test` 263/263; frontend 185/185 (26 arquivos); `npm run lint` 0 erros e 1 aviso (`react-hooks/incompatible-library` em `OnboardingFlow`); `npm run build` ok; `check:colors` 0 violações.
