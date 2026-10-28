@@ -60,7 +60,7 @@ Zero "dashboard" em `frontend/` e docs vivos. Exceções: `docs/archive/**` (his
 | `frontend/src/components/layout/AppHeader.tsx` | rename, consumir módulo, gatilho `hidden md:flex` | [ ] |
 | `frontend/src/components/auth/LoginForm.tsx` (+ teste), `VerifyEmailPage.test.tsx`, `StatsPage.tsx` | textos "Diário" | [x] |
 | docs vivos, `.agents/`, `.claude/`, README, AGENTS.md, CLAUDE.md | rename | [x] |
-| `frontend/src/navigation/nav-items.ts`, `icons.tsx` (+ testes) | criar | [ ] |
+| `frontend/src/navigation/nav-items.ts`, `icons.tsx` (+ testes) | criar | [x] |
 | `frontend/src/components/layout/SegmentedNav.tsx`, `SectionLayout.tsx` | criar/evoluir | [ ] |
 | `frontend/src/navigation/swipe.ts`, `useSwipeTabs.ts`, `SwipeTabsArea.tsx` (+ testes e guarda fs) | criar | [ ] |
 | `frontend/src/navigation/useHideOnScroll.ts`, `components/layout/BottomNav.tsx` | criar | [ ] |
@@ -68,3 +68,7 @@ Zero "dashboard" em `frontend/` e docs vivos. Exceções: `docs/archive/**` (his
 | `frontend/src/pages/private/AccountPage.tsx` | criar | [ ] |
 | `frontend/index.html`, `RootLayout.tsx` | `viewport-fit=cover`, padding inferior | [ ] |
 | docs: SPEC, ARCHITECTURE, UX_NAVIGATION, CORES, ROADMAP, rules (`.agents` e `.claude`) | atualizar | [ ] |
+
+## Escolhas de ícones (Fase 3)
+
+Os três slots da barra inferior (Diário, Progresso, Conta) usam SVGs próprios em `frontend/src/navigation/icons.tsx`, com contorno e versão sólida, só `currentColor`. Diário: caderno (sólido com linhas vazadas); Progresso: barras; Conta: cabeça e ombros. Os destinos só do desktop usam ícones lucide (`activeIcon` igual a `icon`).

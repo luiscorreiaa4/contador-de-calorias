@@ -11,6 +11,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminRoute } from './components/AdminRoute';
 import { PublicRoute } from './components/PublicRoute';
 import { SectionLayout } from './components/layout/SectionLayout';
+import { CONFIG_TABS, EVOLUCAO_TABS, METAS_TABS } from './navigation/nav-items';
 
 const AdminCatalogPage = lazy(() =>
   import('./pages/admin/AdminCatalogPage').then((m) => ({ default: m.AdminCatalogPage }))
@@ -85,10 +86,7 @@ export const routes: RouteObject[] = [
           { path: 'medidas', element: <Navigate to="/evolucao/corpo" replace /> },
           {
             path: 'evolucao',
-            element: <SectionLayout title="Evolução" description="Acompanhe sua alimentação e suas medidas ao longo do tempo." links={[
-              { to: '/evolucao/alimentacao', label: 'Alimentação' },
-              { to: '/evolucao/corpo', label: 'Peso e medidas' },
-            ]} />,
+            element: <SectionLayout title="Evolução" description="Acompanhe sua alimentação e suas medidas ao longo do tempo." links={EVOLUCAO_TABS} />,
             children: [
               { index: true, element: <Navigate to="alimentacao" replace /> },
               { path: 'alimentacao', element: <StatsPage embedded /> },
@@ -97,10 +95,7 @@ export const routes: RouteObject[] = [
           },
           {
             path: 'metas',
-            element: <SectionLayout title="Metas" description="Defina seu objetivo, sua rotina e as metas que orientam seu dia." links={[
-              { to: '/metas/rotina', label: 'Objetivo e rotina' },
-              { to: '/metas/diarias', label: 'Metas diárias' },
-            ]} />,
+            element: <SectionLayout title="Metas" description="Defina seu objetivo, sua rotina e as metas que orientam seu dia." links={METAS_TABS} />,
             children: [
               { index: true, element: <Navigate to="rotina" replace /> },
               { path: 'rotina', element: <RoutinePage /> },
@@ -109,11 +104,7 @@ export const routes: RouteObject[] = [
           },
           {
             path: 'configuracoes',
-            element: <SectionLayout title="Configurações" description="Gerencie lembretes, segurança e os dados da sua conta." links={[
-              { to: '/configuracoes/notificacoes', label: 'Notificações' },
-              { to: '/configuracoes/seguranca', label: 'Segurança' },
-              { to: '/configuracoes/privacidade', label: 'Privacidade e dados', shortLabel: 'Privacidade' },
-            ]} />,
+            element: <SectionLayout title="Configurações" description="Gerencie lembretes, segurança e os dados da sua conta." links={CONFIG_TABS} />,
             children: [
               { index: true, element: <Navigate to="notificacoes" replace /> },
               { path: 'notificacoes', element: <NotificationsPage /> },

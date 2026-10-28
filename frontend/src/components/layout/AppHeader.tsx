@@ -1,22 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
-import {
-  Flame,
-  Sun,
-  Moon,
-  UserCog,
-  Settings,
-  Bell,
-  Lock,
-  Shield,
-  LogOut,
-  ChevronDown,
-  Target,
-  BookOpen,
-  TrendingUp,
-  Database,
-} from 'lucide-react';
+import { Flame, Sun, Moon, Bell, Lock, Shield, LogOut, ChevronDown } from 'lucide-react';
+import { CONFIG_TABS, DESKTOP_NAV_ITEMS, visibleItems } from '../../navigation/nav-items';
+
+const SETTINGS_ICONS = [Bell, Lock, Shield];
+const SETTINGS_LINKS = CONFIG_TABS.map((tab, index) => ({ ...tab, icon: SETTINGS_ICONS[index] }));
 
 interface AppHeaderProps {
   darkMode: boolean;
@@ -57,14 +46,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     setMenuOpen(false);
   };
 
-  const primaryLinks = [
-    { to: '/', label: 'Diário', icon: BookOpen },
-    { to: '/evolucao', label: 'Evolução', icon: TrendingUp },
-    { to: '/metas', label: 'Metas', icon: Target },
-    ...(user?.role === 'admin' ? [{ to: '/admin/alimentos', label: 'Catálogo', icon: Database }] : []),
-    { to: '/perfil', label: 'Perfil', icon: UserCog },
-    { to: '/configuracoes', label: 'Configurações', icon: Settings },
-  ];
+  const primaryLinks = visibleItems(DESKTOP_NAV_ITEMS, user?.role === 'admin');
 
   // Desktop usa a barra de abas; o dropdown só repete os links no mobile.
   const showMainNav = isAuthenticated && !!user?.onboarding_completed;
@@ -220,11 +202,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                       ))}
                     </div>
                     <div className={`border-t-2 border-border mt-1 pt-2 ${showMainNav ? 'md:border-t-0 md:mt-0 md:pt-0' : ''}`}>
-                      {[
-                        { to: '/configuracoes/notificacoes', label: 'Notificações', icon: Bell },
-                        { to: '/configuracoes/seguranca', label: 'Segurança', icon: Lock },
-                        { to: '/configuracoes/privacidade', label: 'Privacidade e dados', icon: Shield },
-                      ].map(({ to, label, icon: Icon }) => <NavLink key={to} to={to} onClick={() => setMenuOpen(false)} className="flex items-center px-3 py-3 text-xs font-bold uppercase tracking-wider hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><Icon className="w-4 h-4 mr-3" aria-hidden="true" />{label}</NavLink>)}
+                      {SETTINGS_LINKS.map(({ to, label, icon: Icon }) => <NavLink key={to} to={to} onClick={() => setMenuOpen(false)} className="flex items-center px-3 py-3 text-xs font-bold uppercase tracking-wider hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><Icon className="w-4 h-4 mr-3" aria-hidden="true" />{label}</NavLink>)}
                     </div>
                   </nav>
 
