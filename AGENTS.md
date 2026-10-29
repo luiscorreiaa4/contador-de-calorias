@@ -24,6 +24,7 @@ Executar na **raiz** do monorepo:
 - `npm run docker:down` — Encerra os containers de desenvolvimento.
 - `npm run test` — Executa testes do backend em banco isolado (`contador_calorias_test`).
 - `npm run test:strict` — Executa backend sem force-exit e mantém sockets ociosos visíveis; obrigatório na verificação final.
+- `npm run test:full` — Executa toda a bateria de verificação do CI do GitHub (audit, typecheck, lint, test:strict, frontend coverage e build).
 - `npm run test:file -- tests/integration/meal_items_batch.test.ts` — Executa um arquivo em modo estrito, com CWD fixo e timeout.
 - `npm run test:backend:file <caminho>` — Executa um único arquivo de teste no backend (ex: `tests/integration/meal_items_batch.test.ts`).
 - `npm --prefix frontend test` — Executa testes do frontend via Vitest.

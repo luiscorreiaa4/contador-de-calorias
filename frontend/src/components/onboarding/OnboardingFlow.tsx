@@ -186,7 +186,7 @@ export const OnboardingFlow: React.FC = () => {
             <label htmlFor="onboarding-birth-date" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">DATA DE NASCIMENTO</label>
             <DatePickerInput
               id="onboarding-birth-date"
-              value={formValues.birthDate}
+              value={formValues.birthDate ?? ''}
               onChange={(val) => {
                 setValue('birthDate', val, { shouldValidate: true });
               }}
