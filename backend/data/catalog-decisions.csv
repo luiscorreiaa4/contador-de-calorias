@@ -1,1 +1,9 @@
-﻿id;external_id;source;nome;kcal;proteina;carboidrato;gordura;ativo;sugestao;decisao;novo_nome
+id;external_id;source;nome;kcal;proteina;carboidrato;gordura;ativo;sugestao;decisao;novo_nome
+076b68d9-8abb-45c9-9033-719cdf274097;;;Frango Grelhado;165;31;0;3.6;sim;;ocultar;
+3f490121-96f7-4a60-bbb6-078b012156a8;;;Ovo Cozido;156;12.6;1.2;10.6;sim;;ocultar;
+ead1e935-e706-4f19-bd24-07b7d7befb0e;;;Maçã;63.3;0.3;16.7;0.2;sim;;ocultar;
+d879d2b9-a546-45f7-9a83-5bb55662f9d6;;;Banana Prata;89;1.1;23;0.3;sim;;ocultar;
+9b069311-0159-4126-8fee-2fe70017cb95;;;Pão Francês;300;9.4;58;3.2;sim;;ocultar;
+ff94ccbb-c7e0-46c7-8532-1b5c5e612c4b;;;Leite Integral;60;3.2;5;3;sim;;ocultar;
+5a57ab92-2f77-4e00-89d6-e78be9bb3c81;;;Aveia em Flocos;393.3;14.3;66.7;7.3;sim;;ocultar;
+f2dd7950-f80c-4b69-8a02-5feba8737c26;;;Manteiga;720;1;0;81;sim;;ocultar;

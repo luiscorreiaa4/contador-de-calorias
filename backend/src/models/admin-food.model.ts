@@ -50,18 +50,40 @@ export function mapAdminFoodRow(row: Record<string, unknown>): AdminFoodRow {
   };
 }
 
-export async function searchCatalogFoods(options: {
+const SORT_COLUMN_MAP: Record<string, string> = {
+  nome: 'nome_normalizado',
+  kcal: 'calories',
+  status: 'active',
+  proteins: 'proteins',
+  carbs: 'carbs',
+  fats: 'fats',
+};
+
+export interface SearchCatalogFoodsOptions {
   search?: string;
+  q?: string;
   status: 'all' | 'active' | 'inactive';
   page: number;
-  limit: number;
-}): Promise<{ foods: AdminFoodRow[]; total: number }> {
-  const { search, status, page, limit } = options;
-  const offset = (page - 1) * limit;
+  pageSize: number;
+  sort?: string;
+  order?: 'asc' | 'desc';
+}
+
+export async function searchCatalogFoods(options: SearchCatalogFoodsOptions): Promise<{
+  foods: AdminFoodRow[];
+  meta: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+  total: number;
+}> {
+  const { search, q, status, page, pageSize } = options;
+  const rawTerm = (q || search || '').trim();
 
   const conditions: string[] = ['user_id IS NULL'];
   const params: unknown[] = [];
-  let paramIdx = 1;
 
   if (status === 'active') {
     conditions.push('active = true');
@@ -69,48 +91,82 @@ export async function searchCatalogFoods(options: {
     conditions.push('active = false');
   }
 
-  let orderClause = 'ORDER BY name ASC';
+  if (rawTerm) {
+    // Normalização sem acento e em minúsculas para coincidir com nome_normalizado
+    const normalizedTerm = rawTerm
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
 
-  if (search && search.trim()) {
-    const trimmed = search.trim();
-    // Escape de caracteres especiais de ILIKE (B12 / CA-11)
-    const escaped = trimmed.replace(/[%_\\]/g, '\\$&');
-    conditions.push(`f_unaccent(name) ILIKE f_unaccent($${paramIdx++})`);
-    params.push(`%${escaped}%`);
+    const escapedNorm = normalizedTerm.replace(/[%_\\]/g, '\\$&');
+    const escapedRaw = rawTerm.replace(/[%_\\]/g, '\\$&');
 
-    orderClause = `ORDER BY f_unaccent(name) <-> f_unaccent($${paramIdx++}) ASC`;
-    params.push(trimmed);
+    const pNorm = '$1';
+    const pCode1 = '$2';
+    const pCode2 = '$3';
+
+    conditions.push(`(
+      nome_normalizado LIKE ${pNorm}
+      OR external_id ILIKE ${pCode1}
+      OR source_ref ILIKE ${pCode2}
+    )`);
+
+    params.push(`%${escapedNorm}%`, `%${escapedRaw}%`, `%${escapedRaw}%`);
   }
 
-  const limitParam = `$${paramIdx++}`;
-  const offsetParam = `$${paramIdx++}`;
-  params.push(limit, offset);
+  // Whitelist estrita de ordenação (com desempate determinístico por id)
+  const sortKey = (options.sort || 'nome').toLowerCase();
+  const sortColumn = SORT_COLUMN_MAP[sortKey] || 'nome_normalizado';
+  const sortDir = options.order?.toLowerCase() === 'desc' ? 'DESC' : 'ASC';
+  const orderClause = `ORDER BY ${sortColumn} ${sortDir}, id ASC`;
 
   const whereClause = conditions.join(' AND ');
+
+  // Contagem total com o mesmo WHERE da query de dados
+  const countSql = `SELECT count(*)::int AS total FROM foods WHERE ${whereClause}`;
+  const countResult = await pool.query(countSql, params);
+  const total = Number(countResult.rows[0]?.total ?? 0);
+
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  // Se a página requisitada estiver além do total de páginas (ou total zerado), retorna vazio com meta correto
+  if (total === 0 || page > totalPages) {
+    return {
+      foods: [],
+      meta: {
+        page,
+        pageSize,
+        total,
+        totalPages,
+      },
+      total,
+    };
+  }
+
+  const offset = (page - 1) * pageSize;
+  const dataParams = [...params, pageSize, offset];
+  const limitParam = `$${dataParams.length - 1}`;
+  const offsetParam = `$${dataParams.length}`;
+
   const sql = `
-    SELECT ${ADMIN_FOOD_COLUMNS}, count(*) OVER() AS total_count
+    SELECT ${ADMIN_FOOD_COLUMNS}
     FROM foods
     WHERE ${whereClause}
     ${orderClause}
     LIMIT ${limitParam} OFFSET ${offsetParam}
   `;
 
-  const result = await pool.query(sql, params);
-  const rows = result.rows;
-
-  let total = 0;
-  if (rows.length > 0 && rows[0].total_count) {
-    total = parseInt(rows[0].total_count, 10);
-  } else if (offset > 0) {
-    // Se paginação exceder registros, calcula count isolado
-    const countParams = params.slice(0, paramIdx - 3);
-    const countSql = `SELECT COUNT(*) FROM foods WHERE ${whereClause}`;
-    const countRes = await pool.query(countSql, countParams);
-    total = parseInt(countRes.rows[0].count, 10);
-  }
+  const result = await pool.query(sql, dataParams);
+  const foods = result.rows.map(mapAdminFoodRow);
 
   return {
-    foods: rows.map(mapAdminFoodRow),
+    foods,
+    meta: {
+      page,
+      pageSize,
+      total,
+      totalPages,
+    },
     total,
   };
 }

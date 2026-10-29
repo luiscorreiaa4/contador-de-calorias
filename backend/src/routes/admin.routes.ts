@@ -9,5 +9,6 @@ const router = Router();
 router.use(authenticate, requireAdmin);
 
 router.use('/foods', adminFoodRoutes);
+router.use('/alimentos', adminFoodRoutes);
 
 export default router;

@@ -1,20 +1,26 @@
-import { apiFetch } from './api';
+import { apiFetch, apiFetchWithMeta, type ApiResponseWithMeta } from './api';
 import type {
   AdminCreateFoodDTO,
   AdminUpdateFoodDTO,
-  AdminListFoodsQueryDTO,
+  PaginationMeta,
   Food,
 } from '@caloriesync/shared';
 
-export interface AdminFoodListResponse {
-  foods: Food[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
+export interface AdminFoodListParams {
+  q?: string;
+  search?: string;
+  status?: 'all' | 'active' | 'inactive';
+  page?: number;
+  pageSize?: number;
+  limit?: number;
+  sort?: 'nome' | 'kcal' | 'status' | 'proteins' | 'carbs' | 'fats';
+  order?: 'asc' | 'desc';
 }
+
+export type AdminFoodListResponse = ApiResponseWithMeta<Food[]> & {
+  foods: Food[];
+  pagination: PaginationMeta;
+};
 
 export interface AdminFoodSaveResponse {
   food: Food;
@@ -22,17 +28,31 @@ export interface AdminFoodSaveResponse {
 }
 
 /**
- * Lista alimentos globais para o painel administrativo (B12).
+ * Lista alimentos globais para o painel administrativo com paginação server-side.
  */
-export async function listAdminFoods(query?: AdminListFoodsQueryDTO): Promise<AdminFoodListResponse> {
+export async function listAdminFoods(query?: AdminFoodListParams): Promise<AdminFoodListResponse> {
   const params = new URLSearchParams();
-  if (query?.search) params.append('search', query.search);
+  const searchTerm = query?.q || query?.search;
+  if (searchTerm) params.append('q', searchTerm);
+
   if (query?.status) params.append('status', query.status);
   if (query?.page) params.append('page', String(query.page));
-  if (query?.limit) params.append('limit', String(query.limit));
+
+  const size = query?.pageSize || query?.limit;
+  if (size) params.append('pageSize', String(size));
+
+  if (query?.sort) params.append('sort', query.sort);
+  if (query?.order) params.append('order', query.order);
 
   const qs = params.toString();
-  return apiFetch<AdminFoodListResponse>(`/admin/foods${qs ? `?${qs}` : ''}`);
+  const res = await apiFetchWithMeta<Food[]>(`/admin/foods${qs ? `?${qs}` : ''}`);
+
+  return {
+    data: res.data,
+    meta: res.meta,
+    foods: res.data,
+    pagination: res.meta,
+  };
 }
 
 /**

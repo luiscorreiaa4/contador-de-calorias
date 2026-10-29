@@ -37,3 +37,19 @@ do Node carrega arquivos `.js` sem sintaxe ESM como CommonJS automaticamente
 **Não converta esses arquivos para ESM** — isso violaria D-13. A padronização vale
 apenas para as migrações novas. Caso uma futura migração precise alterar algo criado por
 uma delas, crie uma nova migração.
+
+---
+
+## Migração de Paginação e Busca do Catálogo (D-23)
+
+- **Arquivo:** `1793000000000_add-foods-nome-normalizado-and-pagination-indexes.js`
+- **Formato:** ESM nativo (`export const up/down`).
+- **Objetivo:** Adicionar suporte a buscas e ordenações eficientes sem distinção de acento e caixa no catálogo global de alimentos (`foods`).
+- **Recursos Criados:**
+  - Extensões PostgreSQL `unaccent` e `pg_trgm`.
+  - Função `f_unaccent(text) IMMUTABLE` em schema public.
+  - Coluna gerada `nome_normalizado VARCHAR(255) GENERATED ALWAYS AS (f_unaccent(lower(name))) STORED`.
+  - Índice GIN `idx_foods_nome_normalizado_trgm` com operador `gin_trgm_ops` para aceleração de `ILIKE '%termo%'`.
+  - Índice B-Tree composto `idx_foods_nome_normalizado_id` em `(nome_normalizado, id)` para paginação determinística.
+  - Índice B-Tree `idx_foods_active` na coluna `active`.
+- **Reversibilidade (`down`):** Remove os índices, a coluna gerada, a função wrapper e as extensões em ordem estritamente reversa.

@@ -2,12 +2,53 @@ import { z } from 'zod';
 
 export const adminListFoodsQuerySchema = z.object({
   search: z.string().max(100, 'A busca deve ter no máximo 100 caracteres.').optional(),
-  status: z.enum(['all', 'active', 'inactive']).default('all'),
-  page: z.coerce.number().int().min(1, 'A página deve ser maior ou igual a 1.').default(1),
-  limit: z.coerce.number().int().min(1, 'O limite deve ser no mínimo 1.').max(100, 'O limite máximo é 100.').default(50),
+  q: z.string().max(100, 'A busca deve ter no máximo 100 caracteres.').optional(),
+  status: z.preprocess((val) => {
+    if (!val) return 'all';
+    const s = String(val).toLowerCase();
+    if (s === 'ativo' || s === 'active') return 'active';
+    if (s === 'inativo' || s === 'inactive' || s === 'desativados') return 'inactive';
+    return 'all';
+  }, z.enum(['all', 'active', 'inactive']).default('all')),
+  page: z.preprocess((val) => {
+    if (val === undefined || val === null || val === '') return 1;
+    const num = Number(val);
+    return isNaN(num) ? val : num;
+  }, z.number().int('A página deve ser um número inteiro.').min(1, 'A página deve ser maior ou igual a 1.').default(1)),
+  pageSize: z.preprocess((val) => {
+    if (val === undefined || val === null || val === '') return 25;
+    const parsed = Number(val);
+    if ([25, 50, 100].includes(parsed)) return parsed;
+    return 25;
+  }, z.number().default(25)),
+  limit: z.preprocess((val) => {
+    if (val === undefined || val === null || val === '') return undefined;
+    const parsed = Number(val);
+    if ([25, 50, 100].includes(parsed)) return parsed;
+    return undefined;
+  }, z.number().optional()),
+  sort: z.preprocess((val) => {
+    if (!val) return 'nome';
+    const s = String(val).toLowerCase();
+    if (['nome', 'kcal', 'status', 'proteins', 'carbs', 'fats'].includes(s)) return s;
+    return 'nome';
+  }, z.enum(['nome', 'kcal', 'status', 'proteins', 'carbs', 'fats']).default('nome')),
+  order: z.preprocess((val) => {
+    if (!val) return 'asc';
+    const s = String(val).toLowerCase();
+    if (s === 'desc') return 'desc';
+    return 'asc';
+  }, z.enum(['asc', 'desc']).default('asc')),
 });
 
 export type AdminListFoodsQueryDTO = z.infer<typeof adminListFoodsQuerySchema>;
+
+export interface PaginationMeta {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
 
 export const adminCreateFoodSchema = z.object({
   name: z.string().trim().min(2, 'O nome deve ter no mínimo 2 caracteres.').max(255, 'O nome deve ter no máximo 255 caracteres.'),
@@ -61,7 +102,7 @@ export const adminUpdateFoodSchema = z.object({
   (data) => data.proteins + data.carbs + data.fats <= 100.5,
   {
     message: 'A soma de proteínas, carboidratos e gorduras não pode exceder 100,5 g por 100 g.',
-    path: ['proteins'],
+    path: ['shared/src/schemas/admin-food.schema.ts'],
   }
 );
 

@@ -453,6 +453,18 @@ export async function importCuratedFoods(
           inserted++;
         }
       } else {
+        // Desativa alimentos legados/não-curados com mesmo nome normalizado para satisfazer idx_foods_catalog_unique_name
+        await dbClient.query(
+          `UPDATE foods
+           SET active = false,
+               updated_at = NOW()
+           WHERE active = true
+             AND user_id IS NULL
+             AND f_unaccent(lower(name)) = f_unaccent(lower($1))
+             AND (source IS NULL OR NOT (source = $2 AND external_id = $3))`,
+          [food.name, food.source, extId]
+        );
+
         const query = `
           INSERT INTO foods (
             name, calories, proteins, carbs, fats, base_unit, serving_weight,

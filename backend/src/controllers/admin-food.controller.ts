@@ -11,10 +11,11 @@ import type {
 
 export const list = asyncHandler(async (req: Request, res: Response) => {
   const query = req.query as unknown as AdminListFoodsQueryDTO;
-  const data = await AdminFoodService.list(query);
+  const result = await AdminFoodService.list(query);
   return res.status(200).json({
     success: true,
-    data,
+    data: result.foods,
+    meta: result.meta,
   });
 });
 

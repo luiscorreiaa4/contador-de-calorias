@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../../context/AuthContext';
@@ -54,7 +54,7 @@ export const OnboardingFlow: React.FC = () => {
     handleSubmit,
     trigger,
     setValue,
-    watch,
+    control,
     formState: { errors },
   } = useForm<OnboardingFormInputs>({
     resolver: zodResolver(onboardingFormSchema),
@@ -70,7 +70,7 @@ export const OnboardingFlow: React.FC = () => {
     },
   });
 
-  const formValues = watch();
+  const formValues = useWatch({ control });
 
   const onboardingMutation = useMutation({
     mutationFn: completeUserOnboarding,
@@ -186,7 +186,7 @@ export const OnboardingFlow: React.FC = () => {
             <label htmlFor="onboarding-birth-date" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">DATA DE NASCIMENTO</label>
             <DatePickerInput
               id="onboarding-birth-date"
-              value={formValues.birthDate}
+              value={formValues.birthDate ?? ''}
               onChange={(val) => {
                 setValue('birthDate', val, { shouldValidate: true });
               }}

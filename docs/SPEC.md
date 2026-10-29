@@ -189,7 +189,7 @@ Regras de negócio de saúde aplicadas exclusivamente para geração de metas au
 
 ### RF-007: Painel Administrativo do Catálogo, Curadoria e RBAC (D-22 / B1–B12) [CONFIRMADO]
 - **Endpoints Administrativos (`/api/admin/*`, protegidos por `router.use(authenticate, requireAdmin)`):**
-  - `GET /api/admin/foods?search=&status=all|active|inactive&page=1&limit=50`: Listagem paginada (limit máx 100) com escape de `ILIKE` e filtro de status.
+  - `GET /api/admin/foods` (alias `/api/admin/alimentos`): Listagem paginada (`page`, `pageSize=25|50|100`, `q`/`search`, `status=todos|ativo|inativo`, `sort=nome|kcal|status`, `order=asc|desc`) com ordenação determinística por `id ASC`, escape de `ILIKE` e retorno estruturado `{ data, meta: { page, pageSize, total, totalPages } }`.
   - `POST /api/admin/foods`: Criação de alimento global (`user_id = NULL`), com validação estrita por 100 g/ml (`calories <= 900`, macros `<= 100`, `P+C+G <= 100.5 g`), exigência de `source_ref` oficial auditável e warnings informativos para divergência calórica > 25%.
   - `PUT /api/admin/foods/:id`: Edição de dados nutricionais e apresentação de alimentos globais. Marca `admin_edited_at = NOW()`.
   - `PATCH /api/admin/foods/:id/status`: Alternância de status ativo/inativo (`active: boolean`). Sem rota DELETE de alimentos.

@@ -6,7 +6,7 @@ Aplicação web para acompanhamento nutricional, registro de refeições e anál
 
 - **Diário alimentar:** registro, edição e exclusão de refeições, navegação por datas e lançamentos retroativos.
 - **Organização de refeições:** cópia de refeições ou do dia anterior, alimentos recentes e favoritos, refeições salvas e combos reutilizáveis.
-- **Catálogo de alimentos:** busca sem distinção de acentos ou maiúsculas, ordenação por similaridade e cadastro de alimentos personalizados.
+- **Catálogo de alimentos e administração:** busca sem distinção de acentos ou maiúsculas (`unaccent` + `pg_trgm`), catálogo administrativo com paginação server-side numerada, filtros e ordenação multicamada persistidos na URL, e cadastro de alimentos personalizados.
 - **Metas nutricionais:** cálculo automático a partir dos dados corporais, objetivo e atividade física, com opção de ajuste manual e histórico de vigência.
 - **Evolução:** gráficos de consumo alimentar em períodos de 7 e 30 dias e acompanhamento de peso e gordura corporal.
 - **Conta e privacidade:** confirmação de e-mail no cadastro, recuperação de senha por link, gestão de perfil, alteração de senha, exportação de dados e exclusão da conta.
@@ -224,6 +224,7 @@ O backend segue o fluxo `routes → controllers → services → models`, com SQ
 | Metas | Objetivo e rotina (`/metas/rotina`), calorias e macros (`/metas/diarias`) |
 | Perfil | Dados pessoais (`/perfil`) |
 | Configurações | Notificações, segurança e privacidade (`/configuracoes/...`) |
+| Administração | Catálogo global de alimentos (`/admin/alimentos`, exclusivo para administradores) |
 | Autenticação pública | Login (`/login`), cadastro (`/cadastro`), verificação de e-mail (`/verificar-email`), recuperação (`/esqueci-senha`) e redefinição (`/redefinir-senha`) |
 
 O [guia de navegação](docs/UX_NAVIGATION.md) detalha as responsabilidades das telas e os redirecionamentos de URLs anteriores.
