@@ -567,8 +567,13 @@ export const handlers = [
   // Admin Catalog Handlers (D-22 / B11)
   http.get(`${baseURL}/admin/foods`, ({ request }) => {
     const url = new URL(request.url);
-    const search = url.searchParams.get('search')?.toLowerCase() || '';
+    const search = (url.searchParams.get('q') || url.searchParams.get('search') || '').toLowerCase();
     const status = url.searchParams.get('status') || 'all';
+    const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10));
+    const pageSizeParam = parseInt(url.searchParams.get('pageSize') || url.searchParams.get('limit') || '25', 10);
+    const pageSize = [25, 50, 100].includes(pageSizeParam) ? pageSizeParam : 25;
+    const sort = url.searchParams.get('sort') || 'nome';
+    const order = url.searchParams.get('order') || 'asc';
 
     let filtered = [
       {
@@ -610,7 +615,11 @@ export const handlers = [
     ];
 
     if (search) {
-      filtered = filtered.filter((f) => f.name.toLowerCase().includes(search));
+      filtered = filtered.filter(
+        (f) =>
+          f.name.toLowerCase().includes(search) ||
+          (f.source_ref && f.source_ref.toLowerCase().includes(search))
+      );
     }
 
     if (status === 'active') {
@@ -619,16 +628,31 @@ export const handlers = [
       filtered = filtered.filter((f) => !f.active);
     }
 
+    filtered.sort((a, b) => {
+      let cmp: number;
+      if (sort === 'kcal') {
+        cmp = a.calories - b.calories;
+      } else if (sort === 'status') {
+        cmp = Number(a.active) - Number(b.active);
+      } else {
+        cmp = a.name.localeCompare(b.name);
+      }
+      return order === 'desc' ? -cmp : cmp;
+    });
+
+    const total = filtered.length;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    const start = (page - 1) * pageSize;
+    const foodsPage = page > totalPages ? [] : filtered.slice(start, start + pageSize);
+
     return HttpResponse.json({
       success: true,
-      data: {
-        foods: filtered,
-        pagination: {
-          page: 1,
-          limit: 20,
-          total: filtered.length,
-          totalPages: 1,
-        },
+      data: foodsPage,
+      meta: {
+        page,
+        pageSize,
+        total,
+        totalPages,
       },
     });
   }),

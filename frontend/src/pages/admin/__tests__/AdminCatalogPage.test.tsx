@@ -205,4 +205,60 @@ describe('Painel do Catálogo Global (Admin)', () => {
       await screen.findByText(/desativado do catálogo global/i)
     ).toBeInTheDocument();
   });
+  it('Persiste busca, ordenação e filtros na URL via useSearchParams', async () => {
+    localStorage.setItem('auth_token', 'admin-token');
+    localStorage.setItem('user_session', JSON.stringify(adminUser));
+
+    const { router } = renderApp('/admin/alimentos');
+
+    await screen.findAllByText(/ARROZ BRANCO COZIDO/i);
+
+    const kcalSortBtn = screen.getByRole('button', { name: /Ordenar por Kcal/i });
+    await userEvent.click(kcalSortBtn);
+
+    await waitFor(() => {
+      expect(router.state.location.search).toContain('sort=kcal');
+      expect(router.state.location.search).toContain('order=asc');
+    });
+
+    await userEvent.click(kcalSortBtn);
+    await waitFor(() => {
+      expect(router.state.location.search).toContain('sort=kcal');
+      expect(router.state.location.search).toContain('order=desc');
+    });
+
+    const inactiveTab = screen.getByRole('button', { name: 'DESATIVADOS' });
+    await userEvent.click(inactiveTab);
+
+    await waitFor(() => {
+      expect(router.state.location.search).toContain('status=inactive');
+      expect(router.state.location.search).toContain('page=1');
+    });
+  });
+
+  it('Exibe estado vazio com botão "Limpar Filtros" quando não há resultados', async () => {
+    localStorage.setItem('auth_token', 'admin-token');
+    localStorage.setItem('user_session', JSON.stringify(adminUser));
+
+    const { router } = renderApp('/admin/alimentos');
+
+    await screen.findAllByText(/ARROZ BRANCO COZIDO/i);
+
+    const searchInput = screen.getByPlaceholderText(/BUSCAR POR NOME OU CÓDIGO/i);
+    await userEvent.clear(searchInput);
+    await userEvent.type(searchInput, 'alimento_inexistente_xyz');
+    await userEvent.click(screen.getByRole('button', { name: 'Buscar' }));
+
+    expect(
+      await screen.findByText(/NENHUM ALIMENTO ENCONTRADO PARA "alimento_inexistente_xyz"/i)
+    ).toBeInTheDocument();
+
+    const clearBtns = screen.getAllByRole('button', { name: /Limpar Filtros/i });
+    await userEvent.click(clearBtns[0]);
+
+    await waitFor(() => {
+      expect(router.state.location.search).toContain('status=all');
+      expect(screen.getAllByText(/ARROZ BRANCO COZIDO/i).length).toBeGreaterThan(0);
+    });
+  });
 });

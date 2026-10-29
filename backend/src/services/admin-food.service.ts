@@ -22,12 +22,15 @@ function createError(message: string, statusCode: number, code?: string): Custom
 
 export async function list(query: AdminListFoodsQueryDTO) {
   const page = query.page || 1;
-  const limit = Math.min(Math.max(1, query.limit || 50), 100);
+  const pageSize = query.pageSize || (query.limit && [25, 50, 100].includes(query.limit) ? query.limit : 25);
   return AdminFoodModel.searchCatalogFoods({
     search: query.search,
+    q: query.q,
     status: query.status,
     page,
-    limit,
+    pageSize,
+    sort: query.sort,
+    order: query.order,
   });
 }
 

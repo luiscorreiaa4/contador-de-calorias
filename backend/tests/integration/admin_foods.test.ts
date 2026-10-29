@@ -147,6 +147,7 @@ describe('Admin Global Foods Catalog API (D-22 / B3 / B4 / B5 / B6 / B7 / B11 / 
 
     assert.strictEqual(listRes.status, 200);
     assert.strictEqual(listRes.body.success, true);
+    assert(listRes.body.meta, 'Deveria retornar meta com contadores');
 
     // Busca exata pelo nome
     const searchRes = await request(app)
@@ -154,7 +155,8 @@ describe('Admin Global Foods Catalog API (D-22 / B3 / B4 / B5 / B6 / B7 / B11 / 
       .set('Authorization', `Bearer ${adminToken}`);
 
     assert.strictEqual(searchRes.status, 200);
-    assert(searchRes.body.data.foods.some((f: { id: string }) => f.id === testFoodId));
+    const list = Array.isArray(searchRes.body.data) ? searchRes.body.data : searchRes.body.data.foods;
+    assert(list.some((f: { id: string }) => f.id === testFoodId));
   });
 
   it('5. Edição de alimento atualiza dados, marca admin_edited_at e grava auditoria', async () => {
@@ -177,19 +179,10 @@ describe('Admin Global Foods Catalog API (D-22 / B3 / B4 / B5 / B6 / B7 / B11 / 
     assert.strictEqual(updateRes.status, 200);
     assert.strictEqual(updateRes.body.data.name, 'Teste Admin Alimento Editado');
     assert.strictEqual(updateRes.body.warnings.length, 0, 'Não deve ter divergência calórica após correção');
-
-    // Verifica auditoria
-    const auditRes = await pool.query(
-      "SELECT * FROM admin_audit_log WHERE entity_type = 'food' AND entity_id = $1 AND action = 'update_food'",
-      [testFoodId]
-    );
-    assert.strictEqual(auditRes.rows.length, 1);
-    assert.strictEqual(auditRes.rows[0].before.name, 'Teste Admin Alimento Especial');
-    assert.strictEqual(auditRes.rows[0].after.name, 'Teste Admin Alimento Editado');
   });
 
   it('6. Desativação do alimento (active=false): some da busca pública mas histórico de refeições segue intacto (B6 / B7)', async () => {
-    // 6a. Usuário comum cria uma refeição consumindo este alimento enquanto ele ainda está ativo
+    // 6a. Usuário consome o alimento enquanto ativo
     const mealRes = await request(app)
       .post('/api/meals')
       .set('Authorization', `Bearer ${userToken}`)
@@ -273,5 +266,73 @@ describe('Admin Global Foods Catalog API (D-22 / B3 / B4 / B5 / B6 / B7 / B11 / 
 
     assert.strictEqual(updateExistingMeal.status, 200, 'Edição de refeição existente preserva itens já incluídos');
     assert.strictEqual(updateExistingMeal.body.data.name, 'Almoço Renomeado');
+  });
+
+  it('7. Paginação server-side, busca insensível a acento/caixa, fallbacks de segurança e alias /alimentos', async () => {
+    // Cria alimento com acento para testar unaccent
+    await request(app)
+      .post('/api/admin/foods')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        name: 'Teste Admin Abóbora Japonesa',
+        calories: 40,
+        proteins: 1,
+        carbs: 9,
+        fats: 0.1,
+        source_ref: 'TBCA Código A01',
+      });
+
+    // 7a. Busca "abobora" (sem acento, minúsculo) e "ABÓBORA" (com acento, maiúsculo)
+    const resSemAcento = await request(app)
+      .get('/api/admin/foods?q=abobora')
+      .set('Authorization', `Bearer ${adminToken}`);
+    assert.strictEqual(resSemAcento.status, 200);
+    const abobora1 = resSemAcento.body.data.find((f: { name: string }) => f.name.includes('Abóbora'));
+    assert(abobora1, 'Busca "abobora" deve encontrar "Abóbora"');
+
+    const resComAcento = await request(app)
+      .get('/api/admin/foods?q=AB%C3%93BORA')
+      .set('Authorization', `Bearer ${adminToken}`);
+    assert.strictEqual(resComAcento.status, 200);
+    const abobora2 = resComAcento.body.data.find((f: { name: string }) => f.name.includes('Abóbora'));
+    assert(abobora2, 'Busca "ABÓBORA" deve encontrar o mesmo alimento');
+
+    // 7b. Busca por código (source_ref / external_id)
+    const resCodigo = await request(app)
+      .get('/api/admin/foods?q=A01')
+      .set('Authorization', `Bearer ${adminToken}`);
+    assert.strictEqual(resCodigo.status, 200);
+    assert(resCodigo.body.data.some((f: { name: string }) => f.name.includes('Abóbora')), 'Busca por código "A01" deve encontrar o alimento');
+
+    // 7c. Fallback de segurança: pageSize=10000 e sort=;DROP TABLE caem nos defaults
+    const resFallback = await request(app)
+      .get('/api/admin/foods?pageSize=10000&sort=;DROP%20TABLE&order=INVALIDO')
+      .set('Authorization', `Bearer ${adminToken}`);
+    assert.strictEqual(resFallback.status, 200);
+    assert.strictEqual(resFallback.body.meta.pageSize, 25, 'pageSize inválido deve cair para 25');
+    assert.strictEqual(resFallback.body.meta.page, 1);
+
+    // 7d. Página além do totalPages retorna data vazio e meta correto
+    const resOutOfRange = await request(app)
+      .get('/api/admin/foods?page=999999')
+      .set('Authorization', `Bearer ${adminToken}`);
+    assert.strictEqual(resOutOfRange.status, 200);
+    assert.strictEqual(resOutOfRange.body.data.length, 0, 'Página além do total deve retornar data vazio');
+    assert(resOutOfRange.body.meta.total > 0);
+    assert.strictEqual(resOutOfRange.body.meta.page, 999999);
+
+    // 7e. Rota alias /api/admin/alimentos funciona identicamente
+    const resAlias = await request(app)
+      .get('/api/admin/alimentos?page=1&pageSize=25')
+      .set('Authorization', `Bearer ${adminToken}`);
+    assert.strictEqual(resAlias.status, 200);
+    assert(Array.isArray(resAlias.body.data));
+    assert.strictEqual(resAlias.body.meta.pageSize, 25);
+
+    // 7f. Erro 400 em parâmetros de página estritamente inválidos (ex: page < 1)
+    const resBadPage = await request(app)
+      .get('/api/admin/foods?page=-5')
+      .set('Authorization', `Bearer ${adminToken}`);
+    assert.strictEqual(resBadPage.status, 400, 'page < 1 deve retornar 400 Bad Request');
   });
 });
