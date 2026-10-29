@@ -135,3 +135,65 @@ Para ambientes de produção:
    - O usuário da aplicação **NÃO deve ter privilégios de superusuário (superuser)** nem permissões de DDL (`CREATE TABLE`, `DROP TABLE`, `ALTER TABLE`).
 2. **Execução de Migrações Isolada:**
    - As migrações (`node-pg-migrate`) devem ser executadas em etapa isolada de pipeline de implantação (CI/CD) utilizando credenciais de banco separadas com permissão de DDL.
+
+---
+
+## 7. Paginação Server-side e Busca no Catálogo (`/admin/alimentos`)
+
+O painel de catálogo global (`/admin/alimentos` ou `/admin/catalogo`) conta com paginação server-side numerada completa e busca avançada para suportar bases volumosas (milhares de alimentos TACO, TBCA e rótulos oficiais):
+
+### 7.1 Endpoints Administrativos Paginações
+- **Rotas:** `GET /api/admin/foods` (com alias `GET /api/admin/alimentos`).
+- **Autenticação:** Protegida pelo middleware raiz `router.use(authenticate, requireAdmin)`.
+- **Parâmetros aceitos (Query String):**
+  - `page`: Número da página (inteiro $\ge$ 1, default `1`).
+  - `pageSize` (ou `limit`): Quantidade de itens por página. Aceita apenas `25`, `50` ou `100` (default `25`); qualquer outro valor aplica o fallback seguro `25`.
+  - `q` (ou `search`): Termo de busca por nome ou código (`external_id`/`source_ref`), insensível a maiúsculas e acentos.
+  - `status`: Filtro por estado do alimento (`todos`, `ativo`, `inativo` ou sinônimos em inglês `all`, `active`, `inactive`; default `todos`).
+  - `sort`: Coluna de ordenação validada por whitelist estrita (`nome` -> `nome_normalizado`, `kcal` -> `calories`, `status` -> `active`). Valores não reconhecidos usam fallback para `nome`.
+  - `order`: Direção da ordenação (`asc` ou `desc`, default `asc`).
+
+### 7.2 Formato da Resposta da API
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "name": "Arroz, integral, cozido",
+      "calories": 124,
+      "proteins": 2.6,
+      "carbs": 25.8,
+      "fats": 1.0,
+      "serving_size": 100,
+      "serving_unit": "g",
+      "active": true,
+      "source": "taco"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "pageSize": 25,
+    "total": 3412,
+    "totalPages": 137
+  }
+}
+```
+
+### 7.3 Índices e Otimizações de Banco (PostgreSQL)
+A migração `1793000000000_add-foods-nome-normalizado-and-pagination-indexes.js` adiciona:
+1. **Extensões:** `unaccent` e `pg_trgm`.
+2. **Função Imutável:** `f_unaccent(text) IMMUTABLE` como wrapper em torno de `public.unaccent('public.unaccent', $1)`.
+3. **Coluna Gerada Armazenada:** `nome_normalizado VARCHAR(255) GENERATED ALWAYS AS (f_unaccent(lower(name))) STORED`.
+4. **Índices de Performance:**
+   - `idx_foods_nome_normalizado_trgm`: Índice GIN com classe de operador `gin_trgm_ops` para acelerar consultas parciais com `ILIKE '%termo%'`.
+   - `idx_foods_nome_normalizado_id`: Índice B-Tree composto para ordenação alfabética rápida com desempate determinístico por `id ASC`.
+   - `idx_foods_active`: Índice B-Tree na coluna `active` para aceleração de filtros por status.
+
+### 7.4 Persistência de Estado na URL e Experiência do Usuário (Frontend)
+- **Single Source of Truth:** O estado da tabela (`page`, `pageSize`, `q`, `status`, `sort`, `order`) reside na query string da URL via `useSearchParams` do React Router 7.
+- **Navegação Sem Perda:** F5, links compartilhados, botões voltar/avançar e retorno após edição de item preservam fielmente a página e os filtros exatos do operador.
+- **Debounce:** O campo de busca conta com debounce automático de 300 ms, além de acionamento imediato por tecla `Enter` ou clique em "Buscar".
+- **Resets Inteligentes:** Alterar o termo de busca, filtro de status, coluna de ordenação ou tamanho de página redefine automaticamente a página para `1`.
+- **TanStack Query & Prefetching:** Utiliza `placeholderData: keepPreviousData` (evitando telas piscando) e realiza prefetch automático em segundo plano da próxima página.
+- **Acessibilidade & Mobile:** Componente `Pagination` com marcação semântica `<nav aria-label="Paginação">`, atributos `aria-current="page"`, janelamento com reticências no desktop e modo compacto para visualização em telas móveis.

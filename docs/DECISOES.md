@@ -166,3 +166,24 @@ Todas as rotas sob `/api/admin/*` são protegidas por guarda no roteador raiz: `
 ### B12 — Whitelist estrita de campos e validação por 100 g
 Campos permitidos na escrita são rigorosamente filtrados por schemas Zod dedicados. `source`, `user_id` e `active` na criação são controlados pelo servidor. Paginação com limite máximo 100, busca textual com escape de caracteres especiais do ILIKE (`%`, `_`, `\`). Validação dura de valores por 100 g: valores não negativos, kcal ≤ 900, cada macro ≤ 100 g, P+C+G ≤ 100,5 g. Divergência calórica (> 25%) emite alertas (*warnings*) na resposta sem bloquear o salvamento.
 
+---
+
+## D-23 — Paginação server-side e normalização de busca do catálogo administrativo
+
+Aprovada para solucionar a limitação de 20 registros fixos do painel administrativo, garantindo navegabilidade completa sobre milhares de alimentos (TACO, TBCA e rótulos oficiais).
+
+### C1 — Coluna gerada armazenada com wrapper unaccent IMMUTABLE
+Como a função nativa `unaccent()` do PostgreSQL é `STABLE` (depende do search path / collation), ela não pode ser usada diretamente em colunas geradas ou índices. A migração cria o wrapper seguro `f_unaccent(text) IMMUTABLE` chamando explicitamente `public.unaccent('public.unaccent', $1)`. Em vez de índices puramente funcionais, adotou-se a coluna gerada `nome_normalizado VARCHAR(255) GENERATED ALWAYS AS (f_unaccent(lower(name))) STORED`. Essa abordagem:
+- Elimina o recálculo de normalização durante leituras e varreduras sequenciais;
+- Permite a criação direta de índice GIN (`gin_trgm_ops`) para busca rápida de subsequências (`ILIKE '%termo%'`);
+- Permite índice B-Tree composto `(nome_normalizado, id)` para ordenação alfabética rápida e desempate determinístico.
+
+### C2 — Separação de consultas COUNT e SELECT
+A contagem total de registros filtrados e a busca da página usam queries separadas com a mesma cláusula `WHERE` e parâmetros idênticos. Não foi utilizado `COUNT(*) OVER()` porque este retorna 0 linhas quando a página solicitada for maior que o total de páginas existentes (`page > totalPages`), o que perderia os metadados de paginação e impediria a correção automática pelo cliente.
+
+### C3 — Desempate determinístico de ordenação
+Toda cláusula `ORDER BY` inclui desempate por chave primária (`id ASC`). Isso garante que os registros permaneçam ordenados de forma estritamente determinística entre páginas, impedindo que alimentos apareçam duplicados ou sejam omitidos durante a navegação paginada.
+
+### C4 — Estado na URL como única fonte de verdade
+Todos os parâmetros de navegação (`page`, `pageSize`, `q`, `status`, `sort`, `order`) são persistidos na query string via `useSearchParams` do React Router 7. Qualquer mutação de filtros, busca ou ordenação redefine a página para 1. A navegação preserva o contexto no recarregamento da página (F5), histórico de navegação (voltar/avançar) e ao retornar do modal/tela de edição de alimento.
+
