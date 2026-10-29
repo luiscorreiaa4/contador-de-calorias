@@ -569,13 +569,11 @@ Principal fonte: **TBCA v7.2** (USP / FoRC). *176 preparações e lanches tradic
 
 Feijoada (tradicional completa, vegetariana, frutos do mar) · Strogonoff (frango, carne, camarão) · Lasanha (bolonhesa, quatro queijos, frango, berinjela, abobrinha, legumes) · Macarronada (bolonhesa, alho e óleo, molho branco, frango, calabresa, parisiense, integral) · Arroz com feijão (mistura 50/50 prato feito e pratos comerciais) · Baião de dois · Escondidinho (charque com mandioca, frango) · Moqueca (camarão, frutos do mar) · Vatapá · Acarajé · Pão de queijo · Coxinha · Pastel (carne frito, queijo frito, forno carne, forno queijo, frango requeijão, palmito requeijão) · Esfirra (carne, frango, ricota, catupiry, muçarela) · Empada (frango, queijo minas, carne, camarão) · Empadão de frango · Quibe / Kibe (frito, assado, cru, com abóbora, lentilha) · Hambúrguer e Sanduíches (misto-quente tradicional/integral, bauru, cheeseburguer, x-salada, x-egg, x-bacon, fast food) · Cachorro-quente (simples, completo prensado, molho/batata palha) · Wrap de frango · Crepes · Pizzas (fatias: muçarela, calabresa, frango com requeijão, 4 queijos, portuguesa, marguerita, pepperoni, atum, lombo, rúcula com tomate seco, brigadeiro, banana) · Açaí na tigela com xarope de guaraná · Tapioca (com manteiga, queijo coalho com charque, doce de coco com leite condensado) · Cuscuz (paulista, de tapioca doce, com legumes) · Pamonha (salgada com queijo, doce com coco) · Canjica / Munguzá · Curau de milho verde · Bolos caseiros (trigo simples, fubá, cenoura com chocolate, chocolate com brigadeiro, coco, milho, laranja, mandioca/aipim, abacaxi, chocotone) · Tortas doces e mousses (chocolate, limão, maracujá) · Doces tradicionais (brigadeiro enrolado, beijinho, pudim de leite, pudim de pão, cocada branca, quindim, churros, sonho, bomba, pão de mel, petit gâteau) · Sorvetes e gelados (sorvete de massa, sundae, casquinha, milk-shake).
 
-### Fase 3 – Marcas e fitness
+### Fase 3 – Marcas e fitness (+110 itens) [CONCLUÍDA]
 
-Fonte: **rótulos** (ou Open Food Facts, atento à licença).
+Principal fonte: **Rótulos oficiais de fabricantes (ANVISA)** convertidos de porção para 100 g / 100 ml (`valor_100g = valor_porcao × 100 / peso_porcao`). *114 produtos de marcas e suplementos fitness mapeados em `build-curated-phase3.ts` (113 novos + Whey Growth original), totalizando 432 alimentos na base curada.*
 
-Wheys populares · Iogurtes proteicos · Barrinhas de proteína · Pasta de
-amendoim de marcas · Pães de forma de marcas · Creatina (0 kcal, mas usuários
-procuram) · Bebidas proteicas prontas
+Wheys e proteínas em pó (Growth Concentrado 80% / Isolado 90% / Medium / Soy / Blend Vegan / Albumina, Max Titanium 100% Whey / Top Whey 3W / IsoWhey / Mass Titanium, Integralmédica Whey 100% Pure / Iso Triple Zero / Nutri Whey, Dux Concentrado / Isolado / FreshWhey, Probiótica 100% Pure Whey, Optimum Nutrition Gold Standard, Essential Nutrition Cacao/Vanilla Whey) · Creatina e suplementos de treino (Creatina Monohidratada 0 kcal Growth / Max Titanium / Integralmédica / Dux, L-Glutamina, BCAA 2:1:1, Beta-Alanina, Pré-treinos Hórus e Évora PW, Maltodextrina, Palatinose, SuperCoffee Caffeine Army) · Iogurtes proteicos e lácteos fitness (YoPRO Colher 15g e 23g, Verde Campo Natural Whey Colher 14g e Queijo Cottage LacFree, Vigor Grego Protein e Tradicional, Yorgus Grego Zero 14g, Itambé PRO Colher 15g, Nestlé Natural Desnatado 2 Ingredientes e Molico Triplo Zero, Danone Activia Zero, Creme de Ricota Light Tirolez, Requeijão Light Vigor, Polenguinho Light Pocket, Mini Babybel) · Bebidas proteicas prontas e funcionais (YoPRO UHT 15g Chocolate, 15g Morango/Baunilha e 25g, Piracanjuba ProForce 15g e 23g, Itambé PRO 15g, Parmalat WheyFit 15g, Verde Campo Natural Whey Shake 14g e 21g, Nescau Protein 15g, Bebidas vegetais Silk Amêndoas Zero e Nude Aveia, Monster Energy Ultra Zero, Red Bull Sugarfree e Tradicional, Gatorade, Coca-Cola Zero e Guaraná Antarctica Zero) · Barrinhas de proteína e snacks (Bold Bar 20g e Bold Thin 12g, Growth Protein Bar, Integralmédica Crisp Bar / Protein Crisp / Darkness Whey Bar 26g, Max Titanium Top Whey Bar / Power Protein Bar, Nutrata Whey Grego Bar / Protobar 20g, Trio Protein, Nutry Barra de Nuts e Cereal) · Pastas de amendoim de marcas e doces fitness (Growth Integral, Dr. Peanut com Whey Avelã / Leite em Pó / Bueníssimo, Mandubim Integral, Power One Integral, Paçoquita Zero Santa Helena, Nutella Ferrero, Doce de Leite Zero Flormel, Geleia 100% Fruta Zero Queensberry, Chocolate 70% Cacau Lacta/Arcor) · Pães de forma de marcas, wraps, torradas e cereais (Pullman 100% Nutrição Integral / Tradicional / Artesano Tradicional e Integral / Pão Sírio Integral, Wickbold Grão Sabor Castanha-do-Pará e Quinoa / 100% Integral / 5 Zeros, Bauducco Integral e Torrada Multigrãos, Rap10 Tradicional / Integral / Fit, Torrada Magic Toast Marilan, Biscoito de Arroz Integral Camil, BelVita Leite e Aveia, Aveia Flocos Finos Quaker, Granola Mãe Terra, Goma de Tapioca Da Terrinha) · Condimentos, molhos light e proteínas práticas (Maionese Hellmann´s Light e Tradicional, Ketchup e Mostarda Heinz, Atum Sólido ao Natural em Água Gomes da Costa, Peito de Peru Defumado Light e Presunto Magro Sadia).
 
 ### Fase 4 – Contínua
 
@@ -593,20 +591,20 @@ procuram) · Bebidas proteicas prontas
 - [x] Decidi se vou ou não usar Open Food Facts (licença ODbL).
 
 ### Curadoria
-- [x] Lista da Fase 1 mapeada em `curadoria.csv` e `build-curated-phase1.ts`.
-- [x] Cada item tem **um** código de fonte escolhido (`taco-<id>`, `tbca-<codigo>`, `growth-...`).
-- [x] Nomes curtos, preparo no final, sinônimos entre parênteses.
-- [x] `unit_weight` vindo do IBGE e tabelas oficiais (com referência anotada).
+- [x] Lista das Fases 1, 2 e 3 mapeada em `build-curated-phase1.ts`, `build-curated-phase2.ts` e `build-curated-phase3.ts`.
+- [x] Cada item tem **um** código de fonte escolhido (`taco-<id>`, `tbca-<codigo>`, `<marca>-<produto>`).
+- [x] Nomes curtos, preparo no final, sinônimos e marcas entre parênteses.
+- [x] `unit_weight` vindo do IBGE, tabelas oficiais e porções de rótulos (com referência anotada).
 
 ### Geração
-- [x] Scripts rodam sem erros (`build-curated-phase1.ts`, `download-tbca.ts`, `build-curated-phase2.ts`).
+- [x] Scripts rodam sem erros (`build-curated-phase1.ts`, `download-tbca.ts`, `build-curated-phase2.ts`, `build-curated-phase3.ts`).
 - [x] Todas as validações da seção 7 passaram (Atwater conferido, soma de macros <= 100.5, sem duplicatas).
-- [x] Base ampliada para 319 alimentos canônicos auditáveis.
+- [x] Base ampliada para 432 alimentos canônicos auditáveis (142 TACO + 176 TBCA + 114 Rótulos/Fitness).
 
 ### Banco e app
-- [x] Importação por upsert em `external_id` via `npm run catalog:import-curated -- data/curated-foods.json --apply`.
+- [x] Importação por upsert em `external_id` via `npm run catalog:import-curated -- --apply data/curated-foods.json`.
 - [x] Testado em ambiente de desenvolvimento (PostgreSQL com auditoria atômica).
-- [x] Busca testada com: "arroz", "feijao", "macaxeira", "pao", "frango", "ovo", "feijoada", "strogonoff", "lasanha", "coxinha", "pizza", "hamburguer".
+- [x] Busca testada com: "arroz", "feijao", "macaxeira", "pao", "frango", "ovo", "feijoada", "strogonoff", "lasanha", "coxinha", "pizza", "hamburguer", "whey", "yopro", "creatina", "bold", "dr. peanut", "wickbold", "rap10", "cottage", "proforce", "nutella", "supercoffee".
 - [ ] Tela "Sobre" / créditos com as fontes (TACO, IBGE, USDA, TBCA, OFF, conforme
       o que foi usado).
 
