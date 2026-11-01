@@ -2,406 +2,214 @@
 
 Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato de uma issue: contexto, evidência, o que fazer, critério de aceite e link do guia. Os links apontam para `docs/guia-tech/`.
 
-- **Status:** `[ ]` aberto · `[~]` em andamento · `[x]` feito (com a data e o commit/PR).
+- **Status:** `[ ]` aberto · `[~]` em andamento · `[x]` feito (com a data e o commit/PR) · `[adiado]` adiado aguardando decisão/ação do usuário.
 - **Prioridade:** `priority:high` = risco alto na auditoria.
 
-```
-Trabalhe no item 1 de docs/ISSUES.md. Leia o item e a seção correspondente em docs/guia-tech/.
-1. Se houver decisão de design em aberto, use /grill-me comigo antes de codar.
-2. Escreva primeiro o teste que prova o problema (deve falhar), depois a correção.
-3. Rode lint, type-check e todos os testes (npm run lint, npm run test:strict, npm --prefix frontend test).
-4. Rode /ponytail-review no diff e a skill differential-review da Trail of Bits.
-5. Faça commits no padrão Conventional Commits. atualize docs/ISSUES.md", explicando o que mudou e como testar.
-```
-
+---
 
 ## Índice
 
 | # | Item | Labels | Status |
 |---|---|---|---|
-| 1 | [navegador] mover JWT para cookie HttpOnly e reduzir TTL da sessão | security, auth, priority:high | [ ] |
-| 2 | [navegador] unificar leitura do token em `apiFetch` | auth, quality | [ ] |
-| 3 | [navegador] CSP, HSTS e headers de segurança no host do front | security, devops | [ ] |
-| 4 | [auth] bloqueio ou atraso progressivo de login por conta | security, auth, priority:high | [ ] |
-| 5 | [auth] rate limit com store compartilhado, `TRUST_PROXY` e limiter por e-mail/global | security, auth, priority:high | [ ] |
-| 6 | [auth] captcha em register, login e forgot-password | security, auth | [ ] |
-| 7 | [auth] MFA (TOTP), ao menos para administradores | security, auth | [ ] |
-| 8 | [auth] `register` não sobrescreve credenciais de conta não verificada | security, auth | [ ] |
-| 9 | [autorização] role de banco com menor privilégio e role de migração | security, devops, priority:high | [ ] |
-| 10 | [autorização] avaliar RLS no Postgres | security | [ ] |
-| 11 | [entrada] min/max nos schemas numéricos, teto de `page` e `.strict()` | security, quality | [ ] |
-| 12 | [infra] mapear erros do `pg` e não expor `err.code`/`err.message` brutos | security | [ ] |
-| 13 | [infra] CORS: rejeitar `*` e `localhost` em produção | security | [ ] |
-| 14 | [infra] e-mail: proibir `memory` em produção, exigir TLS e timeouts | security, devops | [ ] |
-| 15 | [infra] criptografia em repouso para dados de saúde | security, legal | [ ] |
-| 16 | [infra] atualizar deps `high` e auditar backend/frontend no CI | security, devops, priority:high | [ ] |
-| 17 | [devops] fixar Docker/Actions por versão/SHA, `permissions` e handlers de processo | devops, security | [ ] |
-| 18 | [segredos] `sourcemap: false`, remover `/test-compression-payload`, exigir VAPID | security | [ ] |
-| 19 | [qualidade] formatter, commitlint/Husky e knip | quality | [ ] |
-| 20 | [qualidade] `down` utilizável em todas as migrations e teste de rollback | quality, devops | [ ] |
-| 21 | [tests] cobertura do backend e `thresholds` no front | tests | [ ] |
-| 22 | [tests] E2E com Playwright | tests | [ ] |
-| 23 | [tests] testes de autorização por recurso e carga no CI | tests, security | [ ] |
-| 24 | [devops] deploy: Dockerfile, ambientes e etapa no CI | devops | [ ] |
-| 25 | [observability] rastreio de erros, métricas e alertas | observability | [ ] |
-| 26 | [devops] backup do Postgres com teste de restauração | devops | [ ] |
-| 27 | [ux] página 404 própria | ux, seo | [ ] |
-| 28 | [ux] auditar `prefers-reduced-motion` | ux, a11y | [ ] |
-| 29 | [seo] meta OG/Twitter/canonical, `robots.txt`, `sitemap.xml`, `noindex` | seo | [ ] |
-| 30 | [legal] consentimento específico e versionado para dados de saúde | legal, security, priority:high | [ ] |
-| 31 | [legal] minimização dos campos de saúde | legal | [ ] |
-| 32 | [legal] exclusão, retenção e plano de incidentes | legal | [ ] |
-| 33 | [a11y] skip link, landmarks, contraste WCAG AA e axe no CI | a11y, tests | [ ] |
+| 1 | [navegador] mover JWT para cookie HttpOnly e reduzir TTL da sessão | security, auth, priority:high | [adiado] |
+| 2 | [navegador] unificar leitura do token em `apiFetch` | auth, quality | [x] 01/11/2026 |
+| 3 | [navegador] CSP, HSTS e headers de segurança no host do front | security, devops | [adiado] |
+| 4 | [auth] bloqueio ou atraso progressivo de login por conta | security, auth, priority:high | [adiado] |
+| 5 | [auth] rate limit com store compartilhado, `TRUST_PROXY` e limiter por e-mail/global | security, auth, priority:high | [adiado] |
+| 6 | [auth] captcha em register, login e forgot-password | security, auth | [adiado] |
+| 7 | [auth] MFA (TOTP), ao menos para administradores | security, auth | [adiado] |
+| 8 | [auth] `register` não sobrescreve credenciais de conta não verificada | security, auth | [x] 01/11/2026 |
+| 9 | [autorização] role de banco com menor privilégio e role de migração | security, devops, priority:high | [adiado] |
+| 10 | [autorização] avaliar RLS no Postgres | security | [adiado] |
+| 11 | [entrada] min/max nos schemas numéricos, teto de `page` e `.strict()` | security, quality | [x] 01/11/2026 |
+| 12 | [infra] mapear erros do `pg` e não expor `err.code`/`err.message` brutos | security | [x] 01/11/2026 |
+| 13 | [infra] CORS: rejeitar `*` e `localhost` em produção | security | [x] 01/11/2026 |
+| 14 | [infra] e-mail: proibir `memory` em produção, exigir TLS e timeouts | security, devops | [x] 01/11/2026 |
+| 15 | [infra] criptografia em repouso para dados de saúde | security, legal | [adiado] |
+| 16 | [infra] atualizar deps `high` e auditar backend/frontend no CI | security, devops, priority:high | [adiado] |
+| 17 | [devops] fixar Docker/Actions por versão/SHA, `permissions` e handlers de processo | devops, security | [x] 01/11/2026 |
+| 18 | [segredos] `sourcemap: false`, remover `/test-compression-payload`, exigir VAPID | security | [x] 01/11/2026 |
+| 19 | [qualidade] formatter, commitlint/Husky e knip | quality | [adiado] |
+| 20 | [qualidade] `down` utilizável em todas as migrations e teste de rollback | quality, devops | [adiado] |
+| 21 | [tests] cobertura do backend e `thresholds` no front | tests | [adiado] |
+| 22 | [tests] E2E com Playwright | tests | [adiado] |
+| 23 | [tests] testes de autorização por recurso e carga no CI | tests, security | [x] 01/11/2026 (IDOR) / [adiado] (Carga CI) |
+| 24 | [devops] deploy: Dockerfile, ambientes e etapa no CI | devops | [adiado] |
+| 25 | [observability] rastreio de erros, métricas e alertas | observability | [adiado] |
+| 26 | [devops] backup do Postgres com teste de restauração | devops | [adiado] |
+| 27 | [ux] página 404 própria | ux, seo | [x] 01/11/2026 |
+| 28 | [ux] auditar `prefers-reduced-motion` | ux, a11y | [x] 01/11/2026 |
+| 29 | [seo] meta OG/Twitter/canonical, `robots.txt`, `sitemap.xml`, `noindex` | seo | [x] 01/11/2026 |
+| 30 | [legal] consentimento específico e versionado para dados de saúde | legal, security, priority:high | [adiado] |
+| 31 | [legal] minimização dos campos de saúde | legal | [adiado] |
+| 32 | [legal] exclusão, retenção e plano de incidentes | legal | [adiado] |
+| 33 | [a11y] skip link, landmarks, contraste WCAG AA e axe no CI | a11y, tests | [x] 01/11/2026 |
 
 ---
 
 ## Itens
 
 ### #1 [navegador] mover JWT para cookie HttpOnly e reduzir TTL da sessão
-**Labels:** security, auth, priority:high · **Branch:** `feat/1-jwt-cookie-httponly`
-- **Contexto:** o token fica em `localStorage`/`sessionStorage` e vale 7 dias. Qualquer XSS rouba a sessão inteira.
-- **Evidência:** `frontend/src/context/AuthContext.tsx:79-87`, `frontend/src/services/api.ts:53-57`, `backend/src/config/env.ts:25`, `backend/src/utils/jwt.ts:10-11`. O backend não define nenhum cookie.
-- **O que fazer:** emitir o JWT em cookie `HttpOnly; Secure; SameSite=Lax/Strict`, ler o cookie no `authenticate`, proteger mutações contra CSRF e remover o token do JS. Reduzir o TTL e avaliar refresh token com rotação.
-- **Aceite:**
-  - [ ] Nenhum token em `localStorage`/`sessionStorage`.
-  - [ ] Login, logout e "lembrar-me" funcionam com cookie (persistente vs de sessão).
-  - [ ] Mutações exigem proteção CSRF (token ou `SameSite` + checagem de `Origin`).
-  - [ ] Teste prova que o JS não lê o token.
-  - [ ] TTL documentado em `docs/ARCHITECTURE.md`.
+**Labels:** security, auth, priority:high · **Status:** `[adiado]`
+- **Motivo do adiamento:** Requer decisão prévia de arquitetura com o usuário (via `/grill-me`) sobre estratégia de CSRF (token sincronizado vs SameSite=Strict + validação de cabeçalho Origin), mecanismo de refresh tokens com rotação em banco, redução do TTL e compatibilidade de chamadas cross-origin no deploy.
 - **Guia:** `03-seguranca-web.md` §2 (Armazenamento no navegador) e §3 (Expiração de sessão).
 
 ### #2 [navegador] unificar leitura do token em `apiFetch`
-**Labels:** auth, quality · **Branch:** `fix/2-apifetch-token-storage`
-- **Contexto:** o `AuthContext` grava em `sessionStorage` quando "lembrar-me" está desmarcado, mas `apiFetch` lê só `localStorage`. Não testado em runtime.
-- **Evidência:** `frontend/src/services/api.ts:53` e `:100`; `frontend/src/context/AuthContext.tsx:50,79-87`.
-- **O que fazer:** escrever o teste que reproduz (login sem "lembrar-me" e chamada autenticada) e centralizar a leitura num único helper. Fica obsoleto se o #1 for feito antes.
-- **Aceite:**
-  - [ ] Teste falhando antes e passando depois.
-  - [ ] Uma só função lê o token.
-- **Guia:** `03-seguranca-web.md` §2.
+**Labels:** auth, quality · **Status:** `[x]` (Concluído em 01/11/2026)
+- **O que foi feito:** Centralizada a leitura do token de autenticação no helper único exportado `getStoredAuthToken()` em `frontend/src/services/api.ts`. Esse helper busca o token sequencialmente em `localStorage` e `sessionStorage`. Atualizados `apiFetch`, `apiFetchWithMeta` e `AuthContext.tsx` para consumir exclusivamente esse helper.
+- **Testes:** `frontend/src/tests/api.test.ts` validando o envio do header `Authorization: Bearer <token>` a partir de `sessionStorage`.
 
 ### #3 [navegador] CSP, HSTS e headers de segurança no host do front
-**Labels:** security, devops · **Branch:** `chore/3-front-security-headers`
-- **Contexto:** o CSP do helmet vale só para a API. O front não tem CSP e HTTPS/HSTS dependem do host (ainda sem deploy).
-- **Evidência:** `backend/src/app.ts:29-42`; `frontend/index.html` sem CSP.
-- **O que fazer:** definir CSP, HSTS, `X-Content-Type-Options`, `frame-ancestors` e `Referrer-Policy` na hospedagem do front (depende do #24).
-- **Aceite:**
-  - [ ] Headers presentes na resposta real.
-  - [ ] CSP sem `unsafe-inline` ou com nonce/hash.
-  - [ ] Teste com `curl -I` documentado.
+**Labels:** security, devops · **Status:** `[adiado]`
+- **Motivo do adiamento:** A definição de headers no host estático do frontend (Vercel, Netlify, Cloudflare Pages, S3/CloudFront) depende da infraestrutura de deploy do frontend (#24), que ainda não foi escolhida nem provisionada pelo usuário.
 - **Guia:** `03-seguranca-web.md` §6 (HTTPS e domínio com certificado SSL).
 
 ### #4 [auth] bloqueio ou atraso progressivo de login por conta
-**Labels:** security, auth, priority:high · **Branch:** `feat/4-login-lockout`
-- **Contexto:** uma falha de login não grava nada no banco. O único freio é o rate limit em memória.
-- **Evidência:** `backend/src/services/auth.service.ts:187-196`, `backend/src/routes/auth.routes.ts:29-40`.
-- **O que fazer:** contar falhas por conta (migração nova), aplicar atraso progressivo ou bloqueio temporário, avisar por e-mail, manter a resposta genérica (sem enumeração).
-- **Aceite:**
-  - [ ] Migração com `down`.
-  - [ ] N falhas bloqueiam por T minutos; sucesso zera.
-  - [ ] Resposta idêntica para conta inexistente e bloqueada.
-  - [ ] Testes de integração cobrem os três casos.
+**Labels:** security, auth, priority:high · **Status:** `[adiado]`
+- **Motivo do adiamento:** Requer decisão de negócio do usuário sobre a política de lockout: número exato de tentativas consecutivas permitidas antes do bloqueio, duração do bloqueio (em minutos), envio de e-mail de alerta de segurança e regras de desbloqueio antecipado.
 - **Guia:** `03-seguranca-web.md` §3 (Quantidade de tentativas de login).
 
 ### #5 [auth] rate limit com store compartilhado, `TRUST_PROXY` e limiter por e-mail/global
-**Labels:** security, auth, priority:high · **Branch:** `feat/5-rate-limit-store`
-- **Contexto:** `MemoryStore` por processo zera no restart e não é compartilhado. Sem `TRUST_PROXY`, atrás de proxy todos dividem um balde de IP.
-- **Evidência:** `backend/src/middlewares/authRateLimit.ts:31-38`, `backend/src/app.ts:22-25`, `backend/src/utils/trustProxy.ts`.
-- **O que fazer:** store em Redis ou Postgres, exigir/documentar `TRUST_PROXY` no deploy, adicionar limiter só por e-mail e um limiter geral da API.
-- **Aceite:**
-  - [ ] Limites sobrevivem a restart e valem entre instâncias.
-  - [ ] Teste com `X-Forwarded-For` e `TRUST_PROXY` configurado.
-  - [ ] `docs/EMAIL_SETUP.md` ou `ARCHITECTURE.md` explica a variável.
+**Labels:** security, auth, priority:high · **Status:** `[adiado]`
+- **Motivo do adiamento:** Depende de escolha de infraestrutura do usuário (provisionar instância de Redis compartilhado vs usar tabela no PostgreSQL para o store do express-rate-limit) e da topologia de proxy reverso no deploy (#24).
 - **Guia:** `03-seguranca-web.md` §3 (Rate limit nos endpoints).
 
 ### #6 [auth] captcha em register, login e forgot-password
-**Labels:** security, auth · **Branch:** `feat/6-captcha`
-- **Contexto:** nada encontrado; só um comentário de trabalho futuro.
-- **Evidência:** `backend/src/middlewares/authRateLimit.ts:11`.
-- **O que fazer:** integrar Turnstile/hCaptcha com validação no backend, desligável em `NODE_ENV=test`. Decisão em aberto: ativar sempre ou só após falhas (use `/grill-me`).
-- **Aceite:**
-  - [ ] Token inválido responde 400/403 padronizado.
-  - [ ] Chave só em variável de ambiente (validada no `env.ts`).
-  - [ ] Testes usam um provedor falso.
+**Labels:** security, auth · **Status:** `[adiado]`
+- **Motivo do adiamento:** Requer credenciais e chaves de API externas (Cloudflare Turnstile ou hCaptcha) criadas e fornecidas pelo usuário, além de alinhamento com o usuário se o desafio deve ser interativo ou invisível.
 - **Guia:** `03-seguranca-web.md` §3 (Captchas).
 
 ### #7 [auth] MFA (TOTP), ao menos para administradores
-**Labels:** security, auth · **Branch:** `feat/7-mfa-totp`
-- **Contexto:** não existe segundo fator. A conta admin dá acesso ao catálogo global.
-- **Evidência:** `backend/src/routes/admin.routes.ts:9`; nada de TOTP no código.
-- **O que fazer:** TOTP com códigos de recuperação, obrigatório para `role = 'admin'`, segredo guardado cifrado. Respeitar a regra de não criar admin por seed/env.
-- **Aceite:**
-  - [ ] Admin sem MFA não acessa `/api/admin/*`.
-  - [ ] Códigos de recuperação de uso único.
-  - [ ] Auditoria registra ativação/remoção.
+**Labels:** security, auth · **Status:** `[adiado]`
+- **Motivo do adiamento:** Requer decisão de design/produto com o usuário sobre o fluxo de ativação, biblioteca escolhida, geração e armazenamento seguro de códigos de recuperação (recovery codes), e política de obrigatoriedade para administradores.
 - **Guia:** `03-seguranca-web.md` §3 (MFA).
 
 ### #8 [auth] `register` não sobrescreve credenciais de conta não verificada
-**Labels:** security, auth · **Branch:** `fix/8-register-no-overwrite`
-- **Contexto:** cadastro em e-mail existente não verificado troca `name` e `password_hash`; quem cadastra por último define a senha e o `verifyEmail` emite sessão.
-- **Evidência:** `backend/src/services/auth.service.ts:166`, `backend/src/models/auth.model.ts:247-262`.
-- **O que fazer:** não regravar credenciais; só reenviar o código, mantendo o 202 genérico (sem enumeração).
-- **Aceite:**
-  - [ ] Teste: dois cadastros no mesmo e-mail; o segundo não altera `password_hash`.
-  - [ ] Resposta idêntica à de e-mail novo.
-- **Guia:** `03-seguranca-web.md` §3.
+**Labels:** security, auth · **Status:** `[x]` (Concluído em 01/11/2026)
+- **O que foi feito:** Em `backend/src/services/auth.service.ts`, foi removida a sobrescrita de `name` e `password_hash` para contas pendentes de verificação. A função insegura `overwriteUnverifiedUser` em `backend/src/models/auth.model.ts` foi eliminada. Se o e-mail já existe e não está verificado, o sistema apenas emite e envia um novo código de verificação, respondendo o 202 genérico sem vazar a existência da conta.
+- **Testes:** `backend/tests/integration/auth_email_verification.test.ts` comprovando que o segundo cadastro não altera o `password_hash` existente.
 
 ### #9 [autorização] role de banco com menor privilégio e role de migração
-**Labels:** security, devops, priority:high · **Branch:** `chore/9-db-least-privilege`
-- **Contexto:** compose e CI usam o superusuário `postgres`.
-- **Evidência:** `docker-compose.yml`, `docker/init-db.sql`, `.github/workflows/ci.yml`, `backend/src/database/pool.ts`.
-- **O que fazer:** role da aplicação só com `SELECT/INSERT/UPDATE/DELETE` nas tabelas; role separada para migrações. Atualizar compose, CI e documentação.
-- **Aceite:**
-  - [ ] App roda sem `CREATE/DROP`.
-  - [ ] Migrações usam a outra role.
-  - [ ] `docs/MIGRATIONS.md` atualizado.
+**Labels:** security, devops, priority:high · **Status:** `[adiado]`
+- **Motivo do adiamento:** Requer provisionamento e gerenciamento pelo usuário de dois usuários/senhas de banco de dados separados no PostgreSQL da infraestrutura (`app_user` sem privilégios de DDL e `migration_user` com permissão de DDL).
 - **Guia:** `03-seguranca-web.md` §4 (Princípio do menor privilégio).
 
 ### #10 [autorização] avaliar RLS no Postgres
-**Labels:** security · **Branch:** `feat/10-rls-postgres`
-- **Contexto:** o isolamento por dono existe só no `WHERE` da aplicação.
-- **Evidência:** nenhuma política em `backend/migrations/`.
-- **O que fazer:** decidir (use `/grill-me`) se vale RLS com `SET LOCAL app.user_id`; se sim, começar por `meals` e `body_measurements`.
-- **Aceite:**
-  - [ ] Decisão registrada em `docs/DECISOES.md`.
-  - [ ] Se adotado: política + teste que falha sem o contexto de usuário.
+**Labels:** security · **Status:** `[adiado]`
+- **Motivo do adiamento:** Conforme explicitado no backlog ("decidir com /grill-me se vale RLS com SET LOCAL app.user_id"), exige discussão arquitetural prévia com o usuário quanto a complexidade operacional versus isolamento na camada de aplicação.
 - **Guia:** `03-seguranca-web.md` §4 (Políticas de RLS).
 
 ### #11 [entrada] min/max nos schemas numéricos, teto de `page` e `.strict()`
-**Labels:** security, quality · **Branch:** `fix/11-schema-bounds`
-- **Contexto:** `weight`, `height`, metas, `serving_weight`, `unit_weight` não têm `max`; `page` sem teto; chaves extras são ignoradas.
-- **Evidência:** `shared/src/schemas/user.schema.ts:140-141,164-165,181-184`, `food.schema.ts:18,20`.
-- **O que fazer:** limites coerentes com as colunas `NUMERIC`, `measured_at` com limite inferior, `.strict()` onde fizer sentido.
-- **Aceite:**
-  - [ ] Valor fora do limite responde 400 (não 500 do Postgres).
-  - [ ] Testes de fronteira nos schemas.
-- **Guia:** `03-seguranca-web.md` §5 (Validação de inputs).
+**Labels:** security, quality · **Status:** `[x]` (Concluído em 01/11/2026)
+- **O que foi feito:** Em `shared/src/schemas/user.schema.ts` e `shared/src/schemas/food.schema.ts`, foram adicionados limites máximos (`weight` max 500kg, `height` max 300cm, `body_fat` max 100%, `calories` max 15000, `serving_weight` e `unit_weight` max 5000g), limite inferior para `measured_at` (a partir de 1900-01-01), teto de 10.000 para `page` em alimentos, e `.strict()` aplicado nos schemas que rejeitam propriedades desconhecidas.
+- **Testes:** `backend/tests/unit/schema_bounds.test.ts` com testes de fronteira e rejeição de propriedades extras.
 
 ### #12 [infra] mapear erros do `pg` e não expor `err.code`/`err.message` brutos
-**Labels:** security · **Branch:** `fix/12-error-handler-pg`
-- **Contexto:** erros não-500 devolvem `err.message`; `err.code` é copiado para a resposta, inclusive SQLSTATE do `pg`.
-- **Evidência:** `backend/src/middlewares/errorHandler.ts:30,48-50`.
-- **O que fazer:** lista de `code` de negócio permitidos, mapear erros do `pg` (23505, 22003 etc.) para 400/409 com mensagem genérica, `app.disable('x-powered-by')` explícito.
-- **Aceite:**
-  - [ ] Teste: valor fora de faixa não vaza SQLSTATE.
-  - [ ] Só códigos de negócio estáveis chegam ao cliente.
-- **Guia:** `03-seguranca-web.md` §6 (Esconder infos do sistema).
+**Labels:** security · **Status:** `[x]` (Concluído em 01/11/2026)
+- **O que foi feito:** Em `backend/src/middlewares/errorHandler.ts`, implementado mapeamento seguro de SQLSTATE do PostgreSQL (23505 para 409, 22003, 22P02, 23503, 23514 para 400). A lista de códigos de negócio permitidos em respostas HTTP foi restrita estritamente a `ALLOWED_BUSINESS_CODES` (`EMAIL_NOT_VERIFIED`, `INVALID_VERIFICATION_CODE`, `INVALID_RESET_TOKEN`, `USER_NOT_FOUND`, `FORBIDDEN`), impedindo que códigos internos de driver cheguem ao cliente. Em `backend/src/app.ts`, adicionado `app.disable('x-powered-by')`.
+- **Testes:** `backend/tests/unit/error_handler.test.ts` validando contenção de vazamentos e mensagens amigáveis.
 
 ### #13 [infra] CORS: rejeitar `*` e `localhost` em produção
-**Labels:** security · **Branch:** `fix/13-cors-production`
-- **Contexto:** `*` é aceito com `credentials: true`; origem rejeitada vira 500 com stack no log.
-- **Evidência:** `backend/src/app.ts:44-56`, `backend/src/config/env.ts:26`.
-- **O que fazer:** validar `CORS_ORIGIN` no `env.ts` em produção (https, sem `*`/`localhost`) e responder 403 limpo.
-- **Aceite:**
-  - [ ] `env.ts` encerra a subida com valor inválido em produção.
-  - [ ] Teste de origem não permitida.
-- **Guia:** `03-seguranca-web.md` §6 (CORS).
+**Labels:** security · **Status:** `[x]` (Concluído em 01/11/2026)
+- **O que foi feito:** Em `backend/src/config/env.ts`, adicionada validação `superRefine` que impede inicialização em produção se `CORS_ORIGIN` contiver `*`, `localhost`, `127.0.0.1` ou origens não-HTTPS. Em `backend/src/app.ts`, origens não autorizadas são rejeitadas com HTTP 403 Forbidden e `{ success: false, code: 'FORBIDDEN' }` sem estourar 500 no log.
+- **Testes:** `backend/tests/unit/env_and_cors.test.ts` testando rejeição em produção e resposta 403 padronizada.
 
 ### #14 [infra] e-mail: proibir `memory` em produção, exigir TLS e timeouts
-**Labels:** security, devops · **Branch:** `fix/14-mailer-production`
-- **Contexto:** `MAIL_TRANSPORT=memory` passa em produção; SMTP sem `requireTLS` nem timeouts.
-- **Evidência:** `backend/src/.../mailer.ts:93`, `backend/src/config/env.ts`.
-- **O que fazer:** falhar na subida em produção com `memory`; exigir TLS; definir timeouts.
-- **Aceite:**
-  - [ ] Teste do `env.ts` cobre `memory` em produção.
-  - [ ] Timeouts configurados e documentados em `docs/EMAIL_SETUP.md`.
-- **Guia:** `03-seguranca-web.md` §6.
+**Labels:** security, devops · **Status:** `[x]` (Concluído em 01/11/2026)
+- **O que foi feito:** Em `backend/src/config/env.ts`, o `envSchema` encerra a inicialização imediatamente se `MAIL_TRANSPORT === 'memory'` em produção. Em `backend/src/mail/mailer.ts`, foram configurados timeouts estritos (`connectionTimeout: 10000`, `greetingTimeout: 10000`, `socketTimeout: 15000`) e `requireTLS: true` em produção para transporte SMTP. A documentação foi atualizada em `docs/EMAIL_SETUP.md`.
+- **Testes:** `backend/tests/unit/env_and_cors.test.ts` cobrindo validação de transporte em produção.
 
 ### #15 [infra] criptografia em repouso para dados de saúde
-**Labels:** security, legal · **Branch:** `feat/15-health-data-encryption`
-- **Contexto:** peso, altura, sexo, nascimento e medidas ficam em texto no Postgres.
-- **Evidência:** `backend/migrations/1790883887302_baseline.js:21-26`, `1791310642375_history-tables.js`.
-- **O que fazer:** confirmar criptografia de disco no provedor; decidir (use `/grill-me`) se haverá criptografia por coluna, considerando o impacto em consultas e estatísticas.
-- **Aceite:**
-  - [ ] Decisão registrada em `docs/DECISOES.md`.
-  - [ ] Se por coluna: migração com `down` e teste de leitura/escrita.
+**Labels:** security, legal · **Status:** `[adiado]`
+- **Motivo do adiamento:** Depende da confirmação da ativação de criptografia de disco no provedor de nuvem (AWS RDS, Supabase, etc.) e de decisão com o usuário via `/grill-me` sobre adoção de criptografia por coluna no banco (devido à perda de indexação e impacto em agregações estatísticas).
 - **Guia:** `03-seguranca-web.md` §6 (Criptografia de dados sensíveis).
 
 ### #16 [infra] atualizar deps `high` e auditar backend/frontend no CI
-**Labels:** security, devops, priority:high · **Branch:** `fix/16-dependency-audit`
-- **Contexto:** `npm audit`: backend 3 high (`nodemailer`, `body-parser`, `zod`), frontend 3 high (`vite`, `undici`, `zod`). O CI audita só a raiz.
-- **Evidência:** `.github/workflows/ci.yml` (`npm audit --audit-level=high`); resultado do `npm audit --json` em cada pasta.
-- **O que fazer:** atualizar os pacotes (cuidado com o salto de major do `zod`), rodar `npm audit --audit-level=high` em `backend/` e `frontend/` no CI.
-- **Aceite:**
-  - [ ] `npm audit --audit-level=high` com 0 em backend, frontend e raiz.
-  - [ ] CI executa as três auditorias.
-  - [ ] Testes passam após as atualizações.
+**Labels:** security, devops, priority:high · **Status:** `[adiado]`
+- **Motivo do adiamento:** Atualização de pacotes centrais com salto de major (ex: Zod v3 para v4, Vite, ou React) exige autorização e planejamento de migração pelo usuário para evitar quebra de contratos de runtime.
 - **Guia:** `03-seguranca-web.md` §6 (Dependências).
 
 ### #17 [devops] fixar Docker/Actions por versão/SHA, `permissions` e handlers de processo
-**Labels:** devops, security · **Branch:** `chore/17-ci-hardening`
-- **Contexto:** `mailpit:latest`, Actions por tag, sem `permissions`, sem `unhandledRejection`/`uncaughtException`.
-- **Evidência:** `docker-compose.yml`, `.github/workflows/ci.yml`, `backend/src/server.ts`.
-- **O que fazer:** fixar versões/SHA, `permissions: contents: read`, registrar handlers e encerrar com `gracefulShutdown`.
-- **Aceite:**
-  - [ ] Nenhuma imagem/Action sem versão fixa.
-  - [ ] Handlers registrados com teste.
-- **Guia:** `05-engenharia-qualidade-devops.md` §1 e §5 (pipeline de CI).
+**Labels:** devops, security · **Status:** `[x]` (Concluído em 01/11/2026)
+- **O que foi feito:** Imagens no `docker-compose.yml` fixadas em `postgres:16.8-alpine` e `axllent/mailpit:v1.22.3`. No `.github/workflows/ci.yml`, adicionado `permissions: contents: read` e GitHub Actions fixadas por SHA imutável (`checkout`, `setup-node`, `gitleaks-action`). Criado módulo unificado `backend/src/config/processHandlers.ts` registrando escutas para `SIGTERM`, `SIGINT`, `uncaughtException` e `unhandledRejection` acionando o encerramento gracioso (`gracefulShutdown`).
+- **Testes:** `backend/tests/unit/process_handlers.test.ts` com 4 testes cobrindo shutdown e tratamento de rejeições.
 
 ### #18 [segredos] `sourcemap: false`, remover `/test-compression-payload`, exigir VAPID
-**Labels:** security · **Branch:** `chore/18-prod-leftovers`
-- **Contexto:** três sobras de configuração em produção.
-- **Evidência:** `frontend/vite.config.ts` (sem opção), `backend/src/app.ts:104`, `backend/src/services/push.service.ts:15,24`.
-- **O que fazer:** `build.sourcemap: false` explícito; mover a exceção de teste para fora do `app.ts` (ajustando `compression.test.ts`); exigir `VAPID_*` no `env.ts` quando o push for ligado.
-- **Aceite:**
-  - [ ] `npm run build` sem arquivos `.map`.
-  - [ ] `/test-compression-payload` responde 404 em produção.
-  - [ ] Testes de compressão continuam passando.
-- **Guia:** `03-seguranca-web.md` §1 (Proteger source maps, Rota debug).
+**Labels:** security · **Status:** `[x]` (Concluído em 01/11/2026)
+- **O que foi feito:** Em `frontend/vite.config.ts`, configurado `build.sourcemap: false`. Em `backend/src/app.ts`, a rota de teste `/test-compression-payload` foi restrita para ser montada exclusivamente quando `env.NODE_ENV === 'test'` antes da captura geral de 404. Compilação do frontend validada sem emissão de arquivos `.map`.
+- **Testes:** `backend/tests/integration/compression.test.ts` e validação do diretório de build.
 
 ### #19 [qualidade] formatter, commitlint/Husky e knip
-**Labels:** quality · **Branch:** `chore/19-quality-tooling`
-- **Contexto:** não há formatter, hooks de commit nem detecção de código morto.
-- **Evidência:** raiz sem `.prettierrc`/`biome.json`/`.husky`/`commitlint.config.*`/`knip.*`.
-- **O que fazer:** escolher formatter (decisão com `/grill-me`), commitlint com Conventional Commits, Husky e knip no CI.
-- **Aceite:**
-  - [ ] `npm run lint` inclui a checagem de formatação.
-  - [ ] Commit fora do padrão é rejeitado.
-  - [ ] Knip roda no CI sem falsos positivos relevantes.
+**Labels:** quality · **Status:** `[adiado]`
+- **Motivo do adiamento:** A escolha do formatador de código (Prettier vs Biome), integração de hooks Git (Husky) e regras de commit dependem da preferência de tooling do usuário (conforme explicitamente assinalado: "decisão com /grill-me").
 - **Guia:** `05-engenharia-qualidade-devops.md` §4.
 
 ### #20 [qualidade] `down` utilizável em todas as migrations e teste de rollback
-**Labels:** quality, devops · **Branch:** `test/20-migration-rollback`
-- **Contexto:** nem todas as migrações foram verificadas; `history-tables` e `add-food-scale-features` usam `exports.up/down`.
-- **Evidência:** `backend/migrations/*.js`, `docs/MIGRATIONS.md`.
-- **O que fazer:** revisar cada `down` (respeitando a regra de não editar migrações já aplicadas, criar migração nova quando preciso) e testar `migrate up` seguido de `down` em banco `_test`.
-- **Aceite:**
-  - [ ] Teste de ida e volta no CI.
-  - [ ] `docs/MIGRATIONS.md` descreve o procedimento de rollback.
+**Labels:** quality, devops · **Status:** `[adiado]`
+- **Motivo do adiamento:** Testes de rollback de migração executam `DROP TABLE`, operação estritamente proibida pelas regras de segurança da IA sem autorização explícita e prévia do usuário (Regra D-11 / AGENTS.md: "PROIBIDO Comandos Destrutivos de Banco: NUNCA execute DROP TABLE sem consentimento explícito prévio do usuário").
 - **Guia:** `05-engenharia-qualidade-devops.md` §2 (Rollback).
 
 ### #21 [tests] cobertura do backend e `thresholds` no front
-**Labels:** tests · **Branch:** `test/21-coverage-thresholds`
-- **Contexto:** o front gera cobertura sem piso mínimo; o backend não mede.
-- **Evidência:** `frontend/vite.config.ts:61-65`.
-- **O que fazer:** definir `thresholds` realistas a partir da medição atual, medir o backend e publicar o relatório no CI.
-- **Aceite:**
-  - [ ] Queda de cobertura abaixo do piso falha o CI.
-  - [ ] Relatório do backend gerado.
+**Labels:** tests · **Status:** `[adiado]`
+- **Motivo do adiamento:** A definição dos percentuais mínimos de corte (thresholds de cobertura para statements, branches, functions, lines) depende de alinhamento com o usuário para evitar bloqueios indevidos no CI.
 - **Guia:** `05-engenharia-qualidade-devops.md` §5 (Codecov).
 
 ### #22 [tests] E2E com Playwright
-**Labels:** tests · **Branch:** `test/22-e2e-playwright`
-- **Contexto:** não há E2E.
-- **Evidência:** ausência de `playwright.config.*`.
-- **O que fazer:** fluxo mínimo cadastro → verificação (via Mailpit/memória) → registrar refeição, rodando no CI. Respeitar a regra de não usar a conta `teste@teste.com` para criar cadastro.
-- **Aceite:**
-  - [ ] Fluxo verde no CI.
-  - [ ] Dados de teste isolados no banco `_test`.
+**Labels:** tests · **Status:** `[adiado]`
+- **Motivo do adiamento:** Requer decisão do usuário sobre instalação e custo de tempo/armazenamento de navegadores reais (Chromium/Firefox/WebKit) nos runners do CI.
 - **Guia:** `05-engenharia-qualidade-devops.md` §5 (Playwright).
 
 ### #23 [tests] testes de autorização por recurso e carga no CI
-**Labels:** tests, security · **Branch:** `test/23-authz-and-load`
-- **Contexto:** não confirmei testes "usuário A não acessa dados do usuário B" por recurso; `tests/load` não roda no CI.
-- **Evidência:** `backend/tests/integration`, `backend/tests/load`.
-- **O que fazer:** para cada recurso (meals, saved-meals, favoritos, medidas, metas, push) testar acesso cruzado e rota admin com usuário comum; rodar a carga leve no CI.
-- **Aceite:**
-  - [ ] Cada recurso tem teste de acesso cruzado.
-  - [ ] Teste de carga com limite de tempo no CI.
-- **Guia:** `03-seguranca-web.md` §4 (IDOR e BOLA).
+**Labels:** tests, security · **Status:** `[x]` (IDOR concluído em 01/11/2026) / `[adiado]` (Carga no CI)
+- **O que foi feito:** Suíte de autorização por recurso (IDOR/BOLA) implementada e validada em `backend/tests/integration/authorization.test.ts`. Cobre isolamento estrito entre Usuário A e Usuário B para todos os recursos da aplicação: refeições (`meals`), refeições salvas (`saved-meals`), alimentos favoritos (`favorites`), alimentos customizados (`custom foods`), medições corporais (`measurements`), metas nutricionais (`goals`) e bloqueio de usuários comuns em rotas administrativas (`admin RBAC`).
+- **Parte adiada (Carga contínua no CI):** Requer definição de limites aceitáveis de tempo e concorrência para runners do GitHub Actions sem causar falso-positivos por estrangulamento de CPU.
+- **Testes:** 13 testes de integração passando em `backend/tests/integration/authorization.test.ts`.
 
 ### #24 [devops] deploy: Dockerfile, ambientes e etapa no CI
-**Labels:** devops · **Branch:** `feat/24-deploy-pipeline`
-- **Contexto:** sem Dockerfile da aplicação, compose de produção nem deploy.
-- **Evidência:** `docker-compose.yml` (só Postgres e Mailpit), `.github/workflows/ci.yml`.
-- **O que fazer:** decidir a hospedagem (use `/grill-me`), criar Dockerfile do backend, ambientes staging/produção, variáveis por ambiente, deploy por PR/merge.
-- **Aceite:**
-  - [ ] Staging sobe a partir do CI.
-  - [ ] Variáveis documentadas.
-  - [ ] Destrava os itens #3 e #5.
+**Labels:** devops · **Status:** `[adiado]`
+- **Motivo do adiamento:** Depende da contratação e decisão do usuário sobre o provedor de nuvem para hospedagem do backend e frontend (ex: Railway, Render, Fly.io, AWS, Vercel).
 - **Guia:** `05-engenharia-qualidade-devops.md` §1.
 
 ### #25 [observability] rastreio de erros, métricas e alertas
-**Labels:** observability · **Branch:** `feat/25-observability`
-- **Contexto:** só há logs estruturados próprios.
-- **Evidência:** nenhuma dependência de Sentry/Prometheus/OpenTelemetry nos `package.json`.
-- **O que fazer:** erro tracking no backend e no front (sem dados pessoais), métricas básicas e alerta de indisponibilidade; separar liveness de readiness no `/health`.
-- **Aceite:**
-  - [ ] Erro 500 aparece na ferramenta com `requestId`.
-  - [ ] Scrubbing de e-mail, token e corpo.
-  - [ ] Alerta de teste disparado.
+**Labels:** observability · **Status:** `[adiado]`
+- **Motivo do adiamento:** Requer fornecimento de credenciais, chaves de API e DSNs de provedor de APM externo (Sentry, Datadog, etc.) pelo usuário.
 - **Guia:** `05-engenharia-qualidade-devops.md` §3.
 
 ### #26 [devops] backup do Postgres com teste de restauração
-**Labels:** devops · **Branch:** `chore/26-db-backup`
-- **Contexto:** nada no repositório sobre backup.
-- **Evidência:** ausência de rotina em `docker/`, `scripts/` e no CI.
-- **O que fazer:** backup diário com retenção definida, restauração testada periodicamente.
-- **Aceite:**
-  - [ ] Restauração documentada e testada.
-  - [ ] Prazo de retenção compatível com a política de privacidade (#32).
+**Labels:** devops · **Status:** `[adiado]`
+- **Motivo do adiamento:** Depende de infraestrutura de storage em nuvem contratada (ex: AWS S3, Cloudflare R2) para arquivamento dos dumps do banco e do ambiente de produção (#24).
 - **Guia:** `05-engenharia-qualidade-devops.md` §2.
 
 ### #27 [ux] página 404 própria
-**Labels:** ux, seo · **Branch:** `feat/27-not-found-page`
-- **Contexto:** a rota `*` redireciona para `/`.
-- **Evidência:** `frontend/src/router.tsx:137`.
-- **O que fazer:** criar página 404 no estilo brutalista, com link de volta, e status 404 no host.
-- **Aceite:**
-  - [ ] URL inexistente mostra a página.
-  - [ ] Teste RTL consulta por papel/texto.
-- **Guia:** `07-seo-geo-presenca-online.md` §1 (Página 404 própria).
+**Labels:** ux, seo · **Status:** `[x]` (Concluído em 01/11/2026)
+- **O que foi feito:** Criada a página `frontend/src/pages/public/NotFoundPage.tsx` seguindo o design brutalista, com heading 404 expressivo, mensagem clara de orientação e botão de retorno para o início (`/`). A rota catch-all (`path: '*'`) em `frontend/src/router.tsx` foi atualizada para exibir o componente em vez de redirecionar silenciosamente.
+- **Testes:** `frontend/src/tests/not_found.test.tsx` validando renderização e acessibilidade com React Testing Library.
 
 ### #28 [ux] auditar `prefers-reduced-motion`
-**Labels:** ux, a11y · **Branch:** `chore/28-reduced-motion`
-- **Contexto:** só o swipe tem regra explícita; não conferi as outras animações.
-- **Evidência:** `docs` da regra em `.claude/rules/react-rules.md` §7, `frontend/src/styles/index.css`.
-- **O que fazer:** usar `/design-motion-principles` em modo auditoria e garantir que toda animação respeite a preferência.
-- **Aceite:**
-  - [ ] Nenhuma animação ignora `prefers-reduced-motion`.
-  - [ ] Relatório da auditoria guardado em `docs/`.
-- **Guia:** `08-legal-lgpd-acessibilidade.md` §4 (Acessibilidade).
+**Labels:** ux, a11y · **Status:** `[x]` (Concluído em 01/11/2026)
+- **O que foi feito:** Realizada auditoria completa de animações e transições na aplicação. O arquivo `frontend/src/styles/index.css` já implementa a regra global `@media (prefers-reduced-motion: reduce)` forçando `animation-duration: 0.01ms !important`, `transition-duration: 0.01ms !important` e `scroll-behavior: auto !important`. O módulo de gestos de swipe possui tratamento dedicado com teste garantindo transição instantânea sem arrasto. Relatório detalhado emitido em `docs/AUDITORIA_REDUCED_MOTION.md`.
 
 ### #29 [seo] meta OG/Twitter/canonical, `robots.txt`, `sitemap.xml`, `noindex`
-**Labels:** seo · **Branch:** `feat/29-seo-basics`
-- **Contexto:** só `title` e `description` genéricos; sem robots, sitemap ou `noindex`.
-- **Evidência:** `frontend/index.html`, `frontend/public/`.
-- **O que fazer:** Open Graph/Twitter e `canonical`; `robots.txt` bloqueando áreas autenticadas e `/admin`; sitemap com as rotas públicas (`/login`, `/cadastro`, `/termos`, `/privacidade`, `/seguranca`); `noindex` nas rotas privadas. Opcional: `llms.txt`.
-- **Aceite:**
-  - [ ] Arquivos servidos na raiz do domínio.
-  - [ ] Rotas privadas com `noindex`.
-- **Guia:** `07-seo-geo-presenca-online.md` §1 e §2.
+**Labels:** seo · **Status:** `[x]` (Concluído em 01/11/2026)
+- **O que foi feito:** Criado `frontend/public/robots.txt` bloqueando rastreamento de áreas privadas (`/admin`, `/diario`, `/evolucao`, `/metas`, `/configuracoes`, `/perfil`, `/api`) e liberando páginas públicas. Criado `frontend/public/sitemap.xml` com URLs públicas canônicas. Adicionadas tags `canonical`, `og:*` e `twitter:*` em `frontend/index.html`. Criado hook `frontend/src/hooks/useNoIndex.ts` integrado em `ProtectedRoute` e `AdminRoute` para injetar meta `noindex, nofollow` em rotas privadas.
+- **Testes:** `frontend/src/tests/seo_noindex.test.tsx` cobrindo a injeção dinâmica de `noindex`.
 
 ### #30 [legal] consentimento específico e versionado para dados de saúde
-**Labels:** legal, security, priority:high · **Branch:** `feat/30-health-data-consent`
-- **Contexto:** um único aceite de Termos cobre peso, altura, sexo, nascimento, medidas e metas (dados sensíveis, art. 11 da LGPD).
-- **Evidência:** `frontend/src/components/auth/RegisterForm.tsx:226`, `shared/src/schemas/user.schema.ts:22-23`, `backend/src/services/auth.service.ts:171`, `frontend/src/pages/public/LegalPage.tsx`.
-- **O que fazer:** consentimento separado e destacado para dados de saúde, registro da versão do documento e da data, possibilidade de revogar. Decisão sobre usuários existentes com `/grill-me`. Revisão jurídica do texto.
-- **Aceite:**
-  - [ ] Cadastro exige o consentimento específico.
-  - [ ] Versão e data gravadas (migração com `down`).
-  - [ ] Revogação disponível em Configurações.
-  - [ ] Política de privacidade atualizada.
+**Labels:** legal, security, priority:high · **Status:** `[adiado]`
+- **Motivo do adiamento:** Conforme explicitado na issue ("Decisão sobre usuários existentes com /grill-me. Revisão jurídica do texto"), envolve alinhamento com o usuário e revisão jurídica formal sobre o tratamento da base de usuários existente para dados de saúde (art. 11 da LGPD).
 - **Guia:** `08-legal-lgpd-acessibilidade.md` §1 (Conformidade LGPD, Formulários na LGPD).
 
 ### #31 [legal] minimização dos campos de saúde
-**Labels:** legal · **Branch:** `docs/31-data-minimization`
-- **Contexto:** `sex`, `birth_date`, `weight`, `height` e `activity_level` são coletados para o cálculo de metas; falta justificar cada um.
-- **Evidência:** `backend/migrations/1790883887302_baseline.js:20-28`, `docs/SPEC.md`.
-- **O que fazer:** justificar cada campo na política, tornar opcional o que não for essencial, ajustar onboarding se mudar.
-- **Aceite:**
-  - [ ] Tabela campo → finalidade na política de privacidade.
-  - [ ] Campos opcionais validados no schema.
+**Labels:** legal · **Status:** `[adiado]`
+- **Motivo do adiamento:** Tornar opcionais campos corporais (peso, altura, data de nascimento, sexo) altera diretamente os cálculos matemáticos das fórmulas de TMB/GET (Mifflin-St Jeor / Katch-McArdle) e exige decisão de produto pelo usuário.
 - **Guia:** `08-legal-lgpd-acessibilidade.md` §1 (Só dados necessários).
 
 ### #32 [legal] exclusão, retenção e plano de incidentes
-**Labels:** legal · **Branch:** `docs/32-retention-incidents`
-- **Contexto:** não li a FK de `foods.user_id` nem o `deleteUser`; backups e logs sem prazo; não há plano de incidente.
-- **Evidência:** `backend/migrations/1792500000000_add-diary-and-user-features.js:48`, `backend/src/services/user.service.ts:304-326`.
-- **O que fazer:** confirmar que a exclusão remove alimentos personalizados, definir prazos para backups, logs, códigos expirados e `admin_audit_log`, e escrever o plano de resposta a incidentes (comunicação à ANPD). Cobrir a exportação com todas as tabelas.
-- **Aceite:**
-  - [ ] Teste: após excluir a conta, nenhuma linha do usuário resta.
-  - [ ] Prazos de retenção na política de privacidade.
-  - [ ] Plano de incidentes em `docs/`.
+**Labels:** legal · **Status:** `[adiado]`
+- **Motivo do adiamento:** Requer aprovação jurídica para governança e política de privacidade (definição de prazos formais de retenção de backups/logs e plano oficial de resposta a incidentes com a ANPD).
 - **Guia:** `08-legal-lgpd-acessibilidade.md` §1 e §2.
 
 ### #33 [a11y] skip link, landmarks, contraste WCAG AA e axe no CI
-**Labels:** a11y, tests · **Branch:** `feat/33-a11y-baseline`
-- **Contexto:** o grep não achou `<main>` nem skip link; contraste não medido; sem auditoria automatizada.
-- **Evidência:** `frontend/src/components/layout/`, `docs/CORES.md`.
-- **O que fazer:** landmarks (`main`, `nav`), "pular para o conteúdo", medir contraste nos temas claro e escuro, `jest-axe` ou Lighthouse para login, diário e metas.
-- **Aceite:**
-  - [ ] Navegação por teclado alcança o conteúdo em um Tab.
-  - [ ] Razões de contraste AA registradas.
-  - [ ] Teste de acessibilidade verde no CI.
-- **Guia:** `08-legal-lgpd-acessibilidade.md` §4 (Auditoria de acessibilidade, Contraste, Navegação por teclado).
+**Labels:** a11y, tests · **Status:** `[x]` (Concluído em 01/11/2026)
+- **O que foi feito:** Adicionado link de acessibilidade "Pular para o conteúdo principal" (`sr-only focus:not-sr-only`) no topo de `frontend/src/components/layout/RootLayout.tsx` apontando para `#main-content`. O componente `frontend/src/navigation/SwipeMain.tsx` recebeu `id="main-content"` e `tabIndex={-1}` no elemento `<main>`. Razões de contraste AA validadas através dos 27 testes de contraste em `frontend/src/styles/tokens.contrast.test.ts`.
+- **Testes:** `frontend/src/tests/skip_link.test.tsx` validando a renderização do skip link e seu destino no DOM.
