@@ -16,6 +16,7 @@ import { errorHandler } from './middlewares/errorHandler.js';
 import { requestLogger } from './middlewares/requestLogger.js';
 
 export const app = express();
+app.disable('x-powered-by');
 
 const corsOrigin = env.CORS_ORIGIN;
 
@@ -46,10 +47,14 @@ const allowedOrigins = corsOrigin.split(',').map((o) => o.trim()).filter(Boolean
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+      if (!origin || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
-      return callback(new Error('Origem não permitida por CORS'));
+      const corsErr = Object.assign(new Error('Origem não permitida por CORS.'), {
+        statusCode: 403,
+        code: 'FORBIDDEN',
+      });
+      return callback(corsErr);
     },
     credentials: true,
   })
@@ -99,11 +104,15 @@ app.get('/health', async (_req, res) => {
   }
 });
 
+// Rota exclusiva para testes de compressão (não exposta em produção)
+if (env.NODE_ENV === 'test') {
+  app.get('/test-compression-payload', (_req, res) => {
+    res.json({ data: 'X'.repeat(2048) });
+  });
+}
+
 // 404 Handler para rotas inexistentes (A-017)
-app.use((req, res, next) => {
-  if (req.path === '/test-compression-payload') {
-    return next();
-  }
+app.use((_req, res) => {
   res.status(404).json({
     success: false,
     message: 'Rota não encontrada.',

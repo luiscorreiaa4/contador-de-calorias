@@ -1,4 +1,5 @@
 // Dimensiona o threadpool do libuv antes de operações assíncronas (hash bcrypt).
+import { registerProcessHandlers } from './config/processHandlers.js';
 import { UV_THREADPOOL_SIZE } from './config/threadpool.js';
 import { app } from './app.js';
 import { env } from './config/env.js';
@@ -49,5 +50,4 @@ export const gracefulShutdown = async (signal: string) => {
   });
 };
 
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+registerProcessHandlers(gracefulShutdown);
