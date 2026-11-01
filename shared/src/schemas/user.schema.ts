@@ -127,8 +127,9 @@ export const measuredAtSchema = z
   .refine((val) => {
     const timestamp = Date.parse(val);
     if (isNaN(timestamp)) return false;
-    return timestamp <= Date.now() + 5 * 60 * 1000;
-  }, 'Data de medição inválida ou no futuro.')
+    const minTimestamp = Date.parse('1900-01-01T00:00:00Z');
+    return timestamp >= minTimestamp && timestamp <= Date.now() + 5 * 60 * 1000;
+  }, 'Data de medição inválida ou fora dos limites permitidos.')
   .optional();
 
 export const updateUserSchema = z.object({
@@ -137,13 +138,13 @@ export const updateUserSchema = z.object({
   goal: z.enum(['perder_peso', 'manter_peso', 'ganhar_massa']).optional(),
   sex: z.enum(['masculino', 'feminino', 'prefiro_nao_responder']).optional(),
   birthDate: optionalBirthDateSchema,
-  weight: z.number().positive('O peso deve ser maior que zero.').optional(),
-  height: z.number().positive('A altura deve ser maior que zero.').optional(),
-  body_fat: z.number().positive('O percentual de gordura deve ser maior que zero.').nullable().optional(),
+  weight: z.number().positive('O peso deve ser maior que zero.').max(500, 'O peso máximo permitido é 500 kg.').optional(),
+  height: z.number().positive('A altura deve ser maior que zero.').max(300, 'A altura máxima permitida é 300 cm.').optional(),
+  body_fat: z.number().positive('O percentual de gordura deve ser maior que zero.').max(100, 'O percentual de gordura deve ser no máximo 100%.').nullable().optional(),
   activity_level: z.enum(['sedentario', 'pouco_ativo', 'moderadamente_ativo', 'muito_ativo', 'extremamente_ativo']).optional(),
   currentPassword: z.string().max(72, 'A senha deve ter no máximo 72 caracteres.').optional(),
   newPassword: strongPasswordSchema.optional(),
-}).superRefine((data, ctx) => {
+}).strict().superRefine((data, ctx) => {
   if (data.newPassword && (!data.currentPassword || !data.currentPassword.trim())) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -155,41 +156,41 @@ export const updateUserSchema = z.object({
 
 export const deleteUserSchema = z.object({
   password: z.string().min(1, 'Informe sua senha para confirmar a exclusão da conta.').max(72, 'A senha deve ter no máximo 72 caracteres.'),
-});
+}).strict();
 
 export const completeOnboardingSchema = z.object({
   sex: z.enum(['masculino', 'feminino', 'prefiro_nao_responder'], { message: 'Selecione o sexo.' }),
   birthDate: birthDateSchema,
   goal: z.enum(['perder_peso', 'manter_peso', 'ganhar_massa'], { message: 'Selecione um objetivo válido.' }),
-  weight: z.number().positive('O peso deve ser maior que zero.'),
-  height: z.number().positive('A altura deve ser maior que zero.'),
-  body_fat: z.number().positive('O percentual de gordura deve ser maior que zero.').nullable().optional(),
+  weight: z.number().positive('O peso deve ser maior que zero.').max(500, 'O peso máximo permitido é 500 kg.'),
+  height: z.number().positive('A altura deve ser maior que zero.').max(300, 'A altura máxima permitida é 300 cm.'),
+  body_fat: z.number().positive('O percentual de gordura deve ser maior que zero.').max(100, 'O percentual de gordura deve ser no máximo 100%.').nullable().optional(),
   activity_level: z.enum(['sedentario', 'pouco_ativo', 'moderadamente_ativo', 'muito_ativo', 'extremamente_ativo'], { message: 'Selecione um nível de atividade válido.' }),
-});
+}).strict();
 
 export const previewGoalsSchema = z.object({
   sex: z.enum(['masculino', 'feminino', 'prefiro_nao_responder']).nullable().optional(),
   birthDate: optionalBirthDateSchema.nullable(),
   goal: z.enum(['perder_peso', 'manter_peso', 'ganhar_massa']).nullable().optional(),
-  weight: z.preprocess((val) => (val === null || val === '' || val === undefined ? undefined : Number(val)), z.number().positive().optional()),
-  height: z.preprocess((val) => (val === null || val === '' || val === undefined ? undefined : Number(val)), z.number().positive().optional()),
-  body_fat: z.preprocess((val) => (val === null || val === '' || val === undefined ? null : Number(val)), z.number().positive().nullable().optional()),
+  weight: z.preprocess((val) => (val === null || val === '' || val === undefined ? undefined : Number(val)), z.number().positive().max(500).optional()),
+  height: z.preprocess((val) => (val === null || val === '' || val === undefined ? undefined : Number(val)), z.number().positive().max(300).optional()),
+  body_fat: z.preprocess((val) => (val === null || val === '' || val === undefined ? null : Number(val)), z.number().positive().max(100).nullable().optional()),
   activity_level: z.enum(['sedentario', 'pouco_ativo', 'moderadamente_ativo', 'muito_ativo', 'extremamente_ativo']).nullable().optional(),
-});
+}).strict();
 
 export const updateGoalsSchema = z.object({
-  calories: z.number().positive('As calorias devem ser positivas.'),
-  proteins: z.number().nonnegative(),
-  carbs: z.number().nonnegative(),
-  fats: z.number().nonnegative(),
+  calories: z.number().positive('As calorias devem ser positivas.').max(15000, 'Calorias diárias excessivas.'),
+  proteins: z.number().nonnegative().max(1000, 'Proteínas diárias excessivas.'),
+  carbs: z.number().nonnegative().max(2000, 'Carboidratos diários excessivos.'),
+  fats: z.number().nonnegative().max(1000, 'Gorduras diárias excessivas.'),
   mode: z.enum(['auto', 'manual']),
-});
+}).strict();
 
 export const createMeasurementSchema = z.object({
   weight: z.number().positive('O peso deve ser maior que zero.').max(500, 'Peso inválido.'),
   body_fat: z.number().positive('O percentual de gordura deve ser maior que zero.').max(100, 'Percentual inválido.').nullable().optional(),
   measured_at: measuredAtSchema,
-});
+}).strict();
 
 export const measurementQuerySchema = z.object({
   period: z.enum(['30d', '90d', 'all']).optional(),
