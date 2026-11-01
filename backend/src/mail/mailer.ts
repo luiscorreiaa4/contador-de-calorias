@@ -52,6 +52,10 @@ export class SmtpMailer implements Mailer {
       host: config.host,
       port: config.port,
       secure: config.secure,
+      requireTLS: !config.secure && env.NODE_ENV === 'production',
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
       auth: config.user ? { user: config.user, pass: config.pass ?? '' } : undefined,
     });
   }

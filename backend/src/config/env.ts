@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 // Carrega as variáveis de ambiente antes da validação garantindo localização correta
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-const envSchema = z.object({
+export const envSchema = z.object({
   PORT: z
     .string()
     .regex(/^\d+$/, 'PORT deve ser numérica')
@@ -62,6 +62,32 @@ const envSchema = z.object({
     .string()
     .min(32, 'AUTH_TOKEN_PEPPER deve ter no mínimo 32 caracteres.'),
 }).superRefine((data, ctx) => {
+    if (data.NODE_ENV === 'production') {
+    if (data.MAIL_TRANSPORT === 'memory') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['MAIL_TRANSPORT'],
+        message: 'MAIL_TRANSPORT=memory é proibido em produção.',
+      });
+    }
+
+    const corsList = data.CORS_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean);
+    for (const origin of corsList) {
+      if (
+        origin === '*' ||
+        origin.includes('localhost') ||
+        origin.includes('127.0.0.1') ||
+        !origin.startsWith('https://')
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['CORS_ORIGIN'],
+          message: 'CORS_ORIGIN em produção deve usar https e não pode conter "*" nem "localhost".',
+        });
+        break;
+      }
+    }
+  }
   if (data.NODE_ENV === 'production' && !data.APP_BASE_URL.startsWith('https://')) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
