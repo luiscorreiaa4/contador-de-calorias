@@ -47,6 +47,7 @@ Abaixo está o status real verificado através da execução direta dos comandos
 
 ### Suítes Existentes no Backend (`backend/tests/`) [CONFIRMADO]
 1. **Unitários (`tests/unit/`):**
+   - `architecture.test.ts`: Regras arquiteturais de 4 camadas (routes -> controllers -> services -> models) e ausência de ciclos com ArchUnitTS.
    - `nutrition.service.test.ts`: Validação matemática de cálculo de TMB (Mifflin-St Jeor, Katch-McArdle com LBM), TDEE, superávit/déficit e distribuição de macros para IMC alto conforme D-15.
    - `meal.test.ts`: Cálculos nutricionais proporcionais de itens (`calculateItemNutrients`) para porções em gramas, ml e unidades.
    - `auth.middleware.test.ts`: Claim `tv` obrigatório, divergência de `token_version`, usuário removido e cabeçalhos ausentes (BL-12 / A8).
@@ -86,6 +87,7 @@ Abaixo está o status real verificado através da execução direta dos comandos
    - Script de estresse com `autocannon` para medição de requisições por segundo e latência da API sob concorrência.
 
 ### Suítes Existentes no Frontend (`frontend/src/`) [CONFIRMADO]
+1. `src/tests/architecture.test.ts`: Regras arquiteturais do frontend (isolamento de services sem importar componentes UI, componentes desacoplados de páginas e ausência de ciclos) com ArchUnitTS.
 1. `src/tests/router.test.tsx`: Testes de roteamento SPA declarativo via `react-router` v7, redirecionamentos e histórico.
 2. `src/tests/navigation.test.tsx`: Navegação profunda por finalidade, roteamento de abas, rotas protegidas e breadcrumbs.
 3. `src/tests/api.test.ts`: Resiliência contra respostas não-JSON e disparo de evento `auth:unauthorized` sob 401.
