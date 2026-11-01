@@ -64,7 +64,7 @@ describe('VerifyEmailPage (BL-12)', () => {
 
     expect(await screen.findByText('Diário')).toBeInTheDocument();
     await waitFor(() => {
-      expect(localStorage.getItem('auth_token')).toBe('verified-token');
+      expect(localStorage.getItem('auth_session')).toBe('1');
     });
   });
 
@@ -75,7 +75,7 @@ describe('VerifyEmailPage (BL-12)', () => {
     await userEvent.click(screen.getByRole('button', { name: /confirmar e-mail/i }));
 
     expect(await screen.findByText(/código inválido ou expirado/i)).toBeInTheDocument();
-    expect(localStorage.getItem('auth_token')).toBeNull();
+    expect(localStorage.getItem('auth_session')).toBeNull();
   });
 
   it('reenvia o código e respeita o novo intervalo de 60 s', async () => {

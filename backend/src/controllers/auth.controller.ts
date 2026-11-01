@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import * as AuthService from '../services/auth.service.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { clearSessionCookie, setSessionCookie } from '../utils/sessionCookie.js';
 
 /**
  * Resposta pública idêntica para register/resend/forgot (A4): não revela se a conta existe.
@@ -18,6 +19,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 
 export const login = asyncHandler(async (req: Request, res: Response) => {
   const authData = await AuthService.login(req.body);
+  setSessionCookie(res, authData.token);
   return res.status(200).json({
     success: true,
     message: 'Login realizado com sucesso!',
@@ -27,12 +29,18 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 
 export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
   const authData = await AuthService.verifyEmail(req.body);
+  setSessionCookie(res, authData.token);
   return res.status(200).json({
     success: true,
     message: 'E-mail verificado com sucesso!',
     data: authData,
   });
 });
+
+export const logout = (_req: Request, res: Response) => {
+  clearSessionCookie(res);
+  return res.status(200).json({ success: true, message: 'Sessão encerrada.' });
+};
 
 export const resendCode = asyncHandler(async (req: Request, res: Response) => {
   await AuthService.resendCode(req.body);

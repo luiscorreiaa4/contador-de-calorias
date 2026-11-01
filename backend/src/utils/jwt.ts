@@ -7,7 +7,7 @@ import { env } from '../config/env.js';
  */
 export function signAuthToken(userId: string, tokenVersion: number): string {
   return jwt.sign({ userId, tv: tokenVersion }, env.JWT_SECRET, {
-    expiresIn: (env.JWT_EXPIRES_IN || '7d') as jwt.SignOptions['expiresIn'],
+    expiresIn: (env.JWT_EXPIRES_IN || '1d') as jwt.SignOptions['expiresIn'],
     algorithm: 'HS256',
   });
 }

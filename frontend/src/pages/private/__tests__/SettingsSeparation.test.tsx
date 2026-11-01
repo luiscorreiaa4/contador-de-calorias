@@ -14,7 +14,7 @@ const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 describe('Separação das tarefas de perfil e configurações', () => {
   beforeEach(() => {
-    localStorage.setItem('auth_token', 'test-token');
+    localStorage.setItem('auth_session', 'test-token');
     localStorage.setItem('user_session', JSON.stringify({ id: '1', name: 'Test User', email: 'test@example.com', onboarding_completed: true }));
   });
 

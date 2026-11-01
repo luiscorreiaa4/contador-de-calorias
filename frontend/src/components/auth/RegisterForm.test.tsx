@@ -86,7 +86,7 @@ describe('RegisterForm', () => {
     await waitFor(() => {
       expect(onSuccess).toHaveBeenCalledWith('novo@example.com');
     });
-    expect(localStorage.getItem('auth_token')).toBeNull();
+    expect(localStorage.getItem('auth_session')).toBeNull();
     expect(localStorage.getItem('user_session')).toBeNull();
   });
 });

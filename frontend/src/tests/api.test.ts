@@ -8,20 +8,22 @@ describe('apiFetch resilience (PC-06)', () => {
     sessionStorage.clear();
   });
 
-  it('deve ler token do sessionStorage quando não estiver presente no localStorage', async () => {
-    sessionStorage.setItem('auth_token', 'session_token_123');
-    let capturedAuthHeader: string | null = null;
+  it('envia o cookie de sessão (credentials include) e nunca o header Authorization', async () => {
+    let capturedAuthHeader: string | null = 'unset';
+    let capturedCredentials: string | null = null;
 
     server.use(
-      http.get('http://localhost:3001/api/test-session-token', ({ request }) => {
+      http.get('http://localhost:3001/api/test-cookie', ({ request }) => {
         capturedAuthHeader = request.headers.get('Authorization');
+        capturedCredentials = request.credentials;
         return HttpResponse.json({ success: true, data: { ok: true } });
       })
     );
 
-    const data = await apiFetch<{ ok: boolean }>('/test-session-token');
+    const data = await apiFetch<{ ok: boolean }>('/test-cookie');
     expect(data).toEqual({ ok: true });
-    expect(capturedAuthHeader).toBe('Bearer session_token_123');
+    expect(capturedAuthHeader).toBeNull();
+    expect(capturedCredentials).toBe('include');
   });
 
   beforeEach(() => {
@@ -44,7 +46,7 @@ describe('apiFetch resilience (PC-06)', () => {
   });
 
   it('deve limpar localStorage e disparar evento auth:unauthorized ao receber status 401', async () => {
-    localStorage.setItem('auth_token', 'expired_token');
+    localStorage.setItem('auth_session', '1');
     localStorage.setItem('user_session', JSON.stringify({ id: '1' }));
 
     server.use(
@@ -61,7 +63,7 @@ describe('apiFetch resilience (PC-06)', () => {
 
     await expect(apiFetch('/test-401')).rejects.toThrow(/token expirado ou inválido/i);
 
-    expect(localStorage.getItem('auth_token')).toBeNull();
+    expect(localStorage.getItem('auth_session')).toBeNull();
     expect(localStorage.getItem('user_session')).toBeNull();
     expect(unauthorizedListener).toHaveBeenCalledTimes(1);
 

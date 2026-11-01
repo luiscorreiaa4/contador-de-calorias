@@ -75,7 +75,7 @@ export const OnboardingFlow: React.FC = () => {
   const onboardingMutation = useMutation({
     mutationFn: completeUserOnboarding,
     onSuccess: (response) => {
-      setAuthSession(response.user, response.token);
+      setAuthSession(response.user);
     },
     onError: (err: unknown) => {
       const errorMsg = err instanceof Error ? err.message : String(err);

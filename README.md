@@ -77,7 +77,7 @@ DB_NAME=contador_calorias
 DATABASE_URL=postgresql://postgres:substitua_pela_senha_local@localhost:5432/contador_calorias
 
 JWT_SECRET=substitua_por_uma_chave_aleatoria_de_pelo_menos_32_caracteres
-JWT_EXPIRES_IN=7d
+JWT_EXPIRES_IN=1d
 CORS_ORIGIN=http://localhost:5173
 
 APP_BASE_URL=http://localhost:5173
@@ -153,7 +153,7 @@ As variáveis do backend ficam em `backend/.env`. Os campos de conexão devem se
 | `DB_NAME` | Nome do banco; em desenvolvimento, `contador_calorias` |
 | `DATABASE_URL` | URL de conexão utilizada pelas migrações |
 | `JWT_SECRET` | Chave de assinatura de sessão; obrigatória, com no mínimo 32 caracteres |
-| `JWT_EXPIRES_IN` | Validade configurável do token (ex: `7d`), aplicada na geração da sessão JWT |
+| `JWT_EXPIRES_IN` | Validade configurável do token (ex: `1d`; também define a validade do cookie `cs_session`), aplicada na geração da sessão JWT |
 | `CORS_ORIGIN` | Origem autorizada para o frontend; localmente, `http://localhost:5173` |
 | `APP_BASE_URL` | URL pública do frontend usada no link de redefinição de senha; HTTPS em produção |
 | `MAIL_FROM` | Remetente dos e-mails transacionais, com domínio verificado no provedor |

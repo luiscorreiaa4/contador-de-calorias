@@ -47,7 +47,7 @@ describe('Router & Navigation (PC-21 / D-16)', () => {
   });
 
   it('redireciona para /onboarding quando usuário autenticado não concluiu onboarding', async () => {
-    localStorage.setItem('auth_token', 'test_token');
+    localStorage.setItem('auth_session', 'test_token');
     localStorage.setItem(
       'user_session',
       JSON.stringify({ id: '1', name: 'Tester', email: 'tester@test.com', onboarding_completed: false })
@@ -68,7 +68,7 @@ describe('Router & Navigation (PC-21 / D-16)', () => {
   });
 
   it('permite acesso a /estatisticas quando autenticado e com onboarding concluído', async () => {
-    localStorage.setItem('auth_token', 'test_token');
+    localStorage.setItem('auth_session', 'test_token');
     localStorage.setItem(
       'user_session',
       JSON.stringify({ id: '1', name: 'Tester', email: 'tester@test.com', onboarding_completed: true })
@@ -89,7 +89,7 @@ describe('Router & Navigation (PC-21 / D-16)', () => {
   });
 
   it('permite acesso a /perfil quando autenticado e com onboarding concluído', async () => {
-    localStorage.setItem('auth_token', 'test_token');
+    localStorage.setItem('auth_session', 'test_token');
     localStorage.setItem(
       'user_session',
       JSON.stringify({ id: '1', name: 'Tester', email: 'tester@test.com', onboarding_completed: true })

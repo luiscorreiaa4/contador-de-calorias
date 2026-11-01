@@ -26,7 +26,7 @@ function renderRoute(path: string) {
 
 describe('Navegação por finalidade', () => {
   beforeEach(() => {
-    localStorage.setItem('auth_token', 'test-token');
+    localStorage.setItem('auth_session', 'test-token');
     localStorage.setItem('user_session', JSON.stringify({ id: '1', name: 'Test User', email: 'test@example.com', onboarding_completed: true }));
   });
 

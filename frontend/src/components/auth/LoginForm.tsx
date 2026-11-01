@@ -29,7 +29,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onEmailNotVerif
   const loginMutation = useMutation({
     mutationFn: (data: LoginFormData) => loginUser(data),
     onSuccess: (response) => {
-      setAuthSession(response.user, response.token, formData.rememberMe);
+      setAuthSession(response.user, formData.rememberMe);
       if (onSuccess) onSuccess();
     },
     onError: (err: unknown) => {

@@ -2,7 +2,11 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { env } from '../config/env.js';
+import { readSessionCookie } from '../utils/sessionCookie.js';
 import { getUserAuthContext, type UserAuthContext } from '../models/auth.model.js';
+
+const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+const allowedOrigins = env.CORS_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean);
 
 export interface AuthenticatedRequest extends Request {
   userId?: string;
@@ -56,16 +60,26 @@ function rejectInvalidToken(res: Response) {
 
 export async function authenticate(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith('Bearer ')) {
+  const bearer = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+  const cookieToken = bearer ? null : readSessionCookie(req);
+  const token = bearer ?? cookieToken;
+  if (!token) {
     return res.status(401).json({
       success: false,
       message: 'Acesso negado. Token de autenticação não fornecido.',
     });
   }
 
+  // CSRF: cookie vai sozinho no navegador, então mutações exigem Origin permitida (além de SameSite=Strict).
+  if (cookieToken && !SAFE_METHODS.has(req.method)) {
+    const origin = req.headers.origin;
+    if (!origin || !allowedOrigins.includes(origin)) {
+      return res.status(403).json({ success: false, message: 'Origem não permitida.', code: 'FORBIDDEN' });
+    }
+  }
+
   let parsed: { userId: string; tv: number };
   try {
-    const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, env.JWT_SECRET, {
       algorithms: ['HS256'],
     });

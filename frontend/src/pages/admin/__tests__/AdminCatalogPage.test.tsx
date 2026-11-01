@@ -54,7 +54,7 @@ describe('Painel do Catálogo Global (Admin)', () => {
   });
 
   it('AdminRoute: redireciona usuário não-admin para a página inicial (/)', async () => {
-    localStorage.setItem('auth_token', 'user-token');
+    localStorage.setItem('auth_session', '1');
     localStorage.setItem('user_session', JSON.stringify(regularUser));
 
     const { router } = renderApp('/admin/alimentos');
@@ -65,7 +65,7 @@ describe('Painel do Catálogo Global (Admin)', () => {
   });
 
   it('AdminRoute: permite acesso a usuário com papel admin', async () => {
-    localStorage.setItem('auth_token', 'admin-token');
+    localStorage.setItem('auth_session', 'admin');
     localStorage.setItem('user_session', JSON.stringify(adminUser));
 
     const { router } = renderApp('/admin/alimentos');
@@ -77,7 +77,7 @@ describe('Painel do Catálogo Global (Admin)', () => {
   });
 
   it('AppHeader: não exibe o link "Catálogo" para usuário comum', async () => {
-    localStorage.setItem('auth_token', 'user-token');
+    localStorage.setItem('auth_session', '1');
     localStorage.setItem('user_session', JSON.stringify(regularUser));
 
     renderApp('/');
@@ -86,7 +86,7 @@ describe('Painel do Catálogo Global (Admin)', () => {
   });
 
   it('AppHeader: exibe o link "Catálogo" para administrador e navega para /admin/alimentos', async () => {
-    localStorage.setItem('auth_token', 'admin-token');
+    localStorage.setItem('auth_session', 'admin');
     localStorage.setItem('user_session', JSON.stringify(adminUser));
 
     const { router } = renderApp('/');
@@ -101,7 +101,7 @@ describe('Painel do Catálogo Global (Admin)', () => {
   });
 
   it('Lista alimentos, permite filtrar por status e buscar por termo', async () => {
-    localStorage.setItem('auth_token', 'admin-token');
+    localStorage.setItem('auth_session', 'admin');
     localStorage.setItem('user_session', JSON.stringify(adminUser));
 
     renderApp('/admin/alimentos');
@@ -134,7 +134,7 @@ describe('Painel do Catálogo Global (Admin)', () => {
   });
 
   it('Cria novo alimento via modal exigindo fonte auditável (B9, B12)', async () => {
-    localStorage.setItem('auth_token', 'admin-token');
+    localStorage.setItem('auth_session', 'admin');
     localStorage.setItem('user_session', JSON.stringify(adminUser));
 
     renderApp('/admin/alimentos');
@@ -163,7 +163,7 @@ describe('Painel do Catálogo Global (Admin)', () => {
   });
 
   it('Edita alimento existente e exibe modal com valores preenchidos', async () => {
-    localStorage.setItem('auth_token', 'admin-token');
+    localStorage.setItem('auth_session', 'admin');
     localStorage.setItem('user_session', JSON.stringify(adminUser));
 
     renderApp('/admin/alimentos');
@@ -186,7 +186,7 @@ describe('Painel do Catálogo Global (Admin)', () => {
   });
 
   it('Desativa alimento com diálogo acessível de confirmação (B4)', async () => {
-    localStorage.setItem('auth_token', 'admin-token');
+    localStorage.setItem('auth_session', 'admin');
     localStorage.setItem('user_session', JSON.stringify(adminUser));
 
     renderApp('/admin/alimentos');
@@ -206,7 +206,7 @@ describe('Painel do Catálogo Global (Admin)', () => {
     ).toBeInTheDocument();
   });
   it('Persiste busca, ordenação e filtros na URL via useSearchParams', async () => {
-    localStorage.setItem('auth_token', 'admin-token');
+    localStorage.setItem('auth_session', 'admin');
     localStorage.setItem('user_session', JSON.stringify(adminUser));
 
     const { router } = renderApp('/admin/alimentos');
@@ -237,7 +237,7 @@ describe('Painel do Catálogo Global (Admin)', () => {
   });
 
   it('Exibe estado vazio com botão "Limpar Filtros" quando não há resultados', async () => {
-    localStorage.setItem('auth_token', 'admin-token');
+    localStorage.setItem('auth_session', 'admin');
     localStorage.setItem('user_session', JSON.stringify(adminUser));
 
     const { router } = renderApp('/admin/alimentos');

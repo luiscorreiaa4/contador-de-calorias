@@ -25,13 +25,13 @@ export interface UserProfile {
   updated_at: string;
 }
 
+/** O JWT vai em cookie HttpOnly; o corpo traz só o usuário (o `token` do backend é ignorado). */
 export interface AuthResponseData {
   user: UserProfile;
-  token: string;
 }
 
-/** Resposta de PUT /users/me: inclui token novo após troca de senha/e-mail. */
-export type UpdateProfileResult = UserProfile & { token?: string };
+/** Resposta de PUT /users/me; o cookie é renovado pelo backend após troca de senha/e-mail. */
+export type UpdateProfileResult = UserProfile;
 
 export interface UpdateProfileData {
   name?: string;
@@ -117,7 +117,12 @@ export async function completeUserOnboarding(data: { sex: string; birthDate: str
     body: JSON.stringify(data),
   });
   // O endpoint retorna o user atualizado; a sessão atual continua válida.
-  return { user, token: localStorage.getItem('auth_token') || '' };
+  return { user };
+}
+
+/** POST /auth/logout: o backend expira o cookie HttpOnly. */
+export async function logoutUser(): Promise<void> {
+  return apiFetch<void>('/auth/logout', { method: 'POST' });
 }
 
 export async function getCurrentUserProfile(): Promise<UserProfile> {

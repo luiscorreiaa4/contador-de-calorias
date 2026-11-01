@@ -6,7 +6,7 @@ import { ThemeProvider } from '../../../context/ThemeProvider';
 import { AccountPage } from '../AccountPage';
 
 function renderPage(role: 'user' | 'admin' = 'user') {
-  localStorage.setItem('auth_token', role === 'admin' ? 'admin-token' : 'test-token');
+  localStorage.setItem('auth_session', role === 'admin' ? 'admin-token' : 'test-token');
   localStorage.setItem(
     'user_session',
     JSON.stringify({ id: '1', name: 'Test User', email: 'test@example.com', role, onboarding_completed: true })
@@ -55,7 +55,7 @@ describe('AccountPage', () => {
   it('"Sair da conta" encerra a sessão existente', async () => {
     renderPage();
     await userEvent.click(await screen.findByRole('button', { name: /sair da conta/i }));
-    await waitFor(() => expect(localStorage.getItem('auth_token')).toBeNull());
+    await waitFor(() => expect(localStorage.getItem('auth_session')).toBeNull());
     expect(localStorage.getItem('user_session')).toBeNull();
   });
 });

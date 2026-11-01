@@ -51,7 +51,7 @@ export const VerifyEmailPage: React.FC = () => {
   const verifyMutation = useMutation({
     mutationFn: () => verifyEmail({ email: email.trim(), code }),
     onSuccess: (response) => {
-      setAuthSession(response.user, response.token, state.rememberMe ?? true);
+      setAuthSession(response.user, state.rememberMe ?? true);
       navigate('/', { replace: true });
     },
   });

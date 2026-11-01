@@ -11,7 +11,7 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 
 | # | Item | Labels | Status |
 |---|---|---|---|
-| 1 | [navegador] mover JWT para cookie HttpOnly e reduzir TTL da sessão | security, auth, priority:high | [adiado] |
+| 1 | [navegador] mover JWT para cookie HttpOnly e reduzir TTL da sessão | security, auth, priority:high | [x] 01/11/2026 |
 | 2 | [navegador] unificar leitura do token em `apiFetch` | auth, quality | [x] 01/11/2026 |
 | 3 | [navegador] CSP, HSTS e headers de segurança no host do front | security, devops | [adiado] |
 | 4 | [auth] bloqueio ou atraso progressivo de login por conta | security, auth, priority:high | [adiado] |
@@ -50,8 +50,11 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 ## Itens
 
 ### #1 [navegador] mover JWT para cookie HttpOnly e reduzir TTL da sessão
-**Labels:** security, auth, priority:high · **Status:** `[adiado]`
-- **Motivo do adiamento:** Requer decisão prévia de arquitetura com o usuário (via `/grill-me`) sobre estratégia de CSRF (token sincronizado vs SameSite=Strict + validação de cabeçalho Origin), mecanismo de refresh tokens com rotação em banco, redução do TTL e compatibilidade de chamadas cross-origin no deploy.
+**Labels:** security, auth, priority:high · **Status:** `[x]` (Concluído em 01/11/2026)
+- **Decisões:** CSRF por `SameSite=Strict` + checagem de `Origin`; sem refresh token (só TTL menor, padrão `1d`); produção na mesma origem (front servido pelo Express ou proxy), pois `*.onrender.com`/`*.vercel.app` em hosts separados seriam sites distintos e o cookie Strict não iria.
+- **O que foi feito:** `backend/src/utils/sessionCookie.ts` grava o JWT no cookie `cs_session` (`HttpOnly`, `SameSite=Strict`, `Secure` em produção, validade igual ao `exp`). Login, verify-email e `PUT /users/me` (token renovado) definem o cookie; novo `POST /api/auth/logout` o expira. `authenticate` aceita Bearer ou cookie; com cookie, métodos não seguros exigem `Origin` em `CORS_ORIGIN` (senão 403). `JWT_EXPIRES_IN` passou a `1d`. No front, `apiFetch` usa `credentials: 'include'` e não envia mais `Authorization`; o storage guarda só o marcador `auth_session` e o `user_session` sanitizado. O token deixou de ser armazenado ou exposto ao JS.
+- **Limitação:** o backend ainda devolve `token` no corpo (e aceita Bearer) para clientes de API e testes; o front o ignora. Remover do corpo é um passo futuro.
+- **Testes:** `backend/tests/integration/session_cookie.test.ts`; front: `api.test.ts`, `AuthContext.test.tsx`, `auth_storage.test.tsx`.
 - **Guia:** `03-seguranca-web.md` §2 (Armazenamento no navegador) e §3 (Expiração de sessão).
 
 ### #2 [navegador] unificar leitura do token em `apiFetch`

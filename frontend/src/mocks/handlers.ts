@@ -472,9 +472,9 @@ export const handlers = [
     });
   }),
 
-  http.get(`${baseURL}/users/me`, ({ request }) => {
-    const authHeader = request.headers.get('Authorization') || '';
-    const isAdmin = authHeader.includes('admin-token');
+  http.get(`${baseURL}/users/me`, () => {
+    // O JWT vai em cookie HttpOnly (invisível ao MSW); os testes marcam admin no marcador de sessão.
+    const isAdmin = localStorage.getItem('auth_session') === 'admin';
     return HttpResponse.json({
       success: true,
       data: {

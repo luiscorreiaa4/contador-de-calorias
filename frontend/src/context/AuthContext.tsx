@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useMemo, useCallback, useEffect } from 'react';
-import { getCurrentUserProfile, type UserProfile } from '../services/auth.service';
-import { getStoredAuthToken } from '../services/api';
+import { getCurrentUserProfile, logoutUser, type UserProfile } from '../services/auth.service';
+import { clearStoredSession, hasStoredSession } from '../services/api';
 
 interface SafeUserSession {
   id: string;
@@ -39,10 +39,7 @@ function getStoredUserSession(): UserProfile | null {
     return null;
   } catch (err) {
     console.warn('Sessão armazenada corrompida. Limpando armazenamento:', err);
-    localStorage.removeItem('user_session');
-    localStorage.removeItem('auth_token');
-    sessionStorage.removeItem('user_session');
-    sessionStorage.removeItem('auth_token');
+    clearStoredSession();
     return null;
   }
 }
@@ -51,65 +48,51 @@ function getStoredUserSession(): UserProfile | null {
 interface AuthContextType {
   user: UserProfile | null;
   isAuthenticated: boolean;
-  token: string | null;
   isLoadingProfile: boolean;
-  setAuthSession: (user: UserProfile, token: string, rememberMe?: boolean) => void;
-  updateUserSession: (user: UserProfile, refreshedToken?: string) => void;
+  setAuthSession: (user: UserProfile, rememberMe?: boolean) => void;
+  updateUserSession: (user: UserProfile) => void;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [token, setToken] = useState<string | null>(getStoredAuthToken);
+  // O JWT fica só no cookie HttpOnly; aqui há apenas um marcador não secreto de sessão.
+  const [hasSession, setHasSession] = useState<boolean>(hasStoredSession);
   const [user, setUser] = useState<UserProfile | null>(getStoredUserSession);
 
   // Perfil completo contém created_at; sessão sanitizada do storage não contém
-  const isLoadingProfile = !!token && (!user || !('created_at' in user));
+  const isLoadingProfile = hasSession && (!user || !('created_at' in user));
 
-  const setAuthSession = useCallback((userData: UserProfile, authToken: string, rememberMe: boolean = true) => {
+  const setAuthSession = useCallback((userData: UserProfile, rememberMe: boolean = true) => {
     setUser(userData);
-    setToken(authToken);
+    setHasSession(true);
 
     const serialized = JSON.stringify(sanitizeUserSession(userData));
-
-    if (rememberMe) {
-      localStorage.setItem('user_session', serialized);
-      localStorage.setItem('auth_token', authToken);
-      sessionStorage.removeItem('user_session');
-      sessionStorage.removeItem('auth_token');
-    } else {
-      sessionStorage.setItem('user_session', serialized);
-      sessionStorage.setItem('auth_token', authToken);
-      localStorage.removeItem('user_session');
-      localStorage.removeItem('auth_token');
-    }
+    const [keep, drop] = rememberMe ? [localStorage, sessionStorage] : [sessionStorage, localStorage];
+    keep.setItem('user_session', serialized);
+    keep.setItem('auth_session', '1');
+    drop.removeItem('user_session');
+    drop.removeItem('auth_session');
   }, []);
 
-  const updateUserSession = useCallback((userData: UserProfile, refreshedToken?: string) => {
+  const updateUserSession = useCallback((userData: UserProfile) => {
     setUser(userData);
-    const serialized = JSON.stringify(sanitizeUserSession(userData));
-    // Mantém o mesmo tipo de armazenamento escolhido no login e persiste o token
-    // renovado após troca de senha/e-mail (A8).
-    const storage = sessionStorage.getItem('auth_token') !== null ? sessionStorage : localStorage;
-    if (refreshedToken) {
-      setToken(refreshedToken);
-      storage.setItem('auth_token', refreshedToken);
-    }
-    storage.setItem('user_session', serialized);
+    // Mantém o mesmo tipo de armazenamento escolhido no login.
+    const storage = sessionStorage.getItem('auth_session') !== null ? sessionStorage : localStorage;
+    storage.setItem('user_session', JSON.stringify(sanitizeUserSession(userData)));
   }, []);
 
   const logout = useCallback(() => {
     setUser(null);
-    setToken(null);
-    localStorage.removeItem('user_session');
-    localStorage.removeItem('auth_token');
-    sessionStorage.removeItem('user_session');
-    sessionStorage.removeItem('auth_token');
+    setHasSession(false);
+    clearStoredSession();
+    // shortcut: fire-and-forget; se falhar, o cookie expira sozinho (TTL de 1 dia).
+    void logoutUser().catch(() => undefined);
   }, []);
 
   useEffect(() => {
-    if (token) {
+    if (hasSession) {
       let isMounted = true;
       getCurrentUserProfile()
         .then((fullProfile) => {
@@ -118,19 +101,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         })
         .catch(() => {
-          // Em caso de erro 401, o apiFetch já remove os tokens e dispara auth:unauthorized
+          // Em caso de erro 401, o apiFetch já limpa a sessão e dispara auth:unauthorized
         });
 
       return () => {
         isMounted = false;
       };
     }
-  }, [token]);
+  }, [hasSession]);
 
   useEffect(() => {
     const handleUnauthorized = () => {
       setUser(null);
-      setToken(null);
+      setHasSession(false);
     };
 
     window.addEventListener('auth:unauthorized', handleUnauthorized);
@@ -142,14 +125,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const authValue = useMemo(
     () => ({
       user,
-      token,
-      isAuthenticated: !!user && !!token,
+      isAuthenticated: !!user && hasSession,
       isLoadingProfile,
       setAuthSession,
       updateUserSession,
       logout,
     }),
-    [user, token, isLoadingProfile, setAuthSession, updateUserSession, logout]
+    [user, hasSession, isLoadingProfile, setAuthSession, updateUserSession, logout]
   );
 
   return (

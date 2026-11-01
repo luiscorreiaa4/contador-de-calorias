@@ -22,7 +22,7 @@ export const envSchema = z.object({
   DB_PASSWORD: z.string().min(1, 'DB_PASSWORD é obrigatória'),
   DB_NAME: z.string().min(1, 'DB_NAME é obrigatório'),
   JWT_SECRET: z.string().min(32, 'JWT_SECRET deve ter no mínimo 32 caracteres para garantir segurança criptográfica adequada.'),
-  JWT_EXPIRES_IN: z.string().default('7d'),
+  JWT_EXPIRES_IN: z.string().default('1d'),
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
   DB_SSL_CA: z.string().optional(),
   // BL-27 / A-030 — Chaves VAPID para Web Push Notifications

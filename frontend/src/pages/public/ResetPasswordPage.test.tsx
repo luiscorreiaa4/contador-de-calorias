@@ -74,7 +74,7 @@ describe('ResetPasswordPage (BL-05)', () => {
   });
 
   it('redefine a senha, encerra a sessão antiga e orienta o login sem abrir nova sessão', async () => {
-    sessionStorage.setItem('auth_token', 'token-antigo');
+    sessionStorage.setItem('auth_session', 'token-antigo');
     sessionStorage.setItem(
       'user_session',
       JSON.stringify({ id: '1', name: 'Test User', email: 'test@example.com' })
@@ -93,8 +93,8 @@ describe('ResetPasswordPage (BL-05)', () => {
       'href',
       '/login'
     );
-    expect(localStorage.getItem('auth_token')).toBeNull();
-    expect(sessionStorage.getItem('auth_token')).toBeNull();
+    expect(localStorage.getItem('auth_session')).toBeNull();
+    expect(sessionStorage.getItem('auth_session')).toBeNull();
     expect(sessionStorage.getItem('user_session')).toBeNull();
   });
 

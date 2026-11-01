@@ -21,7 +21,7 @@ describe('EditProfilePage Component (PC-34 / TST-011)', () => {
     expect(screen.queryByRole('button', { name: /excluir conta/i })).not.toBeInTheDocument();
   });
   beforeEach(() => {
-    localStorage.setItem('auth_token', 'fake-jwt-token');
+    localStorage.setItem('auth_session', 'fake-jwt-token');
     localStorage.setItem(
       'user_session',
       JSON.stringify({

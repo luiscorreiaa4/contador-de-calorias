@@ -7,7 +7,7 @@ import * as pushService from '../../../services/push.service';
 
 describe('NotificationsPage Component (BL-27 / FEAT-C09)', () => {
   beforeEach(() => {
-    localStorage.setItem('auth_token', 'test-token');
+    localStorage.setItem('auth_session', 'test-token');
     localStorage.setItem(
       'user_session',
       JSON.stringify({
