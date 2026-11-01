@@ -38,3 +38,9 @@ backend/data/*.json
 backend/data/*.csv
 !backend/data/curated-foods.json
 !backend/data/catalog-decisions.csv
+
+# Cache do Understand Anything
+.ua/
+
+# Config local do Claude Code
+.claude/settings.local.json
