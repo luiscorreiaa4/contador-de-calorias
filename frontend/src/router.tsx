@@ -28,6 +28,9 @@ const ForgotPasswordPage = lazy(() =>
 const ResetPasswordPage = lazy(() =>
   import('./pages/public/ResetPasswordPage').then((m) => ({ default: m.ResetPasswordPage }))
 );
+const NotFoundPage = lazy(() =>
+  import('./pages/public/NotFoundPage').then((m) => ({ default: m.NotFoundPage }))
+);
 const OnboardingFlow = lazy(() =>
   import('./components/onboarding/OnboardingFlow').then((m) => ({
     default: m.OnboardingFlow,
@@ -134,7 +137,7 @@ export const routes: RouteObject[] = [
       { path: 'termos', element: <TermsPage /> },
       { path: 'privacidade', element: <PrivacyPage /> },
       { path: 'seguranca', element: <SecurityPage /> },
-      { path: '*', element: <Navigate to="/" replace /> },
+      { path: '*', element: <NotFoundPage /> },
     ],
   },
 ];

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router';
 import { useAuth } from '../context/AuthContext';
+import { useNoIndex } from '../hooks/useNoIndex';
 
 interface ProtectedRouteProps {
   children?: React.ReactNode;
@@ -8,6 +9,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, fallback }) => {
+  useNoIndex();
   const { isAuthenticated, user } = useAuth();
   const location = useLocation();
 

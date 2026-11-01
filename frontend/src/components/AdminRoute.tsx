@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router';
 import { useAuth } from '../context/AuthContext';
+import { useNoIndex } from '../hooks/useNoIndex';
 
 interface AdminRouteProps {
   children?: React.ReactNode;
@@ -11,6 +12,7 @@ interface AdminRouteProps {
  * A autorização definitiva e segura é sempre realizada pelo backend por PK (B1, B11).
  */
 export const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
+  useNoIndex();
   const { isAuthenticated, user, isLoadingProfile } = useAuth();
   const location = useLocation();
 
