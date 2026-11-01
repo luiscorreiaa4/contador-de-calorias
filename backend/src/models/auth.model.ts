@@ -239,24 +239,3 @@ export async function getTokenVersion(userId: string): Promise<number | null> {
   const ctx = await getUserAuthContext(userId);
   return ctx ? ctx.token_version : null;
 }
-
-/**
- * Sobrescreve nome/hash de uma conta ainda não verificada. Retorna false se a conta
- * tiver sido verificada concorrentemente.
- */
-export async function overwriteUnverifiedUser(
-  userId: string,
-  name: string,
-  passwordHash: string,
-  client?: PoolClient
-): Promise<boolean> {
-  const result = await db(client).query(
-    `UPDATE users
-        SET name = $2,
-            password_hash = $3,
-            updated_at = CURRENT_TIMESTAMP
-      WHERE id = $1 AND email_verified_at IS NULL`,
-    [userId, name.trim(), passwordHash]
-  );
-  return (result.rowCount ?? 0) > 0;
-}

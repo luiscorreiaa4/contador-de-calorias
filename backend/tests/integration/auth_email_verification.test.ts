@@ -47,34 +47,32 @@ describe('Confirmação de e-mail (BL-12 / D-21)', () => {
     assert.strictEqual(response.headers['cache-control'], 'no-store');
   });
 
-  it('novo cadastro em conta não verificada sobrescreve a senha e invalida o código anterior (A4)', async () => {
-    const email = `tester-verif-overwrite-${Date.now()}@example.com`;
-    const newPassword = 'outraSenha456';
+  it('novo cadastro em conta não verificada não altera credenciais e mantém resposta 202 genérica (#8)', async () => {
+    const email = `tester-verif-no-overwrite-${Date.now()}@example.com`;
+    const originalPassword = 'senhaOriginal123';
+    const attemptedNewPassword = 'outraSenha456';
 
-    await AuthService.register(registerPayload(email, 'Primeiro Nome'));
-    const firstCode = verificationCodeFor(email);
+    const firstRes = await request(app)
+      .post('/api/auth/register')
+      .send({ name: 'Primeiro Nome', email, password: originalPassword, acceptTerms: true });
+    assert.strictEqual(firstRes.status, 202);
+
+    const firstUserQuery = await pool.query('SELECT name, password_hash FROM users WHERE email = $1', [email]);
+    const originalHash = firstUserQuery.rows[0].password_hash;
+    const originalName = firstUserQuery.rows[0].name;
+
     clearMailbox();
 
-    await AuthService.register({ ...registerPayload(email, 'Segundo Nome'), password: newPassword });
+    const secondRes = await request(app)
+      .post('/api/auth/register')
+      .send({ name: 'Segundo Nome', email, password: attemptedNewPassword, acceptTerms: true });
+    assert.strictEqual(secondRes.status, 202);
+    assert.deepStrictEqual(secondRes.body, firstRes.body);
 
-    assert.strictEqual(
-      lastEmailTo(email),
-      undefined,
-      'cooldown deve suprimir o novo envio imediatamente após o primeiro'
-    );
+    const secondUserQuery = await pool.query('SELECT name, password_hash FROM users WHERE email = $1', [email]);
+    assert.strictEqual(secondUserQuery.rows[0].password_hash, originalHash, 'password_hash não deve ser alterado');
+    assert.strictEqual(secondUserQuery.rows[0].name, originalName, 'nome não deve ser alterado');
 
-    await assert.rejects(
-      () => AuthService.verifyEmail({ email, code: firstCode }),
-      (error: { statusCode?: number; code?: string }) => {
-        assert.strictEqual(error.statusCode, 400);
-        assert.strictEqual(error.code, 'INVALID_VERIFICATION_CODE');
-        return true;
-      },
-      'código anterior deve ser invalidado mesmo sem novo envio'
-    );
-
-    // Passado o cooldown, o reenvio emite um código novo que confirma a conta
-    // com a senha definida no segundo cadastro.
     await pool.query(
       `UPDATE email_verification_codes
           SET created_at = CURRENT_TIMESTAMP - INTERVAL '61 seconds'
@@ -90,10 +88,15 @@ describe('Confirmação de e-mail (BL-12 / D-21)', () => {
       .send({ email, code: newCode });
     assert.strictEqual(verified.status, 200);
 
-    const login = await request(app)
+    const failedLogin = await request(app)
       .post('/api/auth/login')
-      .send({ email, password: newPassword });
-    assert.strictEqual(login.status, 200);
+      .send({ email, password: attemptedNewPassword });
+    assert.strictEqual(failedLogin.status, 401);
+
+    const successLogin = await request(app)
+      .post('/api/auth/login')
+      .send({ email, password: originalPassword });
+    assert.strictEqual(successLogin.status, 200);
   });
 
   it('código errado conta tentativas e a 5ª falha invalida o código (A2)', async () => {

@@ -49,8 +49,13 @@ function handleUnauthorizedCleanup() {
   }
 }
 
+export function getStoredAuthToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+}
+
 export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const token = localStorage.getItem('auth_token');
+  const token = getStoredAuthToken();
 
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
@@ -97,7 +102,7 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
 }
 
 export async function apiFetchWithMeta<T>(path: string, options?: RequestInit): Promise<ApiResponseWithMeta<T>> {
-  const token = localStorage.getItem('auth_token');
+  const token = getStoredAuthToken();
 
   const headers: HeadersInit = {
     'Content-Type': 'application/json',

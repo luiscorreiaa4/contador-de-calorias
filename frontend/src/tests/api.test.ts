@@ -5,6 +5,26 @@ import { apiFetch } from '../services/api';
 
 describe('apiFetch resilience (PC-06)', () => {
   beforeEach(() => {
+    sessionStorage.clear();
+  });
+
+  it('deve ler token do sessionStorage quando não estiver presente no localStorage', async () => {
+    sessionStorage.setItem('auth_token', 'session_token_123');
+    let capturedAuthHeader: string | null = null;
+
+    server.use(
+      http.get('http://localhost:3001/api/test-session-token', ({ request }) => {
+        capturedAuthHeader = request.headers.get('Authorization');
+        return HttpResponse.json({ success: true, data: { ok: true } });
+      })
+    );
+
+    const data = await apiFetch<{ ok: boolean }>('/test-session-token');
+    expect(data).toEqual({ ok: true });
+    expect(capturedAuthHeader).toBe('Bearer session_token_123');
+  });
+
+  beforeEach(() => {
     localStorage.clear();
   });
 

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useMemo, useCallback, useEffect } from 'react';
 import { getCurrentUserProfile, type UserProfile } from '../services/auth.service';
+import { getStoredAuthToken } from '../services/api';
 
 interface SafeUserSession {
   id: string;
@@ -46,9 +47,6 @@ function getStoredUserSession(): UserProfile | null {
   }
 }
 
-function getStoredAuthToken(): string | null {
-  return localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
-}
 
 interface AuthContextType {
   user: UserProfile | null;

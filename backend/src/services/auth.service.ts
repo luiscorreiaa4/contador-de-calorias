@@ -122,31 +122,6 @@ async function issueVerificationCode(user: VerificationTarget): Promise<boolean>
   return true;
 }
 
-async function overwriteAndIssueCode(user: User, name: string, passwordHash: string): Promise<void> {
-  const client = await pool.connect();
-  let updated: boolean | undefined;
-  let finished = false;
-  try {
-    await client.query('BEGIN');
-    updated = await AuthModel.overwriteUnverifiedUser(user.id, name, passwordHash, client);
-    if (updated) {
-      // A4: um novo cadastro invalida os códigos anteriores mesmo quando o
-      // reenvio é suprimido pelo cooldown/teto (o envio respeita os limites).
-      await AuthModel.invalidateVerificationCodes(user.id, client);
-    }
-    await client.query('COMMIT');
-    finished = true;
-  } catch (error) {
-    if (!finished) await client.query('ROLLBACK');
-    throw error;
-  } finally {
-    client.release();
-  }
-
-  if (updated) {
-    await issueVerificationCode({ id: user.id, name: name.trim(), email: user.email });
-  }
-}
 
 /**
  * POST /api/auth/register (A4/A6): resposta sempre genérica (202), sem sessão.
@@ -163,7 +138,8 @@ export async function register(data: RegisterUserDTO): Promise<void> {
       return;
     }
 
-    await overwriteAndIssueCode(existing, data.name, passwordHash);
+    // #8: Não sobrescreve credenciais existentes; apenas reemite o código se permitido.
+    await issueVerificationCode({ id: existing.id, name: existing.name, email: existing.email });
     return;
   }
 
