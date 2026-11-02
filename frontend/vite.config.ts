@@ -13,7 +13,9 @@ export default defineConfig({
       {
         // Cálculo nutricional isolado (evita puxar os schemas Zod no bundle).
         find: '@caloriesync/shared/nutrition',
-        replacement: fileURLToPath(new URL('../shared/src/nutrition/nutrients.ts', import.meta.url)),
+        replacement: fileURLToPath(
+          new URL('../shared/src/nutrition/nutrients.ts', import.meta.url),
+        ),
       },
       {
         // Pacote compartilhado consumido como código-fonte.
@@ -56,6 +58,8 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/setupTests.ts'],
     globals: true,
+    // Testes não podem depender do .env local (captcha ligado quebra o login mockado).
+    env: { VITE_CAPTCHA_SITE_KEY: '' },
     testTimeout: 20000,
     hookTimeout: 20000,
     teardownTimeout: 10000,
@@ -65,5 +69,5 @@ export default defineConfig({
       // Piso um pouco abaixo da cobertura atual (78/72/75/80); subir conforme a cobertura crescer.
       thresholds: { statements: 75, branches: 68, functions: 70, lines: 77 },
     },
-  }
+  },
 });
