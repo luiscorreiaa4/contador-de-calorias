@@ -15,6 +15,7 @@ const ALLOWED_BUSINESS_CODES = new Set([
   'INVALID_RESET_TOKEN',
   'USER_NOT_FOUND',
   'FORBIDDEN',
+  'MFA_REQUIRED',
 ]);
 
 interface PgMappedError {

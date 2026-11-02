@@ -198,6 +198,8 @@ export async function updatePasswordAndIncrementTokenVersion(
     `UPDATE users
         SET password_hash = $2,
             token_version = token_version + 1,
+            failed_login_attempts = 0,
+            locked_until = NULL,
             updated_at = CURRENT_TIMESTAMP
       WHERE id = $1
       RETURNING token_version`,
@@ -238,4 +240,75 @@ export async function getUserAuthContext(userId: string): Promise<UserAuthContex
 export async function getTokenVersion(userId: string): Promise<number | null> {
   const ctx = await getUserAuthContext(userId);
   return ctx ? ctx.token_version : null;
+}
+
+/** Soma uma falha de login e bloqueia a conta ao atingir `maxAttempts` (#4). */
+export async function recordFailedLogin(
+  userId: string,
+  maxAttempts: number,
+  lockMinutes: number
+): Promise<void> {
+  await pool.query(
+    `UPDATE users
+        SET failed_login_attempts = failed_login_attempts + 1,
+            locked_until = CASE WHEN failed_login_attempts + 1 >= $2
+                                THEN CURRENT_TIMESTAMP + make_interval(mins => $3)
+                                ELSE locked_until END
+      WHERE id = $1`,
+    [userId, maxAttempts, lockMinutes]
+  );
+}
+
+export async function resetFailedLogins(userId: string): Promise<void> {
+  await pool.query(
+    `UPDATE users SET failed_login_attempts = 0, locked_until = NULL
+      WHERE id = $1 AND (failed_login_attempts > 0 OR locked_until IS NOT NULL)`,
+    [userId]
+  );
+}
+
+export interface MfaState {
+  mfa_secret_enc: string | null;
+  mfa_enabled_at: Date | null;
+}
+
+export async function getMfaState(userId: string): Promise<MfaState | null> {
+  const result = await pool.query<MfaState>(
+    'SELECT mfa_secret_enc, mfa_enabled_at FROM users WHERE id = $1',
+    [userId]
+  );
+  return result.rows[0] ?? null;
+}
+
+/** Guarda o segredo pendente; só vale enquanto `mfa_enabled_at` for nulo. */
+export async function savePendingMfaSecret(userId: string, secretEnc: string): Promise<boolean> {
+  const result = await pool.query(
+    `UPDATE users SET mfa_secret_enc = $2 WHERE id = $1 AND mfa_enabled_at IS NULL`,
+    [userId, secretEnc]
+  );
+  return (result.rowCount ?? 0) > 0;
+}
+
+export async function enableMfa(userId: string, recoveryHashes: string[]): Promise<void> {
+  await pool.query(
+    `UPDATE users SET mfa_enabled_at = CURRENT_TIMESTAMP, mfa_recovery_hashes = $2 WHERE id = $1`,
+    [userId, recoveryHashes]
+  );
+}
+
+export async function disableMfa(userId: string): Promise<void> {
+  await pool.query(
+    `UPDATE users SET mfa_secret_enc = NULL, mfa_enabled_at = NULL, mfa_recovery_hashes = '{}' WHERE id = $1`,
+    [userId]
+  );
+}
+
+/** Consome um código de recuperação de uso único; true se existia. */
+export async function consumeRecoveryCode(userId: string, hash: string): Promise<boolean> {
+  const result = await pool.query(
+    `UPDATE users SET mfa_recovery_hashes = array_remove(mfa_recovery_hashes, $2)
+      WHERE id = $1 AND $2 = ANY(mfa_recovery_hashes)`,
+    [userId, hash]
+  );
+  return (result.rowCount ?? 0) > 0;
 }

@@ -27,7 +27,12 @@ export const registerUserSchema = z.object({
 export const loginUserSchema = z.object({
   email: emailSchema,
   password: z.string().min(1, 'A senha é obrigatória.').max(72, 'A senha deve ter no máximo 72 caracteres.'),
+  /** TOTP de 6 dígitos ou código de recuperação (só para contas com MFA). */
+  mfa_code: z.string().trim().min(6).max(20).optional(),
 });
+
+/** Código do MFA (TOTP ou recuperação). */
+export const mfaCodeSchema = z.object({ code: z.string().trim().min(6).max(20) }).strict();
 
 /** Código numérico de 6 dígitos (BL-12 / A2). */
 export const emailVerificationCodeSchema = z

@@ -20,6 +20,7 @@ router.use((_req, res, next) => {
 });
 
 const registerLimiter = createAuthRateLimiter({
+  name: 'registerLimiter',
   windowMs: 15 * 60 * 1000,
   max: 20,
   includeEmail: false,
@@ -27,19 +28,31 @@ const registerLimiter = createAuthRateLimiter({
 });
 
 const loginCredentialLimiter = createAuthRateLimiter({
+  name: 'loginCredentialLimiter',
   windowMs: 15 * 60 * 1000,
   max: 10,
   message: 'Muitas tentativas de login. Tente novamente após 15 minutos.',
 });
 
 const loginIpLimiter = createAuthRateLimiter({
+  name: 'loginIpLimiter',
   windowMs: 15 * 60 * 1000,
   max: 30,
   includeEmail: false,
   message: 'Muitas tentativas de login originadas deste IP. Tente novamente após 15 minutos.',
 });
 
+// Ataque distribuído (vários IPs) contra uma única conta.
+const loginEmailLimiter = createAuthRateLimiter({
+  name: 'loginEmailLimiter',
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  emailOnly: true,
+  message: 'Muitas tentativas de login. Tente novamente após 15 minutos.',
+});
+
 const verifyEmailLimiter = createAuthRateLimiter({
+  name: 'verifyEmailLimiter',
   windowMs: 15 * 60 * 1000,
   max: 10,
   includeEmail: false,
@@ -47,18 +60,21 @@ const verifyEmailLimiter = createAuthRateLimiter({
 });
 
 const resendCodeLimiter = createAuthRateLimiter({
+  name: 'resendCodeLimiter',
   windowMs: 15 * 60 * 1000,
   max: 10,
   message: 'Muitos pedidos de reenvio. Tente novamente após 15 minutos.',
 });
 
 const forgotPasswordLimiter = createAuthRateLimiter({
+  name: 'forgotPasswordLimiter',
   windowMs: 15 * 60 * 1000,
   max: 10,
   message: 'Muitos pedidos de recuperação. Tente novamente após 15 minutos.',
 });
 
 const resetPasswordLimiter = createAuthRateLimiter({
+  name: 'resetPasswordLimiter',
   windowMs: 60 * 60 * 1000,
   max: 10,
   includeEmail: false,
@@ -66,7 +82,7 @@ const resetPasswordLimiter = createAuthRateLimiter({
 });
 
 router.post('/register', registerLimiter, validate(registerUserSchema), AuthController.register);
-router.post('/login', loginIpLimiter, loginCredentialLimiter, validate(loginUserSchema), AuthController.login);
+router.post('/login', loginIpLimiter, loginEmailLimiter, loginCredentialLimiter, validate(loginUserSchema), AuthController.login);
 router.post('/verify-email', verifyEmailLimiter, validate(verifyEmailSchema), AuthController.verifyEmail);
 router.post('/logout', AuthController.logout);
 router.post('/resend-code', resendCodeLimiter, validate(resendVerificationCodeSchema), AuthController.resendCode);

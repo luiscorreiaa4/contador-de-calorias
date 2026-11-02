@@ -3,6 +3,7 @@ import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import * as UserController from '../controllers/user.controller.js';
 import { validate } from '../middlewares/validate.js';
 import { authenticate } from '../middlewares/auth.js';
+import * as MfaController from '../controllers/mfa.controller.js';
 import {
   updateUserSchema,
   deleteUserSchema,
@@ -13,6 +14,7 @@ import {
   createMeasurementSchema,
   measurementQuerySchema,
   uuidParamSchema,
+  mfaCodeSchema,
 } from '@caloriesync/shared';
 
 const router = Router();
@@ -31,6 +33,9 @@ const sensitiveActionLimiter = rateLimit({
 });
 
 router.get('/me', authenticate, UserController.getProfile);
+router.post('/me/mfa/setup', authenticate, sensitiveActionLimiter, MfaController.setup);
+router.post('/me/mfa/enable', authenticate, sensitiveActionLimiter, validate(mfaCodeSchema), MfaController.enable);
+router.post('/me/mfa/disable', authenticate, sensitiveActionLimiter, validate(mfaCodeSchema), MfaController.disable);
 router.get('/me/export', authenticate, UserController.exportData);
 router.put('/me', authenticate, sensitiveActionLimiter, validate(updateUserSchema), UserController.updateProfile);
 router.put('/me/onboarding', authenticate, validate(completeOnboardingSchema), UserController.completeOnboarding);
