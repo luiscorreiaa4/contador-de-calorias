@@ -58,6 +58,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/setupTests.ts'],
     globals: true,
+    exclude: ['**/node_modules/**', 'e2e/**'],
     // Testes não podem depender do .env local (captcha ligado quebra o login mockado).
     env: { VITE_CAPTCHA_SITE_KEY: '' },
     testTimeout: 20000,

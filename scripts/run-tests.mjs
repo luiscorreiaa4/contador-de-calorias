@@ -6,7 +6,7 @@ import { runBounded } from './run-bounded.mjs';
 const root = resolve(import.meta.dirname, '..');
 const [mode = 'backend', ...requested] = process.argv.slice(2);
 const frontend = mode === 'frontend' || mode === 'frontend:file';
-if (!['backend', 'strict', 'file', 'frontend', 'frontend:file'].includes(mode))
+if (!['backend', 'strict', 'coverage', 'file', 'frontend', 'frontend:file'].includes(mode))
   throw new Error('Modo de teste inválido.');
 const cwd = resolve(root, frontend ? 'frontend' : 'backend');
 async function findTests(dir) {
@@ -57,6 +57,17 @@ const env = {
 };
 // Sem force-exit, sockets ociosos também precisam permanecer visíveis ao diagnóstico.
 env.TEST_STRICT = mode === 'backend' ? '0' : '1';
+// Limites logo abaixo da cobertura medida (95,7 / 80,0 / 95,3); subir quando a cobertura subir.
+const coverageArgs =
+  mode === 'coverage'
+    ? [
+        '--experimental-test-coverage',
+        '--test-coverage-include=src/**',
+        '--test-coverage-lines=93',
+        '--test-coverage-branches=77',
+        '--test-coverage-functions=93',
+      ]
+    : [];
 const args = frontend
   ? [resolve(cwd, 'node_modules/vitest/vitest.mjs'), 'run', ...files]
   : [
@@ -65,6 +76,7 @@ const args = frontend
       '--test',
       '--test-timeout=30000',
       '--test-concurrency=1',
+      ...coverageArgs,
       ...(mode === 'backend' ? ['--test-force-exit'] : []),
       ...files,
     ];

@@ -14,7 +14,13 @@
       "project": ["src/**/*.ts", "scripts/**", "tests/**"]
     },
     "frontend": {
-      "entry": ["src/main.tsx", "src/**/*.test.{ts,tsx}", "scripts/*.mjs"],
+      "entry": [
+        "src/main.tsx",
+        "src/**/*.test.{ts,tsx}",
+        "scripts/*.mjs",
+        "e2e/*.spec.ts",
+        "playwright.config.ts"
+      ],
       "project": ["src/**/*.{ts,tsx}"]
     },
     "shared": {

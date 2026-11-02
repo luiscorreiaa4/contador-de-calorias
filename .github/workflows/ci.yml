@@ -95,7 +95,7 @@ jobs:
           AUTH_TOKEN_PEPPER: super_secret_test_pepper_with_at_least_32_chars_456!
         run: |
           npm --prefix backend run migrate up
-          npm run test:strict
+          npm run test:coverage
 
       - name: Migration rollback test
         env:
@@ -120,6 +120,20 @@ jobs:
           PORT: 3001
           DURATION: 10
         run: npm run test:load
+
+      - name: E2E (Playwright, Chromium)
+        env:
+          NODE_ENV: test
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USER: postgres
+          DB_PASSWORD: postgres_test_password
+          DB_NAME: contador_calorias_test
+          DATABASE_URL: postgres://postgres:postgres_test_password@localhost:5432/contador_calorias_test
+          JWT_SECRET: super_secret_test_key_with_at_least_32_chars_123!
+        run: |
+          npm --prefix frontend exec playwright install --with-deps chromium
+          npm run test:e2e
 
       - name: Run Frontend Tests with Coverage
         run: npm --prefix frontend run test:coverage
