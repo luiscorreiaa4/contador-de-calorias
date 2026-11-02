@@ -25,17 +25,17 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 | 12 | [infra] mapear erros do `pg` e não expor `err.code`/`err.message` brutos | security | [x] 01/11/2026 |
 | 13 | [infra] CORS: rejeitar `*` e `localhost` em produção | security | [x] 01/11/2026 |
 | 14 | [infra] e-mail: proibir `memory` em produção, exigir TLS e timeouts | security, devops | [x] 01/11/2026 |
-| 15 | [infra] criptografia em repouso para dados de saúde | security, legal | [adiado] |
+| 15 | [infra] criptografia em repouso para dados de saúde | security, legal | [~] 02/11/2026 |
 | 16 | [infra] atualizar deps `high` e auditar backend/frontend no CI | security, devops, priority:high | [~] 02/11/2026 |
 | 17 | [devops] fixar Docker/Actions por versão/SHA, `permissions` e handlers de processo | devops, security | [x] 01/11/2026 |
 | 18 | [segredos] `sourcemap: false`, remover `/test-compression-payload`, exigir VAPID | security | [x] 01/11/2026 |
 | 19 | [qualidade] formatter, commitlint/Husky e knip | quality | [~] 02/11/2026 |
-| 20 | [qualidade] `down` utilizável em todas as migrations e teste de rollback | quality, devops | [adiado] |
+| 20 | [qualidade] `down` utilizável em todas as migrations e teste de rollback | quality, devops | [x] 02/11/2026 |
 | 21 | [tests] cobertura do backend e `thresholds` no front | tests | [~] 02/11/2026 |
 | 22 | [tests] E2E com Playwright | tests | [adiado] |
 | 23 | [tests] testes de autorização por recurso e carga no CI | tests, security | [x] 01/11/2026 (IDOR) / [adiado] (Carga CI) |
 | 24 | [devops] deploy: Dockerfile, ambientes e etapa no CI | devops | [~] 02/11/2026 |
-| 25 | [observability] rastreio de erros, métricas e alertas | observability | [adiado] |
+| 25 | [observability] rastreio de erros, métricas e alertas | observability | [~] 02/11/2026 |
 | 26 | [devops] backup do Postgres com teste de restauração | devops | [~] 02/11/2026 |
 | 27 | [ux] página 404 própria | ux, seo | [x] 01/11/2026 |
 | 28 | [ux] auditar `prefers-reduced-motion` | ux, a11y | [x] 01/11/2026 |
@@ -135,8 +135,9 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 - **Testes:** `backend/tests/unit/env_and_cors.test.ts` cobrindo validação de transporte em produção.
 
 ### #15 [infra] criptografia em repouso para dados de saúde
-**Labels:** security, legal · **Status:** `[adiado]`
-- **Motivo do adiamento:** Depende da confirmação da ativação de criptografia de disco no provedor de nuvem (AWS RDS, Supabase, etc.) e de decisão com o usuário via `/grill-me` sobre adoção de criptografia por coluna no banco (devido à perda de indexação e impacto em agregações estatísticas).
+**Labels:** security, legal · **Status:** `[~]` (decidido em 02/11/2026; falta uma confirmação)
+- **Decisão:** o banco será o Neon (`docs/HOSPEDAGEM.md`), que cifra os dados em repouso (AES-256) no provedor. Criptografia por coluna (`pgcrypto`) **não** será adotada agora: perde índice/busca e as agregações de metas, e a chave ficaria junto da API.
+- **Pendente (usuário):** confirmar na página oficial de segurança do Neon que o plano gratuito inclui a cifragem em repouso (só encontrei fontes de terceiros). Reavaliar a cifragem por coluna se o produto passar a atender usuários reais.
 - **Guia:** `03-seguranca-web.md` §6 (Criptografia de dados sensíveis).
 
 ### #16 [infra] atualizar deps `high` e auditar backend/frontend no CI
@@ -162,8 +163,10 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 - **Guia:** `05-engenharia-qualidade-devops.md` §4.
 
 ### #20 [qualidade] `down` utilizável em todas as migrations e teste de rollback
-**Labels:** quality, devops · **Status:** `[adiado]`
-- **Motivo do adiamento:** Testes de rollback de migração executam `DROP TABLE`, operação estritamente proibida pelas regras de segurança da IA sem autorização explícita e prévia do usuário (Regra D-11 / AGENTS.md: "PROIBIDO Comandos Destrutivos de Banco: NUNCA execute DROP TABLE sem consentimento explícito prévio do usuário").
+**Labels:** quality, devops · **Status:** `[x]` (Concluído em 02/11/2026)
+- **Autorização:** o usuário autorizou os `DROP TABLE` dos `down` apenas em banco de teste.
+- **O que foi feito:** os 16 `down` já existiam e funcionam. `backend/scripts/test-migration-rollback.mjs` (`npm run test:rollback`, também no CI) usa o banco dedicado `contador_calorias_rollback_test`: `up`, compara esquema, `down` de tudo (só `pgmigrations` pode sobrar), `up` de novo e exige esquema idêntico. Nunca toca em outro banco.
+- **Limitação:** o `down` da baseline não remove a extensão `uuid-ossp`; migration aplicada não se edita, então o teste a tolera.
 - **Guia:** `05-engenharia-qualidade-devops.md` §2 (Rollback).
 
 ### #21 [tests] cobertura do backend e `thresholds` no front
@@ -190,8 +193,10 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 - **Guia:** `05-engenharia-qualidade-devops.md` §1.
 
 ### #25 [observability] rastreio de erros, métricas e alertas
-**Labels:** observability · **Status:** `[adiado]`
-- **Motivo do adiamento:** Requer fornecimento de credenciais, chaves de API e DSNs de provedor de APM externo (Sentry, Datadog, etc.) pelo usuário.
+**Labels:** observability · **Status:** `[~]` (backend pronto em 02/11/2026; falta o DSN)
+- **Provedor:** Sentry, plano Developer (grátis e recorrente, ~5.000 erros/mês; confirmar em sentry.io/pricing). Não consta no `HOSPEDAGEM.md`.
+- **O que foi feito:** `backend/src/config/sentry.ts` inicializa o SDK só com `SENTRY_DSN` e fora de `NODE_ENV=test`; `errorHandler` reporta erros 5xx. `beforeSend` remove corpo, cookies, cabeçalhos e usuário (dados de saúde e `cs_session` não saem da API). SDK fixado em `@sentry/node@10.78.0` (a 11.x traz dependência vulnerável).
+- **Pendente:** (usuário) criar o projeto no Sentry e definir `SENTRY_DSN` no Render; alertas por e-mail no painel; erros do front (`@sentry/react`) e citar o Sentry na política de privacidade.
 - **Guia:** `05-engenharia-qualidade-devops.md` §3.
 
 ### #26 [devops] backup do Postgres com teste de restauração
@@ -221,6 +226,7 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 
 ### #31 [legal] minimização dos campos de saúde
 **Labels:** legal · **Status:** `[adiado]`
+- **Levantamento (02/11/2026):** `docs/SPEC.md` RF-002 já define: sem `body_fat` usa Mifflin-St Jeor; `prefiro_nao_responder` usa a constante feminina; sem nível de atividade usa 1,2. **Não há regra documentada** para falta de peso, altura ou data de nascimento (os schemas de edição já os aceitam opcionais, o onboarding exige).
 - **Motivo do adiamento:** Tornar opcionais campos corporais (peso, altura, data de nascimento, sexo) altera diretamente os cálculos matemáticos das fórmulas de TMB/GET (Mifflin-St Jeor / Katch-McArdle) e exige decisão de produto pelo usuário.
 - **Guia:** `08-legal-lgpd-acessibilidade.md` §1 (Só dados necessários).
 

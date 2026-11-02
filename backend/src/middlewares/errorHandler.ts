@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { structuredLog } from '../config/logger.js';
+import { reportServerError } from '../config/sentry.js';
 import type { AuthenticatedRequest } from './auth.js';
 
 interface CustomError extends Error {
@@ -64,6 +65,7 @@ export function errorHandler(
   const requestId = (req as AuthenticatedRequest).requestId ?? req.headers['x-request-id'];
 
   if (statusCode >= 500) {
+    reportServerError(err);
     structuredLog('error', 'unhandled_server_error', {
       requestId,
       method: req.method,

@@ -33,6 +33,11 @@ export const envSchema = z.object({
     .string()
     .optional()
     .transform((value) => value || undefined),
+  // #25 — DSN do Sentry; sem ele o rastreio de erros fica desligado.
+  SENTRY_DSN: z
+    .string()
+    .optional()
+    .transform((value) => value || undefined),
   // Número de saltos confiáveis (ex: "1") ou "false"; nunca "true".
   TRUST_PROXY: z
     .string()

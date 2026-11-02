@@ -91,6 +91,11 @@ jobs:
         npm --prefix backend run migrate up
         npm run test:strict
 
+    - name: Migration rollback test
+      env:
+        DATABASE_URL_TEST: postgres://postgres:postgres_test_password@localhost:5432/contador_calorias_test
+      run: npm run test:rollback
+
     - name: Run Frontend Tests with Coverage
       run: npm --prefix frontend run test:coverage
 
