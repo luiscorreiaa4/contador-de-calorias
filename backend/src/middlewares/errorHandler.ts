@@ -16,6 +16,7 @@ const ALLOWED_BUSINESS_CODES = new Set([
   'USER_NOT_FOUND',
   'FORBIDDEN',
   'MFA_REQUIRED',
+  'CAPTCHA_FAILED',
 ]);
 
 interface PgMappedError {

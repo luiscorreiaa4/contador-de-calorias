@@ -13,7 +13,11 @@ export const emailSchema = z
   .email('Digite um e-mail válido.')
   .max(255, 'O e-mail deve ter no máximo 255 caracteres.');
 
+/** Token do Turnstile (#6); exigido só quando o backend tem CAPTCHA_SECRET_KEY. */
+const captchaTokenSchema = z.string().max(2048).optional();
+
 export const registerUserSchema = z.object({
+  captcha_token: captchaTokenSchema,
   name: z.string().min(2, 'O nome deve ter no mínimo 2 caracteres.').max(100, 'O nome deve ter no máximo 100 caracteres.'),
   email: emailSchema,
   password: strongPasswordSchema,
@@ -25,6 +29,7 @@ export const registerUserSchema = z.object({
 });
 
 export const loginUserSchema = z.object({
+  captcha_token: captchaTokenSchema,
   email: emailSchema,
   password: z.string().min(1, 'A senha é obrigatória.').max(72, 'A senha deve ter no máximo 72 caracteres.'),
   /** TOTP de 6 dígitos ou código de recuperação (só para contas com MFA). */
@@ -50,6 +55,7 @@ export const resendVerificationCodeSchema = z.object({
 });
 
 export const forgotPasswordSchema = z.object({
+  captcha_token: captchaTokenSchema,
   email: emailSchema,
 });
 

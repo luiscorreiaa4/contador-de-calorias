@@ -16,7 +16,7 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 | 3 | [navegador] CSP, HSTS e headers de segurança no host do front | security, devops | [x] 02/11/2026 |
 | 4 | [auth] bloqueio ou atraso progressivo de login por conta | security, auth, priority:high | [x] 02/11/2026 |
 | 5 | [auth] rate limit com store compartilhado, `TRUST_PROXY` e limiter por e-mail/global | security, auth, priority:high | [x] 02/11/2026 |
-| 6 | [auth] captcha em register, login e forgot-password | security, auth | [adiado] |
+| 6 | [auth] captcha em register, login e forgot-password | security, auth | [x] 02/11/2026 |
 | 7 | [auth] MFA (TOTP), ao menos para administradores | security, auth | [~] 02/11/2026 |
 | 8 | [auth] `register` não sobrescreve credenciais de conta não verificada | security, auth | [x] 01/11/2026 |
 | 9 | [autorização] role de banco com menor privilégio e role de migração | security, devops, priority:high | [adiado] |
@@ -83,8 +83,10 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 - **Guia:** `03-seguranca-web.md` §3 (Rate limit nos endpoints).
 
 ### #6 [auth] captcha em register, login e forgot-password
-**Labels:** security, auth · **Status:** `[adiado]`
-- **Motivo do adiamento:** Requer credenciais e chaves de API externas (Cloudflare Turnstile ou hCaptcha) criadas e fornecidas pelo usuário, além de alinhamento com o usuário se o desafio deve ser interativo ou invisível.
+**Labels:** security, auth · **Status:** `[x]` (Concluído em 02/11/2026)
+- **O que foi feito:** Cloudflare Turnstile (gratuito, modo invisível; o desafio só aparece se a Cloudflare exigir). Backend: `backend/src/middlewares/captcha.ts` valida `captcha_token` em `register`, `login` e `forgot-password`, falhando fechado (400 `CAPTCHA_FAILED`); desligado quando `CAPTCHA_SECRET_KEY` não está definido. Front: `frontend/src/services/captcha.ts` carrega o script e injeta o token nas três chamadas de `auth.service.ts`, desligado sem `VITE_CAPTCHA_SITE_KEY`. A CSP em `frontend/public/_headers` libera `challenges.cloudflare.com`.
+- **Como ativar:** criar um widget em dash.cloudflare.com → Turnstile (modo "Managed"/invisível), então `CAPTCHA_SECRET_KEY=<secret>` em `backend/.env` e `VITE_CAPTCHA_SITE_KEY=<site key>` em `frontend/.env`. Para testar localmente use as chaves de teste da Cloudflare (site `1x00000000000000000000AA`, secret `1x0000000000000000000000000000000AA`, sempre passam).
+- **Testes:** `backend/tests/unit/captcha_middleware.test.ts` (desligado, válido, inválido, ausente, erro de rede).
 - **Guia:** `03-seguranca-web.md` §3 (Captchas).
 
 ### #7 [auth] MFA (TOTP), ao menos para administradores

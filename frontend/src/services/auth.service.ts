@@ -1,4 +1,5 @@
 import { apiFetch } from './api';
+import { getCaptchaToken } from './captcha';
 import type { LoginFormData, RegisterFormData } from '../types/auth';
 
 export interface UserProfile {
@@ -61,6 +62,7 @@ export async function registerUser(data: RegisterFormData): Promise<void> {
       email: data.email,
       password: data.password,
       acceptTerms: data.acceptTerms,
+      captcha_token: await getCaptchaToken(),
     }),
   });
 }
@@ -72,6 +74,7 @@ export async function loginUser(data: LoginFormData): Promise<AuthResponseData> 
     body: JSON.stringify({
       email: data.email,
       password: data.password,
+      captcha_token: await getCaptchaToken(),
     }),
   });
 }
@@ -99,7 +102,7 @@ export async function resendVerificationCode(email: string): Promise<void> {
 export async function forgotPassword(email: string): Promise<void> {
   return apiFetch<void>('/auth/forgot-password', {
     method: 'POST',
-    body: JSON.stringify({ email }),
+    body: JSON.stringify({ email, captcha_token: await getCaptchaToken() }),
   });
 }
 

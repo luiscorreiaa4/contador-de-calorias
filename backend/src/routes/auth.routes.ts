@@ -2,6 +2,7 @@ import { Router } from 'express';
 import * as AuthController from '../controllers/auth.controller.js';
 import { validate } from '../middlewares/validate.js';
 import { createAuthRateLimiter } from '../middlewares/authRateLimit.js';
+import { createCaptchaMiddleware } from '../middlewares/captcha.js';
 import {
   forgotPasswordSchema,
   loginUserSchema,
@@ -12,6 +13,7 @@ import {
 } from '@caloriesync/shared';
 
 const router = Router();
+const captcha = createCaptchaMiddleware();
 
 // A11: nenhuma resposta de autenticação pode ser armazenada em cache.
 router.use((_req, res, next) => {
@@ -81,12 +83,12 @@ const resetPasswordLimiter = createAuthRateLimiter({
   message: 'Muitas tentativas de redefinição. Tente novamente após 1 hora.',
 });
 
-router.post('/register', registerLimiter, validate(registerUserSchema), AuthController.register);
-router.post('/login', loginIpLimiter, loginEmailLimiter, loginCredentialLimiter, validate(loginUserSchema), AuthController.login);
+router.post('/register', registerLimiter, validate(registerUserSchema), captcha, AuthController.register);
+router.post('/login', loginIpLimiter, loginEmailLimiter, loginCredentialLimiter, validate(loginUserSchema), captcha, AuthController.login);
 router.post('/verify-email', verifyEmailLimiter, validate(verifyEmailSchema), AuthController.verifyEmail);
 router.post('/logout', AuthController.logout);
 router.post('/resend-code', resendCodeLimiter, validate(resendVerificationCodeSchema), AuthController.resendCode);
-router.post('/forgot-password', forgotPasswordLimiter, validate(forgotPasswordSchema), AuthController.forgotPassword);
+router.post('/forgot-password', forgotPasswordLimiter, validate(forgotPasswordSchema), captcha, AuthController.forgotPassword);
 router.post('/reset-password', resetPasswordLimiter, validate(resetPasswordSchema), AuthController.resetPassword);
 
 export default router;
