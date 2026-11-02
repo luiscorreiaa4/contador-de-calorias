@@ -24,9 +24,13 @@ async function runApply() {
 
   console.log(`Processando decisões de curadoria do arquivo: ${filePath}`);
   if (!isApply) {
-    console.log('>>> MODO SIMULAÇÃO: Nenhuma alteração será gravada no banco. Use --apply para efetivar.');
+    console.log(
+      '>>> MODO SIMULAÇÃO: Nenhuma alteração será gravada no banco. Use --apply para efetivar.',
+    );
   } else {
-    console.log('>>> MODO EFETIVAÇÃO (--apply): Gravando alterações e auditoria no banco de dados...');
+    console.log(
+      '>>> MODO EFETIVAÇÃO (--apply): Gravando alterações e auditoria no banco de dados...',
+    );
   }
 
   try {

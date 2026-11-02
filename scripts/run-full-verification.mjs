@@ -50,12 +50,16 @@ for (let i = 0; i < steps.length; i++) {
   const result = await runBounded(cmd, cmdArgs, { cwd: root });
 
   if (result.code !== 0) {
-    console.error(`\n❌ FALHA na etapa "${step.name}" (código ${result.code}, duração: ${(result.durationMs / 1000).toFixed(1)}s).`);
+    console.error(
+      `\n❌ FALHA na etapa "${step.name}" (código ${result.code}, duração: ${(result.durationMs / 1000).toFixed(1)}s).`,
+    );
     console.error('Interrompendo verificação completa antes do push.');
     process.exit(result.code);
   }
 
-  console.log(`✔ Etapa "${step.name}" concluída com sucesso em ${(result.durationMs / 1000).toFixed(1)}s.`);
+  console.log(
+    `✔ Etapa "${step.name}" concluída com sucesso em ${(result.durationMs / 1000).toFixed(1)}s.`,
+  );
 }
 
 const totalDuration = ((Date.now() - totalStarted) / 1000).toFixed(1);
@@ -63,4 +67,3 @@ console.log('\n' + '='.repeat(70));
 console.log(`🎉 TODAS AS ETAPAS DE CI FORAM APROVADAS COM SUCESSO! (${totalDuration}s)`);
 console.log('Repositório 100% íntegro e seguro para Push / Pull Request.');
 console.log('='.repeat(70));
-

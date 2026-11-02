@@ -1,10 +1,14 @@
 import { apiFetch } from './api';
-import type { BodyMeasurement, CreateMeasurementDTO, MeasurementQueryDTO } from '@caloriesync/shared';
+import type {
+  BodyMeasurement,
+  CreateMeasurementDTO,
+  MeasurementQueryDTO,
+} from '@caloriesync/shared';
 export type { BodyMeasurement, CreateMeasurementDTO, MeasurementQueryDTO };
 
 export const getMeasurements = async (
   period?: '30d' | '90d' | 'all',
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<BodyMeasurement[]> => {
   const query = period ? `?period=${period}` : '';
   return apiFetch<BodyMeasurement[]>(`/users/me/measurements${query}`, { signal });

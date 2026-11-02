@@ -20,7 +20,7 @@ function renderApp(initialPath: string) {
       <AuthProvider>
         <RouterProvider router={router} />
       </AuthProvider>
-    </QueryClientProvider>
+    </QueryClientProvider>,
   );
 
   return { router, queryClient };
@@ -71,7 +71,7 @@ describe('Painel do Catálogo Global (Admin)', () => {
     const { router } = renderApp('/admin/alimentos');
 
     expect(
-      await screen.findByRole('heading', { name: /CATÁLOGO GLOBAL DE ALIMENTOS/i })
+      await screen.findByRole('heading', { name: /CATÁLOGO GLOBAL DE ALIMENTOS/i }),
     ).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/admin/alimentos');
   });
@@ -81,7 +81,9 @@ describe('Painel do Catálogo Global (Admin)', () => {
     localStorage.setItem('user_session', JSON.stringify(regularUser));
 
     renderApp('/');
-    expect(await screen.findByRole('navigation', { name: 'Navegação principal' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('navigation', { name: 'Navegação principal' }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /Catálogo/i })).not.toBeInTheDocument();
   });
 
@@ -151,14 +153,17 @@ describe('Painel do Catálogo Global (Admin)', () => {
     await userEvent.type(within(dialog).getByLabelText(/Proteínas \(g\) \*/i), '14');
     await userEvent.type(within(dialog).getByLabelText(/Carboidratos \(g\) \*/i), '66');
     await userEvent.type(within(dialog).getByLabelText(/Gorduras \(g\) \*/i), '7');
-    await userEvent.type(within(dialog).getByLabelText(/Fonte Oficial Auditável/i), 'TACO 4ª ed., código 050');
+    await userEvent.type(
+      within(dialog).getByLabelText(/Fonte Oficial Auditável/i),
+      'TACO 4ª ed., código 050',
+    );
 
     // Submete formulário
     await userEvent.click(within(dialog).getByRole('button', { name: /Cadastrar Alimento/i }));
 
     // Confirma feedback de sucesso
     expect(
-      await screen.findByText(/Novo alimento cadastrado com sucesso no catálogo global!/i)
+      await screen.findByText(/Novo alimento cadastrado com sucesso no catálogo global!/i),
     ).toBeInTheDocument();
   });
 
@@ -181,7 +186,7 @@ describe('Painel do Catálogo Global (Admin)', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: /Salvar Alterações/i }));
 
     expect(
-      await screen.findByText(/Alimento atualizado com sucesso no catálogo global!/i)
+      await screen.findByText(/Alimento atualizado com sucesso no catálogo global!/i),
     ).toBeInTheDocument();
   });
 
@@ -197,13 +202,15 @@ describe('Painel do Catálogo Global (Admin)', () => {
 
     const confirmDialog = screen.getByRole('dialog', { name: /Desativar Alimento\?/i });
     expect(confirmDialog).toBeInTheDocument();
-    expect(within(confirmDialog).getByText(/deixará de aparecer em novas buscas/i)).toBeInTheDocument();
-
-    await userEvent.click(within(confirmDialog).getByRole('button', { name: /Desativar Alimento/i }));
-
     expect(
-      await screen.findByText(/desativado do catálogo global/i)
+      within(confirmDialog).getByText(/deixará de aparecer em novas buscas/i),
     ).toBeInTheDocument();
+
+    await userEvent.click(
+      within(confirmDialog).getByRole('button', { name: /Desativar Alimento/i }),
+    );
+
+    expect(await screen.findByText(/desativado do catálogo global/i)).toBeInTheDocument();
   });
   it('Persiste busca, ordenação e filtros na URL via useSearchParams', async () => {
     localStorage.setItem('auth_session', 'admin');
@@ -250,7 +257,7 @@ describe('Painel do Catálogo Global (Admin)', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Buscar' }));
 
     expect(
-      await screen.findByText(/NENHUM ALIMENTO ENCONTRADO PARA "alimento_inexistente_xyz"/i)
+      await screen.findByText(/NENHUM ALIMENTO ENCONTRADO PARA "alimento_inexistente_xyz"/i),
     ).toBeInTheDocument();
 
     const clearBtns = screen.getAllByRole('button', { name: /Limpar Filtros/i });

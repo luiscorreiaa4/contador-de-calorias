@@ -4,12 +4,15 @@ const URL = process.env.API_URL || 'http://localhost:3001';
 
 console.log(`Iniciando Teste de Carga no servidor: ${URL}`);
 
-const instance = autocannon({
-  url: `${URL}/health`, // Rota mais rápida, testa vazão do servidor e middleware
-  connections: 500,     // Conexões concorrentes (peso médio/alto)
-  pipelining: 1,
-  duration: 10          // Duração em segundos
-}, console.log);
+const instance = autocannon(
+  {
+    url: `${URL}/health`, // Rota mais rápida, testa vazão do servidor e middleware
+    connections: 500, // Conexões concorrentes (peso médio/alto)
+    pipelining: 1,
+    duration: 10, // Duração em segundos
+  },
+  console.log,
+);
 
 autocannon.track(instance, { renderProgressBar: true });
 

@@ -20,33 +20,57 @@ const pages = [
 function renderRoute(path: string) {
   const router = createTestRouter([path]);
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  render(<QueryClientProvider client={client}><AuthProvider><RouterProvider router={router} /></AuthProvider></QueryClientProvider>);
+  render(
+    <QueryClientProvider client={client}>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </QueryClientProvider>,
+  );
   return router;
 }
 
 describe('Navegação por finalidade', () => {
   beforeEach(() => {
     localStorage.setItem('auth_session', 'test-token');
-    localStorage.setItem('user_session', JSON.stringify({ id: '1', name: 'Test User', email: 'test@example.com', onboarding_completed: true }));
+    localStorage.setItem(
+      'user_session',
+      JSON.stringify({
+        id: '1',
+        name: 'Test User',
+        email: 'test@example.com',
+        onboarding_completed: true,
+      }),
+    );
   });
 
-  it.each(pages)('abre diretamente %s e destaca a área correta no header', async (path, title, section) => {
-    const router = renderRoute(path);
-    expect(await screen.findByRole('heading', { name: title }, { timeout: 15000 })).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe(path);
-    const navigation = screen.getByRole('navigation', { name: 'Navegação principal' });
-    expect(within(navigation).getByRole('link', { name: section })).toHaveAttribute('aria-current', 'page');
-  });
+  it.each(pages)(
+    'abre diretamente %s e destaca a área correta no header',
+    async (path, title, section) => {
+      const router = renderRoute(path);
+      expect(
+        await screen.findByRole('heading', { name: title }, { timeout: 15000 }),
+      ).toBeInTheDocument();
+      expect(router.state.location.pathname).toBe(path);
+      const navigation = screen.getByRole('navigation', { name: 'Navegação principal' });
+      expect(within(navigation).getByRole('link', { name: section })).toHaveAttribute(
+        'aria-current',
+        'page',
+      );
+    },
+  );
 
-  it.each(pages)('protege %s sem sessão', async path => {
+  it.each(pages)('protege %s sem sessão', async (path) => {
     localStorage.clear();
     const router = renderRoute(path);
     await waitFor(() => expect(router.state.location.pathname).toBe('/login'));
   });
 
   it.each([
-    ['/estatisticas', '/evolucao/alimentacao'], ['/medidas', '/evolucao/corpo'],
-    ['/evolucao', '/evolucao/alimentacao'], ['/metas', '/metas/rotina'],
+    ['/estatisticas', '/evolucao/alimentacao'],
+    ['/medidas', '/evolucao/corpo'],
+    ['/evolucao', '/evolucao/alimentacao'],
+    ['/metas', '/metas/rotina'],
     ['/configuracoes', '/configuracoes/notificacoes'],
   ])('redireciona %s para %s', async (oldPath, newPath) => {
     const router = renderRoute(oldPath);
@@ -74,12 +98,22 @@ describe('Navegação por finalidade', () => {
     await userEvent.click(trigger);
     const menu = screen.getByRole('navigation', { name: 'Menu da conta' });
     expect(within(menu).getByRole('link', { name: 'Perfil' })).toHaveAttribute('href', '/perfil');
-    expect(within(menu).getByRole('link', { name: 'Configurações' })).toHaveAttribute('href', '/configuracoes');
+    expect(within(menu).getByRole('link', { name: 'Configurações' })).toHaveAttribute(
+      'href',
+      '/configuracoes',
+    );
     await userEvent.keyboard('{Escape}');
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
     await userEvent.click(trigger);
-    await userEvent.click(within(screen.getByRole('navigation', { name: 'Menu da conta' })).getByRole('link', { name: 'Segurança' }));
+    await userEvent.click(
+      within(screen.getByRole('navigation', { name: 'Menu da conta' })).getByRole('link', {
+        name: 'Segurança',
+      }),
+    );
     expect(await screen.findByRole('heading', { name: 'SEGURANÇA' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Menu da conta' })).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByRole('button', { name: 'Menu da conta' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
   });
 });

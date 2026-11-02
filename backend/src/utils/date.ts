@@ -29,8 +29,14 @@ export function getTimeInAppTz(date: Date): string {
   return saoPauloTimeFormatter.format(date);
 }
 
-export function getTimezoneOffsetForDate(date: Date = new Date(), timeZone: string = APP_TIMEZONE): string {
-  const parts = new Intl.DateTimeFormat('en-US', { timeZone, timeZoneName: 'longOffset' }).formatToParts(date);
+export function getTimezoneOffsetForDate(
+  date: Date = new Date(),
+  timeZone: string = APP_TIMEZONE,
+): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    timeZoneName: 'longOffset',
+  }).formatToParts(date);
   const tzPart = parts.find((p) => p.type === 'timeZoneName')?.value || 'GMT-03:00';
   return tzPart.replace('GMT', '');
 }

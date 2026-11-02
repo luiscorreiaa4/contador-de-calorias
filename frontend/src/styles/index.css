@@ -13,38 +13,38 @@
 @layer base {
   :root {
     /* Light Mode Brutalist Aesthetic */
-    --background: 60 20% 95%;        /* #F5F5F0 */
-    --foreground: 0 0% 4%;           /* #0A0A0A */
+    --background: 60 20% 95%; /* #F5F5F0 */
+    --foreground: 0 0% 4%; /* #0A0A0A */
 
-    --card: 0 0% 100%;               /* #FFFFFF */
+    --card: 0 0% 100%; /* #FFFFFF */
     --card-foreground: 0 0% 4%;
-    
+
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 4%;
 
     /* NEON LIME GREEN (#CCFF00) — Fill */
     --primary: 72 100% 50%;
-    --primary-foreground: 0 0% 4%;   /* #0A0A0A - Black text on neon */
-    --primary-ink: 75 100% 20%;      /* #4D6600 - Verde-oliva para textos/ícones sobre fundo */
-    
-    --secondary: 60 10% 88%;         /* #E3E3DC */
+    --primary-foreground: 0 0% 4%; /* #0A0A0A - Black text on neon */
+    --primary-ink: 75 100% 20%; /* #4D6600 - Verde-oliva para textos/ícones sobre fundo */
+
+    --secondary: 60 10% 88%; /* #E3E3DC */
     --secondary-foreground: 0 0% 4%;
-    
-    --muted: 60 10% 88%;             /* #E3E3DC */
-    --muted-foreground: 0 0% 32%;    /* #525252 */
-    
-    --accent: 72 100% 50%;           /* #CCFF00 */
-    --accent-foreground: 0 0% 4%;    /* #0A0A0A */
-    
-    --destructive: 0 74% 42%;        /* #B91C1C - WCAG AA contraste sobre fundo claro */
+
+    --muted: 60 10% 88%; /* #E3E3DC */
+    --muted-foreground: 0 0% 32%; /* #525252 */
+
+    --accent: 72 100% 50%; /* #CCFF00 */
+    --accent-foreground: 0 0% 4%; /* #0A0A0A */
+
+    --destructive: 0 74% 42%; /* #B91C1C - WCAG AA contraste sobre fundo claro */
     --destructive-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;           /* #F59E0B - Âmbar para alertas e favoritos */
+    --warning: 38 92% 50%; /* #F59E0B - Âmbar para alertas e favoritos */
     --warning-foreground: 0 0% 4%;
 
-    --border: 75 55% 14%;            /* #2A3810 - Verde-oliva escuro (contorno firme, menos duro que preto puro) */
+    --border: 75 55% 14%; /* #2A3810 - Verde-oliva escuro (contorno firme, menos duro que preto puro) */
     --input: 75 55% 14%;
-    --ring: 75 100% 20%;             /* #4D6600 - Mesmo verde-oliva da tinta primária */
+    --ring: 75 100% 20%; /* #4D6600 - Mesmo verde-oliva da tinta primária */
 
     /* Sombra brutalista adaptativa dos cards e botões (espelha o neon do modo escuro) */
     --shadow: 75 100% 20%;
@@ -64,30 +64,31 @@
     --shadow-offset: 4px;
   }
 
-  .dark, :root.dark {
+  .dark,
+  :root.dark {
     /* Premium High-Performance Dark Mode Aesthetic */
-    --background: 0 0% 4%;           /* #0A0A0A */
-    --foreground: 0 0% 100%;         /* #FFFFFF */
-    --card: 0 0% 10%;                /* #1A1A1A */
+    --background: 0 0% 4%; /* #0A0A0A */
+    --foreground: 0 0% 100%; /* #FFFFFF */
+    --card: 0 0% 10%; /* #1A1A1A */
     --card-foreground: 0 0% 100%;
     --popover: 0 0% 10%;
     --popover-foreground: 0 0% 100%;
-    --primary: 72 100% 50%;          /* #CCFF00 */
+    --primary: 72 100% 50%; /* #CCFF00 */
     --primary-foreground: 0 0% 4%;
-    --primary-ink: 72 100% 50%;      /* #CCFF00 */
-    --secondary: 0 0% 15%;           /* #262626 */
+    --primary-ink: 72 100% 50%; /* #CCFF00 */
+    --secondary: 0 0% 15%; /* #262626 */
     --secondary-foreground: 0 0% 100%;
     --muted: 0 0% 10%;
-    --muted-foreground: 0 0% 80%;    /* #CCCCCC */
+    --muted-foreground: 0 0% 80%; /* #CCCCCC */
     --accent: 72 100% 50%;
     --accent-foreground: 0 0% 4%;
-    --destructive: 0 84% 60%;        /* #EF4343 */
+    --destructive: 0 84% 60%; /* #EF4343 */
     --destructive-foreground: 0 0% 4%; /* #0A0A0A - WCAG AA contraste >= 4.5:1 (5.57:1) */
-    --warning: 38 92% 50%;           /* #F59E0B */
+    --warning: 38 92% 50%; /* #F59E0B */
     --warning-foreground: 0 0% 4%;
-    --border: 0 0% 15%;              /* #262626 */
+    --border: 0 0% 15%; /* #262626 */
     --input: 0 0% 15%;
-    --ring: 72 100% 50%;             /* #CCFF00 */
+    --ring: 72 100% 50%; /* #CCFF00 */
 
     /* Sombra brutalista neon adaptativa */
     --shadow: 72 100% 50%;
@@ -139,7 +140,12 @@
   }
 
   /* Headings: Sans-serif, Black/Bold weight, STRICTLY UPPERCASE */
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: 'Montserrat', system-ui, sans-serif;
     text-transform: uppercase;
     font-weight: 900;
@@ -155,7 +161,7 @@
   .animate-in {
     animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
-  
+
   /* Noise texture background utility for that raw editorial feel */
   .bg-noise {
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
@@ -183,4 +189,3 @@ input:-webkit-autofill:active {
     scroll-behavior: auto !important;
   }
 }
-

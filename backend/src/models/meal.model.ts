@@ -15,7 +15,7 @@ async function insertMealItemsBatch(
     proteins: number;
     carbs: number;
     fats: number;
-  }[]
+  }[],
 ): Promise<MealItem[]> {
   if (itemsData.length === 0) return [];
 
@@ -25,7 +25,7 @@ async function insertMealItemsBatch(
   itemsData.forEach((item, index) => {
     const base = index * 9;
     valuePlaceholders.push(
-      `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5}, $${base + 6}, $${base + 7}, $${base + 8}, $${base + 9})`
+      `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5}, $${base + 6}, $${base + 7}, $${base + 8}, $${base + 9})`,
     );
     values.push(
       mealId,
@@ -36,14 +36,14 @@ async function insertMealItemsBatch(
       item.calories,
       item.proteins,
       item.carbs,
-      item.fats
+      item.fats,
     );
   });
 
   const result = await client.query<MealItem>(
     `INSERT INTO meal_items (meal_id, food_id, quantity, unit, display_amount, calories, proteins, carbs, fats)
      VALUES ${valuePlaceholders.join(', ')} RETURNING *`,
-    values
+    values,
   );
 
   return result.rows;
@@ -62,7 +62,7 @@ export async function createMealWithItems(
     proteins: number;
     carbs: number;
     fats: number;
-  }[]
+  }[],
 ): Promise<Meal> {
   const client = await pool.connect();
 
@@ -72,7 +72,7 @@ export async function createMealWithItems(
     // 1. Create the meal
     const mealResult = await client.query<Meal>(
       'INSERT INTO meals (user_id, name, meal_time) VALUES ($1, $2, $3) RETURNING *',
-      [userId, name, mealTime]
+      [userId, name, mealTime],
     );
     const meal = mealResult.rows[0];
 
@@ -80,7 +80,7 @@ export async function createMealWithItems(
     const insertedItems = await insertMealItemsBatch(client, meal.id, itemsData);
 
     await client.query('COMMIT');
-    
+
     return { ...meal, items: insertedItems };
   } catch (error) {
     await client.query('ROLLBACK');
@@ -93,7 +93,7 @@ export async function createMealWithItems(
 async function hydrateMealsWithItems(meals: Meal[]): Promise<Meal[]> {
   if (meals.length === 0) return [];
 
-  const mealIds = meals.map(m => m.id);
+  const mealIds = meals.map((m) => m.id);
 
   // Pegar os itens com projeção explícita (sem mi.*)
   const itemsResult = await pool.query<MealItem>(
@@ -106,7 +106,7 @@ async function hydrateMealsWithItems(meals: Meal[]): Promise<Meal[]> {
      FROM meal_items mi
      JOIN foods f ON f.id = mi.food_id
      WHERE mi.meal_id = ANY($1::uuid[])`,
-    [mealIds]
+    [mealIds],
   );
 
   const itemsByMeal: Record<string, MealItem[]> = {};
@@ -115,7 +115,7 @@ async function hydrateMealsWithItems(meals: Meal[]): Promise<Meal[]> {
     itemsByMeal[item.meal_id].push(item);
   }
 
-  return meals.map(meal => {
+  return meals.map((meal) => {
     const items = itemsByMeal[meal.id] || [];
     const total_calories = items.reduce((acc, it) => acc + Number(it.calories), 0);
     const total_proteins = items.reduce((acc, it) => acc + Number(it.proteins), 0);
@@ -133,7 +133,11 @@ async function hydrateMealsWithItems(meals: Meal[]): Promise<Meal[]> {
   });
 }
 
-export async function findMealsByUserAndDate(userId: string, dateStart: string, dateEnd: string): Promise<Meal[]> {
+export async function findMealsByUserAndDate(
+  userId: string,
+  dateStart: string,
+  dateEnd: string,
+): Promise<Meal[]> {
   // Retorna as refeições de um dia com agregação de calorias, proteínas, carbs e fats em memória (PERF-001 / A-026)
   const mealsResult = await pool.query<Meal>(
     `SELECT m.id, m.user_id, m.name, m.meal_time, m.created_at, m.updated_at
@@ -141,7 +145,7 @@ export async function findMealsByUserAndDate(userId: string, dateStart: string, 
      WHERE m.user_id = $1 AND m.meal_time >= $2 AND m.meal_time < $3
      ORDER BY m.meal_time DESC
      LIMIT 100`,
-    [userId, dateStart, dateEnd]
+    [userId, dateStart, dateEnd],
   );
 
   return hydrateMealsWithItems(mealsResult.rows);
@@ -155,17 +159,17 @@ export async function findAllMealsByUser(userId: string): Promise<Meal[]> {
      WHERE m.user_id = $1
      ORDER BY m.meal_time ASC, m.created_at ASC
      LIMIT 2000`,
-    [userId]
+    [userId],
   );
 
   return hydrateMealsWithItems(mealsResult.rows);
 }
 
 export async function deleteMealById(userId: string, mealId: string): Promise<boolean> {
-  const result = await pool.query(
-    'DELETE FROM meals WHERE id = $1 AND user_id = $2',
-    [mealId, userId]
-  );
+  const result = await pool.query('DELETE FROM meals WHERE id = $1 AND user_id = $2', [
+    mealId,
+    userId,
+  ]);
   return (result.rowCount ?? 0) > 0;
 }
 
@@ -174,7 +178,7 @@ export async function findMealById(userId: string, mealId: string): Promise<Meal
     `SELECT m.id, m.user_id, m.name, m.meal_time, m.created_at, m.updated_at
      FROM meals m
      WHERE m.id = $1 AND m.user_id = $2`,
-    [mealId, userId]
+    [mealId, userId],
   );
   if (result.rowCount === 0) return null;
   const hydrated = await hydrateMealsWithItems(result.rows);
@@ -184,23 +188,29 @@ export async function findMealById(userId: string, mealId: string): Promise<Meal
 export async function copyMeal(
   userId: string,
   sourceMealOrId: string | Meal,
-  targetMealTime: Date
+  targetMealTime: Date,
 ): Promise<Meal> {
-  const sourceMeal = typeof sourceMealOrId === 'string'
-    ? await findMealById(userId, sourceMealOrId)
-    : sourceMealOrId;
+  const sourceMeal =
+    typeof sourceMealOrId === 'string'
+      ? await findMealById(userId, sourceMealOrId)
+      : sourceMealOrId;
 
   if (!sourceMeal) {
-    const error: Error & { statusCode?: number } = new Error('Refeição não encontrada ou não pertence a este usuário.');
+    const error: Error & { statusCode?: number } = new Error(
+      'Refeição não encontrada ou não pertence a este usuário.',
+    );
     error.statusCode = 404;
     throw error;
   }
 
-  const itemsData = (sourceMeal.items || []).map(it => ({
+  const itemsData = (sourceMeal.items || []).map((it) => ({
     foodId: it.food_id,
     quantity: Number(it.quantity),
     unit: it.unit,
-    displayAmount: it.display_amount !== null && it.display_amount !== undefined ? Number(it.display_amount) : null,
+    displayAmount:
+      it.display_amount !== null && it.display_amount !== undefined
+        ? Number(it.display_amount)
+        : null,
     calories: Number(it.calories),
     proteins: Number(it.proteins),
     carbs: Number(it.carbs),
@@ -213,7 +223,7 @@ export async function copyMeal(
 export async function copyDayMeals(
   userId: string,
   sourceMeals: Meal[],
-  targetDate: string
+  targetDate: string,
 ): Promise<Meal[]> {
   const client = await pool.connect();
   try {
@@ -224,15 +234,18 @@ export async function copyDayMeals(
       const targetTime = combineDateAndTimeInAppTz(targetDate, new Date(sourceMeal.meal_time));
       const mealResult = await client.query<Meal>(
         'INSERT INTO meals (user_id, name, meal_time) VALUES ($1, $2, $3) RETURNING *',
-        [userId, sourceMeal.name, targetTime]
+        [userId, sourceMeal.name, targetTime],
       );
       const newMeal = mealResult.rows[0];
 
-      const itemsData = (sourceMeal.items || []).map(it => ({
+      const itemsData = (sourceMeal.items || []).map((it) => ({
         foodId: it.food_id,
         quantity: Number(it.quantity),
         unit: it.unit,
-        displayAmount: it.display_amount !== null && it.display_amount !== undefined ? Number(it.display_amount) : null,
+        displayAmount:
+          it.display_amount !== null && it.display_amount !== undefined
+            ? Number(it.display_amount)
+            : null,
         calories: Number(it.calories),
         proteins: Number(it.proteins),
         carbs: Number(it.carbs),
@@ -267,7 +280,7 @@ export async function updateMealWithItems(
     proteins: number;
     carbs: number;
     fats: number;
-  }[]
+  }[],
 ): Promise<Meal> {
   const client = await pool.connect();
 
@@ -277,11 +290,13 @@ export async function updateMealWithItems(
     // 1. Update the meal name and updated_at (check if it belongs to user)
     const mealResult = await client.query<Meal>(
       'UPDATE meals SET name = $1, meal_time = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 AND user_id = $4 RETURNING *',
-      [name, mealTime, mealId, userId]
+      [name, mealTime, mealId, userId],
     );
 
     if (mealResult.rowCount === 0) {
-      const error: Error & { statusCode?: number } = new Error('Refeição não encontrada ou não pertence a este usuário.');
+      const error: Error & { statusCode?: number } = new Error(
+        'Refeição não encontrada ou não pertence a este usuário.',
+      );
       error.statusCode = 404;
       throw error;
     }
@@ -295,7 +310,7 @@ export async function updateMealWithItems(
     const insertedItems = await insertMealItemsBatch(client, meal.id, itemsData);
 
     await client.query('COMMIT');
-    
+
     return { ...meal, items: insertedItems };
   } catch (error) {
     await client.query('ROLLBACK');
@@ -317,7 +332,11 @@ export interface DailyStat {
   goal_fats: number | null;
 }
 
-export async function getPeriodStats(userId: string, days: number = 30, endDateStr?: string): Promise<DailyStat[]> {
+export async function getPeriodStats(
+  userId: string,
+  days: number = 30,
+  endDateStr?: string,
+): Promise<DailyStat[]> {
   const endDate = endDateStr || getSaoPauloDateString();
   const result = await pool.query(
     `WITH daily_consumption AS (
@@ -366,10 +385,10 @@ export async function getPeriodStats(userId: string, days: number = 30, endDateS
       goal_fats
     FROM daily_goals 
     ORDER BY date_val ASC`,
-    [userId, days, endDate]
+    [userId, days, endDate],
   );
 
-  return result.rows.map(row => ({
+  return result.rows.map((row) => ({
     date: row.date,
     consumed_calories: Number(row.consumed_calories),
     consumed_proteins: Number(row.consumed_proteins),

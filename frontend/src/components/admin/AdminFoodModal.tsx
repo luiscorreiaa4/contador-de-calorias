@@ -33,17 +33,23 @@ const AdminFoodFormInner: React.FC<AdminFoodFormInnerProps> = ({
 
   // Inicializa o estado diretamente dos props (padrão oficial React: reset via key)
   const [name, setName] = useState(foodToEdit?.name ?? '');
-  const [calories, setCalories] = useState<number | ''>(foodToEdit ? Number(foodToEdit.calories) : '');
-  const [proteins, setProteins] = useState<number | ''>(foodToEdit ? Number(foodToEdit.proteins) : '');
+  const [calories, setCalories] = useState<number | ''>(
+    foodToEdit ? Number(foodToEdit.calories) : '',
+  );
+  const [proteins, setProteins] = useState<number | ''>(
+    foodToEdit ? Number(foodToEdit.proteins) : '',
+  );
   const [carbs, setCarbs] = useState<number | ''>(foodToEdit ? Number(foodToEdit.carbs) : '');
   const [fats, setFats] = useState<number | ''>(foodToEdit ? Number(foodToEdit.fats) : '');
-  const [baseUnit, setBaseUnit] = useState<'g' | 'ml'>((foodToEdit?.base_unit as 'g' | 'ml') || 'g');
+  const [baseUnit, setBaseUnit] = useState<'g' | 'ml'>(
+    (foodToEdit?.base_unit as 'g' | 'ml') || 'g',
+  );
   const [servingWeight, setServingWeight] = useState<number | ''>(
-    foodToEdit ? Number(foodToEdit.serving_weight) || 100 : 100
+    foodToEdit ? Number(foodToEdit.serving_weight) || 100 : 100,
   );
   const [unitName, setUnitName] = useState(foodToEdit?.unit_name || '');
   const [unitWeight, setUnitWeight] = useState<number | ''>(
-    foodToEdit?.unit_weight ? Number(foodToEdit.unit_weight) : ''
+    foodToEdit?.unit_weight ? Number(foodToEdit.unit_weight) : '',
   );
   const [sourceRef, setSourceRef] = useState(foodToEdit?.source_ref || '');
   const [clientError, setClientError] = useState<string | null>(null);
@@ -61,7 +67,7 @@ const AdminFoodFormInner: React.FC<AdminFoodFormInnerProps> = ({
 
       if (e.key === 'Tab' && modalRef.current) {
         const focusable = modalRef.current.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
         );
         if (focusable.length === 0) return;
         const first = focusable[0];
@@ -127,13 +133,17 @@ const AdminFoodFormInner: React.FC<AdminFoodFormInnerProps> = ({
     }
 
     if (pNum + cNum + fNum > 100.5) {
-      setClientError('A soma de proteínas, carboidratos e gorduras não pode exceder 100,5 g por 100 g.');
+      setClientError(
+        'A soma de proteínas, carboidratos e gorduras não pode exceder 100,5 g por 100 g.',
+      );
       return;
     }
 
     const trimmedSourceRef = sourceRef.trim();
     if (!trimmedSourceRef || trimmedSourceRef.length < 2) {
-      setClientError('A fonte de referência é obrigatória (ex.: "TACO 4ª ed., código 001", "Rótulo Marca X").');
+      setClientError(
+        'A fonte de referência é obrigatória (ex.: "TACO 4ª ed., código 001", "Rótulo Marca X").',
+      );
       return;
     }
 
@@ -332,7 +342,9 @@ const AdminFoodFormInner: React.FC<AdminFoodFormInnerProps> = ({
                   Aviso de cálculo teórico (não impede gravação):
                 </span>
                 {macroWarnings.map((w, idx) => (
-                  <p key={idx} className="text-muted-foreground">{w}</p>
+                  <p key={idx} className="text-muted-foreground">
+                    {w}
+                  </p>
                 ))}
               </div>
             </div>
@@ -372,7 +384,9 @@ const AdminFoodFormInner: React.FC<AdminFoodFormInnerProps> = ({
                 step="1"
                 min="1"
                 value={servingWeight}
-                onChange={(e) => setServingWeight(e.target.value === '' ? '' : Number(e.target.value))}
+                onChange={(e) =>
+                  setServingWeight(e.target.value === '' ? '' : Number(e.target.value))
+                }
                 disabled={isLoading}
                 className="w-full px-3 py-2 text-sm bg-background border-2 border-border text-foreground font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
               />

@@ -17,11 +17,11 @@ describe('NotFoundPage (404) (#27)', () => {
         <AuthProvider>
           <RouterProvider router={router} />
         </AuthProvider>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: /página não encontrada/i })
+      await screen.findByRole('heading', { level: 1, name: /página não encontrada/i }),
     ).toBeInTheDocument();
 
     expect(screen.getByText('404')).toBeInTheDocument();
@@ -31,4 +31,3 @@ describe('NotFoundPage (404) (#27)', () => {
     expect(backLink).toHaveAttribute('href', '/');
   });
 });
-

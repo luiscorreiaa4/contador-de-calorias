@@ -10,9 +10,7 @@ export function isValidLocalDateString(value?: string | null): value is string {
   const [year, month, day] = value.split('-').map(Number);
   const parsed = new Date(year, month - 1, day);
   return (
-    parsed.getFullYear() === year &&
-    parsed.getMonth() === month - 1 &&
-    parsed.getDate() === day
+    parsed.getFullYear() === year && parsed.getMonth() === month - 1 && parsed.getDate() === day
   );
 }
 

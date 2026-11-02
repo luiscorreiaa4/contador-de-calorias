@@ -11,7 +11,11 @@ import { http, HttpResponse } from 'msw';
 
 describe('EditProfilePage Component (PC-34 / TST-011)', () => {
   it('mantém apenas dados pessoais no perfil, sem medidas, metas, senha ou notificações', async () => {
-    render(<MemoryRouter><EditProfilePage /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <EditProfilePage />
+      </MemoryRouter>,
+    );
 
     await screen.findByDisplayValue('Test User');
     expect(screen.queryByRole('heading', { name: /medidas corporais/i })).not.toBeInTheDocument();
@@ -29,9 +33,12 @@ describe('EditProfilePage Component (PC-34 / TST-011)', () => {
         name: 'Test User',
         email: 'test@example.com',
         onboarding_completed: true,
-      })
+      }),
     );
-    Object.defineProperty(URL, 'createObjectURL', { value: vi.fn(() => 'blob:mock'), configurable: true });
+    Object.defineProperty(URL, 'createObjectURL', {
+      value: vi.fn(() => 'blob:mock'),
+      configurable: true,
+    });
     Object.defineProperty(URL, 'revokeObjectURL', { value: vi.fn(), configurable: true });
     vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
   });
@@ -44,7 +51,7 @@ describe('EditProfilePage Component (PC-34 / TST-011)', () => {
     render(
       <MemoryRouter>
         <EditProfilePage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     expect(screen.getByRole('heading', { name: /^perfil$/i })).toBeInTheDocument();
@@ -59,7 +66,7 @@ describe('EditProfilePage Component (PC-34 / TST-011)', () => {
     render(
       <MemoryRouter>
         <EditProfilePage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     // Aguarda carregar dados do usuário
@@ -74,7 +81,7 @@ describe('EditProfilePage Component (PC-34 / TST-011)', () => {
     render(
       <MemoryRouter>
         <AccountPrivacyPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     const exportButton = screen.getByRole('button', { name: /exportar meus dados/i });
@@ -99,13 +106,13 @@ describe('EditProfilePage Component (PC-34 / TST-011)', () => {
             goal: 'perder_peso',
           },
         });
-      })
+      }),
     );
 
     render(
       <MemoryRouter>
         <EditProfilePage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     const nameInput = await screen.findByDisplayValue('Test User');
@@ -124,7 +131,7 @@ describe('EditProfilePage Component (PC-34 / TST-011)', () => {
     render(
       <MemoryRouter>
         <NotificationsPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     const testPushBtn = await screen.findByRole('button', { name: /enviar lembrete de teste/i });
@@ -135,4 +142,3 @@ describe('EditProfilePage Component (PC-34 / TST-011)', () => {
     });
   });
 });
-

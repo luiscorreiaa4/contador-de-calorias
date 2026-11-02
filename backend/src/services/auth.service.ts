@@ -126,7 +126,6 @@ async function issueVerificationCode(user: VerificationTarget): Promise<boolean>
   return true;
 }
 
-
 /**
  * POST /api/auth/register (A4/A6): resposta sempre genérica (202), sem sessão.
  */
@@ -186,7 +185,8 @@ export async function login(data: LoginUserDTO): Promise<AuthResponse> {
     fail('E-mail ou senha incorretos.', 401);
   }
   if (user.mfa_enabled_at) {
-    if (!data.mfa_code) fail('Informe o código de verificação em duas etapas.', 401, 'MFA_REQUIRED');
+    if (!data.mfa_code)
+      fail('Informe o código de verificação em duas etapas.', 401, 'MFA_REQUIRED');
     if (!(await verifyMfaCode(user.id, data.mfa_code))) {
       await AuthModel.recordFailedLogin(user.id, MAX_LOGIN_ATTEMPTS, LOGIN_LOCK_MINUTES);
       fail('E-mail ou senha incorretos.', 401);

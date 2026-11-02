@@ -5,13 +5,7 @@ import { DatePickerInput } from './DatePickerInput';
 describe('DatePickerInput Accessibility (PC-26 / ARCH-022)', () => {
   it('deve ter atributos semânticos ARIA no botão do calendário', () => {
     const handleChange = vi.fn();
-    render(
-      <DatePickerInput
-        id="birth-date"
-        value=""
-        onChange={handleChange}
-      />
-    );
+    render(<DatePickerInput id="birth-date" value="" onChange={handleChange} />);
 
     const toggleButton = screen.getByRole('button', { name: /abrir calendário/i });
     expect(toggleButton).toBeInTheDocument();
@@ -29,13 +23,7 @@ describe('DatePickerInput Accessibility (PC-26 / ARCH-022)', () => {
 
   it('deve fechar o popover do calendário ao pressionar a tecla Escape', () => {
     const handleChange = vi.fn();
-    render(
-      <DatePickerInput
-        id="birth-date"
-        value=""
-        onChange={handleChange}
-      />
-    );
+    render(<DatePickerInput id="birth-date" value="" onChange={handleChange} />);
 
     const toggleButton = screen.getByRole('button', { name: /abrir calendário/i });
     fireEvent.click(toggleButton);

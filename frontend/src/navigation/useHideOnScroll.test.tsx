@@ -18,7 +18,7 @@ function renderBar(path = '/') {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <Bar />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 }
 
@@ -108,7 +108,7 @@ describe('useHideOnScroll', () => {
       <MemoryRouter initialEntries={['/configuracoes/seguranca']}>
         <input aria-label="senha" />
         <Bar />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
     act(() => {
       screen.getByLabelText('senha').focus();

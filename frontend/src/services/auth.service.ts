@@ -89,7 +89,10 @@ export interface MfaSetupData {
 export const setupMfa = () => apiFetch<MfaSetupData>('/users/me/mfa/setup', { method: 'POST' });
 
 export const enableMfa = (code: string) =>
-  apiFetch<{ recovery_codes: string[] }>('/users/me/mfa/enable', { method: 'POST', body: JSON.stringify({ code }) });
+  apiFetch<{ recovery_codes: string[] }>('/users/me/mfa/enable', {
+    method: 'POST',
+    body: JSON.stringify({ code }),
+  });
 
 export const disableMfa = (code: string) =>
   apiFetch<void>('/users/me/mfa/disable', { method: 'POST', body: JSON.stringify({ code }) });
@@ -129,7 +132,15 @@ export async function resetPassword(token: string, password: string): Promise<vo
   });
 }
 
-export async function completeUserOnboarding(data: { sex: string; birthDate: string; goal: string; weight: number; height: number; body_fat?: number; activity_level: string; }): Promise<AuthResponseData> {
+export async function completeUserOnboarding(data: {
+  sex: string;
+  birthDate: string;
+  goal: string;
+  weight: number;
+  height: number;
+  body_fat?: number;
+  activity_level: string;
+}): Promise<AuthResponseData> {
   const user = await apiFetch<UserProfile>('/users/me/onboarding', {
     method: 'PUT',
     body: JSON.stringify(data),

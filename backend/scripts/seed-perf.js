@@ -44,7 +44,7 @@ async function seedPerf() {
     const userRes = await client.query(
       `INSERT INTO users (name, email, password_hash, goal, daily_calories_goal, daily_proteins_goal)
        VALUES ('Perf User', 'perf-user@example.com', 'hash', 'perder_peso', 2200, 150)
-       RETURNING id`
+       RETURNING id`,
     );
     const userId = userRes.rows[0].id;
 
@@ -58,13 +58,13 @@ async function seedPerf() {
       await client.query(
         `INSERT INTO user_goals (user_id, effective_from, calories, proteins, carbs, fats, mode)
          VALUES ($1, $2, $3, $4, $5, $6, 'manual')`,
-        [userId, g.date, g.cal, g.prot, g.carbs, g.fats]
+        [userId, g.date, g.cal, g.prot, g.carbs, g.fats],
       );
     }
 
     // 3. Buscar foods disponíveis para associar aos meal_items
     const foodsRes = await client.query('SELECT id FROM foods LIMIT 10');
-    const foodIds = foodsRes.rows.map(r => r.id);
+    const foodIds = foodsRes.rows.map((r) => r.id);
     if (foodIds.length === 0) {
       throw new Error('Nenhum alimento cadastrado na tabela foods.');
     }
@@ -90,7 +90,7 @@ async function seedPerf() {
         // Distribui entre 365 dias, 6-7 refeições por dia
         const dayOffset = Math.floor(mealIndex / 7);
         const mealTime = new Date(baseDate - dayOffset * dayMs + (mealIndex % 7) * 2 * 3600 * 1000);
-        
+
         const idx = i * 3;
         mealValues.push(`($${idx + 1}, $${idx + 2}, $${idx + 3})`);
         mealParams.push(userId, `Refeição ${mealIndex + 1}`, mealTime);
@@ -98,7 +98,7 @@ async function seedPerf() {
 
       const insertedMeals = await client.query(
         `INSERT INTO meals (user_id, name, meal_time) VALUES ${mealValues.join(', ')} RETURNING id`,
-        mealParams
+        mealParams,
       );
 
       totalMeals += insertedMeals.rows.length;
@@ -112,7 +112,7 @@ async function seedPerf() {
         for (let k = 0; k < 4; k++) {
           const foodId = foodIds[(totalItems + k) % foodIds.length];
           itemValues.push(
-            `($${pCount}, $${pCount + 1}, $${pCount + 2}, $${pCount + 3}, $${pCount + 4}, $${pCount + 5}, $${pCount + 6}, $${pCount + 7})`
+            `($${pCount}, $${pCount + 1}, $${pCount + 2}, $${pCount + 3}, $${pCount + 4}, $${pCount + 5}, $${pCount + 6}, $${pCount + 7})`,
           );
           itemParams.push(
             meal.id,
@@ -120,9 +120,9 @@ async function seedPerf() {
             150, // quantity
             'g', // unit
             250, // calories
-            20,  // proteins
-            30,  // carbs
-            5    // fats
+            20, // proteins
+            30, // carbs
+            5, // fats
           );
           pCount += 8;
           totalItems++;
@@ -132,14 +132,16 @@ async function seedPerf() {
       await client.query(
         `INSERT INTO meal_items (meal_id, food_id, quantity, unit, calories, proteins, carbs, fats)
          VALUES ${itemValues.join(', ')}`,
-        itemParams
+        itemParams,
       );
 
       console.log(`Bloco ${b + 1}/5 concluído: ${totalMeals} refeições, ${totalItems} itens.`);
     }
 
     await client.query('COMMIT');
-    console.log(`✅ Seed concluído com sucesso: ${totalMeals} refeições e ${totalItems} itens inseridos para userId = ${userId}`);
+    console.log(
+      `✅ Seed concluído com sucesso: ${totalMeals} refeições e ${totalItems} itens inseridos para userId = ${userId}`,
+    );
     return { userId, totalMeals, totalItems };
   } catch (err) {
     await client.query('ROLLBACK');
@@ -151,10 +153,12 @@ async function seedPerf() {
   }
 }
 
-seedPerf().then(res => {
-  console.log('Perf seed finished:', JSON.stringify(res));
-  process.exit(0);
-}).catch(err => {
-  console.error(err);
-  process.exit(1);
-});
+seedPerf()
+  .then((res) => {
+    console.log('Perf seed finished:', JSON.stringify(res));
+    process.exit(0);
+  })
+  .catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });

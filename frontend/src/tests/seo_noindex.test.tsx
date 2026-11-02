@@ -30,4 +30,3 @@ describe('SEO & Robots NoIndex Guard (#29)', () => {
     expect(document.querySelector('meta[name="robots"]')).toBeNull();
   });
 });
-

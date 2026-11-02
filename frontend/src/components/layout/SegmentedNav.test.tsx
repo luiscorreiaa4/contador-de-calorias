@@ -8,7 +8,7 @@ function renderNav(path: string, tabs = CONFIG_TABS, ariaLabel = 'Configuraçõe
   return render(
     <MemoryRouter initialEntries={[path]}>
       <SegmentedNav tabs={tabs} ariaLabel={ariaLabel} />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 }
 
@@ -19,14 +19,16 @@ describe('SegmentedNav', () => {
     expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Segurança' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: 'Notificações' })).not.toHaveAttribute('aria-current');
-    expect(screen.getByRole('link', { name: 'Privacidade e dados' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('link', { name: 'Privacidade e dados' })).not.toHaveAttribute(
+      'aria-current',
+    );
   });
 
   it('cada aba aponta para a rota correta', () => {
     renderNav('/configuracoes/notificacoes');
     expect(screen.getByRole('link', { name: 'Privacidade e dados' })).toHaveAttribute(
       'href',
-      '/configuracoes/privacidade'
+      '/configuracoes/privacidade',
     );
   });
 
@@ -62,7 +64,7 @@ describe('SegmentedNav', () => {
       return render(
         <MemoryRouter initialEntries={[path]}>
           <SegmentedNav tabs={EVOLUCAO_TABS} ariaLabel="Evolução" variant="underline" />
-        </MemoryRouter>
+        </MemoryRouter>,
       );
     }
 

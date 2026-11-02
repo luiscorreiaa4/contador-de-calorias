@@ -37,8 +37,12 @@ const FoodMenuList: React.FC<MenuListProps<FoodOption, false>> = (props) => {
         onScroll: (event) => {
           props.innerProps.onScroll?.(event);
           const { scrollTop, clientHeight, scrollHeight } = event.currentTarget;
-          if (scrollHeight - scrollTop - clientHeight <= 48 && pagination?.hasNextPage &&
-              !pagination.isFetchingNextPage && !pagination.isFetchNextPageError) {
+          if (
+            scrollHeight - scrollTop - clientHeight <= 48 &&
+            pagination?.hasNextPage &&
+            !pagination.isFetchingNextPage &&
+            !pagination.isFetchNextPageError
+          ) {
             pagination.onLoadMore();
           }
         },
@@ -46,14 +50,19 @@ const FoodMenuList: React.FC<MenuListProps<FoodOption, false>> = (props) => {
     >
       {props.children}
       {pagination?.isFetchingNextPage && (
-        <div role="status" className="flex items-center justify-center gap-2 py-3 text-[10px] font-black uppercase tracking-widest text-primary-ink bg-secondary border-t-2 border-border">
+        <div
+          role="status"
+          className="flex items-center justify-center gap-2 py-3 text-[10px] font-black uppercase tracking-widest text-primary-ink bg-secondary border-t-2 border-border"
+        >
           <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" />
           CARREGANDO ALIMENTOS...
         </div>
       )}
       {pagination?.isFetchNextPageError && (
         <div className="p-3 border-t-2 border-border">
-          <p role="alert" className="text-xs font-bold uppercase text-destructive">ERRO AO CARREGAR MAIS ALIMENTOS.</p>
+          <p role="alert" className="text-xs font-bold uppercase text-destructive">
+            ERRO AO CARREGAR MAIS ALIMENTOS.
+          </p>
           <button
             type="button"
             onMouseDown={(event) => event.preventDefault()}
@@ -83,7 +92,9 @@ export const FoodSearchSelect: React.FC<FoodSearchSelectProps> = ({
   onSelectFood,
 }) => {
   return (
-    <FoodPaginationContext.Provider value={{ hasNextPage, isFetchingNextPage, isFetchNextPageError, onLoadMore }}>
+    <FoodPaginationContext.Provider
+      value={{ hasNextPage, isFetchingNextPage, isFetchNextPageError, onLoadMore }}
+    >
       <div data-no-swipe>
         <label htmlFor="food-select-input" className="sr-only">
           PESQUISAR ALIMENTO
@@ -105,7 +116,9 @@ export const FoodSearchSelect: React.FC<FoodSearchSelectProps> = ({
           placeholder="PESQUISAR ALIMENTO..."
           menuPortalTarget={document.body}
           menuShouldScrollIntoView={false}
-          noOptionsMessage={() => isError ? 'ERRO AO CARREGAR ALIMENTOS. TENTE NOVAMENTE.' : 'NENHUM ALIMENTO ENCONTRADO'}
+          noOptionsMessage={() =>
+            isError ? 'ERRO AO CARREGAR ALIMENTOS. TENTE NOVAMENTE.' : 'NENHUM ALIMENTO ENCONTRADO'
+          }
           components={{ MenuList: FoodMenuList }}
           styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
           classNames={{
@@ -115,10 +128,13 @@ export const FoodSearchSelect: React.FC<FoodSearchSelectProps> = ({
               }`,
             input: () => 'text-foreground py-0.5 uppercase',
             singleValue: () => 'text-foreground uppercase',
-            menu: () => 'bg-card border-2 border-border rounded-none shadow-hard mt-2 overflow-hidden',
+            menu: () =>
+              'bg-card border-2 border-border rounded-none shadow-hard mt-2 overflow-hidden',
             option: (state) =>
               `px-4 py-3 cursor-pointer transition-colors text-[10px] font-bold uppercase tracking-widest ${
-                state.isFocused ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-secondary'
+                state.isFocused
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-foreground hover:bg-secondary'
               }`,
             noOptionsMessage: () =>
               'text-muted-foreground p-4 text-[10px] font-bold uppercase tracking-widest text-center',

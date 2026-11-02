@@ -10,7 +10,9 @@ const dbName = env.DB_NAME;
 const currentEnv = process.env.NODE_ENV || env.NODE_ENV;
 
 if (currentEnv === 'test' && !dbName.endsWith('_test')) {
-  console.error('❌ ERRO CRÍTICO: Testes estão tentando rodar num banco que não termina com "_test"!');
+  console.error(
+    '❌ ERRO CRÍTICO: Testes estão tentando rodar num banco que não termina com "_test"!',
+  );
   console.error(`O banco atual é: ${dbName}`);
   console.error('Abortando processo para evitar deleção de dados de desenvolvimento/produção.');
   process.exit(1);
@@ -18,7 +20,7 @@ if (currentEnv === 'test' && !dbName.endsWith('_test')) {
 
 export function getSslConfig(
   nodeEnv: string = process.env.NODE_ENV || env.NODE_ENV,
-  caCert?: string
+  caCert?: string,
 ) {
   if (nodeEnv !== 'production') {
     return false;

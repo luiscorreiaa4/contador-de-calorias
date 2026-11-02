@@ -8,7 +8,7 @@ import { createVerifiedUser } from '../helpers/auth.js';
 
 describe('Multi-user Authorization & IDOR Protection (PC-18 / TST-003)', () => {
   closeTestPool(async () => {
-      await cleanupTestData('tester-auth-%');
+    await cleanupTestData('tester-auth-%');
   });
 
   let tokenA: string;
@@ -47,7 +47,7 @@ describe('Multi-user Authorization & IDOR Protection (PC-18 / TST-003)', () => {
       .send({
         name: 'Almoço Privado de A',
         mealTime: new Date(`${targetDate}T12:00:00Z`).toISOString(),
-        items: [{ foodId, quantity: 200 }]
+        items: [{ foodId, quantity: 200 }],
       });
 
     assert.strictEqual(res.status, 201);
@@ -75,7 +75,11 @@ describe('Multi-user Authorization & IDOR Protection (PC-18 / TST-003)', () => {
     assert.strictEqual(res.body.data.daysLogged, 0);
     assert.strictEqual(res.body.data.averages.consumed.calories, 0);
     // Todos os dias do chartData devem ter consumed_calories 0
-    assert.ok(res.body.data.chartData.every((d: { consumed_calories: number }) => d.consumed_calories === 0));
+    assert.ok(
+      res.body.data.chartData.every(
+        (d: { consumed_calories: number }) => d.consumed_calories === 0,
+      ),
+    );
   });
 
   it('IDOR: Usuário B não pode atualizar refeição de Usuário A (deve retornar 404)', async () => {
@@ -85,7 +89,7 @@ describe('Multi-user Authorization & IDOR Protection (PC-18 / TST-003)', () => {
       .send({
         name: 'Tentativa de Hack por B',
         mealTime: new Date(`${targetDate}T12:00:00Z`).toISOString(),
-        items: [{ foodId, quantity: 50 }]
+        items: [{ foodId, quantity: 50 }],
       });
 
     assert.strictEqual(res.status, 404);
@@ -104,9 +108,7 @@ describe('Multi-user Authorization & IDOR Protection (PC-18 / TST-003)', () => {
   });
 
   it('IDOR: Perfil /api/users/me de Usuário B deve retornar estritamente os dados de Usuário B', async () => {
-    const res = await request(app)
-      .get('/api/users/me')
-      .set('Authorization', `Bearer ${tokenB}`);
+    const res = await request(app).get('/api/users/me').set('Authorization', `Bearer ${tokenB}`);
 
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.success, true);
@@ -124,7 +126,7 @@ describe('Multi-user Authorization & IDOR Protection (PC-18 / TST-003)', () => {
         proteins: 5,
         carbs: 45,
         fats: 12,
-        serving_weight: 100
+        serving_weight: 100,
       });
 
     assert.strictEqual(customFoodRes.status, 201);
@@ -152,7 +154,7 @@ describe('Multi-user Authorization & IDOR Protection (PC-18 / TST-003)', () => {
       .set('Authorization', 'Bearer ' + tokenA)
       .send({
         name: 'Combo Especial do A',
-        items: [{ foodId, quantity: 150 }]
+        items: [{ foodId, quantity: 150 }],
       });
 
     assert.strictEqual(createSavedRes.status, 201);
@@ -206,7 +208,7 @@ describe('Multi-user Authorization & IDOR Protection (PC-18 / TST-003)', () => {
       .set('Authorization', 'Bearer ' + tokenA)
       .send({
         weight: 78.5,
-        measured_at: '2026-10-15'
+        measured_at: '2026-10-15',
       });
 
     assert.strictEqual(addMeasRes.status, 201);
@@ -236,7 +238,7 @@ describe('Multi-user Authorization & IDOR Protection (PC-18 / TST-003)', () => {
         proteins: 210,
         carbs: 350,
         fats: 80,
-        mode: 'manual'
+        mode: 'manual',
       });
 
     assert.strictEqual(updateGoalA.status, 200);

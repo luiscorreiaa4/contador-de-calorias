@@ -39,10 +39,13 @@ app.use(
         'object-src': ["'none'"],
       },
     },
-  })
+  }),
 );
 
-const allowedOrigins = corsOrigin.split(',').map((o) => o.trim()).filter(Boolean);
+const allowedOrigins = corsOrigin
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
 
 app.use(
   cors({
@@ -57,7 +60,7 @@ app.use(
       return callback(corsErr);
     },
     credentials: true,
-  })
+  }),
 );
 
 app.use(compression());

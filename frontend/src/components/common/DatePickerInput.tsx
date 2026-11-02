@@ -94,8 +94,18 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
   const currentMonth = viewDate.getMonth();
 
   const monthNames = [
-    'JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO',
-    'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'
+    'JANEIRO',
+    'FEVEREIRO',
+    'MARÇO',
+    'ABRIL',
+    'MAIO',
+    'JUNHO',
+    'JULHO',
+    'AGOSTO',
+    'SETEMBRO',
+    'OUTUBRO',
+    'NOVEMBRO',
+    'DEZEMBRO',
   ];
 
   const handlePrevMonth = () => {
@@ -138,7 +148,11 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
   };
 
   const handleCalendarToggle = () => {
-    if (nativeInputRef.current && 'showPicker' in HTMLInputElement.prototype && window.innerWidth < 640) {
+    if (
+      nativeInputRef.current &&
+      'showPicker' in HTMLInputElement.prototype &&
+      window.innerWidth < 640
+    ) {
       try {
         nativeInputRef.current.showPicker();
         return;
@@ -151,8 +165,10 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
 
   const inputBase =
     'w-full pl-10 pr-10 py-2.5 bg-background border-2 rounded-none text-sm font-black text-foreground uppercase placeholder:text-muted-foreground outline-none transition-colors min-h-[48px]';
-  const inputNormal = 'border-border hover:border-foreground/60 focus:border-ring focus:outline-none focus-visible:border-ring focus-visible:outline-none';
-  const inputError = 'border-destructive bg-destructive/10 text-destructive focus:border-destructive';
+  const inputNormal =
+    'border-border hover:border-foreground/60 focus:border-ring focus:outline-none focus-visible:border-ring focus-visible:outline-none';
+  const inputError =
+    'border-destructive bg-destructive/10 text-destructive focus:border-destructive';
 
   return (
     <div ref={containerRef} data-no-swipe className="relative w-full">
@@ -254,8 +270,8 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
                     selected
                       ? 'bg-primary text-primary-foreground border-edge'
                       : disabled
-                      ? 'text-muted-foreground opacity-30 cursor-not-allowed'
-                      : 'text-foreground hover:bg-secondary hover:border-border'
+                        ? 'text-muted-foreground opacity-30 cursor-not-allowed'
+                        : 'text-foreground hover:bg-secondary hover:border-border'
                   }`}
                 >
                   {day}

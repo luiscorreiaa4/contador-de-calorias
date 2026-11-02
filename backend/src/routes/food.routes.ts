@@ -13,7 +13,11 @@ router.post('/custom', validate(createCustomFoodSchema), FoodController.createCu
 router.get('/recents', FoodController.getRecents);
 router.get('/favorites', FoodController.getFavorites);
 router.post('/:id/favorite', validate({ params: uuidParamSchema }), FoodController.addFavorite);
-router.delete('/:id/favorite', validate({ params: uuidParamSchema }), FoodController.removeFavorite);
+router.delete(
+  '/:id/favorite',
+  validate({ params: uuidParamSchema }),
+  FoodController.removeFavorite,
+);
 router.get('/', validate({ query: listFoodsQuerySchema }), FoodController.list);
 
 export default router;

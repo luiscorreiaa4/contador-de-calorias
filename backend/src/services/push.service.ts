@@ -12,7 +12,8 @@ function createError(message: string, statusCode: number): CustomError {
   return err;
 }
 
-const DEFAULT_VAPID_PUBLIC_KEY = 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U';
+const DEFAULT_VAPID_PUBLIC_KEY =
+  'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U';
 
 export function getPublicKey(): string {
   if (env.VAPID_PUBLIC_KEY) {

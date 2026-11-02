@@ -6,7 +6,9 @@ import { readSessionCookie } from '../utils/sessionCookie.js';
 import { getUserAuthContext, type UserAuthContext } from '../models/auth.model.js';
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
-const allowedOrigins = env.CORS_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean);
+const allowedOrigins = env.CORS_ORIGIN.split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
 
 export interface AuthenticatedRequest extends Request {
   userId?: string;
@@ -34,7 +36,11 @@ export function requireUserId(req: Request | AuthenticatedRequest): string {
  * Garante que a requisição autenticada possui papel de administrador (D-22 / B1 / B11).
  * Rejeita com HTTP 403 e code 'FORBIDDEN' caso o papel no banco seja diferente de 'admin'.
  */
-export function requireAdmin(req: Request | AuthenticatedRequest, res: Response, next: NextFunction) {
+export function requireAdmin(
+  req: Request | AuthenticatedRequest,
+  res: Response,
+  next: NextFunction,
+) {
   const userRole = (req as AuthenticatedRequest).userRole;
   if (userRole !== 'admin') {
     return res.status(403).json({
@@ -83,7 +89,9 @@ export async function authenticate(req: AuthenticatedRequest, res: Response, nex
   if (cookieToken && !SAFE_METHODS.has(req.method)) {
     const origin = req.headers.origin;
     if (!origin || !allowedOrigins.includes(origin)) {
-      return res.status(403).json({ success: false, message: 'Origem não permitida.', code: 'FORBIDDEN' });
+      return res
+        .status(403)
+        .json({ success: false, message: 'Origem não permitida.', code: 'FORBIDDEN' });
     }
   }
 
@@ -122,4 +130,3 @@ export async function authenticate(req: AuthenticatedRequest, res: Response, nex
   req.mfaEnabled = authContext.mfa_enabled;
   return next();
 }
-

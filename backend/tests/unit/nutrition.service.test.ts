@@ -1,6 +1,10 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { calculateEnergyTargets, calculateAge, UserProfile } from '../../src/services/nutrition.service.js';
+import {
+  calculateEnergyTargets,
+  calculateAge,
+  UserProfile,
+} from '../../src/services/nutrition.service.js';
 import { calculateItemNutrients } from '@caloriesync/shared';
 
 describe('calculateAge (CA-09)', () => {
@@ -33,7 +37,11 @@ describe('calculateAge (CA-09)', () => {
 describe('Nutrition Service (Unit)', () => {
   const today = new Date();
   // Cria data de nascimento 30 anos atrás exatos para teste
-  const birthDate = new Date(today.getFullYear() - 30, today.getMonth(), today.getDate()).toISOString();
+  const birthDate = new Date(
+    today.getFullYear() - 30,
+    today.getMonth(),
+    today.getDate(),
+  ).toISOString();
 
   it('deve calcular TMB e TDEE via Mifflin-St Jeor (Masculino)', () => {
     const profile: UserProfile = {
@@ -46,7 +54,7 @@ describe('Nutrition Service (Unit)', () => {
     };
 
     const targets = calculateEnergyTargets(profile);
-    
+
     // TMB: (10 * 80) + (6.25 * 180) - (5 * 30) + 5 = 800 + 1125 - 150 + 5 = 1780
     assert.strictEqual(targets.tmb, 1780);
     // TDEE: 1780 * 1.2 = 2136
@@ -70,7 +78,7 @@ describe('Nutrition Service (Unit)', () => {
     };
 
     const targets = calculateEnergyTargets(profile);
-    
+
     // TMB: (10 * 60) + (6.25 * 160) - (5 * 30) - 161 = 600 + 1000 - 150 - 161 = 1289
     assert.strictEqual(targets.tmb, 1289);
     // TDEE: 1289 * 1.55 = 1997.95 -> 1998
@@ -91,7 +99,7 @@ describe('Nutrition Service (Unit)', () => {
     };
 
     const targets = calculateEnergyTargets(profile);
-    
+
     // LBM = 80 * (1 - 0.15) = 68
     // TMB = 370 + 21.6 * 68 = 1838.8 -> 1839
     assert.strictEqual(targets.tmb, 1839);
@@ -102,7 +110,11 @@ describe('Nutrition Service (Unit)', () => {
   it('deve respeitar o piso mínimo de calorias (1200 para mulheres)', () => {
     const profile: UserProfile = {
       sex: 'feminino',
-      birthDate: new Date(today.getFullYear() - 60, today.getMonth(), today.getDate()).toISOString(),
+      birthDate: new Date(
+        today.getFullYear() - 60,
+        today.getMonth(),
+        today.getDate(),
+      ).toISOString(),
       weight: 45,
       height: 150,
       activity_level: 'sedentario',
@@ -110,7 +122,7 @@ describe('Nutrition Service (Unit)', () => {
     };
 
     const targets = calculateEnergyTargets(profile);
-    
+
     // TMB: (10 * 45) + (6.25 * 150) - (5 * 60) - 161 = 450 + 937.5 - 300 - 161 = 926.5
     // TDEE: 926.5 * 1.2 = 1111.8
     // Goal perder: 1111.8 * 0.8 = 889.44 -> Piso 1200
@@ -120,7 +132,11 @@ describe('Nutrition Service (Unit)', () => {
   it('deve respeitar o piso mínimo de calorias (1500 para homens)', () => {
     const profile: UserProfile = {
       sex: 'masculino',
-      birthDate: new Date(today.getFullYear() - 60, today.getMonth(), today.getDate()).toISOString(),
+      birthDate: new Date(
+        today.getFullYear() - 60,
+        today.getMonth(),
+        today.getDate(),
+      ).toISOString(),
       weight: 50,
       height: 160,
       activity_level: 'sedentario',
@@ -128,7 +144,7 @@ describe('Nutrition Service (Unit)', () => {
     };
 
     const targets = calculateEnergyTargets(profile);
-    
+
     // TMB: (10 * 50) + (6.25 * 160) - (5 * 60) + 5 = 500 + 1000 - 300 + 5 = 1205
     // TDEE: 1205 * 1.2 = 1446
     // Goal perder: 1446 * 0.8 = 1156.8 -> Piso 1500
@@ -146,7 +162,7 @@ describe('Nutrition Service (Unit)', () => {
     };
 
     const targets = calculateEnergyTargets(profile);
-    
+
     // TMB = 1780
     // TDEE = 2136
     // Goal: 2136 * 1.15 = 2456.4 -> 2456
@@ -166,13 +182,20 @@ describe('Nutrition Service (Unit)', () => {
     const targets = calculateEnergyTargets(profile);
 
     // Deve alocar carboidratos adequadamente (não pode zerar)
-    assert.ok(targets.suggestedMacros.carbs > 0, `Carboidratos não devem ser 0g, recebido: ${targets.suggestedMacros.carbs}g`);
+    assert.ok(
+      targets.suggestedMacros.carbs > 0,
+      `Carboidratos não devem ser 0g, recebido: ${targets.suggestedMacros.carbs}g`,
+    );
 
     // A soma das calorias dos macronutrientes não pode ultrapassar as calorias sugeridas
-    const macroCalories = (targets.suggestedMacros.proteins * 4) +
-                          (targets.suggestedMacros.fats * 9) +
-                          (targets.suggestedMacros.carbs * 4);
-    assert.ok(Math.abs(macroCalories - targets.suggestedCalories) <= 2, `Soma dos macros (${macroCalories} kcal) deve coincidir com a meta (${targets.suggestedCalories} kcal) dentro da tolerância de arredondamento de gramas`);
+    const macroCalories =
+      targets.suggestedMacros.proteins * 4 +
+      targets.suggestedMacros.fats * 9 +
+      targets.suggestedMacros.carbs * 4;
+    assert.ok(
+      Math.abs(macroCalories - targets.suggestedCalories) <= 2,
+      `Soma dos macros (${macroCalories} kcal) deve coincidir com a meta (${targets.suggestedCalories} kcal) dentro da tolerância de arredondamento de gramas`,
+    );
   });
 
   it('deve calcular macros adequados com base na massa magra (LBM) quando houver percentual de gordura elevado (CA-16)', () => {
@@ -189,15 +212,25 @@ describe('Nutrition Service (Unit)', () => {
     const targets = calculateEnergyTargets(profile);
 
     // Carboidratos devem existir e ser saudáveis
-    assert.ok(targets.suggestedMacros.carbs > 0, `Carboidratos não devem ser 0g, recebido: ${targets.suggestedMacros.carbs}g`);
+    assert.ok(
+      targets.suggestedMacros.carbs > 0,
+      `Carboidratos não devem ser 0g, recebido: ${targets.suggestedMacros.carbs}g`,
+    );
 
     // Proteína não deve ser 240g (2.0 * 120kg), e sim calculada proporcional à massa magra (2.2 * 78kg = ~172g)
-    assert.ok(targets.suggestedMacros.proteins < 200, `Proteína deve ser calculada sobre a massa magra, recebido: ${targets.suggestedMacros.proteins}g`);
+    assert.ok(
+      targets.suggestedMacros.proteins < 200,
+      `Proteína deve ser calculada sobre a massa magra, recebido: ${targets.suggestedMacros.proteins}g`,
+    );
 
-    const macroCalories = (targets.suggestedMacros.proteins * 4) +
-                          (targets.suggestedMacros.fats * 9) +
-                          (targets.suggestedMacros.carbs * 4);
-    assert.ok(Math.abs(macroCalories - targets.suggestedCalories) <= 2, `Soma dos macros (${macroCalories} kcal) deve coincidir com a meta (${targets.suggestedCalories} kcal)`);
+    const macroCalories =
+      targets.suggestedMacros.proteins * 4 +
+      targets.suggestedMacros.fats * 9 +
+      targets.suggestedMacros.carbs * 4;
+    assert.ok(
+      Math.abs(macroCalories - targets.suggestedCalories) <= 2,
+      `Soma dos macros (${macroCalories} kcal) deve coincidir com a meta (${targets.suggestedCalories} kcal)`,
+    );
   });
 });
 
@@ -250,4 +283,3 @@ describe('calculateItemNutrients & calculateNutrients (A-021 / A-023)', () => {
     assert.strictEqual(result.displayAmount, 0);
   });
 });
-

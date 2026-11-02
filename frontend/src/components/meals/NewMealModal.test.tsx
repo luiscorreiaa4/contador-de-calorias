@@ -27,7 +27,7 @@ describe('NewMealModal', () => {
   it('deve renderizar o modal corretamente quando aberto', async () => {
     render(<NewMealModal isOpen={true} onClose={onClose} />);
     expect(screen.getByRole('dialog', { name: /nova refeição/i })).toBeInTheDocument();
-    
+
     // Aguarda carregar as opções da API
     await waitFor(() => {
       expect(screen.getAllByText(/pesquisar alimento/i)[0]).toBeInTheDocument();
@@ -36,10 +36,10 @@ describe('NewMealModal', () => {
 
   it('deve buscar e adicionar um alimento', async () => {
     render(<NewMealModal isOpen={true} onClose={onClose} />);
-    
+
     // Espera o select de alimentos carregar
     const searchInput = await screen.findByRole('combobox');
-    
+
     // Digita para buscar e seleciona 'Arroz Branco'
     await userEvent.type(searchInput, 'Arroz');
     const option = await screen.findByText(/arroz branco/i);
@@ -52,14 +52,14 @@ describe('NewMealModal', () => {
     const amountInput = screen.getByRole('spinbutton');
     await userEvent.clear(amountInput); // limpa o padrão (100)
     await userEvent.type(amountInput, '150');
-    
+
     const includeButton = screen.getByRole('button', { name: /incluir/i });
     await userEvent.click(includeButton);
 
     // O item deve aparecer na lista com a quantidade registrada
     expect(await screen.findByText(/arroz branco/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/quantidade de arroz branco/i)).toHaveValue(150);
-    
+
     // Preenche o nome da refeição (opcional mas bom testar)
     const mealNameInput = screen.getByLabelText(/^nome$/i);
     await userEvent.type(mealNameInput, 'Almoço');
@@ -76,7 +76,7 @@ describe('NewMealModal', () => {
 
   it('não deve salvar sem alimentos', async () => {
     render(<NewMealModal isOpen={true} onClose={onClose} />);
-    
+
     const saveButton = await screen.findByRole('button', { name: /criar refeição/i });
     expect(saveButton).toBeDisabled();
   });
@@ -127,7 +127,7 @@ describe('NewMealModal', () => {
         if (page > 1) await delay(100);
         const foods = buildFoods(`ALIMENTO P${page}`, 50);
         return HttpResponse.json({ success: true, data: { foods, total: 100 } });
-      })
+      }),
     );
 
     render(<NewMealModal isOpen={true} onClose={onClose} />);
@@ -138,7 +138,9 @@ describe('NewMealModal', () => {
     expect(await screen.findByText('ALIMENTO P1 00')).toBeInTheDocument();
     expect(screen.queryByText('ALIMENTO P2 00')).not.toBeInTheDocument();
 
-    expect(screen.queryByRole('button', { name: /carregar mais alimentos/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /carregar mais alimentos/i }),
+    ).not.toBeInTheDocument();
     const list = screen.getByRole('listbox');
     Object.defineProperties(list, {
       scrollHeight: { value: 1000, configurable: true },
@@ -174,11 +176,14 @@ describe('NewMealModal', () => {
         const page = Number(new URL(request.url).searchParams.get('page') ?? '1');
         requestedPages.push(page);
         if (page === 2 && failNextPage) {
-          return HttpResponse.json({ success: false, message: 'Falha temporária' }, { status: 500 });
+          return HttpResponse.json(
+            { success: false, message: 'Falha temporária' },
+            { status: 500 },
+          );
         }
         const foods = buildFoods(`ALIMENTO P${page}`, page === 1 ? 50 : 1);
         return HttpResponse.json({ success: true, data: { foods, total: 51 } });
-      })
+      }),
     );
 
     render(<NewMealModal isOpen={true} onClose={onClose} />);
@@ -209,7 +214,7 @@ describe('NewMealModal', () => {
         requests.push({ page, search });
         const foods = search ? buildFoods('ARROZ', 1) : buildFoods(`ALIMENTO P${page}`, 50);
         return HttpResponse.json({ success: true, data: { foods, total: search ? 1 : 100 } });
-      })
+      }),
     );
 
     render(<NewMealModal isOpen={true} onClose={onClose} />);
@@ -221,7 +226,11 @@ describe('NewMealModal', () => {
     await userEvent.type(searchInput, 'Arroz');
     expect(await screen.findByRole('option', { name: 'ARROZ 00' })).toBeInTheDocument();
     expect(screen.getAllByRole('option')).toHaveLength(1);
-    expect(requests).toEqual([{ page: 1, search: null }, { page: 2, search: null }, { page: 1, search: 'Arroz' }]);
+    expect(requests).toEqual([
+      { page: 1, search: null },
+      { page: 2, search: null },
+      { page: 1, search: 'Arroz' },
+    ]);
   });
 
   it('deve registrar refeição na data selecionada (BL-02)', async () => {
@@ -233,7 +242,7 @@ describe('NewMealModal', () => {
           success: true,
           data: { id: 'new-meal', name: 'Refeição', meal_time: captured.mealTime, items: [] },
         });
-      })
+      }),
     );
 
     render(<NewMealModal isOpen={true} onClose={onClose} mealDate="2026-10-15" />);
@@ -376,7 +385,7 @@ describe('NewMealModal', () => {
       http.post(`${baseURL}/foods/:id/favorite`, () => {
         isFav = true;
         return HttpResponse.json({ success: true });
-      })
+      }),
     );
 
     render(<NewMealModal isOpen={true} onClose={vi.fn()} />);
@@ -395,10 +404,9 @@ describe('NewMealModal', () => {
 
     // O status do botão deve refletir que o alimento foi favoritado
     await waitFor(() => {
-      expect(screen.getAllByRole('button', { name: /remover dos favoritos/i }).length).toBeGreaterThan(0);
+      expect(
+        screen.getAllByRole('button', { name: /remover dos favoritos/i }).length,
+      ).toBeGreaterThan(0);
     });
   });
 });
-
-
-

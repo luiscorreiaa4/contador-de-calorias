@@ -107,7 +107,10 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
   return json.data as T;
 }
 
-export async function apiFetchWithMeta<T>(path: string, options?: RequestInit): Promise<ApiResponseWithMeta<T>> {
+export async function apiFetchWithMeta<T>(
+  path: string,
+  options?: RequestInit,
+): Promise<ApiResponseWithMeta<T>> {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     ...options?.headers,

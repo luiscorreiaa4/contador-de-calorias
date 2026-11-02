@@ -25,7 +25,12 @@ export function BottomNav() {
     const Icon = active ? item.activeIcon : item.icon;
     return (
       <li key={item.id} className="min-w-0">
-        <Link to={item.to} aria-label={item.shortLabel} aria-current={active ? 'page' : undefined} className={slotClass}>
+        <Link
+          to={item.to}
+          aria-label={item.shortLabel}
+          aria-current={active ? 'page' : undefined}
+          className={slotClass}
+        >
           <Icon className="h-6 w-6" />
         </Link>
       </li>
@@ -47,7 +52,9 @@ export function BottomNav() {
           <button
             type="button"
             aria-label="Nova refeição"
-            onClick={() => open(isValidLocalDateString(diaryDate) ? { date: diaryDate } : undefined)}
+            onClick={() =>
+              open(isValidLocalDateString(diaryDate) ? { date: diaryDate } : undefined)
+            }
             className={slotClass}
           >
             <span className="flex h-7 w-7 items-center justify-center rounded-none border-2 border-foreground">

@@ -44,7 +44,6 @@ function getStoredUserSession(): UserProfile | null {
   }
 }
 
-
 interface AuthContextType {
   user: UserProfile | null;
   isAuthenticated: boolean;
@@ -69,7 +68,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setHasSession(true);
 
     const serialized = JSON.stringify(sanitizeUserSession(userData));
-    const [keep, drop] = rememberMe ? [localStorage, sessionStorage] : [sessionStorage, localStorage];
+    const [keep, drop] = rememberMe
+      ? [localStorage, sessionStorage]
+      : [sessionStorage, localStorage];
     keep.setItem('user_session', serialized);
     keep.setItem('auth_session', '1');
     drop.removeItem('user_session');
@@ -131,14 +132,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       updateUserSession,
       logout,
     }),
-    [user, hasSession, isLoadingProfile, setAuthSession, updateUserSession, logout]
+    [user, hasSession, isLoadingProfile, setAuthSession, updateUserSession, logout],
   );
 
-  return (
-    <AuthContext.Provider value={authValue}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={authValue}>{children}</AuthContext.Provider>;
 };
 
 // eslint-disable-next-line react-refresh/only-export-components

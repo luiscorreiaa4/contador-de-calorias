@@ -19,9 +19,14 @@ describe('MFA TOTP (#7)', () => {
   });
 
   it('exige código no login após ativar, aceita TOTP e recuperação de uso único e permite desativar', async () => {
-    const user = await createVerifiedUser({ email: `tester-mfa-${Date.now()}@example.com`, password: PASSWORD });
+    const user = await createVerifiedUser({
+      email: `tester-mfa-${Date.now()}@example.com`,
+      password: PASSWORD,
+    });
     const login = (extra: object = {}) =>
-      request(app).post('/api/auth/login').send({ email: user.email, password: PASSWORD, ...extra });
+      request(app)
+        .post('/api/auth/login')
+        .send({ email: user.email, password: PASSWORD, ...extra });
 
     const session = await login();
     assert.strictEqual(session.status, 200);
@@ -31,7 +36,10 @@ describe('MFA TOTP (#7)', () => {
     assert.strictEqual(setup.status, 200);
     const secret: string = setup.body.data.secret;
 
-    const bad = await request(app).post('/api/users/me/mfa/enable').set(auth).send({ code: '000000' });
+    const bad = await request(app)
+      .post('/api/users/me/mfa/enable')
+      .set(auth)
+      .send({ code: '000000' });
     assert.strictEqual(bad.status, 400);
 
     const enabled = await request(app)

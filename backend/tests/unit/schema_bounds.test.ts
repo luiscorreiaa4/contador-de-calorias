@@ -23,19 +23,40 @@ describe('Schema Bounds and Strict Validation (#11)', () => {
     assert.strictEqual(completeOnboardingSchema.safeParse(baseValid).success, true);
 
     // weight boundary
-    assert.strictEqual(completeOnboardingSchema.safeParse({ ...baseValid, weight: 500 }).success, true);
-    assert.strictEqual(completeOnboardingSchema.safeParse({ ...baseValid, weight: 501 }).success, false);
+    assert.strictEqual(
+      completeOnboardingSchema.safeParse({ ...baseValid, weight: 500 }).success,
+      true,
+    );
+    assert.strictEqual(
+      completeOnboardingSchema.safeParse({ ...baseValid, weight: 501 }).success,
+      false,
+    );
 
     // height boundary
-    assert.strictEqual(completeOnboardingSchema.safeParse({ ...baseValid, height: 300 }).success, true);
-    assert.strictEqual(completeOnboardingSchema.safeParse({ ...baseValid, height: 301 }).success, false);
+    assert.strictEqual(
+      completeOnboardingSchema.safeParse({ ...baseValid, height: 300 }).success,
+      true,
+    );
+    assert.strictEqual(
+      completeOnboardingSchema.safeParse({ ...baseValid, height: 301 }).success,
+      false,
+    );
 
     // body_fat boundary
-    assert.strictEqual(completeOnboardingSchema.safeParse({ ...baseValid, body_fat: 100 }).success, true);
-    assert.strictEqual(completeOnboardingSchema.safeParse({ ...baseValid, body_fat: 100.1 }).success, false);
+    assert.strictEqual(
+      completeOnboardingSchema.safeParse({ ...baseValid, body_fat: 100 }).success,
+      true,
+    );
+    assert.strictEqual(
+      completeOnboardingSchema.safeParse({ ...baseValid, body_fat: 100.1 }).success,
+      false,
+    );
 
     // strict rejection
-    assert.strictEqual(completeOnboardingSchema.safeParse({ ...baseValid, extraField: 'invalid' }).success, false);
+    assert.strictEqual(
+      completeOnboardingSchema.safeParse({ ...baseValid, extraField: 'invalid' }).success,
+      false,
+    );
   });
 
   it('updateGoalsSchema deve rejeitar metas fora dos tetos e chaves extras', () => {
@@ -50,12 +71,24 @@ describe('Schema Bounds and Strict Validation (#11)', () => {
     assert.strictEqual(updateGoalsSchema.safeParse(validGoals).success, true);
 
     // calories boundary
-    assert.strictEqual(updateGoalsSchema.safeParse({ ...validGoals, calories: 15000 }).success, true);
-    assert.strictEqual(updateGoalsSchema.safeParse({ ...validGoals, calories: 15001 }).success, false);
+    assert.strictEqual(
+      updateGoalsSchema.safeParse({ ...validGoals, calories: 15000 }).success,
+      true,
+    );
+    assert.strictEqual(
+      updateGoalsSchema.safeParse({ ...validGoals, calories: 15001 }).success,
+      false,
+    );
 
     // proteins boundary
-    assert.strictEqual(updateGoalsSchema.safeParse({ ...validGoals, proteins: 1000 }).success, true);
-    assert.strictEqual(updateGoalsSchema.safeParse({ ...validGoals, proteins: 1001 }).success, false);
+    assert.strictEqual(
+      updateGoalsSchema.safeParse({ ...validGoals, proteins: 1000 }).success,
+      true,
+    );
+    assert.strictEqual(
+      updateGoalsSchema.safeParse({ ...validGoals, proteins: 1001 }).success,
+      false,
+    );
 
     // carbs boundary
     assert.strictEqual(updateGoalsSchema.safeParse({ ...validGoals, carbs: 2000 }).success, true);
@@ -66,7 +99,10 @@ describe('Schema Bounds and Strict Validation (#11)', () => {
     assert.strictEqual(updateGoalsSchema.safeParse({ ...validGoals, fats: 1001 }).success, false);
 
     // strict rejection
-    assert.strictEqual(updateGoalsSchema.safeParse({ ...validGoals, unallowedKey: 123 }).success, false);
+    assert.strictEqual(
+      updateGoalsSchema.safeParse({ ...validGoals, unallowedKey: 123 }).success,
+      false,
+    );
   });
 
   it('createCustomFoodSchema deve rejeitar pesos de porção excessivos e chaves extras', () => {
@@ -85,15 +121,30 @@ describe('Schema Bounds and Strict Validation (#11)', () => {
     assert.strictEqual(createCustomFoodSchema.safeParse(validFood).success, true);
 
     // serving_weight boundary
-    assert.strictEqual(createCustomFoodSchema.safeParse({ ...validFood, serving_weight: 5000 }).success, true);
-    assert.strictEqual(createCustomFoodSchema.safeParse({ ...validFood, serving_weight: 5001 }).success, false);
+    assert.strictEqual(
+      createCustomFoodSchema.safeParse({ ...validFood, serving_weight: 5000 }).success,
+      true,
+    );
+    assert.strictEqual(
+      createCustomFoodSchema.safeParse({ ...validFood, serving_weight: 5001 }).success,
+      false,
+    );
 
     // unit_weight boundary
-    assert.strictEqual(createCustomFoodSchema.safeParse({ ...validFood, unit_weight: 5000 }).success, true);
-    assert.strictEqual(createCustomFoodSchema.safeParse({ ...validFood, unit_weight: 5001 }).success, false);
+    assert.strictEqual(
+      createCustomFoodSchema.safeParse({ ...validFood, unit_weight: 5000 }).success,
+      true,
+    );
+    assert.strictEqual(
+      createCustomFoodSchema.safeParse({ ...validFood, unit_weight: 5001 }).success,
+      false,
+    );
 
     // strict rejection
-    assert.strictEqual(createCustomFoodSchema.safeParse({ ...validFood, injected: true }).success, false);
+    assert.strictEqual(
+      createCustomFoodSchema.safeParse({ ...validFood, injected: true }).success,
+      false,
+    );
   });
 
   it('listFoodsQuerySchema deve respeitar teto de página', () => {
@@ -113,19 +164,24 @@ describe('Schema Bounds and Strict Validation (#11)', () => {
 
     // lower bound for date
     assert.strictEqual(
-      createMeasurementSchema.safeParse({ ...validMeasurement, measured_at: '1899-12-31T23:59:59Z' }).success,
-      false
+      createMeasurementSchema.safeParse({
+        ...validMeasurement,
+        measured_at: '1899-12-31T23:59:59Z',
+      }).success,
+      false,
     );
     assert.strictEqual(
-      createMeasurementSchema.safeParse({ ...validMeasurement, measured_at: '1900-01-01T00:00:00Z' }).success,
-      true
+      createMeasurementSchema.safeParse({
+        ...validMeasurement,
+        measured_at: '1900-01-01T00:00:00Z',
+      }).success,
+      true,
     );
 
     // strict rejection
     assert.strictEqual(
       createMeasurementSchema.safeParse({ ...validMeasurement, unauthorized: 'test' }).success,
-      false
+      false,
     );
   });
 });
-

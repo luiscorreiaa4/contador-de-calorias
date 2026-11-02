@@ -9,9 +9,7 @@ export function NotificationsPage() {
   return (
     <section className="bg-card border-2 border-border shadow-hard p-6 space-y-6">
       <div className="space-y-1">
-        <h2 className="font-heading font-black text-xl uppercase tracking-tighter">
-          NOTIFICAÇÕES
-        </h2>
+        <h2 className="font-heading font-black text-xl uppercase tracking-tighter">NOTIFICAÇÕES</h2>
         <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">
           Gerencie os canais de lembrete de refeição e alertas automáticos da sua conta.
         </p>
@@ -63,7 +61,8 @@ export function NotificationsPage() {
                 </span>
               </div>
               <span className="text-xs text-muted-foreground font-medium block">
-                Receba avisos sonoros e visuais no navegador nos horários de café, almoço e jantar para manter seu diário sempre em dia.
+                Receba avisos sonoros e visuais no navegador nos horários de café, almoço e jantar
+                para manter seu diário sempre em dia.
               </span>
             </div>
           </label>
@@ -96,7 +95,8 @@ export function NotificationsPage() {
                 </span>
               </div>
               <span className="text-xs text-muted-foreground font-medium block">
-                Resumos diários, relatórios de consumo calórico e avisos de refeições pendentes enviados diretamente para sua caixa de entrada.
+                Resumos diários, relatórios de consumo calórico e avisos de refeições pendentes
+                enviados diretamente para sua caixa de entrada.
               </span>
             </div>
           </label>
@@ -129,7 +129,8 @@ export function NotificationsPage() {
                 </span>
               </div>
               <span className="text-xs text-muted-foreground font-medium block">
-                Lembretes instantâneos no seu celular por SMS ou WhatsApp para registrar café da manhã, almoço, lanche e jantar.
+                Lembretes instantâneos no seu celular por SMS ou WhatsApp para registrar café da
+                manhã, almoço, lanche e jantar.
               </span>
             </div>
           </label>
@@ -142,7 +143,8 @@ export function NotificationsPage() {
           DIAGNÓSTICO DO SERVIÇO
         </p>
         <p className="text-xs text-muted-foreground font-medium">
-          Os canais de alerta automático estão em desenvolvimento. Utilize a ação abaixo para testar a comunicação e despacho do serviço de lembretes.
+          Os canais de alerta automático estão em desenvolvimento. Utilize a ação abaixo para testar
+          a comunicação e despacho do serviço de lembretes.
         </p>
         <div>
           <button
@@ -158,5 +160,3 @@ export function NotificationsPage() {
     </section>
   );
 }
-
-

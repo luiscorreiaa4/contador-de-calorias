@@ -18,7 +18,7 @@ describe('Validate Middleware (CA-15)', () => {
       }),
       (req, res) => {
         res.json({ success: true, id: req.params.id });
-      }
+      },
     );
 
     const failRes = await request(testApp).get('/items/123-invalido');
@@ -43,7 +43,7 @@ describe('Validate Middleware (CA-15)', () => {
       }),
       (req, res) => {
         res.json({ success: true, query: req.query });
-      }
+      },
     );
 
     const failRes = await request(testApp).get('/search?date=data-errada&period=year');
@@ -61,11 +61,11 @@ describe('Validate Middleware (CA-15)', () => {
       validate(
         z.object({
           title: z.string().min(3),
-        })
+        }),
       ),
       (req, res) => {
         res.json({ success: true, body: req.body });
-      }
+      },
     );
 
     const failRes = await request(testApp).post('/legacy').send({ title: 'ab' });

@@ -38,9 +38,7 @@ describe('Push Notifications Feature (BL-27 / FEAT-C09)', () => {
   });
 
   it('POST /api/push/subscribe - deve retornar 401 sem autenticação', async () => {
-    const res = await request(app)
-      .post('/api/push/subscribe')
-      .send(sampleSubscription);
+    const res = await request(app).post('/api/push/subscribe').send(sampleSubscription);
     assert.strictEqual(res.status, 401);
   });
 
@@ -55,9 +53,7 @@ describe('Push Notifications Feature (BL-27 / FEAT-C09)', () => {
   });
 
   it('POST /api/push/test - deve retornar 422 quando usuário não possui inscrições ativas', async () => {
-    const res = await request(app)
-      .post('/api/push/test')
-      .set('Authorization', `Bearer ${token}`);
+    const res = await request(app).post('/api/push/test').set('Authorization', `Bearer ${token}`);
 
     assert.strictEqual(res.status, 422);
     assert.strictEqual(res.body.success, false);
@@ -75,9 +71,7 @@ describe('Push Notifications Feature (BL-27 / FEAT-C09)', () => {
   });
 
   it('POST /api/push/test - deve enviar notificação de teste com sucesso quando inscrito', async () => {
-    const res = await request(app)
-      .post('/api/push/test')
-      .set('Authorization', `Bearer ${token}`);
+    const res = await request(app).post('/api/push/test').set('Authorization', `Bearer ${token}`);
 
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.success, true);
@@ -96,9 +90,7 @@ describe('Push Notifications Feature (BL-27 / FEAT-C09)', () => {
   });
 
   it('POST /api/push/test - deve voltar a retornar 422 após remoção da inscrição', async () => {
-    const res = await request(app)
-      .post('/api/push/test')
-      .set('Authorization', `Bearer ${token}`);
+    const res = await request(app).post('/api/push/test').set('Authorization', `Bearer ${token}`);
 
     assert.strictEqual(res.status, 422);
     assert.strictEqual(res.body.success, false);

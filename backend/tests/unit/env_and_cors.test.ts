@@ -67,7 +67,10 @@ describe('CORS and Production Env Hardening (#13 / #14)', () => {
       MAIL_TRANSPORT: 'memory',
     });
     assert.strictEqual(result.success, false);
-    assert.match(result.error?.issues[0]?.message ?? '', /MAIL_TRANSPORT=memory é proibido em produção/i);
+    assert.match(
+      result.error?.issues[0]?.message ?? '',
+      /MAIL_TRANSPORT=memory é proibido em produção/i,
+    );
   });
 
   it('deve responder 403 limpo quando a origem não for permitida por CORS (#13)', async () => {

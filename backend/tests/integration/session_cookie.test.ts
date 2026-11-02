@@ -16,10 +16,14 @@ describe('Sessão por cookie HttpOnly (#1)', () => {
 
   it('login emite cookie HttpOnly SameSite=Strict e ele autentica sem Authorization', async () => {
     const user = await createVerifiedUser({ email: `tester-cookie-${Date.now()}@example.com` });
-    const login = await request(app).post('/api/auth/login').send({ email: user.email, password: user.password });
+    const login = await request(app)
+      .post('/api/auth/login')
+      .send({ email: user.email, password: user.password });
     assert.strictEqual(login.status, 200);
 
-    const setCookie = (login.headers['set-cookie'] as unknown as string[]).find((c) => c.startsWith('cs_session='));
+    const setCookie = (login.headers['set-cookie'] as unknown as string[]).find((c) =>
+      c.startsWith('cs_session='),
+    );
     assert.ok(setCookie, 'cookie cs_session ausente');
     assert.match(setCookie, /HttpOnly/i);
     assert.match(setCookie, /SameSite=Strict/i);
@@ -31,16 +35,26 @@ describe('Sessão por cookie HttpOnly (#1)', () => {
     // CSRF: mutação via cookie sem Origin permitida é rejeitada; com Origin passa da guarda.
     const noOrigin = await request(app).put('/api/users/me').set('Cookie', cookie).send({});
     assert.strictEqual(noOrigin.status, 403);
-    const evil = await request(app).put('/api/users/me').set('Cookie', cookie).set('Origin', 'https://evil.example').send({});
+    const evil = await request(app)
+      .put('/api/users/me')
+      .set('Cookie', cookie)
+      .set('Origin', 'https://evil.example')
+      .send({});
     assert.strictEqual(evil.status, 403);
-    const ok = await request(app).put('/api/users/me').set('Cookie', cookie).set('Origin', origin).send({});
+    const ok = await request(app)
+      .put('/api/users/me')
+      .set('Cookie', cookie)
+      .set('Origin', origin)
+      .send({});
     assert.notStrictEqual(ok.status, 403);
   });
 
   it('logout limpa o cookie', async () => {
     const res = await request(app).post('/api/auth/logout');
     assert.strictEqual(res.status, 200);
-    const cleared = (res.headers['set-cookie'] as unknown as string[]).find((c) => c.startsWith('cs_session=;'));
+    const cleared = (res.headers['set-cookie'] as unknown as string[]).find((c) =>
+      c.startsWith('cs_session=;'),
+    );
     assert.ok(cleared);
   });
 });

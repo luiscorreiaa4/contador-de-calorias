@@ -204,7 +204,7 @@ export const TBCA_PHASE_2_CODES = [
   'BRC0099K', // Sorvete, sundae
   'BRC0193K', // Sorvete, na casquinha, industrializado
   'BRC0144H', // Milk shake (leite integral, sorvete, extrato de baunilha e calda de chocolate)
-  'BRC0437A'  // Crepe, c/ recheio de banana e chocolate ao leite*, s/ açúcar, Brasil
+  'BRC0437A', // Crepe, c/ recheio de banana e chocolate ao leite*, s/ açúcar, Brasil
 ];
 
 function parseNum(val: string): number {
@@ -241,7 +241,7 @@ async function fetchTbcaNutrients(code: string): Promise<TbcaItem | null> {
   if (!linkMatch) return null;
 
   const cols = Array.from(targetRow.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)).map((m) =>
-    m[1].replace(/<[^>]+>/g, '').trim()
+    m[1].replace(/<[^>]+>/g, '').trim(),
   );
   const sourceName = cols[1] || '';
 
@@ -261,11 +261,14 @@ async function fetchTbcaNutrients(code: string): Promise<TbcaItem | null> {
 
   for (let i = 1; i < detailRows.length; i++) {
     const rCols = Array.from(detailRows[i].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)).map((m) =>
-      m[1].replace(/<[^>]+>/g, '').trim()
+      m[1].replace(/<[^>]+>/g, '').trim(),
     );
     if (rCols.length < 3) continue;
 
-    const comp = rCols[0].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const comp = rCols[0]
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
     const unit = rCols[1].toLowerCase();
     const val = parseNum(rCols[2]);
 
@@ -293,7 +296,9 @@ async function fetchTbcaNutrients(code: string): Promise<TbcaItem | null> {
 }
 
 async function runDownload() {
-  const rootDir = process.cwd().endsWith('backend') ? process.cwd() : path.join(process.cwd(), 'backend');
+  const rootDir = process.cwd().endsWith('backend')
+    ? process.cwd()
+    : path.join(process.cwd(), 'backend');
   const targetPath = path.join(rootDir, 'data/tbca-foods.json');
 
   let existingFoods: Record<string, TbcaItem> = {};
@@ -303,7 +308,9 @@ async function runDownload() {
       parsed.forEach((item) => {
         existingFoods[item.code] = item;
       });
-      console.log(`Carregados ${Object.keys(existingFoods).length} itens existentes em cache de ${targetPath}`);
+      console.log(
+        `Carregados ${Object.keys(existingFoods).length} itens existentes em cache de ${targetPath}`,
+      );
     } catch {
       existingFoods = {};
     }
@@ -339,7 +346,9 @@ async function runDownload() {
   }
 
   fs.writeFileSync(targetPath, JSON.stringify(Object.values(existingFoods), null, 2), 'utf8');
-  console.log(`\n✅ Download concluído! ${Object.keys(existingFoods).length} alimentos salvos em ${targetPath}`);
+  console.log(
+    `\n✅ Download concluído! ${Object.keys(existingFoods).length} alimentos salvos em ${targetPath}`,
+  );
 }
 
 runDownload();

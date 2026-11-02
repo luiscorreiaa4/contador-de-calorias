@@ -55,7 +55,10 @@ describe('User Schema Validation (registerUserSchema)', () => {
     const result = registerUserSchema.safeParse(invalidData);
     assert.strictEqual(result.success, false);
     if (!result.success) {
-      assert.strictEqual(result.error.format().password?._errors[0], 'A senha deve ter no mínimo 8 caracteres.');
+      assert.strictEqual(
+        result.error.format().password?._errors[0],
+        'A senha deve ter no mínimo 8 caracteres.',
+      );
     }
   });
 });
@@ -73,7 +76,7 @@ describe('User Schema Validation (registerUserSchema - consentimento LGPD / BL-1
     if (!result.success) {
       assert.match(
         result.error.format().acceptTerms?._errors[0] ?? '',
-        /Termos de Uso e a Política de Privacidade/
+        /Termos de Uso e a Política de Privacidade/,
       );
     }
   });
@@ -140,7 +143,10 @@ describe('User Schema Validation (completeOnboardingSchema)', () => {
     const result = completeOnboardingSchema.safeParse(invalidData);
     assert.strictEqual(result.success, false);
     if (!result.success) {
-      assert.strictEqual(result.error.format().birthDate?._errors[0], 'A data de nascimento é obrigatória.');
+      assert.strictEqual(
+        result.error.format().birthDate?._errors[0],
+        'A data de nascimento é obrigatória.',
+      );
     }
   });
 });
@@ -224,7 +230,10 @@ describe('Date and Query Schemas (A-011)', () => {
 
   it('statsQuerySchema deve validar datas e períodos permitidos', () => {
     assert.strictEqual(statsQuerySchema.safeParse({ date: '2026-02-31' }).success, false);
-    assert.strictEqual(statsQuerySchema.safeParse({ period: 'month', date: '2026-10-15' }).success, true);
+    assert.strictEqual(
+      statsQuerySchema.safeParse({ period: 'month', date: '2026-10-15' }).success,
+      true,
+    );
   });
 });
 
@@ -267,9 +276,19 @@ describe('BirthDate and Measurement Validation (A-012)', () => {
   });
 
   it('createMeasurementSchema deve validar measured_at e rejeitar lixo ou data futura', () => {
-    assert.strictEqual(createMeasurementSchema.safeParse({ weight: 70, measured_at: 'lixo' }).success, false);
-    assert.strictEqual(createMeasurementSchema.safeParse({ weight: 70, measured_at: '2099-01-01T00:00:00Z' }).success, false);
-    assert.strictEqual(createMeasurementSchema.safeParse({ weight: 70, measured_at: '2026-10-01T12:00:00Z' }).success, true);
+    assert.strictEqual(
+      createMeasurementSchema.safeParse({ weight: 70, measured_at: 'lixo' }).success,
+      false,
+    );
+    assert.strictEqual(
+      createMeasurementSchema.safeParse({ weight: 70, measured_at: '2099-01-01T00:00:00Z' })
+        .success,
+      false,
+    );
+    assert.strictEqual(
+      createMeasurementSchema.safeParse({ weight: 70, measured_at: '2026-10-01T12:00:00Z' })
+        .success,
+      true,
+    );
   });
 });
-

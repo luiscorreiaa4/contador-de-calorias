@@ -47,4 +47,3 @@ export const down = (pgm) => {
     ALTER TABLE foods DROP COLUMN IF EXISTS nome_normalizado;
   `);
 };
-

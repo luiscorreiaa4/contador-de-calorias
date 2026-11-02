@@ -2,7 +2,7 @@ import { structuredLog } from './logger.js';
 
 export function registerProcessHandlers(
   onShutdown: (signal: string) => Promise<void> | void = () => process.exit(1),
-  proc: NodeJS.EventEmitter = process
+  proc: NodeJS.EventEmitter = process,
 ) {
   proc.on('SIGTERM', () => {
     void onShutdown('SIGTERM');
@@ -28,4 +28,3 @@ export function registerProcessHandlers(
     void onShutdown('unhandledRejection');
   });
 }
-

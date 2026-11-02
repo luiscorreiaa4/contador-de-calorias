@@ -131,7 +131,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onEmailNotVerif
             aria-label={showPassword ? 'Ocultar senha' : 'Exibir senha'}
             className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground transition-colors"
           >
-            {showPassword ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
+            {showPassword ? (
+              <EyeOff className="w-4 h-4" aria-hidden="true" />
+            ) : (
+              <Eye className="w-4 h-4" aria-hidden="true" />
+            )}
           </button>
         </div>
         {errors.password && (

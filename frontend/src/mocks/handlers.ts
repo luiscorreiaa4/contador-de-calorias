@@ -28,7 +28,7 @@ const testUser = {
 
 export const handlers = [
   http.post(`${baseURL}/auth/login`, async ({ request }) => {
-    const body = await request.json() as { email?: string; password?: string };
+    const body = (await request.json()) as { email?: string; password?: string };
 
     if (body.email === 'unverified@example.com' && body.password === 'senha123') {
       return HttpResponse.json(
@@ -37,7 +37,7 @@ export const handlers = [
           code: 'EMAIL_NOT_VERIFIED',
           message: 'Confirme seu e-mail para entrar.',
         },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -54,20 +54,17 @@ export const handlers = [
 
     return HttpResponse.json(
       { success: false, message: 'E-mail ou senha incorretos.' },
-      { status: 401 }
+      { status: 401 },
     );
   }),
 
   http.post(`${baseURL}/auth/register`, async () => {
     // A4/A6: sempre 202 genérico, sem revelar existência da conta e sem sessão.
-    return HttpResponse.json(
-      { success: true, message: GENERIC_EMAIL_MESSAGE },
-      { status: 202 }
-    );
+    return HttpResponse.json({ success: true, message: GENERIC_EMAIL_MESSAGE }, { status: 202 });
   }),
 
   http.post(`${baseURL}/auth/verify-email`, async ({ request }) => {
-    const body = await request.json() as { email?: string; code?: string };
+    const body = (await request.json()) as { email?: string; code?: string };
 
     if (body.code !== '123456') {
       return HttpResponse.json(
@@ -76,7 +73,7 @@ export const handlers = [
           code: 'INVALID_VERIFICATION_CODE',
           message: 'Código inválido ou expirado.',
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -91,21 +88,15 @@ export const handlers = [
   }),
 
   http.post(`${baseURL}/auth/resend-code`, () => {
-    return HttpResponse.json(
-      { success: true, message: GENERIC_EMAIL_MESSAGE },
-      { status: 202 }
-    );
+    return HttpResponse.json({ success: true, message: GENERIC_EMAIL_MESSAGE }, { status: 202 });
   }),
 
   http.post(`${baseURL}/auth/forgot-password`, () => {
-    return HttpResponse.json(
-      { success: true, message: GENERIC_EMAIL_MESSAGE },
-      { status: 202 }
-    );
+    return HttpResponse.json({ success: true, message: GENERIC_EMAIL_MESSAGE }, { status: 202 });
   }),
 
   http.post(`${baseURL}/auth/reset-password`, async ({ request }) => {
-    const body = await request.json() as { token?: string; password?: string };
+    const body = (await request.json()) as { token?: string; password?: string };
 
     if (!body.token || body.token.startsWith('invalid')) {
       return HttpResponse.json(
@@ -114,7 +105,7 @@ export const handlers = [
           code: 'INVALID_RESET_TOKEN',
           message: 'Link inválido ou expirado.',
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -123,7 +114,7 @@ export const handlers = [
       message: 'Senha redefinida com sucesso. Entre com a nova senha.',
     });
   }),
-  
+
   http.get(`${baseURL}/foods`, () => {
     return HttpResponse.json({
       success: true,
@@ -205,7 +196,7 @@ export const handlers = [
           source: 'custom',
         },
       },
-      { status: 201 }
+      { status: 201 },
     );
   }),
 
@@ -337,7 +328,11 @@ export const handlers = [
   }),
 
   http.post(`${baseURL}/users/me/measurements`, async ({ request }) => {
-    const body = (await request.json()) as { weight: number; body_fat?: number; measured_at?: string };
+    const body = (await request.json()) as {
+      weight: number;
+      body_fat?: number;
+      measured_at?: string;
+    };
     return HttpResponse.json({
       success: true,
       data: {
@@ -363,7 +358,8 @@ export const handlers = [
     return HttpResponse.json({
       success: true,
       data: {
-        publicKey: 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U',
+        publicKey:
+          'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U',
       },
     });
   }),
@@ -374,7 +370,7 @@ export const handlers = [
         success: true,
         message: 'Inscrição push registrada com sucesso.',
       },
-      { status: 201 }
+      { status: 201 },
     );
   }),
 
@@ -441,7 +437,11 @@ export const handlers = [
   }),
 
   http.post(`${baseURL}/meals/copy`, async ({ request }) => {
-    const body = (await request.json()) as { sourceMealId?: string; sourceDate?: string; targetDate: string };
+    const body = (await request.json()) as {
+      sourceMealId?: string;
+      sourceDate?: string;
+      targetDate: string;
+    };
     if (body.sourceMealId) {
       return HttpResponse.json({
         success: true,
@@ -479,7 +479,7 @@ export const handlers = [
       success: true,
       data: {
         ...testUser,
-        role: isAdmin ? 'admin' : (testUser.role || 'user'),
+        role: isAdmin ? 'admin' : testUser.role || 'user',
         name: isAdmin ? 'Admin Teste' : testUser.name,
       },
     });
@@ -567,10 +567,17 @@ export const handlers = [
   // Admin Catalog Handlers (D-22 / B11)
   http.get(`${baseURL}/admin/foods`, ({ request }) => {
     const url = new URL(request.url);
-    const search = (url.searchParams.get('q') || url.searchParams.get('search') || '').toLowerCase();
+    const search = (
+      url.searchParams.get('q') ||
+      url.searchParams.get('search') ||
+      ''
+    ).toLowerCase();
     const status = url.searchParams.get('status') || 'all';
     const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10));
-    const pageSizeParam = parseInt(url.searchParams.get('pageSize') || url.searchParams.get('limit') || '25', 10);
+    const pageSizeParam = parseInt(
+      url.searchParams.get('pageSize') || url.searchParams.get('limit') || '25',
+      10,
+    );
     const pageSize = [25, 50, 100].includes(pageSizeParam) ? pageSizeParam : 25;
     const sort = url.searchParams.get('sort') || 'nome';
     const order = url.searchParams.get('order') || 'asc';
@@ -618,7 +625,7 @@ export const handlers = [
       filtered = filtered.filter(
         (f) =>
           f.name.toLowerCase().includes(search) ||
-          (f.source_ref && f.source_ref.toLowerCase().includes(search))
+          (f.source_ref && f.source_ref.toLowerCase().includes(search)),
       );
     }
 

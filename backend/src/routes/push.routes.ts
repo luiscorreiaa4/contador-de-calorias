@@ -8,7 +8,12 @@ const router = Router();
 
 router.get('/public-key', PushController.getPublicKey);
 router.post('/subscribe', authenticate, validate(pushSubscriptionSchema), PushController.subscribe);
-router.post('/unsubscribe', authenticate, validate(unsubscribePushSchema), PushController.unsubscribe);
+router.post(
+  '/unsubscribe',
+  authenticate,
+  validate(unsubscribePushSchema),
+  PushController.unsubscribe,
+);
 router.post('/test', authenticate, PushController.sendTest);
 
 export default router;

@@ -12,7 +12,7 @@ const renderPage = () =>
         <Route path="/esqueci-senha" element={<ForgotPasswordPage />} />
         <Route path="/login" element={<div>Login</div>} />
       </Routes>
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 
 const GENERIC_MESSAGE =
@@ -51,6 +51,8 @@ describe('ForgotPasswordPage (BL-05)', () => {
     await userEvent.click(screen.getByRole('button', { name: /enviar link de recuperação/i }));
 
     expect(await screen.findByText(GENERIC_MESSAGE)).toBeInTheDocument();
-    expect(screen.queryByText(/não encontrado|não cadastrado|inexistente/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/não encontrado|não cadastrado|inexistente/i),
+    ).not.toBeInTheDocument();
   });
 });

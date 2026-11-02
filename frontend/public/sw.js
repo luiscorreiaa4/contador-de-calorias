@@ -1,30 +1,25 @@
 const CACHE_VERSION = 'v2';
 const CACHE_NAME = `caloriesync-cache-${CACHE_VERSION}`;
-const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.webmanifest',
-  '/favicon.svg',
-];
+const STATIC_ASSETS = ['/', '/index.html', '/manifest.webmanifest', '/favicon.svg'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) =>
       cache.addAll(STATIC_ASSETS).catch((err) => {
         console.warn('Falha parcial ao pré-armazenar assets no Service Worker:', err);
-      })
-    )
+      }),
+    ),
   );
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
-      )
-    )
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))),
+      ),
   );
   self.clients.claim();
 });
@@ -42,22 +37,29 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  const isNavigation = event.request.mode === 'navigate' || event.request.destination === 'document';
+  const isNavigation =
+    event.request.mode === 'navigate' || event.request.destination === 'document';
 
   // Network-First para documentos e rotas de navegação (A-101): previne que o app shell fique preso no cache
   if (isNavigation) {
     event.respondWith(
       fetch(event.request)
         .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          if (
+            networkResponse &&
+            networkResponse.status === 200 &&
+            networkResponse.type === 'basic'
+          ) {
             const clone = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
           }
           return networkResponse;
         })
         .catch(() =>
-          caches.match(event.request).then((cached) => cached || caches.match('/') || caches.match('/index.html'))
-        )
+          caches
+            .match(event.request)
+            .then((cached) => cached || caches.match('/') || caches.match('/index.html')),
+        ),
     );
     return;
   }
@@ -67,7 +69,11 @@ self.addEventListener('fetch', (event) => {
     caches.match(event.request).then((cached) => {
       const fetchPromise = fetch(event.request)
         .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          if (
+            networkResponse &&
+            networkResponse.status === 200 &&
+            networkResponse.type === 'basic'
+          ) {
             const clone = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
           }
@@ -76,7 +82,7 @@ self.addEventListener('fetch', (event) => {
         .catch(() => cached);
 
       return cached || fetchPromise;
-    })
+    }),
   );
 });
 
@@ -126,6 +132,6 @@ self.addEventListener('notificationclick', (event) => {
       if (clients.openWindow) {
         return clients.openWindow(targetUrl);
       }
-    })
+    }),
   );
 });

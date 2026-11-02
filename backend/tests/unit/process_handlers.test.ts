@@ -52,4 +52,3 @@ describe('Process Handlers Hardening (#17)', () => {
     assert.strictEqual(invokedSignal, 'unhandledRejection');
   });
 });
-

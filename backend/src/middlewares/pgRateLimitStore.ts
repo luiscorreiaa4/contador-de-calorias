@@ -26,13 +26,15 @@ export class PgRateLimitStore implements Store {
                          THEN CURRENT_TIMESTAMP + make_interval(secs => $2)
                          ELSE rate_limits.reset_at END
        RETURNING hits, reset_at`,
-      [this.k(key), this.windowMs / 1000]
+      [this.k(key), this.windowMs / 1000],
     );
     return { totalHits: rows[0].hits, resetTime: rows[0].reset_at };
   }
 
   async decrement(key: string): Promise<void> {
-    await pool.query('UPDATE rate_limits SET hits = GREATEST(hits - 1, 0) WHERE key = $1', [this.k(key)]);
+    await pool.query('UPDATE rate_limits SET hits = GREATEST(hits - 1, 0) WHERE key = $1', [
+      this.k(key),
+    ]);
   }
 
   async resetKey(key: string): Promise<void> {

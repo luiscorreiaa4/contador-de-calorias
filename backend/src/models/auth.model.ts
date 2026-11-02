@@ -30,12 +30,15 @@ export interface PasswordResetRow {
 /**
  * Invalida todos os códigos ainda ativos do usuário (novo código torna os anteriores inúteis).
  */
-export async function invalidateVerificationCodes(userId: string, client?: PoolClient): Promise<void> {
+export async function invalidateVerificationCodes(
+  userId: string,
+  client?: PoolClient,
+): Promise<void> {
   await db(client).query(
     `UPDATE email_verification_codes
         SET consumed_at = CURRENT_TIMESTAMP
       WHERE user_id = $1 AND consumed_at IS NULL`,
-    [userId]
+    [userId],
   );
 }
 
@@ -43,13 +46,13 @@ export async function insertVerificationCode(
   userId: string,
   codeHash: string,
   expiresAt: Date,
-  client?: PoolClient
+  client?: PoolClient,
 ): Promise<VerificationCodeRow> {
   const result = await db(client).query<VerificationCodeRow>(
     `INSERT INTO email_verification_codes (user_id, code_hash, expires_at)
      VALUES ($1, $2, $3)
      RETURNING id, user_id, code_hash, expires_at, attempts, created_at, consumed_at`,
-    [userId, codeHash, expiresAt]
+    [userId, codeHash, expiresAt],
   );
   return result.rows[0];
 }
@@ -57,7 +60,7 @@ export async function insertVerificationCode(
 /** Código ativo mais recente, com lock para validação transacional. */
 export async function findActiveVerificationCodeForUpdate(
   userId: string,
-  client: PoolClient
+  client: PoolClient,
 ): Promise<VerificationCodeRow | null> {
   const result = await client.query<VerificationCodeRow>(
     `SELECT id, user_id, code_hash, expires_at, attempts, created_at, consumed_at
@@ -66,14 +69,14 @@ export async function findActiveVerificationCodeForUpdate(
       ORDER BY created_at DESC
       LIMIT 1
       FOR UPDATE`,
-    [userId]
+    [userId],
   );
   return result.rows[0] ?? null;
 }
 
 export async function incrementVerificationAttempts(
   codeId: string,
-  client: PoolClient
+  client: PoolClient,
 ): Promise<number> {
   const result = await client.query<{ attempts: number }>(
     `UPDATE email_verification_codes
@@ -81,7 +84,7 @@ export async function incrementVerificationAttempts(
             consumed_at = CASE WHEN attempts + 1 >= $2 THEN CURRENT_TIMESTAMP ELSE consumed_at END
       WHERE id = $1
       RETURNING attempts`,
-    [codeId, MAX_VERIFICATION_ATTEMPTS]
+    [codeId, MAX_VERIFICATION_ATTEMPTS],
   );
   return Number(result.rows[0]?.attempts ?? 0);
 }
@@ -91,18 +94,20 @@ export async function consumeVerificationCode(codeId: string, client: PoolClient
     `UPDATE email_verification_codes
         SET consumed_at = CURRENT_TIMESTAMP
       WHERE id = $1 AND consumed_at IS NULL`,
-    [codeId]
+    [codeId],
   );
 }
 
-export async function findLatestVerificationCode(userId: string): Promise<VerificationCodeRow | null> {
+export async function findLatestVerificationCode(
+  userId: string,
+): Promise<VerificationCodeRow | null> {
   const result = await pool.query<VerificationCodeRow>(
     `SELECT id, user_id, code_hash, expires_at, attempts, created_at, consumed_at
        FROM email_verification_codes
       WHERE user_id = $1
       ORDER BY created_at DESC
       LIMIT 1`,
-    [userId]
+    [userId],
   );
   return result.rows[0] ?? null;
 }
@@ -112,17 +117,20 @@ export async function countVerificationCodesSince(userId: string, since: Date): 
     `SELECT COUNT(*)::text AS count
        FROM email_verification_codes
       WHERE user_id = $1 AND created_at >= $2`,
-    [userId, since]
+    [userId, since],
   );
   return Number(result.rows[0]?.count ?? 0);
 }
 
-export async function invalidatePasswordResetTokens(userId: string, client?: PoolClient): Promise<void> {
+export async function invalidatePasswordResetTokens(
+  userId: string,
+  client?: PoolClient,
+): Promise<void> {
   await db(client).query(
     `UPDATE password_reset_tokens
         SET used_at = CURRENT_TIMESTAMP
       WHERE user_id = $1 AND used_at IS NULL`,
-    [userId]
+    [userId],
   );
 }
 
@@ -130,13 +138,13 @@ export async function insertPasswordResetToken(
   userId: string,
   tokenHash: string,
   expiresAt: Date,
-  client?: PoolClient
+  client?: PoolClient,
 ): Promise<PasswordResetRow> {
   const result = await db(client).query<PasswordResetRow>(
     `INSERT INTO password_reset_tokens (user_id, token_hash, expires_at)
      VALUES ($1, $2, $3)
      RETURNING id, user_id, token_hash, expires_at, used_at, created_at`,
-    [userId, tokenHash, expiresAt]
+    [userId, tokenHash, expiresAt],
   );
   return result.rows[0];
 }
@@ -146,7 +154,7 @@ export async function countPasswordResetTokensSince(userId: string, since: Date)
     `SELECT COUNT(*)::text AS count
        FROM password_reset_tokens
       WHERE user_id = $1 AND created_at >= $2`,
-    [userId, since]
+    [userId, since],
   );
   return Number(result.rows[0]?.count ?? 0);
 }
@@ -154,7 +162,7 @@ export async function countPasswordResetTokensSince(userId: string, since: Date)
 /** Token de reset válido (não usado e não expirado), com lock transacional. */
 export async function findActivePasswordResetTokenForUpdate(
   tokenHash: string,
-  client: PoolClient
+  client: PoolClient,
 ): Promise<PasswordResetRow | null> {
   const result = await client.query<PasswordResetRow>(
     `SELECT id, user_id, token_hash, expires_at, used_at, created_at
@@ -162,17 +170,20 @@ export async function findActivePasswordResetTokenForUpdate(
       WHERE token_hash = $1 AND used_at IS NULL AND expires_at > CURRENT_TIMESTAMP
       LIMIT 1
       FOR UPDATE`,
-    [tokenHash]
+    [tokenHash],
   );
   return result.rows[0] ?? null;
 }
 
-export async function consumePasswordResetToken(tokenId: string, client: PoolClient): Promise<void> {
+export async function consumePasswordResetToken(
+  tokenId: string,
+  client: PoolClient,
+): Promise<void> {
   await client.query(
     `UPDATE password_reset_tokens
         SET used_at = CURRENT_TIMESTAMP
       WHERE id = $1 AND used_at IS NULL`,
-    [tokenId]
+    [tokenId],
   );
 }
 
@@ -182,7 +193,7 @@ export async function markEmailVerified(userId: string, client?: PoolClient): Pr
         SET email_verified_at = COALESCE(email_verified_at, CURRENT_TIMESTAMP),
             updated_at = CURRENT_TIMESTAMP
       WHERE id = $1`,
-    [userId]
+    [userId],
   );
 }
 
@@ -192,7 +203,7 @@ export async function markEmailVerified(userId: string, client?: PoolClient): Pr
 export async function updatePasswordAndIncrementTokenVersion(
   userId: string,
   passwordHash: string,
-  client: PoolClient
+  client: PoolClient,
 ): Promise<number> {
   const result = await client.query<{ token_version: number }>(
     `UPDATE users
@@ -203,7 +214,7 @@ export async function updatePasswordAndIncrementTokenVersion(
             updated_at = CURRENT_TIMESTAMP
       WHERE id = $1
       RETURNING token_version`,
-    [userId, passwordHash]
+    [userId, passwordHash],
   );
   return Number(result.rows[0]?.token_version ?? 0);
 }
@@ -215,7 +226,7 @@ export async function incrementTokenVersion(userId: string, client: PoolClient):
             updated_at = CURRENT_TIMESTAMP
       WHERE id = $1
       RETURNING token_version`,
-    [userId]
+    [userId],
   );
   return Number(result.rows[0]?.token_version ?? 0);
 }
@@ -227,9 +238,13 @@ export interface UserAuthContext {
 }
 
 export async function getUserAuthContext(userId: string): Promise<UserAuthContext | null> {
-  const result = await pool.query<{ token_version: number; role: 'user' | 'admin'; mfa_enabled: boolean }>(
+  const result = await pool.query<{
+    token_version: number;
+    role: 'user' | 'admin';
+    mfa_enabled: boolean;
+  }>(
     'SELECT token_version, role, (mfa_enabled_at IS NOT NULL) AS mfa_enabled FROM users WHERE id = $1',
-    [userId]
+    [userId],
   );
   if (!result.rows[0]) return null;
   return {
@@ -248,7 +263,7 @@ export async function getTokenVersion(userId: string): Promise<number | null> {
 export async function recordFailedLogin(
   userId: string,
   maxAttempts: number,
-  lockMinutes: number
+  lockMinutes: number,
 ): Promise<void> {
   await pool.query(
     `UPDATE users
@@ -257,7 +272,7 @@ export async function recordFailedLogin(
                                 THEN CURRENT_TIMESTAMP + make_interval(mins => $3)
                                 ELSE locked_until END
       WHERE id = $1`,
-    [userId, maxAttempts, lockMinutes]
+    [userId, maxAttempts, lockMinutes],
   );
 }
 
@@ -265,7 +280,7 @@ export async function resetFailedLogins(userId: string): Promise<void> {
   await pool.query(
     `UPDATE users SET failed_login_attempts = 0, locked_until = NULL
       WHERE id = $1 AND (failed_login_attempts > 0 OR locked_until IS NOT NULL)`,
-    [userId]
+    [userId],
   );
 }
 
@@ -277,7 +292,7 @@ export interface MfaState {
 export async function getMfaState(userId: string): Promise<MfaState | null> {
   const result = await pool.query<MfaState>(
     'SELECT mfa_secret_enc, mfa_enabled_at FROM users WHERE id = $1',
-    [userId]
+    [userId],
   );
   return result.rows[0] ?? null;
 }
@@ -286,7 +301,7 @@ export async function getMfaState(userId: string): Promise<MfaState | null> {
 export async function savePendingMfaSecret(userId: string, secretEnc: string): Promise<boolean> {
   const result = await pool.query(
     `UPDATE users SET mfa_secret_enc = $2 WHERE id = $1 AND mfa_enabled_at IS NULL`,
-    [userId, secretEnc]
+    [userId, secretEnc],
   );
   return (result.rowCount ?? 0) > 0;
 }
@@ -294,14 +309,14 @@ export async function savePendingMfaSecret(userId: string, secretEnc: string): P
 export async function enableMfa(userId: string, recoveryHashes: string[]): Promise<void> {
   await pool.query(
     `UPDATE users SET mfa_enabled_at = CURRENT_TIMESTAMP, mfa_recovery_hashes = $2 WHERE id = $1`,
-    [userId, recoveryHashes]
+    [userId, recoveryHashes],
   );
 }
 
 export async function disableMfa(userId: string): Promise<void> {
   await pool.query(
     `UPDATE users SET mfa_secret_enc = NULL, mfa_enabled_at = NULL, mfa_recovery_hashes = '{}' WHERE id = $1`,
-    [userId]
+    [userId],
   );
 }
 
@@ -310,7 +325,7 @@ export async function consumeRecoveryCode(userId: string, hash: string): Promise
   const result = await pool.query(
     `UPDATE users SET mfa_recovery_hashes = array_remove(mfa_recovery_hashes, $2)
       WHERE id = $1 AND $2 = ANY(mfa_recovery_hashes)`,
-    [userId, hash]
+    [userId, hash],
   );
   return (result.rowCount ?? 0) > 0;
 }

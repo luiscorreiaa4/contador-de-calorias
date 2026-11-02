@@ -23,7 +23,9 @@ function parseLogLines(lines: string[]): StructuredLogLine[] {
         return null;
       }
     })
-    .filter((value): value is StructuredLogLine => value !== null && typeof value.requestId === 'string');
+    .filter(
+      (value): value is StructuredLogLine => value !== null && typeof value.requestId === 'string',
+    );
 }
 
 describe('Logging HTTP estruturado (BL-08 / ARCH-020)', () => {

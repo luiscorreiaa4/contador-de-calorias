@@ -55,7 +55,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
       if (e.key === 'Tab' && dialogRef.current) {
         const focusableElements = dialogRef.current.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
         );
         if (focusableElements.length === 0) return;
         const first = focusableElements[0];
@@ -119,10 +119,16 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
               <AlertTriangle className="w-6 h-6" aria-hidden="true" />
             </div>
             <div>
-              <h2 id={titleId} className="text-lg font-heading font-black text-foreground uppercase tracking-tight mb-1">
+              <h2
+                id={titleId}
+                className="text-lg font-heading font-black text-foreground uppercase tracking-tight mb-1"
+              >
                 {title}
               </h2>
-              <div id={descId} className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-relaxed">
+              <div
+                id={descId}
+                className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-relaxed"
+              >
                 {description}
               </div>
             </div>

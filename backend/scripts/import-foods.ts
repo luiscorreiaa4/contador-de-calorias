@@ -25,7 +25,7 @@ export interface ImportFoodsResult {
 
 export function formatFoodName(name: string): string {
   let clean = name;
-  
+
   // Casos específicos chatos da TACO
   clean = clean.replace(/^Carne, bovina, /i, 'Corte Bovino: ');
   clean = clean.replace(/^Frango, /i, 'Frango: ');
@@ -35,7 +35,7 @@ export function formatFoodName(name: string): string {
 
   // Remove todas as vírgulas restantes e troca por espaço
   clean = clean.replace(/,/g, '');
-  
+
   // Remove espaços duplos
   clean = clean.replace(/\s+/g, ' ').trim();
 
@@ -47,17 +47,20 @@ export function formatFoodName(name: string): string {
   // Capitaliza a primeira letra de cada palavra (Title Case)
   // Ignorando preposições comuns para ficar mais bonito
   const prepositions = ['de', 'da', 'do', 'das', 'dos', 'com', 'sem'];
-  return clean.split(' ').map((word, index) => {
-    if (index > 0 && prepositions.includes(word.toLowerCase())) {
-      return word.toLowerCase();
-    }
-    return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase();
-  }).join(' ');
+  return clean
+    .split(' ')
+    .map((word, index) => {
+      if (index > 0 && prepositions.includes(word.toLowerCase())) {
+        return word.toLowerCase();
+      }
+      return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase();
+    })
+    .join(' ');
 }
 
 export async function importFoodsFromJson(
   filePathOrFoods: string | RawFood[],
-  options?: { isDryRun?: boolean; client?: PoolClient }
+  options?: { isDryRun?: boolean; client?: PoolClient },
 ): Promise<ImportFoodsResult> {
   const isDryRun = Boolean(options?.isDryRun);
   let foods: RawFood[];
@@ -104,7 +107,7 @@ export async function importFoodsFromJson(
            AND admin_edited_at IS NULL
            AND f_unaccent(lower(name)) = f_unaccent(lower($1))
            AND NOT (source = $2 AND external_id = $3)`,
-        [formattedName, food.source, food.external_id]
+        [formattedName, food.source, food.external_id],
       );
 
       // Upsert logic respeitando B10:
@@ -133,12 +136,19 @@ export async function importFoodsFromJson(
         WHERE foods.admin_edited_at IS NULL
         RETURNING (xmax = 0) AS is_inserted;
       `;
-      
+
       const values = [
-        formattedName, food.calories, food.proteins, food.carbs, food.fats,
-        food.base_unit || 'g', food.serving_weight || 100,
-        food.unit_name || null, food.unit_weight || null,
-        food.source, food.external_id
+        formattedName,
+        food.calories,
+        food.proteins,
+        food.carbs,
+        food.fats,
+        food.base_unit || 'g',
+        food.serving_weight || 100,
+        food.unit_name || null,
+        food.unit_weight || null,
+        food.source,
+        food.external_id,
       ];
 
       const res = await client.query<{ is_inserted: boolean }>(query, values);
@@ -177,8 +187,8 @@ export async function importFoodsFromJson(
 async function runCli() {
   const args = process.argv.slice(2);
   const isDryRun = args.includes('--dry-run');
-  const filePathIndex = args.findIndex(a => !a.startsWith('--'));
-  
+  const filePathIndex = args.findIndex((a) => !a.startsWith('--'));
+
   if (filePathIndex === -1) {
     console.error('Uso: npx tsx scripts/import-foods.ts [--dry-run] <caminho-para-json>');
     process.exit(1);

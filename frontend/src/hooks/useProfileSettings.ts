@@ -18,7 +18,13 @@ export function useProfileUpdate() {
     onSuccess: (profile) => {
       updateUserSession(profile);
       queryClient.setQueryData(['currentUserProfile'], profile);
-      for (const key of ['currentUserProfile', 'active-goal', 'preview-goal', 'mealStats', 'todayMeals']) {
+      for (const key of [
+        'currentUserProfile',
+        'active-goal',
+        'preview-goal',
+        'mealStats',
+        'todayMeals',
+      ]) {
         void queryClient.invalidateQueries({ queryKey: [key] });
       }
     },

@@ -15,7 +15,7 @@ describe('NotificationsPage Component (BL-27 / FEAT-C09)', () => {
         name: 'Test User',
         email: 'test@example.com',
         onboarding_completed: true,
-      })
+      }),
     );
   });
 
@@ -33,7 +33,7 @@ describe('NotificationsPage Component (BL-27 / FEAT-C09)', () => {
     render(
       <MemoryRouter>
         <NotificationsPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     expect(screen.getByRole('heading', { name: /^notificações$/i })).toBeInTheDocument();
@@ -75,7 +75,7 @@ describe('NotificationsPage Component (BL-27 / FEAT-C09)', () => {
     render(
       <MemoryRouter>
         <NotificationsPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     const testBtn = await screen.findByRole('button', { name: /enviar lembrete de teste/i });

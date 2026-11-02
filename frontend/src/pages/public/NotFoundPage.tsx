@@ -12,9 +12,7 @@ export const NotFoundPage: React.FC = () => {
         </div>
 
         <div className="space-y-2">
-          <p className="text-6xl font-heading font-black tracking-tighter text-primary-ink">
-            404
-          </p>
+          <p className="text-6xl font-heading font-black tracking-tighter text-primary-ink">404</p>
           <h1 className="text-2xl sm:text-3xl font-heading font-black tracking-tight text-foreground uppercase">
             Página Não Encontrada
           </h1>
@@ -35,4 +33,3 @@ export const NotFoundPage: React.FC = () => {
     </div>
   );
 };
-

@@ -15,8 +15,7 @@ export const AuthCard: React.FC<AuthCardProps> = ({ initialMode }) => {
   const location = useLocation();
 
   const defaultMode: AuthMode =
-    initialMode ||
-    (location.pathname === '/cadastro' ? 'register' : 'login');
+    initialMode || (location.pathname === '/cadastro' ? 'register' : 'login');
 
   const [mode, setMode] = useState<AuthMode>(defaultMode);
   const [isSuccessMessage, setIsSuccessMessage] = useState<string | null>(null);

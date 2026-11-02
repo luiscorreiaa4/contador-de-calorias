@@ -7,7 +7,11 @@ import { DiaryPage } from '../DiaryPage';
 import { NewMealModalProvider } from '../../../context/NewMealModalProvider';
 import { server } from '../../../mocks/server';
 import { http, HttpResponse } from 'msw';
-import { getLocalDateString, addDaysToDateString, parseLocalDateOrToday } from '../../../utils/date';
+import {
+  getLocalDateString,
+  addDaysToDateString,
+  parseLocalDateOrToday,
+} from '../../../utils/date';
 
 const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
@@ -29,7 +33,7 @@ function renderDiary(initialPath = '/') {
           <Route path="/diario/:date" element={<DiaryPage />} />
         </Routes>
       </NewMealModalProvider>
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 }
 
@@ -81,7 +85,7 @@ describe('DiaryPage Async States (PC-27)', () => {
     server.use(
       http.get(`${baseURL}/meals/today`, () => {
         return HttpResponse.json({ success: false, message: 'Erro no servidor' }, { status: 500 });
-      })
+      }),
     );
 
     renderDiary();
@@ -123,7 +127,7 @@ describe('DiaryPage Async States (PC-27)', () => {
             },
           ],
         });
-      })
+      }),
     );
 
     renderDiary();
@@ -153,7 +157,7 @@ describe('DiaryPage — navegação de datas (BL-02)', () => {
         const date = url.searchParams.get('date');
         if (date) requestedDates.push(date);
         return HttpResponse.json({ success: true, data: [] });
-      })
+      }),
     );
 
     renderDiary();
@@ -214,7 +218,7 @@ describe('DiaryPage — Copiar Refeição (BL-18 / FEAT-C03 / D-20)', () => {
             },
           ],
         });
-      })
+      }),
     );
 
     renderDiary();
@@ -280,7 +284,7 @@ describe('DiaryPage — Copiar Refeição (BL-18 / FEAT-C03 / D-20)', () => {
             total_proteins: 28,
           },
         });
-      })
+      }),
     );
 
     renderDiary();

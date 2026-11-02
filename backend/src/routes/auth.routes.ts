@@ -83,12 +83,47 @@ const resetPasswordLimiter = createAuthRateLimiter({
   message: 'Muitas tentativas de redefinição. Tente novamente após 1 hora.',
 });
 
-router.post('/register', registerLimiter, validate(registerUserSchema), captcha, AuthController.register);
-router.post('/login', loginIpLimiter, loginEmailLimiter, loginCredentialLimiter, validate(loginUserSchema), captcha, AuthController.login);
-router.post('/verify-email', verifyEmailLimiter, validate(verifyEmailSchema), AuthController.verifyEmail);
+router.post(
+  '/register',
+  registerLimiter,
+  validate(registerUserSchema),
+  captcha,
+  AuthController.register,
+);
+router.post(
+  '/login',
+  loginIpLimiter,
+  loginEmailLimiter,
+  loginCredentialLimiter,
+  validate(loginUserSchema),
+  captcha,
+  AuthController.login,
+);
+router.post(
+  '/verify-email',
+  verifyEmailLimiter,
+  validate(verifyEmailSchema),
+  AuthController.verifyEmail,
+);
 router.post('/logout', AuthController.logout);
-router.post('/resend-code', resendCodeLimiter, validate(resendVerificationCodeSchema), AuthController.resendCode);
-router.post('/forgot-password', forgotPasswordLimiter, validate(forgotPasswordSchema), captcha, AuthController.forgotPassword);
-router.post('/reset-password', resetPasswordLimiter, validate(resetPasswordSchema), AuthController.resetPassword);
+router.post(
+  '/resend-code',
+  resendCodeLimiter,
+  validate(resendVerificationCodeSchema),
+  AuthController.resendCode,
+);
+router.post(
+  '/forgot-password',
+  forgotPasswordLimiter,
+  validate(forgotPasswordSchema),
+  captcha,
+  AuthController.forgotPassword,
+);
+router.post(
+  '/reset-password',
+  resetPasswordLimiter,
+  validate(resetPasswordSchema),
+  AuthController.resetPassword,
+);
 
 export default router;

@@ -9,7 +9,7 @@ describe('Páginas legais públicas (BL-11 / SEC-020)', () => {
     render(
       <MemoryRouter>
         <TermsPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     expect(screen.getByRole('heading', { level: 1, name: /termos de uso/i })).toBeInTheDocument();
@@ -20,11 +20,11 @@ describe('Páginas legais públicas (BL-11 / SEC-020)', () => {
     render(
       <MemoryRouter>
         <PrivacyPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     expect(
-      screen.getByRole('heading', { level: 1, name: /política de privacidade/i })
+      screen.getByRole('heading', { level: 1, name: /política de privacidade/i }),
     ).toBeInTheDocument();
     expect(screen.getByText(/lgpd, art\. 18/i)).toBeInTheDocument();
   });
@@ -33,7 +33,7 @@ describe('Páginas legais públicas (BL-11 / SEC-020)', () => {
     render(
       <MemoryRouter>
         <SecurityPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     expect(screen.getByRole('heading', { level: 1, name: /segurança/i })).toBeInTheDocument();

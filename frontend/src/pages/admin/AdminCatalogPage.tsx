@@ -55,7 +55,16 @@ export const AdminCatalogPage: React.FC = () => {
 
   // Atualizador canônico de parâmetros na URL
   const updateParams = useCallback(
-    (newParams: Partial<{ page: number; pageSize: number; q: string; status: string; sort: string; order: string }>) => {
+    (
+      newParams: Partial<{
+        page: number;
+        pageSize: number;
+        q: string;
+        status: string;
+        sort: string;
+        order: string;
+      }>,
+    ) => {
       setSearchParams((prev) => {
         const next = new URLSearchParams(prev);
 
@@ -81,7 +90,7 @@ export const AdminCatalogPage: React.FC = () => {
         return next;
       });
     },
-    [setSearchParams]
+    [setSearchParams],
   );
 
   const handleSearchChange = (value: string) => {
@@ -145,14 +154,7 @@ export const AdminCatalogPage: React.FC = () => {
   const [apiError, setApiError] = useState<string | null>(null);
 
   // Busca TanStack Query com keepPreviousData
-  const {
-    data,
-    isLoading,
-    isError,
-    error,
-    isPlaceholderData,
-    isFetching,
-  } = useQuery({
+  const { data, isLoading, isError, error, isPlaceholderData, isFetching } = useQuery({
     queryKey: ['adminFoods', { page, pageSize, q, status, sort, order }],
     queryFn: () => listAdminFoods({ page, pageSize, q, status, sort, order }),
     staleTime: 1000 * 60 * 2,
@@ -197,7 +199,7 @@ export const AdminCatalogPage: React.FC = () => {
       setFeedbackMessage(
         editingFood
           ? 'Alimento atualizado com sucesso no catálogo global!'
-          : 'Novo alimento cadastrado com sucesso no catálogo global!'
+          : 'Novo alimento cadastrado com sucesso no catálogo global!',
       );
       if (res.warnings && res.warnings.length > 0) {
         setApiWarnings(res.warnings);
@@ -220,7 +222,7 @@ export const AdminCatalogPage: React.FC = () => {
       setFeedbackMessage(
         updatedFood.active
           ? `Alimento "${updatedFood.name}" reativado no catálogo.`
-          : `Alimento "${updatedFood.name}" desativado do catálogo global (B4).`
+          : `Alimento "${updatedFood.name}" desativado do catálogo global (B4).`,
       );
       setApiWarnings([]);
     },
@@ -245,7 +247,7 @@ export const AdminCatalogPage: React.FC = () => {
   const renderSortHeader = (
     label: string,
     column: 'nome' | 'kcal' | 'status',
-    align: 'left' | 'right' | 'center' = 'left'
+    align: 'left' | 'right' | 'center' = 'left',
   ) => {
     const isActive = sort === column;
     const nextOrderLabel = isActive && order === 'asc' ? 'decrescente' : 'crescente';
@@ -254,15 +256,17 @@ export const AdminCatalogPage: React.FC = () => {
       <th
         scope="col"
         aria-sort={isActive ? (order === 'asc' ? 'ascending' : 'descending') : 'none'}
-        className={`p-4 ${align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : 'text-left'
-          }`}
+        className={`p-4 ${
+          align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : 'text-left'
+        }`}
       >
         <button
           type="button"
           onClick={() => handleSort(column)}
           aria-label={`Ordenar por ${label} em ordem ${nextOrderLabel}`}
-          className={`inline-flex items-center gap-1.5 uppercase font-black text-[11px] tracking-wider transition-colors hover:text-primary-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${isActive ? 'text-foreground' : 'text-muted-foreground'
-            }`}
+          className={`inline-flex items-center gap-1.5 uppercase font-black text-[11px] tracking-wider transition-colors hover:text-primary-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+            isActive ? 'text-foreground' : 'text-muted-foreground'
+          }`}
         >
           <span>{label}</span>
           {isActive ? (
@@ -272,14 +276,19 @@ export const AdminCatalogPage: React.FC = () => {
               <ArrowDown className="w-3.5 h-3.5 text-primary-ink shrink-0" aria-hidden="true" />
             )
           ) : (
-            <ArrowUpDown className="w-3.5 h-3.5 opacity-40 hover:opacity-100 shrink-0" aria-hidden="true" />
+            <ArrowUpDown
+              className="w-3.5 h-3.5 opacity-40 hover:opacity-100 shrink-0"
+              aria-hidden="true"
+            />
           )}
         </button>
       </th>
     );
   };
 
-  const hasActiveFilters = Boolean(q || status !== 'all' || sort !== 'nome' || order !== 'asc' || page > 1);
+  const hasActiveFilters = Boolean(
+    q || status !== 'all' || sort !== 'nome' || order !== 'asc' || page > 1,
+  );
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
@@ -414,10 +423,11 @@ export const AdminCatalogPage: React.FC = () => {
                 key={tab.id}
                 type="button"
                 onClick={() => updateParams({ status: tab.id })}
-                className={`px-3 py-1.5 text-xs font-black uppercase tracking-wider transition-colors min-h-[40px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${status === tab.id
+                className={`px-3 py-1.5 text-xs font-black uppercase tracking-wider transition-colors min-h-[40px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                  status === tab.id
                     ? 'bg-primary text-primary-foreground border-2 border-edge shadow-hard-fill'
                     : 'text-muted-foreground hover:text-foreground'
-                  }`}
+                }`}
               >
                 {tab.label}
               </button>
@@ -438,7 +448,8 @@ export const AdminCatalogPage: React.FC = () => {
                 <strong className="text-foreground">
                   {formatNumberPtBr(Math.min(meta.total, page * pageSize))}
                 </strong>{' '}
-                de <strong className="text-foreground">{formatNumberPtBr(meta.total)}</strong> alimentos
+                de <strong className="text-foreground">{formatNumberPtBr(meta.total)}</strong>{' '}
+                alimentos
               </span>
             )}
             {isFetching && (
@@ -474,7 +485,10 @@ export const AdminCatalogPage: React.FC = () => {
             </div>
             <div className="space-y-3">
               {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="h-12 bg-secondary/60 animate-pulse border-2 border-border" />
+                <div
+                  key={i}
+                  className="h-12 bg-secondary/60 animate-pulse border-2 border-border"
+                />
               ))}
             </div>
           </div>
@@ -495,7 +509,9 @@ export const AdminCatalogPage: React.FC = () => {
           /* Estado Vazio */
           <div className="p-12 text-center space-y-3">
             <p className="font-black text-sm uppercase tracking-widest text-foreground">
-              {q ? `NENHUM ALIMENTO ENCONTRADO PARA "${q}"` : 'NENHUM ALIMENTO ENCONTRADO NO CATÁLOGO'}
+              {q
+                ? `NENHUM ALIMENTO ENCONTRADO PARA "${q}"`
+                : 'NENHUM ALIMENTO ENCONTRADO NO CATÁLOGO'}
             </p>
             <p className="text-xs text-muted-foreground">
               Ajuste o termo de busca, limpe os filtros de status ou altere a página.
@@ -537,8 +553,9 @@ export const AdminCatalogPage: React.FC = () => {
                   {foods.map((food) => (
                     <tr
                       key={food.id}
-                      className={`hover:bg-secondary/40 transition-colors ${!food.active ? 'opacity-65 bg-secondary/15' : ''
-                        }`}
+                      className={`hover:bg-secondary/40 transition-colors ${
+                        !food.active ? 'opacity-65 bg-secondary/15' : ''
+                      }`}
                     >
                       <td className="p-4 font-bold text-foreground">
                         <div className="truncate max-w-[240px] uppercase">{food.name}</div>
@@ -566,10 +583,11 @@ export const AdminCatalogPage: React.FC = () => {
                       </td>
                       <td className="p-4 text-center">
                         <span
-                          className={`inline-flex items-center px-2 py-0.5 text-[10px] font-black uppercase tracking-widest border-2 ${food.active
+                          className={`inline-flex items-center px-2 py-0.5 text-[10px] font-black uppercase tracking-widest border-2 ${
+                            food.active
                               ? 'bg-primary text-primary-foreground border-edge'
                               : 'bg-secondary text-muted-foreground border-border'
-                            }`}
+                          }`}
                         >
                           {food.active ? 'ATIVO' : 'INATIVO'}
                         </span>
@@ -587,11 +605,14 @@ export const AdminCatalogPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => setFoodToToggleStatus(food)}
-                            aria-label={food.active ? `Desativar ${food.name}` : `Reativar ${food.name}`}
-                            className={`p-2 border-2 transition-colors focus-visible:outline-none focus-visible:ring-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center shadow-hard ${food.active
+                            aria-label={
+                              food.active ? `Desativar ${food.name}` : `Reativar ${food.name}`
+                            }
+                            className={`p-2 border-2 transition-colors focus-visible:outline-none focus-visible:ring-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center shadow-hard ${
+                              food.active
                                 ? 'border-border bg-background text-destructive hover:bg-destructive hover:text-destructive-foreground focus-visible:ring-destructive'
                                 : 'border-border bg-background text-foreground hover:bg-secondary focus-visible:ring-ring'
-                              }`}
+                            }`}
                           >
                             {food.active ? (
                               <Power className="w-4 h-4" />
@@ -612,8 +633,7 @@ export const AdminCatalogPage: React.FC = () => {
               {foods.map((food) => (
                 <div
                   key={food.id}
-                  className={`p-4 space-y-3 ${!food.active ? 'opacity-70 bg-secondary/20' : ''
-                    }`}
+                  className={`p-4 space-y-3 ${!food.active ? 'opacity-70 bg-secondary/20' : ''}`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
@@ -627,10 +647,11 @@ export const AdminCatalogPage: React.FC = () => {
                       )}
                     </div>
                     <span
-                      className={`inline-flex items-center px-2 py-0.5 text-[10px] font-black uppercase tracking-widest border-2 shrink-0 ${food.active
+                      className={`inline-flex items-center px-2 py-0.5 text-[10px] font-black uppercase tracking-widest border-2 shrink-0 ${
+                        food.active
                           ? 'bg-primary text-primary-foreground border-edge'
                           : 'bg-secondary text-muted-foreground border-border'
-                        }`}
+                      }`}
                     >
                       {food.active ? 'ATIVO' : 'INATIVO'}
                     </span>
@@ -643,15 +664,21 @@ export const AdminCatalogPage: React.FC = () => {
                       <span className="font-black text-foreground">{food.calories}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] text-muted-foreground block uppercase">P (g)</span>
+                      <span className="text-[9px] text-muted-foreground block uppercase">
+                        P (g)
+                      </span>
                       <span className="font-bold text-foreground">{food.proteins}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] text-muted-foreground block uppercase">C (g)</span>
+                      <span className="text-[9px] text-muted-foreground block uppercase">
+                        C (g)
+                      </span>
                       <span className="font-bold text-foreground">{food.carbs}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] text-muted-foreground block uppercase">G (g)</span>
+                      <span className="text-[9px] text-muted-foreground block uppercase">
+                        G (g)
+                      </span>
                       <span className="font-bold text-foreground">{food.fats}</span>
                     </div>
                   </div>
@@ -669,10 +696,11 @@ export const AdminCatalogPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setFoodToToggleStatus(food)}
-                      className={`px-4 py-2 border-2 font-black text-xs uppercase tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-2 min-h-[44px] flex items-center gap-1.5 shadow-hard ${food.active
+                      className={`px-4 py-2 border-2 font-black text-xs uppercase tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-2 min-h-[44px] flex items-center gap-1.5 shadow-hard ${
+                        food.active
                           ? 'border-border bg-background text-destructive hover:bg-destructive hover:text-destructive-foreground focus-visible:ring-destructive'
                           : 'border-border bg-background text-foreground hover:bg-secondary focus-visible:ring-ring'
-                        }`}
+                      }`}
                     >
                       {food.active ? (
                         <>
@@ -727,11 +755,14 @@ export const AdminCatalogPage: React.FC = () => {
         description={
           foodToToggleStatus?.active ? (
             <span>
-              O alimento <strong>&quot;{foodToToggleStatus.name}&quot;</strong> deixará de aparecer em novas buscas, mas continuará preservado no histórico de refeições já lançadas (B4, B6).
+              O alimento <strong>&quot;{foodToToggleStatus.name}&quot;</strong> deixará de aparecer
+              em novas buscas, mas continuará preservado no histórico de refeições já lançadas (B4,
+              B6).
             </span>
           ) : (
             <span>
-              O alimento <strong>&quot;{foodToToggleStatus?.name}&quot;</strong> voltará a ficar disponível para inclusão no diário alimentar.
+              O alimento <strong>&quot;{foodToToggleStatus?.name}&quot;</strong> voltará a ficar
+              disponível para inclusão no diário alimentar.
             </span>
           )
         }

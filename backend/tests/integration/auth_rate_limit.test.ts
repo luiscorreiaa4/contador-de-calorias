@@ -19,7 +19,7 @@ describe('Rate limiting de autenticação por IP + e-mail (BL-01 / SEC-006 / A-1
       assert.notStrictEqual(
         res.status,
         429,
-        `Requisição ${i + 1} não deveria ser limitada (e-mails distintos no mesmo IP)`
+        `Requisição ${i + 1} não deveria ser limitada (e-mails distintos no mesmo IP)`,
       );
     }
   });
@@ -28,15 +28,22 @@ describe('Rate limiting de autenticação por IP + e-mail (BL-01 / SEC-006 / A-1
     const email = `tester-ratelimit-bloqueio-${Date.now()}@example.com`;
 
     for (let i = 0; i < 10; i += 1) {
-      const res = await request(app).post('/api/auth/login').send({ email, password: 'senhaInvalida1' });
+      const res = await request(app)
+        .post('/api/auth/login')
+        .send({ email, password: 'senhaInvalida1' });
       assert.notStrictEqual(res.status, 429, `Tentativa ${i + 1} não deveria ser limitada`);
     }
 
-    const blocked = await request(app).post('/api/auth/login').send({ email, password: 'senhaInvalida1' });
+    const blocked = await request(app)
+      .post('/api/auth/login')
+      .send({ email, password: 'senhaInvalida1' });
 
     assert.strictEqual(blocked.status, 429);
     assert.strictEqual(blocked.body.success, false);
-    assert.strictEqual(blocked.body.message, 'Muitas tentativas de login. Tente novamente após 15 minutos.');
+    assert.strictEqual(
+      blocked.body.message,
+      'Muitas tentativas de login. Tente novamente após 15 minutos.',
+    );
   });
 
   it('deve bloquear com 429 por IP ao exceder o teto global de 30 tentativas, mesmo com e-mails distintos (A-117)', async () => {
@@ -54,12 +61,15 @@ describe('Rate limiting de autenticação por IP + e-mail (BL-01 / SEC-006 / A-1
       }
     }
 
-    assert.ok(blockedResponse, 'Deveria ter recebido status 429 ao ultrapassar o teto global por IP');
+    assert.ok(
+      blockedResponse,
+      'Deveria ter recebido status 429 ao ultrapassar o teto global por IP',
+    );
     assert.strictEqual(blockedResponse.status, 429);
     assert.strictEqual(blockedResponse.body.success, false);
     assert.strictEqual(
       blockedResponse.body.message,
-      'Muitas tentativas de login originadas deste IP. Tente novamente após 15 minutos.'
+      'Muitas tentativas de login originadas deste IP. Tente novamente após 15 minutos.',
     );
   });
 
@@ -67,9 +77,7 @@ describe('Rate limiting de autenticação por IP + e-mail (BL-01 / SEC-006 / A-1
     const email = `tester-ratelimit-verify-${Date.now()}@example.com`;
 
     for (let i = 0; i < 10; i += 1) {
-      const res = await request(app)
-        .post('/api/auth/verify-email')
-        .send({ email, code: '123456' });
+      const res = await request(app).post('/api/auth/verify-email').send({ email, code: '123456' });
       assert.strictEqual(res.status, 400, `Tentativa ${i + 1} deveria ser processada`);
     }
 
@@ -79,7 +87,7 @@ describe('Rate limiting de autenticação por IP + e-mail (BL-01 / SEC-006 / A-1
     assert.strictEqual(blocked.status, 429);
     assert.strictEqual(
       blocked.body.message,
-      'Muitas tentativas de verificação. Tente novamente após 15 minutos.'
+      'Muitas tentativas de verificação. Tente novamente após 15 minutos.',
     );
   });
 
@@ -95,8 +103,7 @@ describe('Rate limiting de autenticação por IP + e-mail (BL-01 / SEC-006 / A-1
     assert.strictEqual(blocked.status, 429);
     assert.strictEqual(
       blocked.body.message,
-      'Muitas tentativas de redefinição. Tente novamente após 1 hora.'
+      'Muitas tentativas de redefinição. Tente novamente após 1 hora.',
     );
   });
 });
-

@@ -30,7 +30,7 @@ export async function insertGoal(
   carbs: number,
   fats: number,
   mode: 'auto' | 'manual',
-  client?: PoolClient
+  client?: PoolClient,
 ): Promise<UserGoal> {
   // Fazemos um UPSERT para garantir que haja apenas uma meta por dia.
   // Se já existir, atualiza com os novos valores.
@@ -46,7 +46,7 @@ export async function insertGoal(
         fats = EXCLUDED.fats,
         mode = EXCLUDED.mode
      RETURNING *`,
-    [userId, effectiveFrom, calories, proteins, carbs, fats, mode]
+    [userId, effectiveFrom, calories, proteins, carbs, fats, mode],
   );
   return result.rows[0];
 }
@@ -58,7 +58,7 @@ export async function getActiveGoal(userId: string, date: string): Promise<UserG
      WHERE user_id = $1 AND effective_from <= $2 
      ORDER BY effective_from DESC 
      LIMIT 1`,
-    [userId, date]
+    [userId, date],
   );
   return result.rows[0] ?? null;
 }
@@ -68,14 +68,14 @@ export async function insertBodyMeasurement(
   weight: number,
   bodyFat: number | null,
   measuredAt: Date,
-  client?: PoolClient
+  client?: PoolClient,
 ): Promise<BodyMeasurement> {
   const db = client || pool;
   const result = await db.query<BodyMeasurement>(
     `INSERT INTO body_measurements (user_id, weight, body_fat, measured_at)
      VALUES ($1, $2, $3, $4)
      RETURNING *`,
-    [userId, weight, bodyFat, measuredAt]
+    [userId, weight, bodyFat, measuredAt],
   );
   return result.rows[0];
 }
@@ -84,7 +84,7 @@ export async function insertBodyMeasurement(
 export async function listGoalsByUser(userId: string): Promise<UserGoal[]> {
   const result = await pool.query<UserGoal>(
     `SELECT * FROM user_goals WHERE user_id = $1 ORDER BY effective_from ASC, created_at ASC LIMIT 500`,
-    [userId]
+    [userId],
   );
   return result.rows;
 }
@@ -92,7 +92,7 @@ export async function listGoalsByUser(userId: string): Promise<UserGoal[]> {
 /** Lista todas as medições corporais do usuário em ordem cronológica com limite de segurança (A-034). */
 export async function listBodyMeasurementsByUser(
   userId: string,
-  period: '30d' | '90d' | 'all' = 'all'
+  period: '30d' | '90d' | 'all' = 'all',
 ): Promise<BodyMeasurement[]> {
   let query = `SELECT * FROM body_measurements WHERE user_id = $1`;
   const params: unknown[] = [userId];
@@ -114,7 +114,7 @@ export async function addBodyMeasurement(
   userId: string,
   weight: number,
   bodyFat: number | null,
-  measuredAt?: Date
+  measuredAt?: Date,
 ): Promise<BodyMeasurement> {
   const dateToUse = measuredAt || new Date();
   const client = await pool.connect();
@@ -125,7 +125,7 @@ export async function addBodyMeasurement(
     // A-006: Só atualiza o peso do perfil se esta medição for a mais recente do usuário
     const newerMeasurementCheck = await client.query(
       `SELECT 1 FROM body_measurements WHERE user_id = $1 AND measured_at > $2 LIMIT 1`,
-      [userId, dateToUse]
+      [userId, dateToUse],
     );
 
     if (newerMeasurementCheck.rowCount === 0) {
@@ -135,7 +135,7 @@ export async function addBodyMeasurement(
              body_fat = COALESCE($2, body_fat), 
              updated_at = NOW() 
          WHERE id = $3`,
-        [weight, bodyFat, userId]
+        [weight, bodyFat, userId],
       );
     }
     await client.query('COMMIT');
@@ -151,14 +151,14 @@ export async function addBodyMeasurement(
 /** Exclui uma medição corporal específica do usuário e sincroniza users.weight com a medição mais recente restante em transação atômica. */
 export async function deleteBodyMeasurement(
   userId: string,
-  measurementId: string
+  measurementId: string,
 ): Promise<boolean> {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
     const deleteResult = await client.query(
       `DELETE FROM body_measurements WHERE id = $1 AND user_id = $2 RETURNING id`,
-      [measurementId, userId]
+      [measurementId, userId],
     );
 
     if (!deleteResult.rowCount || deleteResult.rowCount === 0) {
@@ -172,7 +172,7 @@ export async function deleteBodyMeasurement(
        WHERE user_id = $1 
        ORDER BY measured_at DESC, created_at DESC 
        LIMIT 1`,
-      [userId]
+      [userId],
     );
 
     if (latestResult.rowCount && latestResult.rowCount > 0) {
@@ -183,7 +183,7 @@ export async function deleteBodyMeasurement(
              body_fat = $2, 
              updated_at = NOW() 
          WHERE id = $3`,
-        [latest.weight, latest.body_fat, userId]
+        [latest.weight, latest.body_fat, userId],
       );
     }
 
@@ -196,4 +196,3 @@ export async function deleteBodyMeasurement(
     client.release();
   }
 }
-

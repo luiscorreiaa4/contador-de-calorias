@@ -57,7 +57,10 @@ describe('Confirmação de e-mail (BL-12 / D-21)', () => {
       .send({ name: 'Primeiro Nome', email, password: originalPassword, acceptTerms: true });
     assert.strictEqual(firstRes.status, 202);
 
-    const firstUserQuery = await pool.query('SELECT name, password_hash FROM users WHERE email = $1', [email]);
+    const firstUserQuery = await pool.query(
+      'SELECT name, password_hash FROM users WHERE email = $1',
+      [email],
+    );
     const originalHash = firstUserQuery.rows[0].password_hash;
     const originalName = firstUserQuery.rows[0].name;
 
@@ -69,15 +72,22 @@ describe('Confirmação de e-mail (BL-12 / D-21)', () => {
     assert.strictEqual(secondRes.status, 202);
     assert.deepStrictEqual(secondRes.body, firstRes.body);
 
-    const secondUserQuery = await pool.query('SELECT name, password_hash FROM users WHERE email = $1', [email]);
-    assert.strictEqual(secondUserQuery.rows[0].password_hash, originalHash, 'password_hash não deve ser alterado');
+    const secondUserQuery = await pool.query(
+      'SELECT name, password_hash FROM users WHERE email = $1',
+      [email],
+    );
+    assert.strictEqual(
+      secondUserQuery.rows[0].password_hash,
+      originalHash,
+      'password_hash não deve ser alterado',
+    );
     assert.strictEqual(secondUserQuery.rows[0].name, originalName, 'nome não deve ser alterado');
 
     await pool.query(
       `UPDATE email_verification_codes
           SET created_at = CURRENT_TIMESTAMP - INTERVAL '61 seconds'
         WHERE user_id = (SELECT id FROM users WHERE email = $1)`,
-      [email]
+      [email],
     );
     const resend = await request(app).post('/api/auth/resend-code').send({ email });
     assert.strictEqual(resend.status, 202);
@@ -112,7 +122,7 @@ describe('Confirmação de e-mail (BL-12 / D-21)', () => {
           assert.strictEqual(error.statusCode, 400);
           assert.strictEqual(error.code, 'INVALID_VERIFICATION_CODE');
           return true;
-        }
+        },
       );
     }
 
@@ -122,7 +132,7 @@ describe('Confirmação de e-mail (BL-12 / D-21)', () => {
         WHERE user_id = (SELECT id FROM users WHERE email = $1)
         ORDER BY created_at DESC
         LIMIT 1`,
-      [email]
+      [email],
     );
     assert.strictEqual(Number(codeRow.rows[0]?.attempts), 5);
     assert.ok(codeRow.rows[0]?.consumed_at, '5ª falha deve consumir o código');
@@ -133,7 +143,7 @@ describe('Confirmação de e-mail (BL-12 / D-21)', () => {
         assert.strictEqual(error.statusCode, 400);
         assert.strictEqual(error.code, 'INVALID_VERIFICATION_CODE');
         return true;
-      }
+      },
     );
   });
 
@@ -156,7 +166,7 @@ describe('Confirmação de e-mail (BL-12 / D-21)', () => {
       (error: { statusCode?: number }) => {
         assert.strictEqual(error.statusCode, 400);
         return true;
-      }
+      },
     );
   });
 
@@ -190,7 +200,7 @@ describe('Confirmação de e-mail (BL-12 / D-21)', () => {
       `UPDATE email_verification_codes
           SET created_at = CURRENT_TIMESTAMP - INTERVAL '61 seconds'
         WHERE user_id = (SELECT id FROM users WHERE email = $1)`,
-      [email]
+      [email],
     );
 
     await request(app).post('/api/auth/resend-code').send({ email });
@@ -209,7 +219,7 @@ describe('Confirmação de e-mail (BL-12 / D-21)', () => {
         `UPDATE email_verification_codes
             SET created_at = CURRENT_TIMESTAMP - INTERVAL '61 seconds'
           WHERE user_id = (SELECT id FROM users WHERE email = $1)`,
-        [email]
+        [email],
       );
       await request(app).post('/api/auth/resend-code').send({ email });
     }
@@ -219,7 +229,7 @@ describe('Confirmação de e-mail (BL-12 / D-21)', () => {
          FROM email_verification_codes
         WHERE user_id = (SELECT id FROM users WHERE email = $1)
           AND created_at >= CURRENT_TIMESTAMP - INTERVAL '1 hour'`,
-      [email]
+      [email],
     );
     assert.strictEqual(Number(countBefore.rows[0]?.count), 5);
 
@@ -228,7 +238,7 @@ describe('Confirmação de e-mail (BL-12 / D-21)', () => {
       `UPDATE email_verification_codes
           SET created_at = CURRENT_TIMESTAMP - INTERVAL '61 seconds'
         WHERE user_id = (SELECT id FROM users WHERE email = $1)`,
-      [email]
+      [email],
     );
     await request(app).post('/api/auth/resend-code').send({ email });
 
@@ -238,7 +248,7 @@ describe('Confirmação de e-mail (BL-12 / D-21)', () => {
          FROM email_verification_codes
         WHERE user_id = (SELECT id FROM users WHERE email = $1)
           AND created_at >= CURRENT_TIMESTAMP - INTERVAL '1 hour'`,
-      [email]
+      [email],
     );
     assert.strictEqual(Number(countAfter.rows[0]?.count), 5);
   });
@@ -291,7 +301,7 @@ describe('Confirmação de e-mail (BL-12 / D-21)', () => {
     assert.strictEqual(response.status, 202);
     const row = await pool.query<{ name: string; email_verified_at: Date | null }>(
       'SELECT name, email_verified_at FROM users WHERE id = $1',
-      [user.id]
+      [user.id],
     );
     assert.strictEqual(row.rows[0]?.name, user.name);
     assert.ok(row.rows[0]?.email_verified_at);

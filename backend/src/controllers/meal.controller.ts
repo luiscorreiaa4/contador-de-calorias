@@ -6,7 +6,9 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 export const create = asyncHandler(async (req: Request, res: Response) => {
   const userId = requireUserId(req);
   const newMeal = await MealService.createMeal(userId, req.body);
-  return res.status(201).json({ success: true, message: 'Refeição registrada com sucesso!', data: newMeal });
+  return res
+    .status(201)
+    .json({ success: true, message: 'Refeição registrada com sucesso!', data: newMeal });
 });
 
 export const getToday = asyncHandler(async (req: Request, res: Response) => {
@@ -20,7 +22,9 @@ export const update = asyncHandler(async (req: Request, res: Response) => {
   const userId = requireUserId(req);
   const mealId = req.params.id as string;
   const updatedMeal = await MealService.updateMeal(userId, mealId, req.body);
-  return res.status(200).json({ success: true, message: 'Refeição atualizada com sucesso!', data: updatedMeal });
+  return res
+    .status(200)
+    .json({ success: true, message: 'Refeição atualizada com sucesso!', data: updatedMeal });
 });
 
 export const remove = asyncHandler(async (req: Request, res: Response) => {

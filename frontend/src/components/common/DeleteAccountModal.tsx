@@ -66,7 +66,7 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
       // Trap focus inside modal
       if (e.key === 'Tab' && modalRef.current) {
         const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
         );
         if (focusableElements.length === 0) return;
         const firstElement = focusableElements[0];
@@ -133,7 +133,9 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
               >
                 EXCLUIR CONTA
               </h2>
-              <span className="text-[10px] font-bold text-destructive uppercase tracking-widest">AÇÃO IRREVERSÍVEL</span>
+              <span className="text-[10px] font-bold text-destructive uppercase tracking-widest">
+                AÇÃO IRREVERSÍVEL
+              </span>
             </div>
           </div>
 
@@ -154,7 +156,9 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
             id="delete-modal-description"
             className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest leading-relaxed"
           >
-            TEM CERTEZA DE QUE DESEJA EXCLUIR SUA CONTA? SEUS DADOS E HISTÓRICO SERÃO <strong className="text-foreground">PERMANENTEMENTE APAGADOS</strong> E NÃO PODERÃO SER RECUPERADOS.
+            TEM CERTEZA DE QUE DESEJA EXCLUIR SUA CONTA? SEUS DADOS E HISTÓRICO SERÃO{' '}
+            <strong className="text-foreground">PERMANENTEMENTE APAGADOS</strong> E NÃO PODERÃO SER
+            RECUPERADOS.
           </p>
 
           {/* Form with Password Input */}

@@ -23,7 +23,10 @@ function escapeHtml(value: string): string {
 
 function layout(title: string, paragraphs: string[]): string {
   const body = paragraphs
-    .map((paragraph) => `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#1a1a1a;">${paragraph}</p>`)
+    .map(
+      (paragraph) =>
+        `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#1a1a1a;">${paragraph}</p>`,
+    )
     .join('');
 
   return `<!doctype html>

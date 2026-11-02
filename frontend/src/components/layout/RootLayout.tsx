@@ -11,7 +11,9 @@ import { Footer } from './Footer';
 const RootShell: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
   const showBottomNav = isAuthenticated && !!user?.onboarding_completed;
-  const [isOffline, setIsOffline] = useState(() => (typeof navigator !== 'undefined' ? !navigator.onLine : false));
+  const [isOffline, setIsOffline] = useState(() =>
+    typeof navigator !== 'undefined' ? !navigator.onLine : false,
+  );
 
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
@@ -31,7 +33,10 @@ const RootShell: React.FC = () => {
       }`}
     >
       {isOffline && (
-        <div role="status" className="w-full bg-warning text-warning-foreground py-1.5 px-4 text-center font-black text-xs uppercase tracking-wider border-b-2 border-border flex items-center justify-center gap-2">
+        <div
+          role="status"
+          className="w-full bg-warning text-warning-foreground py-1.5 px-4 text-center font-black text-xs uppercase tracking-wider border-b-2 border-border flex items-center justify-center gap-2"
+        >
           <span>MODO OFFLINE ATIVADO — DADOS CARREGADOS DO CACHE LOCAL</span>
         </div>
       )}
@@ -47,7 +52,10 @@ const RootShell: React.FC = () => {
       <AppHeader />
 
       {/* Main Content (Routes Area) */}
-      <SwipeMain enabled={showBottomNav} className="flex-1 flex items-center justify-center z-10 my-8 sm:my-12 pb-8 sm:pb-16">
+      <SwipeMain
+        enabled={showBottomNav}
+        className="flex-1 flex items-center justify-center z-10 my-8 sm:my-12 pb-8 sm:pb-16"
+      >
         <Suspense
           fallback={
             <div className="flex items-center justify-center w-full h-64">

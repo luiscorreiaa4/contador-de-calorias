@@ -5,7 +5,18 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../../context/AuthContext';
 import { completeUserOnboarding } from '../../services/auth.service';
-import { Flame, Target, TrendingUp, ArrowRight, ArrowLeft, CheckCircle2, Weight, Ruler, ActivitySquare, AlertCircle } from 'lucide-react';
+import {
+  Flame,
+  Target,
+  TrendingUp,
+  ArrowRight,
+  ArrowLeft,
+  CheckCircle2,
+  Weight,
+  Ruler,
+  ActivitySquare,
+  AlertCircle,
+} from 'lucide-react';
 import { DatePickerInput } from '../common/DatePickerInput';
 
 const validateBirthDateString = (val: string): boolean => {
@@ -117,23 +128,44 @@ export const OnboardingFlow: React.FC = () => {
   };
 
   const goals = [
-    { key: 'perder_peso', label: 'EMAGRECER', icon: <Flame className="w-5 h-5 text-primary-ink" /> },
-    { key: 'manter_peso', label: 'MANTER PESO', icon: <Target className="w-5 h-5 text-primary-ink" /> },
-    { key: 'ganhar_massa', label: 'GANHAR MASSA', icon: <TrendingUp className="w-5 h-5 text-primary-ink" /> },
+    {
+      key: 'perder_peso',
+      label: 'EMAGRECER',
+      icon: <Flame className="w-5 h-5 text-primary-ink" />,
+    },
+    {
+      key: 'manter_peso',
+      label: 'MANTER PESO',
+      icon: <Target className="w-5 h-5 text-primary-ink" />,
+    },
+    {
+      key: 'ganhar_massa',
+      label: 'GANHAR MASSA',
+      icon: <TrendingUp className="w-5 h-5 text-primary-ink" />,
+    },
   ];
 
   const activityLevels = [
     { key: 'sedentario', label: 'SEDENTÁRIO', desc: 'POUCO OU NENHUM EXERCÍCIO' },
     { key: 'pouco_ativo', label: 'POUCO ATIVO', desc: 'EXERCÍCIO LEVE 1 A 3 DIAS/SEMANA' },
-    { key: 'moderadamente_ativo', label: 'MODERADAMENTE ATIVO', desc: 'EXERCÍCIO MODERADO 3 A 5 DIAS/SEMANA' },
+    {
+      key: 'moderadamente_ativo',
+      label: 'MODERADAMENTE ATIVO',
+      desc: 'EXERCÍCIO MODERADO 3 A 5 DIAS/SEMANA',
+    },
     { key: 'muito_ativo', label: 'MUITO ATIVO', desc: 'EXERCÍCIO PESADO 6 A 7 DIAS/SEMANA' },
-    { key: 'extremamente_ativo', label: 'EXTREMAMENTE ATIVO', desc: 'TRABALHO FÍSICO PESADO OU TREINO 2X/DIA' },
+    {
+      key: 'extremamente_ativo',
+      label: 'EXTREMAMENTE ATIVO',
+      desc: 'TRABALHO FÍSICO PESADO OU TREINO 2X/DIA',
+    },
   ];
 
-  const inputBase = 'w-full pl-10 pr-4 py-3 bg-background border-2 border-border rounded-none text-sm font-black text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus-visible:border-ring focus-visible:outline-none outline-none transition-colors min-h-[48px]';
+  const inputBase =
+    'w-full pl-10 pr-4 py-3 bg-background border-2 border-border rounded-none text-sm font-black text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus-visible:border-ring focus-visible:outline-none outline-none transition-colors min-h-[48px]';
 
   return (
-    <form 
+    <form
       onSubmit={(e) => {
         e.preventDefault();
         if (step < 5) {
@@ -146,12 +178,19 @@ export const OnboardingFlow: React.FC = () => {
     >
       <div className="flex justify-between items-center border-b-2 border-border pb-4">
         <div>
-          <h2 className="text-xl font-heading font-black text-foreground uppercase tracking-tight">CONFIGURAR PERFIL</h2>
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">PASSO {step} DE 5</p>
+          <h2 className="text-xl font-heading font-black text-foreground uppercase tracking-tight">
+            CONFIGURAR PERFIL
+          </h2>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
+            PASSO {step} DE 5
+          </p>
         </div>
         <div className="flex gap-1">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className={`w-3 h-3 border-2 border-border ${step >= i ? 'bg-primary' : 'bg-background'}`} />
+            <div
+              key={i}
+              className={`w-3 h-3 border-2 border-border ${step >= i ? 'bg-primary' : 'bg-background'}`}
+            />
           ))}
         </div>
       </div>
@@ -165,25 +204,43 @@ export const OnboardingFlow: React.FC = () => {
 
       {step === 1 && (
         <div className="space-y-6">
-          <h3 className="text-sm font-heading font-black text-foreground uppercase tracking-tight border-l-4 border-foreground pl-3">INFORMAÇÕES BÁSICAS</h3>
-          
+          <h3 className="text-sm font-heading font-black text-foreground uppercase tracking-tight border-l-4 border-foreground pl-3">
+            INFORMAÇÕES BÁSICAS
+          </h3>
+
           <div>
-            <label htmlFor="onboarding-sex" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">SEXO BIOLÓGICO</label>
+            <label
+              htmlFor="onboarding-sex"
+              className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2"
+            >
+              SEXO BIOLÓGICO
+            </label>
             <select
               id="onboarding-sex"
               {...register('sex')}
               className={`${inputBase} !pl-4 cursor-pointer ${errors.sex ? '!border-destructive bg-destructive/10' : ''}`}
             >
-              <option value="" disabled>- SELECIONE -</option>
+              <option value="" disabled>
+                - SELECIONE -
+              </option>
               <option value="masculino">MASCULINO</option>
               <option value="feminino">FEMININO</option>
               <option value="prefiro_nao_responder">PREFIRO NÃO RESPONDER</option>
             </select>
-            {errors.sex && <p className="text-destructive font-bold text-[10px] mt-2 uppercase tracking-widest">{errors.sex.message}</p>}
+            {errors.sex && (
+              <p className="text-destructive font-bold text-[10px] mt-2 uppercase tracking-widest">
+                {errors.sex.message}
+              </p>
+            )}
           </div>
 
           <div>
-            <label htmlFor="onboarding-birth-date" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">DATA DE NASCIMENTO</label>
+            <label
+              htmlFor="onboarding-birth-date"
+              className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2"
+            >
+              DATA DE NASCIMENTO
+            </label>
             <DatePickerInput
               id="onboarding-birth-date"
               value={formValues.birthDate ?? ''}
@@ -192,14 +249,20 @@ export const OnboardingFlow: React.FC = () => {
               }}
               error={errors.birthDate?.message}
             />
-            {errors.birthDate && <p className="text-destructive font-bold text-[10px] mt-2 uppercase tracking-widest">{errors.birthDate.message}</p>}
+            {errors.birthDate && (
+              <p className="text-destructive font-bold text-[10px] mt-2 uppercase tracking-widest">
+                {errors.birthDate.message}
+              </p>
+            )}
           </div>
         </div>
       )}
 
       {step === 2 && (
         <div className="space-y-6">
-          <h3 className="text-sm font-heading font-black text-foreground uppercase tracking-tight border-l-4 border-foreground pl-3">QUAL É O SEU OBJETIVO PRINCIPAL?</h3>
+          <h3 className="text-sm font-heading font-black text-foreground uppercase tracking-tight border-l-4 border-foreground pl-3">
+            QUAL É O SEU OBJETIVO PRINCIPAL?
+          </h3>
           <div className="grid gap-4">
             {goals.map((g) => (
               <button
@@ -209,72 +272,104 @@ export const OnboardingFlow: React.FC = () => {
                   setValue('goal', g.key, { shouldValidate: true });
                 }}
                 className={`p-4 border-2 flex items-center gap-4 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring uppercase ${
-                  formValues.goal === g.key 
-                    ? 'border-foreground bg-secondary shadow-hard translate-y-0.5' 
+                  formValues.goal === g.key
+                    ? 'border-foreground bg-secondary shadow-hard translate-y-0.5'
                     : 'border-border bg-background hover:-translate-y-0.5 hover:shadow-hard-hover hover:border-foreground'
                 }`}
               >
-                <div className={`p-2 border-2 ${formValues.goal === g.key ? 'bg-background border-foreground' : 'bg-secondary border-transparent'}`}>
+                <div
+                  className={`p-2 border-2 ${formValues.goal === g.key ? 'bg-background border-foreground' : 'bg-secondary border-transparent'}`}
+                >
                   {g.icon}
                 </div>
-                <span className={`font-black tracking-widest text-xs ${formValues.goal === g.key ? 'text-primary-ink' : 'text-foreground'}`}>
+                <span
+                  className={`font-black tracking-widest text-xs ${formValues.goal === g.key ? 'text-primary-ink' : 'text-foreground'}`}
+                >
                   {g.label}
                 </span>
               </button>
             ))}
           </div>
-          {errors.goal && <p className="text-destructive font-bold text-[10px] mt-2 uppercase tracking-widest">{errors.goal.message}</p>}
+          {errors.goal && (
+            <p className="text-destructive font-bold text-[10px] mt-2 uppercase tracking-widest">
+              {errors.goal.message}
+            </p>
+          )}
         </div>
       )}
 
       {step === 3 && (
         <div className="space-y-6">
-          <h3 className="text-sm font-heading font-black text-foreground uppercase tracking-tight border-l-4 border-foreground pl-3">SUAS MEDIDAS CORPORAIS</h3>
-          
+          <h3 className="text-sm font-heading font-black text-foreground uppercase tracking-tight border-l-4 border-foreground pl-3">
+            SUAS MEDIDAS CORPORAIS
+          </h3>
+
           <div>
-            <label htmlFor="onboarding-weight" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">PESO ATUAL (KG)</label>
+            <label
+              htmlFor="onboarding-weight"
+              className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2"
+            >
+              PESO ATUAL (KG)
+            </label>
             <div className="relative">
               <Weight className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input 
+              <input
                 id="onboarding-weight"
-                type="number" 
-                step="0.1" 
+                type="number"
+                step="0.1"
                 {...register('weight')}
-                placeholder="EX: 75.5" 
-                className={`${inputBase} ${errors.weight ? '!border-destructive bg-destructive/10' : ''}`} 
+                placeholder="EX: 75.5"
+                className={`${inputBase} ${errors.weight ? '!border-destructive bg-destructive/10' : ''}`}
               />
             </div>
-            {errors.weight && <p className="text-destructive font-bold text-[10px] mt-2 uppercase tracking-widest">{errors.weight.message}</p>}
+            {errors.weight && (
+              <p className="text-destructive font-bold text-[10px] mt-2 uppercase tracking-widest">
+                {errors.weight.message}
+              </p>
+            )}
           </div>
 
           <div>
-            <label htmlFor="onboarding-height" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">ALTURA (CM)</label>
+            <label
+              htmlFor="onboarding-height"
+              className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2"
+            >
+              ALTURA (CM)
+            </label>
             <div className="relative">
               <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input 
+              <input
                 id="onboarding-height"
-                type="number" 
+                type="number"
                 {...register('height')}
-                placeholder="EX: 175" 
-                className={`${inputBase} ${errors.height ? '!border-destructive bg-destructive/10' : ''}`} 
+                placeholder="EX: 175"
+                className={`${inputBase} ${errors.height ? '!border-destructive bg-destructive/10' : ''}`}
               />
             </div>
-            {errors.height && <p className="text-destructive font-bold text-[10px] mt-2 uppercase tracking-widest">{errors.height.message}</p>}
+            {errors.height && (
+              <p className="text-destructive font-bold text-[10px] mt-2 uppercase tracking-widest">
+                {errors.height.message}
+              </p>
+            )}
           </div>
 
           <div>
-            <label htmlFor="onboarding-body-fat" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
-              PERCENTUAL DE GORDURA (%) <span className="text-muted-foreground opacity-50 ml-1">(OPCIONAL)</span>
+            <label
+              htmlFor="onboarding-body-fat"
+              className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2"
+            >
+              PERCENTUAL DE GORDURA (%){' '}
+              <span className="text-muted-foreground opacity-50 ml-1">(OPCIONAL)</span>
             </label>
             <div className="relative">
               <ActivitySquare className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input 
+              <input
                 id="onboarding-body-fat"
-                type="number" 
-                step="0.1" 
+                type="number"
+                step="0.1"
                 {...register('bodyFat')}
-                placeholder="EX: 18.5" 
-                className={inputBase} 
+                placeholder="EX: 18.5"
+                className={inputBase}
               />
             </div>
           </div>
@@ -283,7 +378,9 @@ export const OnboardingFlow: React.FC = () => {
 
       {step === 4 && (
         <div className="space-y-6">
-          <h3 className="text-sm font-heading font-black text-foreground uppercase tracking-tight border-l-4 border-foreground pl-3">COMO É A SUA ROTINA?</h3>
+          <h3 className="text-sm font-heading font-black text-foreground uppercase tracking-tight border-l-4 border-foreground pl-3">
+            COMO É A SUA ROTINA?
+          </h3>
           <div className="grid gap-4">
             {activityLevels.map((a) => (
               <button
@@ -293,19 +390,25 @@ export const OnboardingFlow: React.FC = () => {
                   setValue('activityLevel', a.key, { shouldValidate: true });
                 }}
                 className={`p-4 border-2 flex flex-col text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring uppercase ${
-                  formValues.activityLevel === a.key 
-                    ? 'border-foreground bg-secondary shadow-hard translate-y-0.5' 
+                  formValues.activityLevel === a.key
+                    ? 'border-foreground bg-secondary shadow-hard translate-y-0.5'
                     : 'border-border bg-background hover:-translate-y-0.5 hover:shadow-hard-hover hover:border-foreground'
                 }`}
               >
-                <span className={`font-black tracking-widest text-xs mb-1 ${formValues.activityLevel === a.key ? 'text-primary-ink' : 'text-foreground'}`}>
+                <span
+                  className={`font-black tracking-widest text-xs mb-1 ${formValues.activityLevel === a.key ? 'text-primary-ink' : 'text-foreground'}`}
+                >
                   {a.label}
                 </span>
                 <span className="text-[10px] font-bold text-muted-foreground">{a.desc}</span>
               </button>
             ))}
           </div>
-          {errors.activityLevel && <p className="text-destructive font-bold text-[10px] mt-2 uppercase tracking-widest">{errors.activityLevel.message}</p>}
+          {errors.activityLevel && (
+            <p className="text-destructive font-bold text-[10px] mt-2 uppercase tracking-widest">
+              {errors.activityLevel.message}
+            </p>
+          )}
         </div>
       )}
 
@@ -315,9 +418,15 @@ export const OnboardingFlow: React.FC = () => {
             <CheckCircle2 className="w-8 h-8" />
           </div>
           <div className="px-6">
-            <h3 className="text-lg font-heading font-black text-foreground uppercase tracking-tight mb-3">TUDO PRONTO, {user?.name.split(' ')[0].toUpperCase()}!</h3>
+            <h3 className="text-lg font-heading font-black text-foreground uppercase tracking-tight mb-3">
+              TUDO PRONTO, {user?.name.split(' ')[0].toUpperCase()}!
+            </h3>
             <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase leading-relaxed">
-              VAMOS CALCULAR SUAS NECESSIDADES E DEFINIR METAS PARA O OBJETIVO DE <strong className="text-foreground">{goals.find(g => g.key === formValues.goal)?.label}</strong>.
+              VAMOS CALCULAR SUAS NECESSIDADES E DEFINIR METAS PARA O OBJETIVO DE{' '}
+              <strong className="text-foreground">
+                {goals.find((g) => g.key === formValues.goal)?.label}
+              </strong>
+              .
             </p>
           </div>
         </div>
@@ -335,7 +444,7 @@ export const OnboardingFlow: React.FC = () => {
             VOLTAR
           </button>
         )}
-        
+
         {step < 5 ? (
           <button
             type="submit"

@@ -4,7 +4,8 @@ export interface UserProfile {
   weight: number; // kg
   height: number; // cm
   body_fat?: number | null; // percentual (ex: 15 para 15%)
-  activity_level: 'sedentario' | 'pouco_ativo' | 'moderadamente_ativo' | 'muito_ativo' | 'extremamente_ativo';
+  activity_level:
+    'sedentario' | 'pouco_ativo' | 'moderadamente_ativo' | 'muito_ativo' | 'extremamente_ativo';
   goal: 'perder_peso' | 'manter_peso' | 'ganhar_massa';
 }
 
@@ -75,7 +76,7 @@ export function calculateEnergyTargets(profile: UserProfile): EnergyTargets {
   } else {
     // Mifflin-St Jeor se não souber BF
     const age = calculateAge(profile.birthDate);
-    const baseTmb = (10 * profile.weight) + (6.25 * profile.height) - (5 * age);
+    const baseTmb = 10 * profile.weight + 6.25 * profile.height - 5 * age;
 
     if (profile.sex === 'masculino') {
       tmb = baseTmb + 5;
@@ -94,7 +95,7 @@ export function calculateEnergyTargets(profile: UserProfile): EnergyTargets {
   // 3. Calorias Sugeridas (Objetivo)
   let suggestedCalories = tdee;
   if (profile.goal === 'perder_peso') {
-    suggestedCalories = tdee * 0.80; // Déficit de 20%
+    suggestedCalories = tdee * 0.8; // Déficit de 20%
   } else if (profile.goal === 'ganhar_massa') {
     suggestedCalories = tdee * 1.15; // Superávit de 15%
   }
@@ -133,18 +134,18 @@ export function calculateEnergyTargets(profile: UserProfile): EnergyTargets {
   let fatGrams = (suggestedCalories * 0.25) / 9;
 
   // Carboidrato: o restante das kcal
-  let carbKcal = suggestedCalories - (protGrams * 4) - (fatGrams * 9);
+  let carbKcal = suggestedCalories - protGrams * 4 - fatGrams * 9;
 
   // Ordem de ajuste se o carboidrato ficar abaixo de 20% das kcal:
-  if (carbKcal < suggestedCalories * 0.20) {
+  if (carbKcal < suggestedCalories * 0.2) {
     // 1. Reduzir gordura até 20% das kcal
-    fatGrams = (suggestedCalories * 0.20) / 9;
-    carbKcal = suggestedCalories - (protGrams * 4) - (fatGrams * 9);
+    fatGrams = (suggestedCalories * 0.2) / 9;
+    carbKcal = suggestedCalories - protGrams * 4 - fatGrams * 9;
 
     // 2. Se ainda abaixo de 20%, depois reduzir proteína até 1.2 g/kg da massa de referência
-    if (carbKcal < suggestedCalories * 0.20) {
+    if (carbKcal < suggestedCalories * 0.2) {
       const minProtGrams = 1.2 * massaReferencia;
-      const targetProtKcal = suggestedCalories - (fatGrams * 9) - (suggestedCalories * 0.20);
+      const targetProtKcal = suggestedCalories - fatGrams * 9 - suggestedCalories * 0.2;
       protGrams = Math.max(minProtGrams, targetProtKcal / 4);
     }
   }
@@ -154,7 +155,7 @@ export function calculateEnergyTargets(profile: UserProfile): EnergyTargets {
   const roundedCalories = Math.round(suggestedCalories);
 
   // Reconciliação direta dos carboidratos:
-  const remainingCalories = Math.max(0, roundedCalories - (roundedProt * 4) - (roundedFats * 9));
+  const remainingCalories = Math.max(0, roundedCalories - roundedProt * 4 - roundedFats * 9);
   const roundedCarbs = Math.round(remainingCalories / 4);
 
   return {
@@ -165,6 +166,6 @@ export function calculateEnergyTargets(profile: UserProfile): EnergyTargets {
       proteins: roundedProt,
       fats: roundedFats,
       carbs: roundedCarbs,
-    }
+    },
   };
 }

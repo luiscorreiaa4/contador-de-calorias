@@ -94,14 +94,10 @@ export const VerifyEmailPage: React.FC = () => {
         : null;
 
   const resendError = resendMutation.error;
-  const resendErrorMessage =
-    resendError instanceof Error ? resendError.message : null;
+  const resendErrorMessage = resendError instanceof Error ? resendError.message : null;
 
   return (
-    <AuthPageShell
-      title="Confirme seu e-mail"
-      description="Falta pouco para liberar seu acesso"
-    >
+    <AuthPageShell title="Confirme seu e-mail" description="Falta pouco para liberar seu acesso">
       <form onSubmit={handleSubmit} className="space-y-6" noValidate>
         <div className="flex items-start gap-3 border-2 border-border bg-secondary p-4">
           <ShieldCheck className="w-5 h-5 shrink-0 text-primary-ink" aria-hidden="true" />

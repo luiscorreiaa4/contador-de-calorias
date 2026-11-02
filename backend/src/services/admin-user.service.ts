@@ -25,7 +25,7 @@ export async function promoteUserToAdmin(email: string): Promise<AdminUserSummar
     token_version: number;
   }>(
     'SELECT id, name, email, role, email_verified_at, token_version FROM users WHERE lower(email) = lower($1)',
-    [normalizedEmail]
+    [normalizedEmail],
   );
 
   if (userRes.rows.length === 0) {
@@ -36,7 +36,7 @@ export async function promoteUserToAdmin(email: string): Promise<AdminUserSummar
 
   if (!user.email_verified_at) {
     throw new Error(
-      `Operação recusada: o usuário ${normalizedEmail} não possui e-mail verificado. É necessário confirmar o e-mail antes de se tornar administrador.`
+      `Operação recusada: o usuário ${normalizedEmail} não possui e-mail verificado. É necessário confirmar o e-mail antes de se tornar administrador.`,
     );
   }
 
@@ -67,7 +67,7 @@ export async function promoteUserToAdmin(email: string): Promise<AdminUserSummar
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $1
        RETURNING id, name, email, role`,
-      [user.id]
+      [user.id],
     );
 
     const updatedUser = updateRes.rows[0];
@@ -114,10 +114,9 @@ export async function demoteAdminToUser(email: string): Promise<AdminUserSummary
       name: string;
       email: string;
       role: 'user' | 'admin';
-    }>(
-      'SELECT id, name, email, role FROM users WHERE lower(email) = lower($1) FOR UPDATE',
-      [normalizedEmail]
-    );
+    }>('SELECT id, name, email, role FROM users WHERE lower(email) = lower($1) FOR UPDATE', [
+      normalizedEmail,
+    ]);
 
     if (userRes.rows.length === 0) {
       throw new Error(`Usuário não encontrado: ${normalizedEmail}`);
@@ -131,13 +130,13 @@ export async function demoteAdminToUser(email: string): Promise<AdminUserSummary
 
     // Trava de segurança: demote recusa se deixaria ZERO admins
     const countRes = await client.query<{ count: string }>(
-      "SELECT COUNT(*) AS count FROM users WHERE role = 'admin'"
+      "SELECT COUNT(*) AS count FROM users WHERE role = 'admin'",
     );
     const totalAdmins = parseInt(countRes.rows[0].count, 10);
 
     if (totalAdmins <= 1) {
       throw new Error(
-        'Operação recusada: não é permitido rebaixar o único administrador do sistema. Deve haver ao menos um administrador ativo.'
+        'Operação recusada: não é permitido rebaixar o único administrador do sistema. Deve haver ao menos um administrador ativo.',
       );
     }
 
@@ -153,7 +152,7 @@ export async function demoteAdminToUser(email: string): Promise<AdminUserSummary
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $1
        RETURNING id, name, email, role`,
-      [user.id]
+      [user.id],
     );
 
     const updatedUser = updateRes.rows[0];
@@ -189,7 +188,7 @@ export async function listAdmins(): Promise<AdminUserSummary[]> {
     `SELECT id, name, email, role, created_at
      FROM users
      WHERE role = 'admin'
-     ORDER BY created_at ASC`
+     ORDER BY created_at ASC`,
   );
   return result.rows;
 }

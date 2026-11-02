@@ -16,7 +16,15 @@ import {
  */
 
 export interface NavDestination {
-  id: 'diario' | 'progresso' | 'conta' | 'evolucao' | 'metas' | 'catalogo' | 'perfil' | 'configuracoes';
+  id:
+    | 'diario'
+    | 'progresso'
+    | 'conta'
+    | 'evolucao'
+    | 'metas'
+    | 'catalogo'
+    | 'perfil'
+    | 'configuracoes';
   label: string;
   shortLabel: string;
   to: string;
@@ -120,7 +128,14 @@ const CONFIGURACOES: NavDestination = {
 export const BOTTOM_NAV_ITEMS: NavDestination[] = [DIARIO, PROGRESSO, CONTA];
 
 /** Abas do menu do desktop (header). */
-export const DESKTOP_NAV_ITEMS: NavDestination[] = [DIARIO, EVOLUCAO, METAS, CATALOGO, PERFIL, CONFIGURACOES];
+export const DESKTOP_NAV_ITEMS: NavDestination[] = [
+  DIARIO,
+  EVOLUCAO,
+  METAS,
+  CATALOGO,
+  PERFIL,
+  CONFIGURACOES,
+];
 
 /** Linhas da tela /conta. */
 export const ACCOUNT_LINK_ITEMS: NavDestination[] = [PERFIL, CONFIGURACOES, CATALOGO];

@@ -14,7 +14,15 @@ const router = Router();
 router.get('/', validate({ query: adminListFoodsQuerySchema }), AdminFoodController.list);
 router.post('/', validate({ body: adminCreateFoodSchema }), AdminFoodController.create);
 router.get('/:id', validate({ params: uuidParamSchema }), AdminFoodController.getById);
-router.put('/:id', validate({ params: uuidParamSchema, body: adminUpdateFoodSchema }), AdminFoodController.update);
-router.patch('/:id/status', validate({ params: uuidParamSchema, body: adminUpdateFoodStatusSchema }), AdminFoodController.updateStatus);
+router.put(
+  '/:id',
+  validate({ params: uuidParamSchema, body: adminUpdateFoodSchema }),
+  AdminFoodController.update,
+);
+router.patch(
+  '/:id/status',
+  validate({ params: uuidParamSchema, body: adminUpdateFoodStatusSchema }),
+  AdminFoodController.updateStatus,
+);
 
 export default router;

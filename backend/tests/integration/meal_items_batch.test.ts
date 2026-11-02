@@ -11,7 +11,7 @@ describe('Inserção Multi-row em Lote de meal_items (PC-22 / PERF-004)', () => 
 
   before(async () => {
     const userRes = await pool.query(
-      `INSERT INTO users (name, email, password_hash) VALUES ('Batch Tester', 'tester-batch-${Date.now()}@example.com', 'hash') RETURNING id`
+      `INSERT INTO users (name, email, password_hash) VALUES ('Batch Tester', 'tester-batch-${Date.now()}@example.com', 'hash') RETURNING id`,
     );
     userId = userRes.rows[0].id;
 
@@ -20,7 +20,7 @@ describe('Inserção Multi-row em Lote de meal_items (PC-22 / PERF-004)', () => 
   });
 
   closeTestPool(async () => {
-      await cleanupTestData('tester-batch-%');
+    await cleanupTestData('tester-batch-%');
   });
 
   it('createMealWithItems: deve inserir múltiplos itens com sucesso em lote', async () => {
@@ -36,7 +36,10 @@ describe('Inserção Multi-row em Lote de meal_items (PC-22 / PERF-004)', () => 
     assert.strictEqual(meal.name, 'Almoço Batch');
 
     // Valida persistência direta no banco
-    const dbItems = await pool.query('SELECT * FROM meal_items WHERE meal_id = $1 ORDER BY calories ASC', [meal.id]);
+    const dbItems = await pool.query(
+      'SELECT * FROM meal_items WHERE meal_id = $1 ORDER BY calories ASC',
+      [meal.id],
+    );
     assert.strictEqual(dbItems.rows.length, 3);
     assert.strictEqual(Number(dbItems.rows[0].calories), 100);
     assert.strictEqual(Number(dbItems.rows[1].calories), 150);
@@ -44,9 +47,7 @@ describe('Inserção Multi-row em Lote de meal_items (PC-22 / PERF-004)', () => 
   });
 
   it('updateMealWithItems: deve substituir itens e persistir novo lote multi-row', async () => {
-    const initialItems = [
-      { foodId, quantity: 50, calories: 50, proteins: 5, carbs: 5, fats: 1 },
-    ];
+    const initialItems = [{ foodId, quantity: 50, calories: 50, proteins: 5, carbs: 5, fats: 1 }];
     const meal = await createMealWithItems(userId, 'Jantar Inicial', new Date(), initialItems);
 
     const updatedItems = [
@@ -54,11 +55,20 @@ describe('Inserção Multi-row em Lote de meal_items (PC-22 / PERF-004)', () => 
       { foodId, quantity: 180, calories: 180, proteins: 18, carbs: 18, fats: 3 },
     ];
 
-    const updated = await updateMealWithItems(userId, meal.id, 'Jantar Atualizado', new Date(), updatedItems);
+    const updated = await updateMealWithItems(
+      userId,
+      meal.id,
+      'Jantar Atualizado',
+      new Date(),
+      updatedItems,
+    );
     assert.ok(updated.items);
     assert.strictEqual(updated.items.length, 2);
 
-    const dbItems = await pool.query('SELECT * FROM meal_items WHERE meal_id = $1 ORDER BY calories ASC', [meal.id]);
+    const dbItems = await pool.query(
+      'SELECT * FROM meal_items WHERE meal_id = $1 ORDER BY calories ASC',
+      [meal.id],
+    );
     assert.strictEqual(dbItems.rows.length, 2);
     assert.strictEqual(Number(dbItems.rows[0].calories), 120);
     assert.strictEqual(Number(dbItems.rows[1].calories), 180);

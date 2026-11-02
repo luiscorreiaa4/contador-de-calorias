@@ -17,7 +17,7 @@ describe('Acessibilidade: Skip Link (#33)', () => {
         <AuthProvider>
           <RouterProvider router={router} />
         </AuthProvider>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     const skipLink = screen.getByRole('link', { name: /pular para o conteúdo principal/i });
@@ -31,4 +31,3 @@ describe('Acessibilidade: Skip Link (#33)', () => {
     expect(mainElement?.tagName.toLowerCase()).toBe('main');
   });
 });
-

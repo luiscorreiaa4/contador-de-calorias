@@ -12,7 +12,9 @@ import { importFoodsFromJson } from '../../scripts/import-foods.js';
 describe('Ferramentas de Curadoria do Catálogo (D-22 / Fase 5)', () => {
   closeTestPool(async () => {
     // Limpeza de registros de teste
-    await pool.query("DELETE FROM foods WHERE source IN ('test-curation', 'test-taco') OR name LIKE 'Curated Test%'");
+    await pool.query(
+      "DELETE FROM foods WHERE source IN ('test-curation', 'test-taco') OR name LIKE 'Curated Test%'",
+    );
     await pool.query("DELETE FROM admin_audit_log WHERE action LIKE 'catalog_%'");
   });
 
@@ -20,7 +22,11 @@ describe('Ferramentas de Curadoria do Catálogo (D-22 / Fase 5)', () => {
     const result = await exportCatalogToCsv();
     assert.strictEqual(typeof result.csvContent, 'string');
     assert.ok(result.csvContent.startsWith('\uFEFF'), 'CSV deve conter BOM UTF-8');
-    assert.ok(result.csvContent.includes('id;external_id;source;nome;kcal;proteina;carboidrato;gordura;ativo;sugestao;decisao;novo_nome'));
+    assert.ok(
+      result.csvContent.includes(
+        'id;external_id;source;nome;kcal;proteina;carboidrato;gordura;ativo;sugestao;decisao;novo_nome',
+      ),
+    );
     assert.ok(result.total >= 0);
   });
 
@@ -29,7 +35,7 @@ describe('Ferramentas de Curadoria do Catálogo (D-22 / Fase 5)', () => {
     const ins = await pool.query<{ id: string }>(
       `INSERT INTO foods (name, calories, proteins, carbs, fats, base_unit, serving_weight, source, external_id, active)
        VALUES ('Curated Test Alimento Simula', 100, 5, 10, 2, 'g', 100, 'test-curation', 'sim-01', true)
-       RETURNING id`
+       RETURNING id`,
     );
     const testFoodId = ins.rows[0].id;
 
@@ -45,10 +51,9 @@ describe('Ferramentas de Curadoria do Catálogo (D-22 / Fase 5)', () => {
     assert.strictEqual(result.errors.length, 0);
 
     // Conferir que o banco NÃO foi alterado
-    const check = await pool.query<{ active: boolean }>(
-      'SELECT active FROM foods WHERE id = $1',
-      [testFoodId]
-    );
+    const check = await pool.query<{ active: boolean }>('SELECT active FROM foods WHERE id = $1', [
+      testFoodId,
+    ]);
     assert.strictEqual(check.rows[0].active, true, 'Banco não deve mudar no dryRun');
   });
 
@@ -56,7 +61,7 @@ describe('Ferramentas de Curadoria do Catálogo (D-22 / Fase 5)', () => {
     const ins = await pool.query<{ id: string }>(
       `INSERT INTO foods (name, calories, proteins, carbs, fats, base_unit, serving_weight, source, external_id, active)
        VALUES ('Curated Test Alimento Real', 100, 5, 10, 2, 'g', 100, 'test-curation', 'real-01', true)
-       RETURNING id`
+       RETURNING id`,
     );
     const testFoodId = ins.rows[0].id;
 
@@ -72,7 +77,7 @@ describe('Ferramentas de Curadoria do Catálogo (D-22 / Fase 5)', () => {
 
     const check1 = await pool.query<{ active: boolean; admin_edited_at: Date | null }>(
       'SELECT active, admin_edited_at FROM foods WHERE id = $1',
-      [testFoodId]
+      [testFoodId],
     );
     assert.strictEqual(check1.rows[0].active, false, 'Alimento deve estar inativo');
     assert.ok(check1.rows[0].admin_edited_at !== null, 'admin_edited_at deve estar preenchido');
@@ -80,7 +85,7 @@ describe('Ferramentas de Curadoria do Catálogo (D-22 / Fase 5)', () => {
     // Auditoria gravada
     const audit = await pool.query(
       `SELECT * FROM admin_audit_log WHERE entity_id = $1 AND action = 'catalog_curation_apply'`,
-      [testFoodId]
+      [testFoodId],
     );
     assert.strictEqual(audit.rows.length, 1);
 
@@ -144,13 +149,19 @@ describe('Ferramentas de Curadoria do Catálogo (D-22 / Fase 5)', () => {
     const resValid = await importCuratedFoods(validJson, { dryRun: false });
     assert.strictEqual(resValid.errors.length, 0);
     assert.strictEqual(resValid.inserted, 1);
-    assert.ok(resValid.reviewWarnings.length > 0, 'Deve reportar warning de divergência para REVISAR');
+    assert.ok(
+      resValid.reviewWarnings.length > 0,
+      'Deve reportar warning de divergência para REVISAR',
+    );
 
     // Verificar se no banco ficou com admin_edited_at
     const saved = await pool.query<{ admin_edited_at: Date | null }>(
-      "SELECT admin_edited_at FROM foods WHERE source = 'test-curation' AND external_id = 'curated-diverg-01'"
+      "SELECT admin_edited_at FROM foods WHERE source = 'test-curation' AND external_id = 'curated-diverg-01'",
     );
-    assert.ok(saved.rows[0].admin_edited_at !== null, 'Item curado deve ter admin_edited_at preenchido');
+    assert.ok(
+      saved.rows[0].admin_edited_at !== null,
+      'Item curado deve ter admin_edited_at preenchido',
+    );
   });
 
   it('reimportar TACO (import-foods.ts) nunca reativa inativos nem sobrescreve curados (B10)', async () => {
@@ -160,14 +171,14 @@ describe('Ferramentas de Curadoria do Catálogo (D-22 / Fase 5)', () => {
     const res1 = await pool.query<{ id: string }>(
       `INSERT INTO foods (name, calories, proteins, carbs, fats, base_unit, serving_weight, source, external_id, active, admin_edited_at)
        VALUES ('Curated Test Taco Inativo', 100, 2, 20, 1, 'g', 100, 'test-taco', 'taco-01', false, NULL)
-       RETURNING id`
+       RETURNING id`,
     );
     const deactivatedFoodId = res1.rows[0].id;
 
     const res2 = await pool.query<{ id: string }>(
       `INSERT INTO foods (name, calories, proteins, carbs, fats, base_unit, serving_weight, source, external_id, active, admin_edited_at)
        VALUES ('Curated Test Taco Curado Nome Protegido', 150, 10, 10, 5, 'g', 100, 'test-taco', 'taco-02', true, NOW())
-       RETURNING id`
+       RETURNING id`,
     );
     const curatedFoodId = res2.rows[0].id;
 
@@ -204,17 +215,25 @@ describe('Ferramentas de Curadoria do Catálogo (D-22 / Fase 5)', () => {
     // 1. Verificar se o inativo CONTINUA inativo
     const checkInativo = await pool.query<{ active: boolean; calories: string }>(
       'SELECT active, calories FROM foods WHERE id = $1',
-      [deactivatedFoodId]
+      [deactivatedFoodId],
     );
-    assert.strictEqual(checkInativo.rows[0].active, false, 'Alimento desativado NÃO pode ser reativado');
+    assert.strictEqual(
+      checkInativo.rows[0].active,
+      false,
+      'Alimento desativado NÃO pode ser reativado',
+    );
     assert.strictEqual(Number(checkInativo.rows[0].calories), 120, 'Nutrientes foram atualizados');
 
     // 2. Verificar se o curado NÃO FOI MODIFICADO
     const checkCurado = await pool.query<{ name: string; calories: string }>(
       'SELECT name, calories FROM foods WHERE id = $1',
-      [curatedFoodId]
+      [curatedFoodId],
     );
-    assert.strictEqual(checkCurado.rows[0].name, 'Curated Test Taco Curado Nome Protegido', 'Nome protegido pelo marcador');
+    assert.strictEqual(
+      checkCurado.rows[0].name,
+      'Curated Test Taco Curado Nome Protegido',
+      'Nome protegido pelo marcador',
+    );
     assert.strictEqual(Number(checkCurado.rows[0].calories), 150, 'Calorias protegidas');
   });
 });

@@ -2,7 +2,10 @@ import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RoutineGoalsSection } from '../../components/profile/RoutineGoalsSection';
 import { ProfileQueryBoundary } from '../../components/profile/ProfileQueryBoundary';
-import { ProfileFormFeedback, ProfileSaveButton } from '../../components/profile/ProfileFormFeedback';
+import {
+  ProfileFormFeedback,
+  ProfileSaveButton,
+} from '../../components/profile/ProfileFormFeedback';
 import { useProfileUpdate } from '../../hooks/useProfileSettings';
 import { routineSchema, type RoutineFormInputs } from '../../types/profile';
 import type { UserProfile } from '../../services/auth.service';
@@ -12,7 +15,13 @@ function RoutineForm({ user }: { user: UserProfile }) {
   const parsedActivity = routineSchema.shape.activityLevel.safeParse(user.activity_level);
   const isUnknownActivity = !!user.activity_level && !parsedActivity.success;
 
-  const { control, setValue, handleSubmit, reset, formState: { errors, isDirty } } = useForm<RoutineFormInputs>({
+  const {
+    control,
+    setValue,
+    handleSubmit,
+    reset,
+    formState: { errors, isDirty },
+  } = useForm<RoutineFormInputs>({
     resolver: zodResolver(routineSchema),
     defaultValues: {
       goal: user.goal,
@@ -20,21 +29,52 @@ function RoutineForm({ user }: { user: UserProfile }) {
     },
   });
   const values = useWatch({ control });
-  return <form noValidate onSubmit={handleSubmit(data => mutation.mutate({ goal: data.goal, activity_level: data.activityLevel }, { onSuccess: () => reset(data) }))} className="border-2 border-border bg-card p-4 sm:p-6 shadow-hard space-y-6">
-    <p className="text-muted-foreground">Seu objetivo e sua atividade física orientam o cálculo das metas automáticas.</p>
-    {isUnknownActivity && (
-      <div role="alert" className="border-2 border-border bg-warning/20 p-4 text-xs font-bold uppercase text-foreground">
-        Atenção: o nível de atividade atual ('{user.activity_level}') não é reconhecido pelo sistema. Por favor, selecione uma das opções válidas abaixo para atualizar sua rotina.
-      </div>
-    )}
-    <RoutineGoalsSection goalValue={values.goal || user.goal} activityLevelValue={values.activityLevel || 'sedentario'} errors={errors}
-      onSelectGoal={value => setValue('goal', routineSchema.shape.goal.parse(value), { shouldDirty: true })}
-      onSelectActivityLevel={value => setValue('activityLevel', routineSchema.shape.activityLevel.parse(value), { shouldDirty: true })} />
-    <ProfileFormFeedback error={mutation.error} success={mutation.isSuccess} />
-    <ProfileSaveButton pending={mutation.isPending} disabled={!isDirty} className="w-full sm:w-auto" />
-  </form>;
+  return (
+    <form
+      noValidate
+      onSubmit={handleSubmit((data) =>
+        mutation.mutate(
+          { goal: data.goal, activity_level: data.activityLevel },
+          { onSuccess: () => reset(data) },
+        ),
+      )}
+      className="border-2 border-border bg-card p-4 sm:p-6 shadow-hard space-y-6"
+    >
+      <p className="text-muted-foreground">
+        Seu objetivo e sua atividade física orientam o cálculo das metas automáticas.
+      </p>
+      {isUnknownActivity && (
+        <div
+          role="alert"
+          className="border-2 border-border bg-warning/20 p-4 text-xs font-bold uppercase text-foreground"
+        >
+          Atenção: o nível de atividade atual ('{user.activity_level}') não é reconhecido pelo
+          sistema. Por favor, selecione uma das opções válidas abaixo para atualizar sua rotina.
+        </div>
+      )}
+      <RoutineGoalsSection
+        goalValue={values.goal || user.goal}
+        activityLevelValue={values.activityLevel || 'sedentario'}
+        errors={errors}
+        onSelectGoal={(value) =>
+          setValue('goal', routineSchema.shape.goal.parse(value), { shouldDirty: true })
+        }
+        onSelectActivityLevel={(value) =>
+          setValue('activityLevel', routineSchema.shape.activityLevel.parse(value), {
+            shouldDirty: true,
+          })
+        }
+      />
+      <ProfileFormFeedback error={mutation.error} success={mutation.isSuccess} />
+      <ProfileSaveButton
+        pending={mutation.isPending}
+        disabled={!isDirty}
+        className="w-full sm:w-auto"
+      />
+    </form>
+  );
 }
 
 export function RoutinePage() {
-  return <ProfileQueryBoundary>{user => <RoutineForm user={user} />}</ProfileQueryBoundary>;
+  return <ProfileQueryBoundary>{(user) => <RoutineForm user={user} />}</ProfileQueryBoundary>;
 }

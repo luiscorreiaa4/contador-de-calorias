@@ -86,7 +86,7 @@ describe('AuthContext Component & State (PC-34 / TST-011)', () => {
     await waitFor(() => {
       expect(result.current.isAuthenticated).toBe(false);
       expect(result.current.user).toBeNull();
-      });
+    });
   });
 
   it('recupera-se graciosamente sem travar quando user_session no localStorage estiver corrompido (A-074)', () => {
@@ -108,7 +108,7 @@ describe('AuthContext Component & State (PC-34 / TST-011)', () => {
         name: 'Usuário Hidratado',
         email: 'hidrata@teste.com',
         onboarding_completed: true,
-      })
+      }),
     );
     localStorage.setItem('auth_session', '1');
 

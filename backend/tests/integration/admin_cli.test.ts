@@ -16,7 +16,7 @@ describe('Admin CLI Service (D-22 / B2 / B3 / B5)', () => {
       async () => {
         await AdminUserService.promoteUserToAdmin('nao-existe@example.com');
       },
-      (err: Error) => err.message.includes('não encontrado')
+      (err: Error) => err.message.includes('não encontrado'),
     );
   });
 
@@ -30,7 +30,7 @@ describe('Admin CLI Service (D-22 / B2 / B3 / B5)', () => {
       async () => {
         await AdminUserService.promoteUserToAdmin(email);
       },
-      (err: Error) => err.message.includes('não possui e-mail verificado')
+      (err: Error) => err.message.includes('não possui e-mail verificado'),
     );
   });
 
@@ -38,20 +38,29 @@ describe('Admin CLI Service (D-22 / B2 / B3 / B5)', () => {
     const email = `tester-cli-promote-${Date.now()}@example.com`;
     const user = await createVerifiedUser({ email, name: 'Candidato Admin' });
 
-    const beforeTv = (await pool.query<{ token_version: number }>('SELECT token_version FROM users WHERE id = $1', [user.id])).rows[0].token_version;
+    const beforeTv = (
+      await pool.query<{ token_version: number }>('SELECT token_version FROM users WHERE id = $1', [
+        user.id,
+      ])
+    ).rows[0].token_version;
 
     const promoted = await AdminUserService.promoteUserToAdmin(email);
     assert.strictEqual(promoted.role, 'admin');
 
     // Verifica que token_version foi incrementado
-    const afterTv = (await pool.query<{ token_version: number; role: string }>('SELECT token_version, role FROM users WHERE id = $1', [user.id])).rows[0];
+    const afterTv = (
+      await pool.query<{ token_version: number; role: string }>(
+        'SELECT token_version, role FROM users WHERE id = $1',
+        [user.id],
+      )
+    ).rows[0];
     assert.strictEqual(afterTv.role, 'admin');
     assert.strictEqual(afterTv.token_version, beforeTv + 1);
 
     // Verifica log de auditoria com actor_type 'cli'
     const auditRes = await pool.query(
       "SELECT * FROM admin_audit_log WHERE entity_type = 'user' AND entity_id = $1 AND action = 'promote_admin'",
-      [user.id]
+      [user.id],
     );
     assert.strictEqual(auditRes.rows.length, 1);
     assert.strictEqual(auditRes.rows[0].actor_type, 'cli');
@@ -61,14 +70,18 @@ describe('Admin CLI Service (D-22 / B2 / B3 / B5)', () => {
 
   it('4. demoteAdminToUser: recusa se for o único administrador do sistema', async () => {
     // Garante que só existe 1 admin no teste
-    await pool.query("UPDATE users SET role = 'user' WHERE role = 'admin' AND email LIKE 'tester-cli-%'");
+    await pool.query(
+      "UPDATE users SET role = 'user' WHERE role = 'admin' AND email LIKE 'tester-cli-%'",
+    );
 
     const soloAdmin = await createVerifiedAdmin({
       email: `tester-cli-solo-${Date.now()}@example.com`,
     });
 
     // Se houver admins globais de outros testes, limpamos no escopo tester-cli
-    const countRes = await pool.query<{ count: string }>("SELECT COUNT(*) FROM users WHERE role = 'admin'");
+    const countRes = await pool.query<{ count: string }>(
+      "SELECT COUNT(*) FROM users WHERE role = 'admin'",
+    );
     const totalAdmins = parseInt(countRes.rows[0].count, 10);
 
     if (totalAdmins === 1) {
@@ -76,7 +89,7 @@ describe('Admin CLI Service (D-22 / B2 / B3 / B5)', () => {
         async () => {
           await AdminUserService.demoteAdminToUser(soloAdmin.email);
         },
-        (err: Error) => err.message.includes('não é permitido rebaixar o único administrador')
+        (err: Error) => err.message.includes('não é permitido rebaixar o único administrador'),
       );
     }
   });
@@ -89,19 +102,28 @@ describe('Admin CLI Service (D-22 / B2 / B3 / B5)', () => {
       email: `tester-cli-adm2-${Date.now()}@example.com`,
     });
 
-    const beforeTv = (await pool.query<{ token_version: number }>('SELECT token_version FROM users WHERE id = $1', [admin1.id])).rows[0].token_version;
+    const beforeTv = (
+      await pool.query<{ token_version: number }>('SELECT token_version FROM users WHERE id = $1', [
+        admin1.id,
+      ])
+    ).rows[0].token_version;
 
     const demoted = await AdminUserService.demoteAdminToUser(admin1.email);
     assert.strictEqual(demoted.role, 'user');
 
-    const after = (await pool.query<{ token_version: number; role: string }>('SELECT token_version, role FROM users WHERE id = $1', [admin1.id])).rows[0];
+    const after = (
+      await pool.query<{ token_version: number; role: string }>(
+        'SELECT token_version, role FROM users WHERE id = $1',
+        [admin1.id],
+      )
+    ).rows[0];
     assert.strictEqual(after.role, 'user');
     assert.strictEqual(after.token_version, beforeTv + 1);
 
     // Auditoria
     const auditRes = await pool.query(
       "SELECT * FROM admin_audit_log WHERE entity_type = 'user' AND entity_id = $1 AND action = 'demote_admin'",
-      [admin1.id]
+      [admin1.id],
     );
     assert.strictEqual(auditRes.rows.length, 1);
     assert.strictEqual(auditRes.rows[0].actor_type, 'cli');

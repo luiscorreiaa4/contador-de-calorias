@@ -11,7 +11,7 @@ describe('Password Security Policy & Dummy Bcrypt Timing Attack Mitigation (PC-0
       name: 'Tester',
       email: 'test@example.com',
       password: 'pass12', // 6 caracteres
-      acceptTerms: true
+      acceptTerms: true,
     });
     assert.strictEqual(res.success, false);
     if (!res.success) {
@@ -24,7 +24,7 @@ describe('Password Security Policy & Dummy Bcrypt Timing Attack Mitigation (PC-0
       name: 'Tester',
       email: 'test@example.com',
       password: 'somenteletras',
-      acceptTerms: true
+      acceptTerms: true,
     });
     assert.strictEqual(res.success, false);
     if (!res.success) {
@@ -37,7 +37,7 @@ describe('Password Security Policy & Dummy Bcrypt Timing Attack Mitigation (PC-0
       name: 'Tester',
       email: 'test@example.com',
       password: '123456789',
-      acceptTerms: true
+      acceptTerms: true,
     });
     assert.strictEqual(res.success, false);
     if (!res.success) {
@@ -50,7 +50,7 @@ describe('Password Security Policy & Dummy Bcrypt Timing Attack Mitigation (PC-0
       name: 'Tester',
       email: 'test@example.com',
       password: 'senhaSegura123', // gitleaks:allow
-      acceptTerms: true
+      acceptTerms: true,
     });
     assert.strictEqual(res.success, true);
   });
@@ -58,13 +58,13 @@ describe('Password Security Policy & Dummy Bcrypt Timing Attack Mitigation (PC-0
   it('updateUserSchema: deve exigir política de senha forte em newPassword', () => {
     const invalidRes = updateUserSchema.safeParse({
       currentPassword: 'currentPassword123', // gitleaks:allow
-      newPassword: 'fraca'
+      newPassword: 'fraca',
     });
     assert.strictEqual(invalidRes.success, false);
 
     const validRes = updateUserSchema.safeParse({
       currentPassword: 'currentPassword123', // gitleaks:allow
-      newPassword: 'novaSenhaForte123' // gitleaks:allow
+      newPassword: 'novaSenhaForte123', // gitleaks:allow
     });
     assert.strictEqual(validRes.success, true);
   });
@@ -74,14 +74,14 @@ describe('Password Security Policy & Dummy Bcrypt Timing Attack Mitigation (PC-0
       async () => {
         await AuthService.login({
           email: 'nao_existe_mesmo@example.com',
-          password: 'qualquerSenha123'
+          password: 'qualquerSenha123',
         });
       },
       (err: { statusCode?: number; message?: string }) => {
         assert.strictEqual(err.statusCode, 401);
         assert.strictEqual(err.message, 'E-mail ou senha incorretos.');
         return true;
-      }
+      },
     );
   });
 });

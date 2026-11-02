@@ -92,7 +92,7 @@ describe('User Body Measurements Evolution (BL-21 / FEAT-C04)', () => {
       const currTime = new Date(measurements[i].measured_at).getTime();
       assert.ok(
         prevTime <= currTime,
-        `Medição ${i - 1} (${measurements[i - 1].measured_at}) deve ser anterior ou igual à medição ${i} (${measurements[i].measured_at})`
+        `Medição ${i - 1} (${measurements[i - 1].measured_at}) deve ser anterior ou igual à medição ${i} (${measurements[i].measured_at})`,
       );
     }
   });
@@ -127,7 +127,9 @@ describe('User Body Measurements Evolution (BL-21 / FEAT-C04)', () => {
   });
 
   it('DELETE /api/users/me/measurements/:id - deve retornar 401 sem autenticação', async () => {
-    const res = await request(app).delete('/api/users/me/measurements/00000000-0000-0000-0000-000000000000');
+    const res = await request(app).delete(
+      '/api/users/me/measurements/00000000-0000-0000-0000-000000000000',
+    );
     assert.strictEqual(res.status, 401);
   });
 

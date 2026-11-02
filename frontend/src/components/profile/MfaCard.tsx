@@ -25,69 +25,143 @@ export function MfaCard() {
   const setup = useMutation({ mutationFn: setupMfa });
   const enable = useMutation({
     mutationFn: enableMfa,
-    onSuccess: (data) => { setRecovery(data.recovery_codes); setCode(''); setup.reset(); refresh(true); },
+    onSuccess: (data) => {
+      setRecovery(data.recovery_codes);
+      setCode('');
+      setup.reset();
+      refresh(true);
+    },
   });
   const disable = useMutation({
     mutationFn: disableMfa,
-    onSuccess: () => { setCode(''); refresh(false); },
+    onSuccess: () => {
+      setCode('');
+      refresh(false);
+    },
   });
 
   const enabled = !!profile.data?.mfa_enabled;
   const error = (setup.error ?? enable.error ?? disable.error)?.message;
 
   return (
-    <section className="border-2 border-border bg-card p-6 shadow-hard space-y-4" aria-labelledby="mfa-title">
-      <h2 id="mfa-title" className="font-heading font-black text-xl uppercase">VERIFICAÇÃO EM DUAS ETAPAS</h2>
+    <section
+      className="border-2 border-border bg-card p-6 shadow-hard space-y-4"
+      aria-labelledby="mfa-title"
+    >
+      <h2 id="mfa-title" className="font-heading font-black text-xl uppercase">
+        VERIFICAÇÃO EM DUAS ETAPAS
+      </h2>
 
       {profile.isPending && <p className="font-bold uppercase text-xs">CARREGANDO...</p>}
-      {profile.isError && <p role="alert" className="text-destructive">Não foi possível carregar o estado do MFA.</p>}
-      {error && <p role="alert" className="text-destructive">{error}</p>}
+      {profile.isError && (
+        <p role="alert" className="text-destructive">
+          Não foi possível carregar o estado do MFA.
+        </p>
+      )}
+      {error && (
+        <p role="alert" className="text-destructive">
+          {error}
+        </p>
+      )}
 
       {recovery && (
         <div role="status" className="border-2 border-border p-4 space-y-2">
-          <p className="font-bold uppercase text-xs">GUARDE ESTES CÓDIGOS DE RECUPERAÇÃO. ELES NÃO SERÃO EXIBIDOS DE NOVO.</p>
+          <p className="font-bold uppercase text-xs">
+            GUARDE ESTES CÓDIGOS DE RECUPERAÇÃO. ELES NÃO SERÃO EXIBIDOS DE NOVO.
+          </p>
           <ul className="font-mono grid grid-cols-2 gap-1">
-            {recovery.map((c) => <li key={c}>{c}</li>)}
+            {recovery.map((c) => (
+              <li key={c}>{c}</li>
+            ))}
           </ul>
-          <button type="button" className={btn} onClick={() => setRecovery(null)}>JÁ GUARDEI</button>
+          <button type="button" className={btn} onClick={() => setRecovery(null)}>
+            JÁ GUARDEI
+          </button>
         </div>
       )}
 
       {profile.data && !enabled && !setup.data && (
         <>
-          <p className="text-muted-foreground">Proteja a conta com um código gerado por um app autenticador.</p>
-          <button type="button" className={btn} disabled={setup.isPending} onClick={() => setup.mutate()}>ATIVAR MFA</button>
+          <p className="text-muted-foreground">
+            Proteja a conta com um código gerado por um app autenticador.
+          </p>
+          <button
+            type="button"
+            className={btn}
+            disabled={setup.isPending}
+            onClick={() => setup.mutate()}
+          >
+            ATIVAR MFA
+          </button>
         </>
       )}
 
       {!enabled && setup.data && (
         <form
           className="space-y-3"
-          onSubmit={(e) => { e.preventDefault(); enable.mutate(code.trim()); }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            enable.mutate(code.trim());
+          }}
         >
           <p className="text-muted-foreground">
-            No app autenticador, adicione uma conta manualmente (tipo: baseado em tempo) com esta chave:
+            No app autenticador, adicione uma conta manualmente (tipo: baseado em tempo) com esta
+            chave:
           </p>
           <p className="font-mono break-all select-all font-bold">{setup.data.secret}</p>
-          <label htmlFor="mfa-enable-code" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+          <label
+            htmlFor="mfa-enable-code"
+            className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground"
+          >
             CÓDIGO DE 6 DÍGITOS
           </label>
-          <input id="mfa-enable-code" className={field} inputMode="numeric" autoComplete="one-time-code" value={code} onChange={(e) => setCode(e.target.value)} />
-          <button type="submit" className={btn} disabled={enable.isPending || code.trim().length < 6}>CONFIRMAR E ATIVAR</button>
+          <input
+            id="mfa-enable-code"
+            className={field}
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+          />
+          <button
+            type="submit"
+            className={btn}
+            disabled={enable.isPending || code.trim().length < 6}
+          >
+            CONFIRMAR E ATIVAR
+          </button>
         </form>
       )}
 
       {enabled && (
         <form
           className="space-y-3"
-          onSubmit={(e) => { e.preventDefault(); disable.mutate(code.trim()); }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            disable.mutate(code.trim());
+          }}
         >
           <p className="font-bold uppercase text-xs">MFA ATIVO</p>
-          <label htmlFor="mfa-disable-code" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+          <label
+            htmlFor="mfa-disable-code"
+            className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground"
+          >
             CÓDIGO OU CÓDIGO DE RECUPERAÇÃO PARA DESATIVAR
           </label>
-          <input id="mfa-disable-code" className={field} autoComplete="one-time-code" value={code} onChange={(e) => setCode(e.target.value)} />
-          <button type="submit" className={btn} disabled={disable.isPending || code.trim().length < 6}>DESATIVAR MFA</button>
+          <input
+            id="mfa-disable-code"
+            className={field}
+            autoComplete="one-time-code"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+          />
+          <button
+            type="submit"
+            className={btn}
+            disabled={disable.isPending || code.trim().length < 6}
+          >
+            DESATIVAR MFA
+          </button>
         </form>
       )}
     </section>

@@ -34,12 +34,7 @@ const PG_ERROR_MAP: Record<string, PgMappedError> = {
   '23514': { statusCode: 400, message: 'Os dados fornecidos violam as restrições permitidas.' },
 };
 
-export function errorHandler(
-  err: CustomError,
-  req: Request,
-  res: Response,
-  _next: NextFunction
-) {
+export function errorHandler(err: CustomError, req: Request, res: Response, _next: NextFunction) {
   // Trata erros de sintaxe JSON do body-parser (A-017)
   if (
     (err instanceof SyntaxError && err.status === 400 && 'body' in err) ||
@@ -61,7 +56,8 @@ export function errorHandler(
   }
 
   const statusCode = err.statusCode ?? err.status ?? 500;
-  const message = statusCode >= 500 ? 'Erro interno no servidor.' : (err.message || 'Erro na requisição.');
+  const message =
+    statusCode >= 500 ? 'Erro interno no servidor.' : err.message || 'Erro na requisição.';
   const requestId = (req as AuthenticatedRequest).requestId ?? req.headers['x-request-id'];
 
   if (statusCode >= 500) {

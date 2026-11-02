@@ -13,7 +13,7 @@ function renderBar(path = '/') {
       <NewMealModalProvider>
         <BottomNav />
       </NewMealModalProvider>
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 }
 
@@ -24,7 +24,10 @@ describe('BottomNav', () => {
     expect(nav).toHaveClass('md:hidden');
     expect(within(nav).getAllByRole('listitem')).toHaveLength(4);
     BOTTOM_NAV_ITEMS.forEach((item) => {
-      expect(within(nav).getByRole('link', { name: item.shortLabel })).toHaveAttribute('href', item.to);
+      expect(within(nav).getByRole('link', { name: item.shortLabel })).toHaveAttribute(
+        'href',
+        item.to,
+      );
     });
     expect(within(nav).getByRole('button', { name: 'Nova refeição' })).toBeInTheDocument();
   });
@@ -40,7 +43,9 @@ describe('BottomNav', () => {
   ])('em %s só o slot "%s" tem aria-current', (path, active) => {
     renderBar(path);
     const nav = screen.getByRole('navigation', { name: 'Navegação inferior' });
-    const current = within(nav).getAllByRole('link').filter((link) => link.getAttribute('aria-current') === 'page');
+    const current = within(nav)
+      .getAllByRole('link')
+      .filter((link) => link.getAttribute('aria-current') === 'page');
     expect(current.map((link) => link.getAttribute('aria-label'))).toEqual([active]);
   });
 
@@ -61,14 +66,19 @@ describe('BottomNav', () => {
 
   it('o "+" nunca recebe aria-current', () => {
     renderBar('/');
-    expect(screen.getByRole('button', { name: 'Nova refeição' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('button', { name: 'Nova refeição' })).not.toHaveAttribute(
+      'aria-current',
+    );
   });
 
-  it.each(['/', '/evolucao/corpo', '/conta'])('o "+" abre o modal de nova refeição em %s', async (path) => {
-    renderBar(path);
-    await userEvent.click(screen.getByRole('button', { name: 'Nova refeição' }));
-    expect(await screen.findByRole('dialog')).toBeInTheDocument();
-  });
+  it.each(['/', '/evolucao/corpo', '/conta'])(
+    'o "+" abre o modal de nova refeição em %s',
+    async (path) => {
+      renderBar(path);
+      await userEvent.click(screen.getByRole('button', { name: 'Nova refeição' }));
+      expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    },
+  );
 
   it('some enquanto um campo de texto está em foco e volta ao sair dele', async () => {
     render(
@@ -77,7 +87,7 @@ describe('BottomNav', () => {
           <input aria-label="busca" />
           <BottomNav />
         </NewMealModalProvider>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
     const nav = screen.getByRole('navigation', { name: 'Navegação inferior' });
     expect(nav).toHaveClass('translate-y-0');
@@ -95,7 +105,7 @@ describe('BottomNav', () => {
       'supports-[backdrop-filter]:bg-background/85',
       'backdrop-blur-2xl',
       'pb-[env(safe-area-inset-bottom)]',
-      'z-40'
+      'z-40',
     );
   });
 });

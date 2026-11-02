@@ -16,11 +16,17 @@ function renderArea(path = '/', children: React.ReactNode = <p>conteúdo</p>, en
     <MemoryRouter initialEntries={[path]}>
       <SwipeMain enabled={enabled}>{children}</SwipeMain>
       <LocationProbe />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 }
 
-function fire(target: Element, type: TouchType, touches: Point[], changed: Point[], timeStamp: number) {
+function fire(
+  target: Element,
+  type: TouchType,
+  touches: Point[],
+  changed: Point[],
+  timeStamp: number,
+) {
   const event = new Event(type, { bubbles: true, cancelable: true });
   const toList = (points: Point[]) => points.map((p) => ({ clientX: p.x, clientY: p.y }));
   Object.defineProperty(event, 'touches', { value: toList(touches) });
@@ -204,27 +210,42 @@ describe('useSwipeNav — proteções', () => {
   });
 
   it('ignora toque dentro de [data-no-swipe]', () => {
-    renderArea('/', <div data-no-swipe><p>conteúdo</p></div>);
+    renderArea(
+      '/',
+      <div data-no-swipe>
+        <p>conteúdo</p>
+      </div>,
+    );
     swipe(screen.getByText('conteúdo'), LEFT.from, LEFT.to);
     settle();
     expect(path()).toBe('/');
   });
 
   it('ignora toque dentro de role="slider"', () => {
-    renderArea('/', <div role="slider" aria-label="meta" aria-valuenow={1}><p>conteúdo</p></div>);
+    renderArea(
+      '/',
+      <div role="slider" aria-label="meta" aria-valuenow={1}>
+        <p>conteúdo</p>
+      </div>,
+    );
     swipe(screen.getByText('conteúdo'), LEFT.from, LEFT.to);
     settle();
     expect(path()).toBe('/');
   });
 
   it('ignora toque dentro de ancestral rolável na horizontal', () => {
-    renderArea('/', <div data-testid="scroller"><p>conteúdo</p></div>);
+    renderArea(
+      '/',
+      <div data-testid="scroller">
+        <p>conteúdo</p>
+      </div>,
+    );
     const scroller = screen.getByTestId('scroller');
     Object.defineProperty(scroller, 'scrollWidth', { value: 600, configurable: true });
     Object.defineProperty(scroller, 'clientWidth', { value: 200, configurable: true });
     const original = window.getComputedStyle.bind(window);
     vi.spyOn(window, 'getComputedStyle').mockImplementation((element: Element) =>
-      element === scroller ? ({ overflowX: 'auto' } as CSSStyleDeclaration) : original(element)
+      element === scroller ? ({ overflowX: 'auto' } as CSSStyleDeclaration) : original(element),
     );
     swipe(screen.getByText('conteúdo'), LEFT.from, LEFT.to);
     settle();
@@ -232,13 +253,18 @@ describe('useSwipeNav — proteções', () => {
   });
 
   it('overflow-x auto sem conteúdo excedente não bloqueia', () => {
-    renderArea('/', <div data-testid="scroller"><p>conteúdo</p></div>);
+    renderArea(
+      '/',
+      <div data-testid="scroller">
+        <p>conteúdo</p>
+      </div>,
+    );
     const scroller = screen.getByTestId('scroller');
     Object.defineProperty(scroller, 'scrollWidth', { value: 200, configurable: true });
     Object.defineProperty(scroller, 'clientWidth', { value: 200, configurable: true });
     const original = window.getComputedStyle.bind(window);
     vi.spyOn(window, 'getComputedStyle').mockImplementation((element: Element) =>
-      element === scroller ? ({ overflowX: 'auto' } as CSSStyleDeclaration) : original(element)
+      element === scroller ? ({ overflowX: 'auto' } as CSSStyleDeclaration) : original(element),
     );
     swipe(screen.getByText('conteúdo'), LEFT.from, LEFT.to);
     settle();
@@ -255,7 +281,16 @@ describe('useSwipeNav — proteções', () => {
 
     fire(target, 'touchstart', [LEFT.from], [LEFT.from], 2000);
     fire(target, 'touchmove', [{ x: 250, y: 301 }], [{ x: 250, y: 301 }], 2050);
-    fire(target, 'touchmove', [{ x: 200, y: 301 }, { x: 50, y: 50 }], [{ x: 50, y: 50 }], 2100);
+    fire(
+      target,
+      'touchmove',
+      [
+        { x: 200, y: 301 },
+        { x: 50, y: 50 },
+      ],
+      [{ x: 50, y: 50 }],
+      2100,
+    );
     settle();
     fire(target, 'touchend', [], [LEFT.to], 2150);
     settle();
@@ -265,7 +300,9 @@ describe('useSwipeNav — proteções', () => {
 
   it('ignora com texto selecionado', () => {
     renderArea('/');
-    vi.spyOn(window, 'getSelection').mockReturnValue({ toString: () => 'trecho' } as unknown as Selection);
+    vi.spyOn(window, 'getSelection').mockReturnValue({
+      toString: () => 'trecho',
+    } as unknown as Selection);
     swipe(screen.getByText('conteúdo'), LEFT.from, LEFT.to);
     settle();
     expect(path()).toBe('/');

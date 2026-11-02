@@ -14,7 +14,7 @@ describe('Resiliência de Infraestrutura (PC-11)', () => {
     assert.strictEqual(
       options?.statement_timeout,
       10000,
-      'statement_timeout deve ser de 10000ms (10 segundos)'
+      'statement_timeout deve ser de 10000ms (10 segundos)',
     );
   });
 
@@ -29,7 +29,8 @@ describe('Resiliência de Infraestrutura (PC-11)', () => {
   it('GET /health deve retornar status 503 quando a sonda do banco falhar', async () => {
     const originalQuery = pool.query;
     try {
-      (pool as unknown as { query: () => Promise<never> }).query = () => Promise.reject(new Error('Connection failure'));
+      (pool as unknown as { query: () => Promise<never> }).query = () =>
+        Promise.reject(new Error('Connection failure'));
       const res = await request(app).get('/health');
       assert.strictEqual(res.status, 503);
       assert.strictEqual(res.body.success, false);

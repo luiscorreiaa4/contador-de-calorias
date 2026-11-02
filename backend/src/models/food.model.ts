@@ -5,7 +5,8 @@ interface FoodRowWithCount extends Food {
   total_count?: string;
 }
 
-const FOOD_COLUMNS = 'id, name, calories, proteins, carbs, fats, base_unit, serving_weight, unit_name, unit_weight, source';
+const FOOD_COLUMNS =
+  'id, name, calories, proteins, carbs, fats, base_unit, serving_weight, unit_name, unit_weight, source';
 
 /**
  * Converte de forma centralizada uma linha do banco para a entidade Food tipada (A-014).
@@ -38,7 +39,7 @@ export async function searchFoods(
   query: string,
   limit: number,
   offset: number,
-  userId?: string
+  userId?: string,
 ): Promise<{ foods: Food[]; total: number }> {
   let rows: FoodRowWithCount[];
 
@@ -120,7 +121,7 @@ export async function findById(id: string, userId?: string): Promise<Food | null
 export async function findByIds(
   ids: string[],
   userId?: string,
-  options?: { includeInactive?: boolean }
+  options?: { includeInactive?: boolean },
 ): Promise<(Food & { active?: boolean })[]> {
   if (ids.length === 0) return [];
   const activeFilter = options?.includeInactive ? '' : ' AND active = true';
@@ -177,7 +178,7 @@ export async function addFavoriteFood(userId: string, foodId: string): Promise<b
      VALUES ($1, $2)
      ON CONFLICT (user_id, food_id) DO NOTHING
      RETURNING food_id`,
-    [userId, foodId]
+    [userId, foodId],
   );
   return (result.rowCount ?? 0) > 0;
 }
@@ -185,7 +186,7 @@ export async function addFavoriteFood(userId: string, foodId: string): Promise<b
 export async function removeFavoriteFood(userId: string, foodId: string): Promise<boolean> {
   const result = await pool.query(
     `DELETE FROM user_favorite_foods WHERE user_id = $1 AND food_id = $2`,
-    [userId, foodId]
+    [userId, foodId],
   );
   return (result.rowCount ?? 0) > 0;
 }
@@ -193,9 +194,9 @@ export async function removeFavoriteFood(userId: string, foodId: string): Promis
 export async function getFavoriteFoodIds(userId: string): Promise<string[]> {
   const result = await pool.query<{ food_id: string }>(
     `SELECT food_id FROM user_favorite_foods WHERE user_id = $1 LIMIT 100`,
-    [userId]
+    [userId],
   );
-  return result.rows.map(r => r.food_id);
+  return result.rows.map((r) => r.food_id);
 }
 
 export async function createCustomFood(
@@ -210,7 +211,7 @@ export async function createCustomFood(
     serving_weight?: number;
     unit_name?: string;
     unit_weight?: number;
-  }
+  },
 ): Promise<Food> {
   const result = await pool.query(
     `INSERT INTO foods (
@@ -229,7 +230,7 @@ export async function createCustomFood(
       data.unit_name ? data.unit_name.trim() : null,
       data.unit_weight || null,
       userId,
-    ]
+    ],
   );
   return mapFoodRow(result.rows[0] as unknown as Record<string, unknown>);
 }

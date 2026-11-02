@@ -93,7 +93,7 @@ async function main() {
     for (const days of periods) {
       console.log(`\n--- EXPLAIN ANALYZE: Período = ${days} dias ---`);
       const res = await pool.query(statsQuery, [userId, days, endDate]);
-      const plan = res.rows.map(r => r['QUERY PLAN']).join('\n');
+      const plan = res.rows.map((r) => r['QUERY PLAN']).join('\n');
       console.log(plan);
     }
   } finally {
@@ -101,7 +101,7 @@ async function main() {
   }
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error(err);
   process.exit(1);
 });

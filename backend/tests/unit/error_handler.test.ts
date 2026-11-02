@@ -40,9 +40,12 @@ describe('errorHandler Security and PG Mapping (#12)', () => {
   const mockNext = () => {};
 
   it('deve mapear erro de violação de unicidade (23505) para 409', () => {
-    const pgError = Object.assign(new Error('duplicate key value violates unique constraint "users_email_key"'), {
-      code: '23505',
-    });
+    const pgError = Object.assign(
+      new Error('duplicate key value violates unique constraint "users_email_key"'),
+      {
+        code: '23505',
+      },
+    );
     const res = mockRes();
 
     errorHandler(pgError, mockReq, res, mockNext);

@@ -18,40 +18,36 @@ export async function createUser(
   name: string,
   email: string,
   passwordHash: string,
-  termsAcceptedAt: Date
+  termsAcceptedAt: Date,
 ): Promise<UserWithoutPassword> {
   const normalizedEmail = email.trim().toLowerCase();
   const result = await pool.query<UserWithoutPassword>(
     `INSERT INTO users (name, email, password_hash, terms_accepted_at)
      VALUES ($1, $2, $3, $4)
      RETURNING id, name, email, role, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, terms_accepted_at, email_verified_at, token_version, created_at, updated_at`,
-    [name.trim(), normalizedEmail, passwordHash, termsAcceptedAt]
+    [name.trim(), normalizedEmail, passwordHash, termsAcceptedAt],
   );
   return mapUserRow(result.rows[0])!;
 }
 
 export async function findUserByEmail(email: string): Promise<User | null> {
   const normalizedEmail = email.trim().toLowerCase();
-  const result = await pool.query<User>(
-    'SELECT * FROM users WHERE lower(email) = lower($1)',
-    [normalizedEmail]
-  );
+  const result = await pool.query<User>('SELECT * FROM users WHERE lower(email) = lower($1)', [
+    normalizedEmail,
+  ]);
   return result.rows[0] ?? null;
 }
 
 export async function findUserById(id: string): Promise<UserWithoutPassword | null> {
   const result = await pool.query<UserWithoutPassword>(
     'SELECT id, name, email, role, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, terms_accepted_at, email_verified_at, token_version, (mfa_enabled_at IS NOT NULL) AS mfa_enabled, created_at, updated_at FROM users WHERE id = $1',
-    [id]
+    [id],
   );
   return mapUserRow(result.rows[0]);
 }
 
 export async function findFullUserById(id: string): Promise<User | null> {
-  const result = await pool.query<User>(
-    'SELECT * FROM users WHERE id = $1',
-    [id]
-  );
+  const result = await pool.query<User>('SELECT * FROM users WHERE id = $1', [id]);
   return result.rows[0] ?? null;
 }
 
@@ -73,7 +69,7 @@ export async function updateUser(
     onboarding_completed?: boolean;
     emailVerifiedAt?: Date | null;
   },
-  client?: PoolClient
+  client?: PoolClient,
 ): Promise<UserWithoutPassword> {
   const updates: string[] = [];
   const values: unknown[] = [];
@@ -165,4 +161,3 @@ export async function deleteUser(id: string, client?: PoolClient): Promise<boole
   const result = await db.query('DELETE FROM users WHERE id = $1', [id]);
   return (result.rowCount ?? 0) > 0;
 }
-

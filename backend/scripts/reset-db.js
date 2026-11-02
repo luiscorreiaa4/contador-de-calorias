@@ -3,7 +3,8 @@ import { pool } from '../src/database/pool.js';
 
 export function validateEnvironment(env = process.env) {
   if (env.NODE_ENV !== 'test' || !env.DB_NAME?.endsWith('_test')) {
-    const errorMsg = '❌ Proibido rodar reset-db fora do ambiente isolado de testes (_test com NODE_ENV=test)!';
+    const errorMsg =
+      '❌ Proibido rodar reset-db fora do ambiente isolado de testes (_test com NODE_ENV=test)!';
     console.error(errorMsg);
     throw new Error(errorMsg);
   }

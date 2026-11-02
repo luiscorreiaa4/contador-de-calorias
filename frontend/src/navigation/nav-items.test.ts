@@ -44,7 +44,9 @@ describe('nav-items', () => {
   it('Catálogo só aparece para admin', () => {
     expect(visibleItems(DESKTOP_NAV_ITEMS, false).map((i) => i.id)).not.toContain('catalogo');
     expect(visibleItems(DESKTOP_NAV_ITEMS, true).map((i) => i.id)).toContain('catalogo');
-    expect(visibleItems(ACCOUNT_LINK_ITEMS, false).map((i) => i.id)).toEqual(['perfil', 'configuracoes']);
+    expect(visibleItems(ACCOUNT_LINK_ITEMS, false).map((i) => i.id)).toEqual([
+      'perfil',
+      'configuracoes',
+    ]);
   });
-
 });

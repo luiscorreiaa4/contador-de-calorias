@@ -10,11 +10,18 @@ const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 describe('MfaCard', () => {
   it('ativa o MFA e exibe os códigos de recuperação uma vez', async () => {
     server.use(
-      http.get(`${baseURL}/users/me`, () => HttpResponse.json({ success: true, data: { id: '1', mfa_enabled: false } })),
+      http.get(`${baseURL}/users/me`, () =>
+        HttpResponse.json({ success: true, data: { id: '1', mfa_enabled: false } }),
+      ),
       http.post(`${baseURL}/users/me/mfa/setup`, () =>
-        HttpResponse.json({ success: true, data: { secret: 'ABCDEFGH', otpauth_url: 'otpauth://totp/x' } })),
+        HttpResponse.json({
+          success: true,
+          data: { secret: 'ABCDEFGH', otpauth_url: 'otpauth://totp/x' },
+        }),
+      ),
       http.post(`${baseURL}/users/me/mfa/enable`, () =>
-        HttpResponse.json({ success: true, data: { recovery_codes: ['AAAA-1111'] } })),
+        HttpResponse.json({ success: true, data: { recovery_codes: ['AAAA-1111'] } }),
+      ),
     );
     render(<MfaCard />);
     await userEvent.click(await screen.findByRole('button', { name: /ativar mfa/i }));

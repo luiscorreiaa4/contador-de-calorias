@@ -9,7 +9,7 @@ const renderForm = (props: { onSuccess?: (email: string) => void } = {}) =>
   render(
     <MemoryRouter>
       <RegisterForm {...props} />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 
 describe('RegisterForm', () => {
@@ -29,7 +29,10 @@ describe('RegisterForm', () => {
 
     await userEvent.type(screen.getByLabelText(/nome/i), 'Test');
     await userEvent.type(screen.getByLabelText(/email/i), 'novo@example.com');
-    await userEvent.type(screen.getByLabelText(/senha/i, { selector: 'input#register-password' }), 'senhaSegura123');
+    await userEvent.type(
+      screen.getByLabelText(/senha/i, { selector: 'input#register-password' }),
+      'senhaSegura123',
+    );
     await userEvent.type(screen.getByLabelText(/confirmar senha/i), 'senhaSegura123');
     await userEvent.click(screen.getByRole('button', { name: /criar conta/i }));
 
@@ -39,7 +42,10 @@ describe('RegisterForm', () => {
   it('deve exibir erro se a senha for fraca (menos de 8 caracteres ou sem letra/número)', async () => {
     renderForm();
 
-    await userEvent.type(screen.getByLabelText(/senha/i, { selector: 'input#register-password' }), 'fraca');
+    await userEvent.type(
+      screen.getByLabelText(/senha/i, { selector: 'input#register-password' }),
+      'fraca',
+    );
     await userEvent.click(screen.getByRole('button', { name: /criar conta/i }));
 
     expect(await screen.findByText(/mínimo 8 caracteres com letra e número/i)).toBeInTheDocument();
@@ -48,7 +54,10 @@ describe('RegisterForm', () => {
   it('deve exibir erro se senhas não coincidem', async () => {
     renderForm();
 
-    await userEvent.type(screen.getByLabelText(/senha/i, { selector: 'input#register-password' }), 'senhaSegura123');
+    await userEvent.type(
+      screen.getByLabelText(/senha/i, { selector: 'input#register-password' }),
+      'senhaSegura123',
+    );
     await userEvent.type(screen.getByLabelText(/confirmar senha/i), 'outraSenha123');
     await userEvent.click(screen.getByRole('checkbox', { name: /aceito os termos/i }));
     await userEvent.click(screen.getByRole('button', { name: /criar conta/i }));
@@ -62,7 +71,10 @@ describe('RegisterForm', () => {
 
     await userEvent.type(screen.getByLabelText(/nome/i), 'Test');
     await userEvent.type(screen.getByLabelText(/email/i), 'test@example.com');
-    await userEvent.type(screen.getByLabelText(/senha/i, { selector: 'input#register-password' }), 'senhaSegura123');
+    await userEvent.type(
+      screen.getByLabelText(/senha/i, { selector: 'input#register-password' }),
+      'senhaSegura123',
+    );
     await userEvent.type(screen.getByLabelText(/confirmar senha/i), 'senhaSegura123');
     await userEvent.click(screen.getByRole('checkbox', { name: /aceito os termos/i }));
     await userEvent.click(screen.getByRole('button', { name: /criar conta/i }));
@@ -78,7 +90,10 @@ describe('RegisterForm', () => {
 
     await userEvent.type(screen.getByLabelText(/nome/i), 'Novo Usuário');
     await userEvent.type(screen.getByLabelText(/email/i), 'novo@example.com');
-    await userEvent.type(screen.getByLabelText(/senha/i, { selector: 'input#register-password' }), 'senhaSegura123');
+    await userEvent.type(
+      screen.getByLabelText(/senha/i, { selector: 'input#register-password' }),
+      'senhaSegura123',
+    );
     await userEvent.type(screen.getByLabelText(/confirmar senha/i), 'senhaSegura123');
     await userEvent.click(screen.getByRole('checkbox', { name: /aceito os termos/i }));
     await userEvent.click(screen.getByRole('button', { name: /criar conta/i }));

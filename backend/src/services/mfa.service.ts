@@ -41,7 +41,8 @@ export async function setupMfa(userId: string): Promise<{ secret: string; otpaut
 /** Confirma o primeiro código, ativa o MFA e devolve os códigos de recuperação (exibidos uma vez). */
 export async function enableMfa(userId: string, code: string): Promise<string[]> {
   const state = await AuthModel.getMfaState(userId);
-  if (!state?.mfa_secret_enc || state.mfa_enabled_at) fail('Inicie a configuração do MFA primeiro.', 400);
+  if (!state?.mfa_secret_enc || state.mfa_enabled_at)
+    fail('Inicie a configuração do MFA primeiro.', 400);
   if (!verifyTotp(decryptSecret(state.mfa_secret_enc), code)) fail('Código inválido.', 400);
   const codes = generateRecoveryCodes();
   await AuthModel.enableMfa(userId, codes.map(hashRecoveryCode));

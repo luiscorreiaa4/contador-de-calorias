@@ -22,11 +22,13 @@ describe('Router & Navigation (PC-21 / D-16)', () => {
         <AuthProvider>
           <RouterProvider router={router} />
         </AuthProvider>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 1, name: /bem-vindo de volta/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { level: 1, name: /bem-vindo de volta/i }),
+      ).toBeInTheDocument();
     });
     expect(router.state.location.pathname).toBe('/login');
   });
@@ -38,7 +40,7 @@ describe('Router & Navigation (PC-21 / D-16)', () => {
         <AuthProvider>
           <RouterProvider router={router} />
         </AuthProvider>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     const registerTab = await screen.findByRole('tab', { name: /criar conta/i });
@@ -50,7 +52,12 @@ describe('Router & Navigation (PC-21 / D-16)', () => {
     localStorage.setItem('auth_session', 'test_token');
     localStorage.setItem(
       'user_session',
-      JSON.stringify({ id: '1', name: 'Tester', email: 'tester@test.com', onboarding_completed: false })
+      JSON.stringify({
+        id: '1',
+        name: 'Tester',
+        email: 'tester@test.com',
+        onboarding_completed: false,
+      }),
     );
 
     const router = createTestRouter(['/']);
@@ -59,7 +66,7 @@ describe('Router & Navigation (PC-21 / D-16)', () => {
         <AuthProvider>
           <RouterProvider router={router} />
         </AuthProvider>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     await waitFor(() => {
@@ -71,7 +78,12 @@ describe('Router & Navigation (PC-21 / D-16)', () => {
     localStorage.setItem('auth_session', 'test_token');
     localStorage.setItem(
       'user_session',
-      JSON.stringify({ id: '1', name: 'Tester', email: 'tester@test.com', onboarding_completed: true })
+      JSON.stringify({
+        id: '1',
+        name: 'Tester',
+        email: 'tester@test.com',
+        onboarding_completed: true,
+      }),
     );
 
     const router = createTestRouter(['/estatisticas']);
@@ -80,7 +92,7 @@ describe('Router & Navigation (PC-21 / D-16)', () => {
         <AuthProvider>
           <RouterProvider router={router} />
         </AuthProvider>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     await waitFor(() => {
@@ -92,7 +104,12 @@ describe('Router & Navigation (PC-21 / D-16)', () => {
     localStorage.setItem('auth_session', 'test_token');
     localStorage.setItem(
       'user_session',
-      JSON.stringify({ id: '1', name: 'Tester', email: 'tester@test.com', onboarding_completed: true })
+      JSON.stringify({
+        id: '1',
+        name: 'Tester',
+        email: 'tester@test.com',
+        onboarding_completed: true,
+      }),
     );
 
     const router = createTestRouter(['/perfil']);
@@ -101,7 +118,7 @@ describe('Router & Navigation (PC-21 / D-16)', () => {
         <AuthProvider>
           <RouterProvider router={router} />
         </AuthProvider>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     await waitFor(() => {
@@ -116,11 +133,11 @@ describe('Router & Navigation (PC-21 / D-16)', () => {
         <AuthProvider>
           <RouterProvider router={router} />
         </AuthProvider>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: /recuperar senha/i }, { timeout: 5000 })
+      await screen.findByRole('heading', { level: 1, name: /recuperar senha/i }, { timeout: 5000 }),
     ).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/esqueci-senha');
   });
@@ -132,11 +149,11 @@ describe('Router & Navigation (PC-21 / D-16)', () => {
         <AuthProvider>
           <RouterProvider router={router} />
         </AuthProvider>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: /confirme seu e-mail/i })
+      await screen.findByRole('heading', { level: 1, name: /confirme seu e-mail/i }),
     ).toBeInTheDocument();
     expect(screen.getByLabelText(/e-mail da conta/i)).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/verificar-email');

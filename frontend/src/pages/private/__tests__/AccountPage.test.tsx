@@ -9,14 +9,20 @@ function renderPage(role: 'user' | 'admin' = 'user') {
   localStorage.setItem('auth_session', role === 'admin' ? 'admin-token' : 'test-token');
   localStorage.setItem(
     'user_session',
-    JSON.stringify({ id: '1', name: 'Test User', email: 'test@example.com', role, onboarding_completed: true })
+    JSON.stringify({
+      id: '1',
+      name: 'Test User',
+      email: 'test@example.com',
+      role,
+      onboarding_completed: true,
+    }),
   );
   return render(
     <MemoryRouter>
       <ThemeProvider>
         <AccountPage />
       </ThemeProvider>
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 }
 
@@ -35,13 +41,19 @@ describe('AccountPage', () => {
   it('oferece Perfil e Configurações (do módulo único) e esconde o Catálogo de usuário comum', async () => {
     renderPage();
     expect(await screen.findByRole('link', { name: /perfil/i })).toHaveAttribute('href', '/perfil');
-    expect(screen.getByRole('link', { name: /configurações/i })).toHaveAttribute('href', '/configuracoes');
+    expect(screen.getByRole('link', { name: /configurações/i })).toHaveAttribute(
+      'href',
+      '/configuracoes',
+    );
     expect(screen.queryByRole('link', { name: /catálogo/i })).not.toBeInTheDocument();
   });
 
   it('mostra o Catálogo para administrador', async () => {
     renderPage('admin');
-    expect(await screen.findByRole('link', { name: /catálogo/i })).toHaveAttribute('href', '/admin/alimentos');
+    expect(await screen.findByRole('link', { name: /catálogo/i })).toHaveAttribute(
+      'href',
+      '/admin/alimentos',
+    );
   });
 
   it('alterna o tema', async () => {

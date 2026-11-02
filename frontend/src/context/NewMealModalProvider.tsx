@@ -6,7 +6,7 @@ import { NewMealModalContext, type OpenNewMealOptions } from './NewMealModalCont
 const NewMealModal = lazy(() =>
   import('../components/meals/NewMealModal').then((m) => ({
     default: m.NewMealModal,
-  }))
+  })),
 );
 
 interface ModalState {
@@ -20,7 +20,11 @@ export const NewMealModalProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [state, setState] = useState<ModalState>({ isOpen: false, date: '', meal: null });
 
   const open = useCallback((options: OpenNewMealOptions = {}) => {
-    setState({ isOpen: true, date: options.date ?? getLocalDateString(), meal: options.meal ?? null });
+    setState({
+      isOpen: true,
+      date: options.date ?? getLocalDateString(),
+      meal: options.meal ?? null,
+    });
   }, []);
 
   const close = useCallback(() => {
@@ -34,7 +38,12 @@ export const NewMealModalProvider: React.FC<{ children: React.ReactNode }> = ({ 
       {children}
       {state.isOpen && (
         <Suspense fallback={null}>
-          <NewMealModal isOpen={state.isOpen} onClose={close} mealToEdit={state.meal} mealDate={state.date} />
+          <NewMealModal
+            isOpen={state.isOpen}
+            onClose={close}
+            mealToEdit={state.meal}
+            mealDate={state.date}
+          />
         </Suspense>
       )}
     </NewMealModalContext.Provider>

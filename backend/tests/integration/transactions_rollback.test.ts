@@ -9,10 +9,14 @@ import { createVerifiedUser } from '../helpers/auth.js';
 
 describe('Atomic Transactions & Rollback on Failure (PC-17 / ARCH-002 / TST-012)', () => {
   closeTestPool(async () => {
-      await pool.query('ALTER TABLE body_measurements DROP CONSTRAINT IF EXISTS check_test_onboarding_fail');
-      await pool.query('ALTER TABLE body_measurements DROP CONSTRAINT IF EXISTS check_test_profile_fail');
-      await pool.query('ALTER TABLE users DROP CONSTRAINT IF EXISTS check_test_goals_fail');
-      await cleanupTestData('tester-tx-%');
+    await pool.query(
+      'ALTER TABLE body_measurements DROP CONSTRAINT IF EXISTS check_test_onboarding_fail',
+    );
+    await pool.query(
+      'ALTER TABLE body_measurements DROP CONSTRAINT IF EXISTS check_test_profile_fail',
+    );
+    await pool.query('ALTER TABLE users DROP CONSTRAINT IF EXISTS check_test_goals_fail');
+    await cleanupTestData('tester-tx-%');
   });
 
   it('completeOnboarding: deve fazer rollback total se falhar ao salvar body_measurement', async () => {
@@ -25,35 +29,42 @@ describe('Atomic Transactions & Rollback on Failure (PC-17 / ARCH-002 / TST-012)
     const userId = auth.id;
 
     // Adiciona restrição no PostgreSQL para forçar falha na 3ª etapa (insertBodyMeasurement)
-    await pool.query('ALTER TABLE body_measurements ADD CONSTRAINT check_test_onboarding_fail CHECK (weight <= 300) NOT VALID');
+    await pool.query(
+      'ALTER TABLE body_measurements ADD CONSTRAINT check_test_onboarding_fail CHECK (weight <= 300) NOT VALID',
+    );
 
     try {
-      await assert.rejects(
-        async () => {
-          await UserService.completeOnboarding(userId, {
-            sex: 'masculino',
-            birthDate: '1990-05-15',
-            goal: 'perder_peso',
-            weight: 350, // viola check_test_onboarding_fail
-            height: 180,
-            activity_level: 'moderadamente_ativo'
-          });
-        },
-        /check_test_onboarding_fail/
-      );
+      await assert.rejects(async () => {
+        await UserService.completeOnboarding(userId, {
+          sex: 'masculino',
+          birthDate: '1990-05-15',
+          goal: 'perder_peso',
+          weight: 350, // viola check_test_onboarding_fail
+          height: 180,
+          activity_level: 'moderadamente_ativo',
+        });
+      }, /check_test_onboarding_fail/);
     } finally {
-      await pool.query('ALTER TABLE body_measurements DROP CONSTRAINT IF EXISTS check_test_onboarding_fail');
+      await pool.query(
+        'ALTER TABLE body_measurements DROP CONSTRAINT IF EXISTS check_test_onboarding_fail',
+      );
     }
 
     // Com rollback transacional, o usuário NÃO deve ficar com onboarding_completed = true
     const user = await UserModel.findFullUserById(userId);
-    assert.strictEqual(user?.onboarding_completed, false, 'onboarding_completed deve permanecer false após rollback');
+    assert.strictEqual(
+      user?.onboarding_completed,
+      false,
+      'onboarding_completed deve permanecer false após rollback',
+    );
     assert.strictEqual(user?.weight, null, 'weight deve permanecer null após rollback');
 
     const goalsRes = await pool.query('SELECT * FROM user_goals WHERE user_id = $1', [userId]);
     assert.strictEqual(goalsRes.rows.length, 0, 'Nenhuma meta deve ser gravada após rollback');
 
-    const measuresRes = await pool.query('SELECT * FROM body_measurements WHERE user_id = $1', [userId]);
+    const measuresRes = await pool.query('SELECT * FROM body_measurements WHERE user_id = $1', [
+      userId,
+    ]);
     assert.strictEqual(measuresRes.rows.length, 0, 'Nenhuma medida deve ser gravada após rollback');
   });
 
@@ -67,21 +78,20 @@ describe('Atomic Transactions & Rollback on Failure (PC-17 / ARCH-002 / TST-012)
     const userId = auth.id;
 
     // Adiciona restrição no PostgreSQL para forçar falha no UPDATE users (2ª etapa)
-    await pool.query('ALTER TABLE users ADD CONSTRAINT check_test_goals_fail CHECK (daily_calories_goal <= 5000) NOT VALID');
+    await pool.query(
+      'ALTER TABLE users ADD CONSTRAINT check_test_goals_fail CHECK (daily_calories_goal <= 5000) NOT VALID',
+    );
 
     try {
-      await assert.rejects(
-        async () => {
-          await UserService.updateGoals(userId, {
-            calories: 6000, // viola check_test_goals_fail na tabela users
-            proteins: 180,
-            carbs: 250,
-            fats: 70,
-            mode: 'manual'
-          });
-        },
-        /check_test_goals_fail/
-      );
+      await assert.rejects(async () => {
+        await UserService.updateGoals(userId, {
+          calories: 6000, // viola check_test_goals_fail na tabela users
+          proteins: 180,
+          carbs: 250,
+          fats: 70,
+          mode: 'manual',
+        });
+      }, /check_test_goals_fail/);
     } finally {
       await pool.query('ALTER TABLE users DROP CONSTRAINT IF EXISTS check_test_goals_fail');
     }
@@ -101,25 +111,30 @@ describe('Atomic Transactions & Rollback on Failure (PC-17 / ARCH-002 / TST-012)
     const userId = auth.id;
 
     // Adiciona restrição no PostgreSQL para forçar falha no insertBodyMeasurement (2ª etapa)
-    await pool.query('ALTER TABLE body_measurements ADD CONSTRAINT check_test_profile_fail CHECK (weight <= 300) NOT VALID');
+    await pool.query(
+      'ALTER TABLE body_measurements ADD CONSTRAINT check_test_profile_fail CHECK (weight <= 300) NOT VALID',
+    );
 
     try {
-      await assert.rejects(
-        async () => {
-          await UserService.updateProfile(userId, {
-            name: 'Nome Alterado Que Nao Deve Persistir',
-            weight: 350 // viola check_test_profile_fail
-          });
-        },
-        /check_test_profile_fail/
-      );
+      await assert.rejects(async () => {
+        await UserService.updateProfile(userId, {
+          name: 'Nome Alterado Que Nao Deve Persistir',
+          weight: 350, // viola check_test_profile_fail
+        });
+      }, /check_test_profile_fail/);
     } finally {
-      await pool.query('ALTER TABLE body_measurements DROP CONSTRAINT IF EXISTS check_test_profile_fail');
+      await pool.query(
+        'ALTER TABLE body_measurements DROP CONSTRAINT IF EXISTS check_test_profile_fail',
+      );
     }
 
     // Com rollback transacional, a alteração de nome no UPDATE users deve ser revertida
     const user = await UserModel.findFullUserById(userId);
-    assert.strictEqual(user?.name, 'Tester Profile Original', 'Nome deve ser revertido após rollback');
+    assert.strictEqual(
+      user?.name,
+      'Tester Profile Original',
+      'Nome deve ser revertido após rollback',
+    );
     assert.strictEqual(user?.weight, null, 'Peso não deve ter sido persistido após rollback');
   });
 });

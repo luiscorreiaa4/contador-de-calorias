@@ -8,7 +8,12 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { SectionCard } from '../../components/common/SectionCard';
 import { SegmentedToggle } from '../../components/common/SegmentedToggle';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getMeasurements, addMeasurement, deleteMeasurement, type BodyMeasurement } from '../../services/measurement.service';
+import {
+  getMeasurements,
+  addMeasurement,
+  deleteMeasurement,
+  type BodyMeasurement,
+} from '../../services/measurement.service';
 import { getLocalDateString } from '../../utils/date';
 import {
   LineChart,
@@ -64,7 +69,8 @@ const measurementFormSchema = z.object({
     .min(10, 'INFORME UMA DATA VÁLIDA.')
     .refine((val) => isValidDateValue(val), 'DATA INVÁLIDA OU NO FUTURO.'),
 });
-const decimalValue = (value: string) => value.trim() ? Number(value.replace(',', '.')) : undefined;
+const decimalValue = (value: string) =>
+  value.trim() ? Number(value.replace(',', '.')) : undefined;
 
 export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
   const Heading = embedded ? 'h2' : 'h1';
@@ -72,7 +78,14 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
   const [metric, setMetric] = useState<Metric>('weight');
   const [isLogging, setIsLogging] = useState(false);
   const [measurementToDelete, setMeasurementToDelete] = useState<BodyMeasurement | null>(null);
-  const { register, handleSubmit, reset, setValue, control, formState: { errors } } = useForm<z.infer<typeof measurementFormSchema>>({
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    control,
+    formState: { errors },
+  } = useForm<z.infer<typeof measurementFormSchema>>({
     resolver: zodResolver(measurementFormSchema),
     defaultValues: { measured_at: getTodayBR() },
   });
@@ -133,7 +146,8 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
   const initialWeight = weights.length > 0 ? weights[0] : null;
   const minWeight = weights.length > 0 ? Math.min(...weights) : null;
   const maxWeight = weights.length > 0 ? Math.max(...weights) : null;
-  const weightDiff = currentWeight !== null && initialWeight !== null ? currentWeight - initialWeight : 0;
+  const weightDiff =
+    currentWeight !== null && initialWeight !== null ? currentWeight - initialWeight : 0;
 
   const bodyFats = measurements
     .map((m) => (m.body_fat !== null && m.body_fat !== undefined ? Number(m.body_fat) : null))
@@ -142,7 +156,8 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
   const initialBodyFat = bodyFats.length > 0 ? bodyFats[0] : null;
   const minBodyFat = bodyFats.length > 0 ? Math.min(...bodyFats) : null;
   const maxBodyFat = bodyFats.length > 0 ? Math.max(...bodyFats) : null;
-  const bodyFatDiff = currentBodyFat !== null && initialBodyFat !== null ? currentBodyFat - initialBodyFat : 0;
+  const bodyFatDiff =
+    currentBodyFat !== null && initialBodyFat !== null ? currentBodyFat - initialBodyFat : 0;
 
   const chartData = measurements.map((m) => {
     const d = new Date(m.measured_at);
@@ -160,8 +175,20 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
   const unit = metric === 'weight' ? ' kg' : '%';
   const series =
     metric === 'weight'
-      ? { current: currentWeight, min: minWeight, max: maxWeight, diff: weightDiff, labels: ['PESO ATUAL', 'MENOR PESO', 'MAIOR PESO'] }
-      : { current: currentBodyFat, min: minBodyFat, max: maxBodyFat, diff: bodyFatDiff, labels: ['GORDURA ATUAL', 'MENOR GORDURA', 'MAIOR GORDURA'] };
+      ? {
+          current: currentWeight,
+          min: minWeight,
+          max: maxWeight,
+          diff: weightDiff,
+          labels: ['PESO ATUAL', 'MENOR PESO', 'MAIOR PESO'],
+        }
+      : {
+          current: currentBodyFat,
+          min: minBodyFat,
+          max: maxBodyFat,
+          diff: bodyFatDiff,
+          labels: ['GORDURA ATUAL', 'MENOR GORDURA', 'MAIOR GORDURA'],
+        };
   const format = (value: number | null) => (value !== null ? `${value.toFixed(1)}${unit}` : '—');
   const showStats = !isLoading && !isError && activeChartData.length > 0;
   const statCells: { label: string; value: string }[] = [
@@ -174,15 +201,28 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
     <div className={embedded ? 'space-y-6' : 'w-full max-w-5xl mx-auto px-4 py-8 space-y-6'}>
       {/* A aba "Peso e medidas" já nomeia a página; o título só existe para a hierarquia de cabeçalhos. */}
       <Heading
-        className={embedded ? 'sr-only' : 'text-3xl sm:text-5xl font-heading font-black text-foreground uppercase tracking-tighter'}
+        className={
+          embedded
+            ? 'sr-only'
+            : 'text-3xl sm:text-5xl font-heading font-black text-foreground uppercase tracking-tighter'
+        }
       >
         PESO E MEDIDAS
       </Heading>
 
       {/* Gráfico de evolução: o filtro de métrica fica no cabeçalho do card que ele afeta */}
       <SectionCard
-        title={metric === 'weight' ? 'GRÁFICO DE EVOLUÇÃO DE PESO' : 'GRÁFICO DE PERCENTUAL DE GORDURA'}
-        actions={<SegmentedToggle options={[...METRIC_OPTIONS]} value={metric} onChange={setMetric} ariaLabel="Métrica" />}
+        title={
+          metric === 'weight' ? 'GRÁFICO DE EVOLUÇÃO DE PESO' : 'GRÁFICO DE PERCENTUAL DE GORDURA'
+        }
+        actions={
+          <SegmentedToggle
+            options={[...METRIC_OPTIONS]}
+            value={metric}
+            onChange={setMetric}
+            ariaLabel="Métrica"
+          />
+        }
       >
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
           {activeChartData.length} REGISTROS
@@ -201,7 +241,9 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
           >
             <AlertTriangle className="w-8 h-8 text-destructive" />
             <p className="text-sm font-black uppercase tracking-wider text-destructive">
-              {error instanceof Error ? error.message.toUpperCase() : 'ERRO AO CARREGAR DADOS DE EVOLUÇÃO'}
+              {error instanceof Error
+                ? error.message.toUpperCase()
+                : 'ERRO AO CARREGAR DADOS DE EVOLUÇÃO'}
             </p>
             <button
               type="button"
@@ -221,7 +263,8 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
             </p>
             {metric === 'fat' && (
               <p className="text-[11px] font-bold uppercase text-muted-foreground max-w-sm">
-                Ao registrar um novo peso, preencha o campo opcional de % gordura para acompanhar sua evolução.
+                Ao registrar um novo peso, preencha o campo opcional de % gordura para acompanhar
+                sua evolução.
               </p>
             )}
             <button
@@ -235,8 +278,16 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
         ) : (
           <div data-no-swipe className="h-60 sm:h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={activeChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
+              <LineChart
+                data={activeChartData}
+                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke="hsl(var(--border))"
+                  opacity={0.5}
+                />
                 <XAxis
                   dataKey="date"
                   tickLine={false}
@@ -244,7 +295,11 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
                   tick={{ fontSize: 10, fontWeight: 'bold', fill: 'hsl(var(--muted-foreground))' }}
                 />
                 <YAxis
-                  domain={metric === 'weight' ? ['dataMin - 2', 'dataMax + 2'] : ['dataMin - 1', 'dataMax + 1']}
+                  domain={
+                    metric === 'weight'
+                      ? ['dataMin - 2', 'dataMax + 2']
+                      : ['dataMin - 1', 'dataMax + 1']
+                  }
                   tickLine={false}
                   axisLine={{ stroke: 'hsl(var(--border))', strokeWidth: 2 }}
                   tick={{ fontSize: 10, fontWeight: 'bold', fill: 'hsl(var(--muted-foreground))' }}
@@ -253,21 +308,35 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
                 <Tooltip
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
-                      const data = payload[0].payload as { date: string; weight: number; bodyFat?: number };
+                      const data = payload[0].payload as {
+                        date: string;
+                        weight: number;
+                        bodyFat?: number;
+                      };
                       return (
                         <div className="bg-card border-2 border-border p-3 shadow-hard">
-                          <p className="text-[10px] font-bold text-muted-foreground uppercase">{data.date}</p>
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase">
+                            {data.date}
+                          </p>
                           {metric === 'weight' ? (
                             <>
-                              <p className="text-sm font-black uppercase text-foreground">{data.weight} kg</p>
+                              <p className="text-sm font-black uppercase text-foreground">
+                                {data.weight} kg
+                              </p>
                               {data.bodyFat !== undefined && (
-                                <p className="text-xs font-bold text-primary-ink uppercase">{data.bodyFat}% gordura</p>
+                                <p className="text-xs font-bold text-primary-ink uppercase">
+                                  {data.bodyFat}% gordura
+                                </p>
                               )}
                             </>
                           ) : (
                             <>
-                              <p className="text-sm font-black uppercase text-foreground">{data.bodyFat}% gordura</p>
-                              <p className="text-xs font-bold text-muted-foreground uppercase">{data.weight} kg</p>
+                              <p className="text-sm font-black uppercase text-foreground">
+                                {data.bodyFat}% gordura
+                              </p>
+                              <p className="text-xs font-bold text-muted-foreground uppercase">
+                                {data.weight} kg
+                              </p>
                             </>
                           )}
                         </div>
@@ -281,8 +350,18 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
                   dataKey={metric === 'weight' ? 'weight' : 'bodyFat'}
                   stroke="hsl(var(--primary-ink))"
                   strokeWidth={3}
-                  dot={{ r: 4, strokeWidth: 2, fill: 'hsl(var(--card))', stroke: 'hsl(var(--primary-ink))' }}
-                  activeDot={{ r: 6, fill: 'hsl(var(--primary-ink))', stroke: 'hsl(var(--foreground))', strokeWidth: 2 }}
+                  dot={{
+                    r: 4,
+                    strokeWidth: 2,
+                    fill: 'hsl(var(--card))',
+                    stroke: 'hsl(var(--primary-ink))',
+                  }}
+                  activeDot={{
+                    r: 6,
+                    fill: 'hsl(var(--primary-ink))',
+                    stroke: 'hsl(var(--foreground))',
+                    strokeWidth: 2,
+                  }}
                   connectNulls
                 />
               </LineChart>
@@ -293,18 +372,34 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
         {/* Faixa de resumo: 4 indicadores em linha (não vira grade 2x2 no mobile) */}
         {showStats && (
           <div className="grid grid-cols-4 divide-x-2 divide-border border-t-2 border-border pt-4">
-            {[...statCells, { label: 'VARIAÇÃO', value: series.current !== null ? `${series.diff > 0 ? '+' : ''}${series.diff.toFixed(1)}${unit}` : '—' }].map(
-              ({ label, value }, index) => (
-                <div key={label} className="min-w-0 px-2 first:pl-0 last:pr-0">
-                  <p className="flex items-center gap-1 text-[10px] font-bold uppercase leading-tight tracking-wider text-muted-foreground">
-                    {label}
-                    {index === 3 && series.diff > 0 && <TrendingUp className="w-3 h-3 text-primary-ink shrink-0" aria-hidden="true" />}
-                    {index === 3 && series.diff < 0 && <TrendingDown className="w-3 h-3 text-primary-ink shrink-0" aria-hidden="true" />}
-                  </p>
-                  <p className="mt-1 whitespace-nowrap text-sm sm:text-2xl font-heading font-black text-foreground">{value}</p>
-                </div>
-              )
-            )}
+            {[
+              ...statCells,
+              {
+                label: 'VARIAÇÃO',
+                value:
+                  series.current !== null
+                    ? `${series.diff > 0 ? '+' : ''}${series.diff.toFixed(1)}${unit}`
+                    : '—',
+              },
+            ].map(({ label, value }, index) => (
+              <div key={label} className="min-w-0 px-2 first:pl-0 last:pr-0">
+                <p className="flex items-center gap-1 text-[10px] font-bold uppercase leading-tight tracking-wider text-muted-foreground">
+                  {label}
+                  {index === 3 && series.diff > 0 && (
+                    <TrendingUp className="w-3 h-3 text-primary-ink shrink-0" aria-hidden="true" />
+                  )}
+                  {index === 3 && series.diff < 0 && (
+                    <TrendingDown
+                      className="w-3 h-3 text-primary-ink shrink-0"
+                      aria-hidden="true"
+                    />
+                  )}
+                </p>
+                <p className="mt-1 whitespace-nowrap text-sm sm:text-2xl font-heading font-black text-foreground">
+                  {value}
+                </p>
+              </div>
+            ))}
           </div>
         )}
       </SectionCard>
@@ -325,7 +420,12 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
 
       {/* Formulário de Registro Rápido */}
       {isLogging && (
-        <form id="measurement-form" noValidate onSubmit={handleSubmit(onSubmit)} className="p-4 sm:p-6 bg-card border-2 border-border shadow-hard space-y-4">
+        <form
+          id="measurement-form"
+          noValidate
+          onSubmit={handleSubmit(onSubmit)}
+          className="p-4 sm:p-6 bg-card border-2 border-border shadow-hard space-y-4"
+        >
           <div className="flex items-center justify-between border-b-2 border-border pb-3">
             <h2 className="text-sm font-black uppercase tracking-wider text-foreground flex items-center gap-2">
               <Scale className="w-4 h-4 text-primary-ink" />
@@ -333,7 +433,10 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
             </h2>
             <button
               type="button"
-              onClick={() => { setIsLogging(false); reset({ measured_at: getTodayBR() }); }}
+              onClick={() => {
+                setIsLogging(false);
+                reset({ measured_at: getTodayBR() });
+              }}
               className="text-xs font-bold uppercase text-muted-foreground hover:text-foreground"
             >
               FECHAR
@@ -341,14 +444,23 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
           </div>
 
           {(mutation.isError || Object.keys(errors).length > 0) && (
-            <p role="alert" className="p-3 bg-destructive text-destructive-foreground text-xs font-bold uppercase tracking-wider">
-              {mutation.error?.message || errors.weight?.message || errors.body_fat?.message || errors.measured_at?.message}
+            <p
+              role="alert"
+              className="p-3 bg-destructive text-destructive-foreground text-xs font-bold uppercase tracking-wider"
+            >
+              {mutation.error?.message ||
+                errors.weight?.message ||
+                errors.body_fat?.message ||
+                errors.measured_at?.message}
             </p>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label htmlFor="input-weight" className="block text-[10px] font-black uppercase tracking-wider text-muted-foreground mb-1">
+              <label
+                htmlFor="input-weight"
+                className="block text-[10px] font-black uppercase tracking-wider text-muted-foreground mb-1"
+              >
                 PESO (KG) *
               </label>
               <input
@@ -363,7 +475,10 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
               />
             </div>
             <div>
-              <label htmlFor="input-bodyfat" className="block text-[10px] font-black uppercase tracking-wider text-muted-foreground mb-1">
+              <label
+                htmlFor="input-bodyfat"
+                className="block text-[10px] font-black uppercase tracking-wider text-muted-foreground mb-1"
+              >
                 % GORDURA (OPCIONAL)
               </label>
               <input
@@ -377,17 +492,25 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
               />
             </div>
             <div>
-              <label htmlFor="input-date" className="block text-[10px] font-black uppercase tracking-wider text-muted-foreground mb-1">
+              <label
+                htmlFor="input-date"
+                className="block text-[10px] font-black uppercase tracking-wider text-muted-foreground mb-1"
+              >
                 DATA DA MEDIÇÃO (DD/MM/AAAA)
               </label>
               <DatePickerInput
                 id="input-date"
                 value={measuredAt || ''}
-                onChange={(val) => setValue('measured_at', val, { shouldValidate: true, shouldDirty: true })}
+                onChange={(val) =>
+                  setValue('measured_at', val, { shouldValidate: true, shouldDirty: true })
+                }
                 error={errors.measured_at?.message}
               />
               {errors.measured_at && (
-                <p role="alert" className="mt-1 text-[10px] font-bold uppercase tracking-widest text-destructive">
+                <p
+                  role="alert"
+                  className="mt-1 text-[10px] font-bold uppercase tracking-widest text-destructive"
+                >
                   {errors.measured_at.message}
                 </p>
               )}
@@ -397,7 +520,10 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
           <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"
-              onClick={() => { setIsLogging(false); reset({ measured_at: getTodayBR() }); }}
+              onClick={() => {
+                setIsLogging(false);
+                reset({ measured_at: getTodayBR() });
+              }}
               className="px-4 py-2 border-2 border-border text-xs font-black uppercase hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               CANCELAR
@@ -432,13 +558,17 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
                   .reverse()
                   .map((m: BodyMeasurement) => {
                     const d = new Date(m.measured_at);
-                    const formattedDate = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    const formattedDate = d.toLocaleDateString('pt-BR', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                    });
                     return (
                       <tr key={m.id} className="hover:bg-secondary transition-colors">
-                        <td className="py-2.5 px-3">
-                          {formattedDate}
+                        <td className="py-2.5 px-3">{formattedDate}</td>
+                        <td className="py-2.5 px-3 font-black text-foreground">
+                          {Number(m.weight).toFixed(1)} kg
                         </td>
-                        <td className="py-2.5 px-3 font-black text-foreground">{Number(m.weight).toFixed(1)} kg</td>
                         <td className="py-2.5 px-3 text-muted-foreground">
                           {m.body_fat !== null ? `${Number(m.body_fat).toFixed(1)}%` : '—'}
                         </td>
@@ -469,7 +599,10 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
           measurementToDelete ? (
             <span>
               Tem certeza que deseja apagar a pesagem de{' '}
-              <strong className="text-foreground">{Number(measurementToDelete.weight).toFixed(1)} kg</strong> registrada em{' '}
+              <strong className="text-foreground">
+                {Number(measurementToDelete.weight).toFixed(1)} kg
+              </strong>{' '}
+              registrada em{' '}
               <strong className="text-foreground">
                 {new Date(measurementToDelete.measured_at).toLocaleDateString('pt-BR', {
                   day: '2-digit',

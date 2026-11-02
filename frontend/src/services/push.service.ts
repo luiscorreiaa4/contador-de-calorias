@@ -170,4 +170,3 @@ export const unregisterPushNotifications = async (): Promise<boolean> => {
     throw new Error('Erro ao desativar notificações push.', { cause: err });
   }
 };
-

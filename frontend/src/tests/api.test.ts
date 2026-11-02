@@ -17,7 +17,7 @@ describe('apiFetch resilience (PC-06)', () => {
         capturedAuthHeader = request.headers.get('Authorization');
         capturedCredentials = request.credentials;
         return HttpResponse.json({ success: true, data: { ok: true } });
-      })
+      }),
     );
 
     const data = await apiFetch<{ ok: boolean }>('/test-cookie');
@@ -37,11 +37,11 @@ describe('apiFetch resilience (PC-06)', () => {
           status: 502,
           headers: { 'Content-Type': 'text/html' },
         });
-      })
+      }),
     );
 
     await expect(apiFetch('/test-502')).rejects.toThrow(
-      /serviço temporariamente indisponível \(502\)/i
+      /serviço temporariamente indisponível \(502\)/i,
     );
   });
 
@@ -53,9 +53,9 @@ describe('apiFetch resilience (PC-06)', () => {
       http.get('http://localhost:3001/api/test-401', () => {
         return HttpResponse.json(
           { success: false, message: 'Token expirado ou inválido.' },
-          { status: 401 }
+          { status: 401 },
         );
-      })
+      }),
     );
 
     const unauthorizedListener = vi.fn();
