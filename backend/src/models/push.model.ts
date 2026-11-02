@@ -34,11 +34,3 @@ export async function deleteSubscription(userId: string, endpoint: string): Prom
   );
   return (result.rowCount ?? 0) > 0;
 }
-
-export async function getSubscriptionsByUser(userId: string): Promise<PushSubscriptionRecord[]> {
-  const result = await pool.query<PushSubscriptionRecord>(
-    `SELECT id, user_id, endpoint, keys, created_at FROM push_subscriptions WHERE user_id = $1`,
-    [userId],
-  );
-  return result.rows;
-}

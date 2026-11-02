@@ -4,7 +4,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render } from '../../../tests/setup/test-utils';
 import { EditProfilePage } from '../EditProfilePage';
 import { AccountPrivacyPage } from '../AccountPrivacyPage';
-import { NotificationsPage } from '../NotificationsPage';
 import { MemoryRouter } from 'react-router';
 import { server } from '../../../mocks/server';
 import { http, HttpResponse } from 'msw';
@@ -124,21 +123,6 @@ describe('EditProfilePage Component (PC-34 / TST-011)', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/alterações salvas com sucesso/i)).toBeInTheDocument();
-    });
-  });
-
-  it('deve disparar lembrete de teste de push com sucesso (BL-27)', async () => {
-    render(
-      <MemoryRouter>
-        <NotificationsPage />
-      </MemoryRouter>,
-    );
-
-    const testPushBtn = await screen.findByRole('button', { name: /enviar lembrete de teste/i });
-    await userEvent.click(testPushBtn);
-
-    await waitFor(() => {
-      expect(screen.getByText(/lembrete de teste enviado com sucesso/i)).toBeInTheDocument();
     });
   });
 });

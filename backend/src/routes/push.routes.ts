@@ -14,6 +14,5 @@ router.post(
   validate(unsubscribePushSchema),
   PushController.unsubscribe,
 );
-router.post('/test', authenticate, PushController.sendTest);
 
 export default router;

@@ -32,15 +32,3 @@ export async function subscribe(userId: string, data: PushSubscriptionDTO) {
 export async function unsubscribe(userId: string, endpoint: string) {
   return PushModel.deleteSubscription(userId, endpoint);
 }
-
-export async function sendTestNotification(userId: string) {
-  const subscriptions = await PushModel.getSubscriptionsByUser(userId);
-  if (subscriptions.length === 0) {
-    throw createError('Nenhum dispositivo cadastrado para receber notificações de teste.', 422);
-  }
-  return {
-    sent: true,
-    recipientCount: subscriptions.length,
-    message: 'Notificação teste despachada com sucesso.',
-  };
-}
