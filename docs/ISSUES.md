@@ -19,30 +19,30 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 | 6 | [auth] captcha em register, login e forgot-password | security, auth | [x] 02/11/2026 |
 | 7 | [auth] MFA (TOTP), ao menos para administradores | security, auth | [x] 02/11/2026 |
 | 8 | [auth] `register` não sobrescreve credenciais de conta não verificada | security, auth | [x] 01/11/2026 |
-| 9 | [autorização] role de banco com menor privilégio e role de migração | security, devops, priority:high | [~] 02/11/2026 |
+| 9 | [autorização] role de banco com menor privilégio e role de migração | security, devops, priority:high | [adiado] |
 | 10 | [autorização] avaliar RLS no Postgres | security | [x] 02/11/2026 |
 | 11 | [entrada] min/max nos schemas numéricos, teto de `page` e `.strict()` | security, quality | [x] 01/11/2026 |
 | 12 | [infra] mapear erros do `pg` e não expor `err.code`/`err.message` brutos | security | [x] 01/11/2026 |
 | 13 | [infra] CORS: rejeitar `*` e `localhost` em produção | security | [x] 01/11/2026 |
 | 14 | [infra] e-mail: proibir `memory` em produção, exigir TLS e timeouts | security, devops | [x] 01/11/2026 |
-| 15 | [infra] criptografia em repouso para dados de saúde | security, legal | [~] 02/11/2026 |
-| 16 | [infra] atualizar deps `high` e auditar backend/frontend no CI | security, devops, priority:high | [~] 02/11/2026 |
+| 15 | [infra] criptografia em repouso para dados de saúde | security, legal | [adiado] |
+| 16 | [infra] atualizar deps `high` e auditar backend/frontend no CI | security, devops, priority:high | [x] 02/11/2026 |
 | 17 | [devops] fixar Docker/Actions por versão/SHA, `permissions` e handlers de processo | devops, security | [x] 01/11/2026 |
 | 18 | [segredos] `sourcemap: false`, remover `/test-compression-payload`, exigir VAPID | security | [x] 01/11/2026 |
-| 19 | [qualidade] formatter, commitlint/Husky e knip | quality | [~] 02/11/2026 |
+| 19 | [qualidade] formatter, commitlint/Husky e knip | quality | [x] 02/11/2026 |
 | 20 | [qualidade] `down` utilizável em todas as migrations e teste de rollback | quality, devops | [x] 02/11/2026 |
-| 21 | [tests] cobertura do backend e `thresholds` no front | tests | [~] 02/11/2026 |
-| 22 | [tests] E2E com Playwright | tests | [adiado] |
-| 23 | [tests] testes de autorização por recurso e carga no CI | tests, security | [x] 01/11/2026 (IDOR) / [adiado] (Carga CI) |
-| 24 | [devops] deploy: Dockerfile, ambientes e etapa no CI | devops | [~] 02/11/2026 |
-| 25 | [observability] rastreio de erros, métricas e alertas | observability | [~] 02/11/2026 |
-| 26 | [devops] backup do Postgres com teste de restauração | devops | [~] 02/11/2026 |
+| 21 | [tests] cobertura do backend e `thresholds` no front | tests | [x] 02/11/2026 |
+| 22 | [tests] E2E com Playwright | tests | [x] 02/11/2026 |
+| 23 | [tests] testes de autorização por recurso e carga no CI | tests, security | [x] 02/11/2026 |
+| 24 | [devops] deploy: Dockerfile, ambientes e etapa no CI | devops | [adiado] |
+| 25 | [observability] rastreio de erros, métricas e alertas | observability | [adiado] |
+| 26 | [devops] backup do Postgres com teste de restauração | devops | [adiado] |
 | 27 | [ux] página 404 própria | ux, seo | [x] 01/11/2026 |
 | 28 | [ux] auditar `prefers-reduced-motion` | ux, a11y | [x] 01/11/2026 |
 | 29 | [seo] meta OG/Twitter/canonical, `robots.txt`, `sitemap.xml`, `noindex` | seo | [x] 01/11/2026 |
 | 30 | [legal] consentimento específico e versionado para dados de saúde | legal, security, priority:high | [adiado] |
-| 31 | [legal] minimização dos campos de saúde | legal | [adiado] |
-| 32 | [legal] exclusão, retenção e plano de incidentes | legal | [adiado] |
+| 31 | [legal] minimização dos campos de saúde | legal | [x] 02/11/2026 |
+| 32 | [legal] exclusão, retenção e plano de incidentes | legal | [x] 02/11/2026 |
 | 33 | [a11y] skip link, landmarks, contraste WCAG AA e axe no CI | a11y, tests | [x] 01/11/2026 |
 
 ---
@@ -104,9 +104,9 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 - **Testes:** `backend/tests/integration/auth_email_verification.test.ts` comprovando que o segundo cadastro não altera o `password_hash` existente.
 
 ### #9 [autorização] role de banco com menor privilégio e role de migração
-**Labels:** security, devops, priority:high · **Status:** `[~]` (código e script prontos em 02/11/2026; falta provisionar)
-- **O que foi feito:** `backend/scripts/provision-db-roles.sql` (idempotente) cria `app_user` (só DML, sem `UPDATE/DELETE` em `admin_audit_log`) e `migration_user` (DDL), com `ALTER DEFAULT PRIVILEGES` para tabelas futuras. A API (`DB_*`) e as migrations (`DATABASE_URL`) já usavam credenciais separadas; a API não executa DDL em runtime. Passo a passo em `docs/DB_ROLES.md`.
-- **Pendente (usuário):** rodar o script no Postgres de staging/produção e trocar `DB_USER`/`DATABASE_URL`. Não executado nesta sessão.
+**Labels:** security, devops, priority:high · **Status:** `[adiado]` (código pronto; depende de hospedagem)
+- **O que foi feito:** `backend/scripts/provision-db-roles.sql` (idempotente) cria `app_user` (só DML, sem `UPDATE/DELETE` em `admin_audit_log`) e `migration_user` (DDL), com `ALTER DEFAULT PRIVILEGES`. A API (`DB_*`) e as migrations (`DATABASE_URL`) já usam credenciais separadas. Passo a passo em `docs/DB_ROLES.md` e no passo 4 de `docs/HOSPEDAGEM.md`.
+- **Adiado porque:** exige o Postgres hospedado (Neon). Quando existir: rodar o script e trocar `DB_USER`/`DATABASE_URL`.
 - **Guia:** `03-seguranca-web.md` §4 (Princípio do menor privilégio).
 
 ### #10 [autorização] avaliar RLS no Postgres
@@ -135,15 +135,15 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 - **Testes:** `backend/tests/unit/env_and_cors.test.ts` cobrindo validação de transporte em produção.
 
 ### #15 [infra] criptografia em repouso para dados de saúde
-**Labels:** security, legal · **Status:** `[~]` (decidido em 02/11/2026; falta uma confirmação)
+**Labels:** security, legal · **Status:** `[adiado]` (decidido; falta confirmação no provedor)
 - **Decisão:** o banco será o Neon (`docs/HOSPEDAGEM.md`), que cifra os dados em repouso (AES-256) no provedor. Criptografia por coluna (`pgcrypto`) **não** será adotada agora: perde índice/busca e as agregações de metas, e a chave ficaria junto da API.
-- **Pendente (usuário):** confirmar na página oficial de segurança do Neon que o plano gratuito inclui a cifragem em repouso (só encontrei fontes de terceiros). Reavaliar a cifragem por coluna se o produto passar a atender usuários reais.
+- **Adiado porque:** só achei fontes de terceiros para a cifragem em repouso do plano gratuito. Confirmar na página oficial de segurança do Neon ao criar o banco. Reavaliar a cifragem por coluna se houver usuários reais.
 - **Guia:** `03-seguranca-web.md` §6 (Criptografia de dados sensíveis).
 
 ### #16 [infra] atualizar deps `high` e auditar backend/frontend no CI
-**Labels:** security, devops, priority:high · **Status:** `[~]` (parcial em 02/11/2026)
-- **O que foi feito:** `npm audit fix` sem `--force` no front e no backend (lockfiles atualizados); suítes de backend e front passando.
-- **Pendente (salto de major, precisa de autorização):** `zod` 3→4 (front e backend) e `nodemailer` 7→major seguinte (backend) ainda marcados `high` pelo `npm audit`. O CI continua falhando nesses até migrar.
+**Labels:** security, devops, priority:high · **Status:** `[x]` (Concluído em 02/11/2026)
+- **O que foi feito:** `npm audit fix` sem `--force`; `zod` 3→4.6.7 (shared, backend, front), `nodemailer` 7→10.3.1, `@types/nodemailer` e `@hookform/resolvers` 3→7. Adaptações do zod 4: `invalid_type_error`/`required_error`/`errorMap` viraram `error`/`message`, `ZodIssueCode.custom` virou `'custom'`, `error.format()` virou `z.treeifyError`, resolver dos formulários com `preprocess` tipado como `Resolver<…>`.
+- **Resultado:** `npm audit --audit-level=high` limpo em raiz, backend, front e shared (restam avisos `moderate` de `glob`/`minimatch` dentro do `node-pg-migrate`). Backend 310 testes e front 302 passando, build ok.
 - **Guia:** `03-seguranca-web.md` §6 (Dependências).
 
 ### #17 [devops] fixar Docker/Actions por versão/SHA, `permissions` e handlers de processo
@@ -157,9 +157,9 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 - **Testes:** `backend/tests/integration/compression.test.ts` e validação do diretório de build.
 
 ### #19 [qualidade] formatter, commitlint/Husky e knip
-**Labels:** quality · **Status:** `[~]` (parcial em 02/11/2026)
-- **O que foi feito:** Prettier (`.prettierrc.json`, `npm run format`/`format:check`), Husky com hook `commit-msg` rodando commitlint (`@commitlint/config-conventional`, `commitlint.config.js`). O formatter não foi aplicado ao repo inteiro nem entra no CI, para não gerar um diff gigante.
-- **Pendente:** knip (detecção de código morto) e rodar `npm run format` num commit isolado.
+**Labels:** quality · **Status:** `[x]` (Concluído em 02/11/2026)
+- **O que foi feito:** Prettier aplicado ao repo num commit isolado (`.agents`, `.claude`, `.ua`, `docs` e `*.md` ficam fora via `.prettierignore`), Husky + commitlint, e `knip` (`npm run knip`, `knip.json`) configurado para reprovar só arquivos e dependências sem uso. O CI roda `format:check` e `knip`.
+- **Limitação:** exports não usados, tipos e membros de enum ficam desligados no knip (muito ruído com testes).
 - **Guia:** `05-engenharia-qualidade-devops.md` §4.
 
 ### #20 [qualidade] `down` utilizável em todas as migrations e teste de rollback
@@ -170,39 +170,40 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 - **Guia:** `05-engenharia-qualidade-devops.md` §2 (Rollback).
 
 ### #21 [tests] cobertura do backend e `thresholds` no front
-**Labels:** tests · **Status:** `[~]` (parcial em 02/11/2026)
-- **O que foi feito:** `thresholds` no Vitest do front (statements 75, branches 68, functions 70, lines 77), logo abaixo da cobertura atual (78/72/75/80); o CI já roda `test:coverage`.
-- **Pendente:** cobertura do backend (`node:test` com `--experimental-test-coverage` passando pelo runner limitado).
-- **Guia:** `05-engenharia-qualidade-devops.md` §5 (Codecov).
+**Labels:** tests · **Status:** `[x]` (Concluído em 02/11/2026)
+- **O que foi feito:** front com `thresholds` no Vitest (75/68/70/77). Backend: `npm run test:coverage` (modo `coverage` do `scripts/run-tests.mjs`, `node:test` com `--experimental-test-coverage` e limites linhas 93, branches 77, funções 93; medido 95,7 / 80,0 / 95,3). O CI usa esse modo no lugar do `test:strict`.
+- **Guia:** `05-engenharia-qualidade-devops.md` §5.
 
 ### #22 [tests] E2E com Playwright
-**Labels:** tests · **Status:** `[adiado]`
-- **Motivo do adiamento:** Requer decisão do usuário sobre instalação e custo de tempo/armazenamento de navegadores reais (Chromium/Firefox/WebKit) nos runners do CI.
+**Labels:** tests · **Status:** `[x]` (Concluído em 02/11/2026)
+- **Decisão:** opção A, só Chromium, poucos fluxos críticos, a cada PR.
+- **O que foi feito:** `@playwright/test` no front, `frontend/playwright.config.ts` (API em `:3101` e front em `:5273`, banco `_test`, captcha desligado), `backend/scripts/e2e-seed.ts` (usuário verificado `tester-e2e-user@example.com`), `npm run test:e2e` e passo no CI. 5 fluxos em `frontend/e2e/auth.spec.ts`: rota protegida, senha errada, login com cookie `cs_session` HttpOnly/Strict e sessão após reload, sair da conta e 404.
+- **Pendente:** fluxo de registrar refeição ponta a ponta (não coberto).
 - **Guia:** `05-engenharia-qualidade-devops.md` §5 (Playwright).
 
 ### #23 [tests] testes de autorização por recurso e carga no CI
-**Labels:** tests, security · **Status:** `[x]` (IDOR concluído em 01/11/2026) / `[adiado]` (Carga no CI)
-- **O que foi feito:** Suíte de autorização por recurso (IDOR/BOLA) implementada e validada em `backend/tests/integration/authorization.test.ts`. Cobre isolamento estrito entre Usuário A e Usuário B para todos os recursos da aplicação: refeições (`meals`), refeições salvas (`saved-meals`), alimentos favoritos (`favorites`), alimentos customizados (`custom foods`), medições corporais (`measurements`), metas nutricionais (`goals`) e bloqueio de usuários comuns em rotas administrativas (`admin RBAC`).
-- **Parte adiada (Carga contínua no CI):** Requer definição de limites aceitáveis de tempo e concorrência para runners do GitHub Actions sem causar falso-positivos por estrangulamento de CPU.
-- **Testes:** 13 testes de integração passando em `backend/tests/integration/authorization.test.ts`.
+**Labels:** tests, security · **Status:** `[x]` (Concluído em 02/11/2026)
+- **IDOR:** `backend/tests/integration/authorization.test.ts` (13 testes) cobre isolamento entre usuários em refeições, refeições salvas, favoritos, alimentos customizados, medições, metas e rotas admin.
+- **Carga (opção B):** `scripts/load-smoke.mjs` sobe a API, espera `/health` e roda `backend/tests/load/autocannon.js` (`npm run test:load`). No PR (`ci.yml`) só erro reprova; `.github/workflows/load.yml` roda toda segunda e manualmente com p99 máximo de 1500 ms e 50 conexões. Medido local: 16 mil requisições, p99 de 11 ms.
+- **Limitação:** a busca autenticada de alimentos só entra com `LOAD_TOKEN` (Bearer); sem ele só `/health` é testado.
 
 ### #24 [devops] deploy: Dockerfile, ambientes e etapa no CI
-**Labels:** devops · **Status:** `[~]` (parcial em 02/11/2026)
-- **O que foi feito:** `Dockerfile` da API na raiz (node:24-slim, `npm start`), `.dockerignore`, passo `docker build` no CI. Build local verificado.
-- **Pendente:** escolha do provedor, ambientes (staging/prod), passo de deploy e execução de migrations no deploy.
+**Labels:** devops · **Status:** `[adiado]` (depende de hospedagem)
+- **O que foi feito:** `Dockerfile` da API na raiz (node:24-slim, `npm start`), `.dockerignore`, passo `docker build` no CI. Plano de hospedagem em `docs/HOSPEDAGEM.md` (Netlify, Render, Neon, Brevo).
+- **Adiado porque:** exige criar as contas, o `netlify.toml`, o serviço no Render e os ambientes. Migrations no deploy continuam manuais (`URL_MIGRACAO`).
 - **Guia:** `05-engenharia-qualidade-devops.md` §1.
 
 ### #25 [observability] rastreio de erros, métricas e alertas
-**Labels:** observability · **Status:** `[~]` (backend pronto em 02/11/2026; falta o DSN)
-- **Provedor:** Sentry, plano Developer (grátis e recorrente, ~5.000 erros/mês; confirmar em sentry.io/pricing). Não consta no `HOSPEDAGEM.md`.
-- **O que foi feito:** `backend/src/config/sentry.ts` inicializa o SDK só com `SENTRY_DSN` e fora de `NODE_ENV=test`; `errorHandler` reporta erros 5xx. `beforeSend` remove corpo, cookies, cabeçalhos e usuário (dados de saúde e `cs_session` não saem da API). SDK fixado em `@sentry/node@10.78.0` (a 11.x traz dependência vulnerável).
-- **Pendente:** (usuário) criar o projeto no Sentry e definir `SENTRY_DSN` no Render; alertas por e-mail no painel; erros do front (`@sentry/react`) e citar o Sentry na política de privacidade.
+**Labels:** observability · **Status:** `[adiado]` (backend pronto; falta o DSN)
+- **Provedor:** Sentry, plano Developer (grátis e recorrente, ~5.000 erros/mês; confirmar em sentry.io/pricing).
+- **O que foi feito:** `backend/src/config/sentry.ts` inicializa o SDK só com `SENTRY_DSN` e fora de `NODE_ENV=test`; `errorHandler` reporta erros 5xx. `beforeSend` remove corpo, cookies, cabeçalhos e usuário. SDK fixado em `@sentry/node@10.78.0` (a 11.x traz dependência vulnerável). A política de privacidade cita o Sentry (seção 8).
+- **Adiado porque:** exige criar o projeto no Sentry e definir `SENTRY_DSN` no Render, alertas por e-mail no painel e `@sentry/react` no front.
 - **Guia:** `05-engenharia-qualidade-devops.md` §3.
 
 ### #26 [devops] backup do Postgres com teste de restauração
-**Labels:** devops · **Status:** `[~]` (parcial em 02/11/2026)
-- **O que foi feito:** `backend/scripts/backup-db.mjs` (`backup` com `pg_dump` e `verify`, que restaura num banco temporário `*_restore_test`, confere `users` e o remove). Não foi executado nesta sessão.
-- **Pendente:** agendamento, envio ao storage (S3/R2) e rotina periódica do `verify`.
+**Labels:** devops · **Status:** `[adiado]` (script pronto; depende de hospedagem)
+- **O que foi feito:** `backend/scripts/backup-db.mjs` (`backup` com `pg_dump` e `verify`, que restaura num banco temporário `*_restore_test`). Não foi executado nesta sessão.
+- **Adiado porque:** agendamento, storage externo (sugestão: Cloudflare R2) e rotina periódica do `verify` exigem o banco e a conta hospedados.
 - **Guia:** `05-engenharia-qualidade-devops.md` §2.
 
 ### #27 [ux] página 404 própria
@@ -225,14 +226,15 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 - **Guia:** `08-legal-lgpd-acessibilidade.md` §1 (Conformidade LGPD, Formulários na LGPD).
 
 ### #31 [legal] minimização dos campos de saúde
-**Labels:** legal · **Status:** `[adiado]`
-- **Levantamento (02/11/2026):** `docs/SPEC.md` RF-002 já define: sem `body_fat` usa Mifflin-St Jeor; `prefiro_nao_responder` usa a constante feminina; sem nível de atividade usa 1,2. **Não há regra documentada** para falta de peso, altura ou data de nascimento (os schemas de edição já os aceitam opcionais, o onboarding exige).
-- **Motivo do adiamento:** Tornar opcionais campos corporais (peso, altura, data de nascimento, sexo) altera diretamente os cálculos matemáticos das fórmulas de TMB/GET (Mifflin-St Jeor / Katch-McArdle) e exige decisão de produto pelo usuário.
+**Labels:** legal · **Status:** `[x]` (Concluído em 02/11/2026)
+- **Decisão:** manter sexo, data de nascimento, peso, altura, nível de atividade e objetivo obrigatórios no onboarding, porque as fórmulas de TMB/GET não funcionam sem eles. Gordura corporal já é opcional (sem ela vale Mifflin-St Jeor; `prefiro_nao_responder` usa a constante feminina; sem nível de atividade vale 1,2, conforme `docs/SPEC.md` RF-002).
+- **O que foi feito:** a Política de Privacidade (seção 1) justifica cada campo pela finalidade.
 - **Guia:** `08-legal-lgpd-acessibilidade.md` §1 (Só dados necessários).
 
 ### #32 [legal] exclusão, retenção e plano de incidentes
-**Labels:** legal · **Status:** `[adiado]`
-- **Motivo do adiamento:** Requer aprovação jurídica para governança e política de privacidade (definição de prazos formais de retenção de backups/logs e plano oficial de resposta a incidentes com a ANPD).
+**Labels:** legal · **Status:** `[x]` (Concluído em 02/11/2026; recomenda-se revisão jurídica)
+- **O que foi feito (opção A):** `docs/INCIDENTES.md` com contenção, evidências, avaliação, comunicação à ANPD/titulares e pós-incidente. Retenção declarada na Política de Privacidade: conta excluída é removida em cascata; backups e logs por no máximo 30 dias. Seções 8 (Sentry) e 9 (incidentes) adicionadas à política.
+- **Limitação:** o prazo de comunicação à ANPD (3 dias úteis) precisa ser confirmado por um profissional antes de depender dele.
 - **Guia:** `08-legal-lgpd-acessibilidade.md` §1 e §2.
 
 ### #33 [a11y] skip link, landmarks, contraste WCAG AA e axe no CI
