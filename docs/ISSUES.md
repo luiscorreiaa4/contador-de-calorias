@@ -19,8 +19,8 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 | 6 | [auth] captcha em register, login e forgot-password | security, auth | [x] 02/11/2026 |
 | 7 | [auth] MFA (TOTP), ao menos para administradores | security, auth | [x] 02/11/2026 |
 | 8 | [auth] `register` não sobrescreve credenciais de conta não verificada | security, auth | [x] 01/11/2026 |
-| 9 | [autorização] role de banco com menor privilégio e role de migração | security, devops, priority:high | [adiado] |
-| 10 | [autorização] avaliar RLS no Postgres | security | [adiado] |
+| 9 | [autorização] role de banco com menor privilégio e role de migração | security, devops, priority:high | [~] 02/11/2026 |
+| 10 | [autorização] avaliar RLS no Postgres | security | [x] 02/11/2026 |
 | 11 | [entrada] min/max nos schemas numéricos, teto de `page` e `.strict()` | security, quality | [x] 01/11/2026 |
 | 12 | [infra] mapear erros do `pg` e não expor `err.code`/`err.message` brutos | security | [x] 01/11/2026 |
 | 13 | [infra] CORS: rejeitar `*` e `localhost` em produção | security | [x] 01/11/2026 |
@@ -104,13 +104,14 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 - **Testes:** `backend/tests/integration/auth_email_verification.test.ts` comprovando que o segundo cadastro não altera o `password_hash` existente.
 
 ### #9 [autorização] role de banco com menor privilégio e role de migração
-**Labels:** security, devops, priority:high · **Status:** `[adiado]`
-- **Motivo do adiamento:** Requer provisionamento e gerenciamento pelo usuário de dois usuários/senhas de banco de dados separados no PostgreSQL da infraestrutura (`app_user` sem privilégios de DDL e `migration_user` com permissão de DDL).
+**Labels:** security, devops, priority:high · **Status:** `[~]` (código e script prontos em 02/11/2026; falta provisionar)
+- **O que foi feito:** `backend/scripts/provision-db-roles.sql` (idempotente) cria `app_user` (só DML, sem `UPDATE/DELETE` em `admin_audit_log`) e `migration_user` (DDL), com `ALTER DEFAULT PRIVILEGES` para tabelas futuras. A API (`DB_*`) e as migrations (`DATABASE_URL`) já usavam credenciais separadas; a API não executa DDL em runtime. Passo a passo em `docs/DB_ROLES.md`.
+- **Pendente (usuário):** rodar o script no Postgres de staging/produção e trocar `DB_USER`/`DATABASE_URL`. Não executado nesta sessão.
 - **Guia:** `03-seguranca-web.md` §4 (Princípio do menor privilégio).
 
 ### #10 [autorização] avaliar RLS no Postgres
-**Labels:** security · **Status:** `[adiado]`
-- **Motivo do adiamento:** Conforme explicitado no backlog ("decidir com /grill-me se vale RLS com SET LOCAL app.user_id"), exige discussão arquitetural prévia com o usuário quanto a complexidade operacional versus isolamento na camada de aplicação.
+**Labels:** security · **Status:** `[x]` (avaliado em 02/11/2026)
+- **Decisão:** não adotar RLS agora (custo de reescrever os models com `SET LOCAL`, risco de bypass silencioso, admin/CLI/catálogo global; isolamento já coberto por `user_id` + testes IDOR). Critérios para reavaliar em `docs/DB_ROLES.md`.
 - **Guia:** `03-seguranca-web.md` §4 (Políticas de RLS).
 
 ### #11 [entrada] min/max nos schemas numéricos, teto de `page` e `.strict()`
