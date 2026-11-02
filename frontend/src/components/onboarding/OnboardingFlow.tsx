@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm, useWatch, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../../context/AuthContext';
@@ -49,7 +49,7 @@ const onboardingFormSchema = z.object({
   goal: z.string().min(1, 'SELECIONE UM OBJETIVO PARA CONTINUAR.'),
   weight: z.string().min(1, 'INFORME SEU PESO.'),
   height: z.string().min(1, 'INFORME SUA ALTURA.'),
-  bodyFat: z.string().optional().default(''),
+  bodyFat: z.string(), // defaultValues garante ''
   activityLevel: z.string().min(1, 'SELECIONE SEU NÍVEL DE ATIVIDADE.'),
 });
 
@@ -68,7 +68,7 @@ export const OnboardingFlow: React.FC = () => {
     control,
     formState: { errors },
   } = useForm<OnboardingFormInputs>({
-    resolver: zodResolver(onboardingFormSchema),
+    resolver: zodResolver(onboardingFormSchema) as Resolver<OnboardingFormInputs>,
     mode: 'onTouched',
     defaultValues: {
       sex: '',

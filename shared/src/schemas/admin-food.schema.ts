@@ -67,19 +67,19 @@ export const adminCreateFoodSchema = z
       .min(2, 'O nome deve ter no mínimo 2 caracteres.')
       .max(255, 'O nome deve ter no máximo 255 caracteres.'),
     calories: z
-      .number({ invalid_type_error: 'Calorias devem ser um número.' })
+      .number({ error: 'Calorias devem ser um número.' })
       .min(0, 'Calorias não podem ser negativas.')
       .max(900, 'Calorias devem ser no máximo 900 por 100 g/ml.'),
     proteins: z
-      .number({ invalid_type_error: 'Proteínas devem ser um número.' })
+      .number({ error: 'Proteínas devem ser um número.' })
       .min(0, 'Proteínas não podem ser negativas.')
       .max(100, 'Proteínas devem ser no máximo 100 g por 100 g.'),
     carbs: z
-      .number({ invalid_type_error: 'Carboidratos devem ser um número.' })
+      .number({ error: 'Carboidratos devem ser um número.' })
       .min(0, 'Carboidratos não podem ser negativos.')
       .max(100, 'Carboidratos devem ser no máximo 100 g por 100 g.'),
     fats: z
-      .number({ invalid_type_error: 'Gorduras devem ser um número.' })
+      .number({ error: 'Gorduras devem ser um número.' })
       .min(0, 'Gorduras não podem ser negativas.')
       .max(100, 'Gorduras devem ser no máximo 100 g por 100 g.'),
     base_unit: z.enum(['g', 'ml']).default('g'),
@@ -117,19 +117,19 @@ export const adminUpdateFoodSchema = z
       .min(2, 'O nome deve ter no mínimo 2 caracteres.')
       .max(255, 'O nome deve ter no máximo 255 caracteres.'),
     calories: z
-      .number({ invalid_type_error: 'Calorias devem ser um número.' })
+      .number({ error: 'Calorias devem ser um número.' })
       .min(0, 'Calorias não podem ser negativas.')
       .max(900, 'Calorias devem ser no máximo 900 por 100 g/ml.'),
     proteins: z
-      .number({ invalid_type_error: 'Proteínas devem ser um número.' })
+      .number({ error: 'Proteínas devem ser um número.' })
       .min(0, 'Proteínas não podem ser negativas.')
       .max(100, 'Proteínas devem ser no máximo 100 g por 100 g.'),
     carbs: z
-      .number({ invalid_type_error: 'Carboidratos devem ser um número.' })
+      .number({ error: 'Carboidratos devem ser um número.' })
       .min(0, 'Carboidratos não podem ser negativos.')
       .max(100, 'Carboidratos devem ser no máximo 100 g por 100 g.'),
     fats: z
-      .number({ invalid_type_error: 'Gorduras devem ser um número.' })
+      .number({ error: 'Gorduras devem ser um número.' })
       .min(0, 'Gorduras não podem ser negativas.')
       .max(100, 'Gorduras devem ser no máximo 100 g por 100 g.'),
     base_unit: z.enum(['g', 'ml']).default('g'),
@@ -150,7 +150,7 @@ export const adminUpdateFoodSchema = z
 export type AdminUpdateFoodDTO = z.infer<typeof adminUpdateFoodSchema>;
 
 export const adminUpdateFoodStatusSchema = z.object({
-  active: z.boolean({ required_error: 'O campo active é obrigatório.' }),
+  active: z.boolean({ error: 'O campo active é obrigatório.' }),
 });
 
 export type AdminUpdateFoodStatusDTO = z.infer<typeof adminUpdateFoodStatusSchema>;

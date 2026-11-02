@@ -18,8 +18,8 @@ export const personalInfoSchema = z.object({
         : Number(String(val).replace(',', '.')),
     z
       .number({
-        invalid_type_error: 'INFORME UMA ALTURA VÁLIDA.',
-        required_error: 'INFORME SUA ALTURA.',
+        error: (iss) =>
+          iss.input === undefined ? 'INFORME SUA ALTURA.' : 'INFORME UMA ALTURA VÁLIDA.',
       })
       .positive('A ALTURA DEVE SER MAIOR QUE ZERO.')
       .max(300, 'ALTURA INVÁLIDA.'),

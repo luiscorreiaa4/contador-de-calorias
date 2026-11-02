@@ -61,7 +61,7 @@ export const envSchema = z
       .transform((value) => value.replace(/\/+$/, '')),
     MAIL_FROM: z.string().min(3, 'MAIL_FROM é obrigatório (ex: CalorieSync <no-reply@dominio>).'),
     MAIL_TRANSPORT: z.enum(['smtp', 'memory'], {
-      errorMap: () => ({ message: 'MAIL_TRANSPORT deve ser "smtp" ou "memory".' }),
+      message: 'MAIL_TRANSPORT deve ser "smtp" ou "memory".',
     }),
     MAIL_SMTP_HOST: z
       .string()
@@ -79,7 +79,7 @@ export const envSchema = z
     MAIL_SMTP_PASS: z.string().optional(),
     MAIL_SMTP_SECURE: z
       .enum(['true', 'false'], {
-        errorMap: () => ({ message: 'MAIL_SMTP_SECURE deve ser "true" ou "false".' }),
+        message: 'MAIL_SMTP_SECURE deve ser "true" ou "false".',
       })
       .default('false')
       .transform((value) => value === 'true'),
@@ -89,7 +89,7 @@ export const envSchema = z
     if (data.NODE_ENV === 'production') {
       if (data.MAIL_TRANSPORT === 'memory') {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           path: ['MAIL_TRANSPORT'],
           message: 'MAIL_TRANSPORT=memory é proibido em produção.',
         });
@@ -106,7 +106,7 @@ export const envSchema = z
           !origin.startsWith('https://')
         ) {
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom',
             path: ['CORS_ORIGIN'],
             message:
               'CORS_ORIGIN em produção deve usar https e não pode conter "*" nem "localhost".',
@@ -117,7 +117,7 @@ export const envSchema = z
     }
     if (data.NODE_ENV === 'production' && !data.APP_BASE_URL.startsWith('https://')) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['APP_BASE_URL'],
         message: 'APP_BASE_URL deve usar https em NODE_ENV=production.',
       });
@@ -125,7 +125,7 @@ export const envSchema = z
 
     if (data.AUTH_TOKEN_PEPPER === data.JWT_SECRET) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['AUTH_TOKEN_PEPPER'],
         message: 'AUTH_TOKEN_PEPPER deve ser diferente de JWT_SECRET.',
       });
@@ -134,21 +134,21 @@ export const envSchema = z
     if (data.MAIL_TRANSPORT === 'smtp') {
       if (!data.MAIL_SMTP_HOST) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           path: ['MAIL_SMTP_HOST'],
           message: 'MAIL_SMTP_HOST é obrigatório quando MAIL_TRANSPORT=smtp.',
         });
       }
       if (!data.MAIL_SMTP_PORT) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           path: ['MAIL_SMTP_PORT'],
           message: 'MAIL_SMTP_PORT é obrigatório quando MAIL_TRANSPORT=smtp.',
         });
       }
       if (data.NODE_ENV === 'production' && (!data.MAIL_SMTP_USER || !data.MAIL_SMTP_PASS)) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           path: ['MAIL_SMTP_USER'],
           message:
             'MAIL_SMTP_USER e MAIL_SMTP_PASS são obrigatórios em produção com MAIL_TRANSPORT=smtp.',
@@ -160,7 +160,7 @@ export const envSchema = z
 const _env = envSchema.safeParse(process.env);
 
 if (!_env.success) {
-  console.error('❌ Configuração de Ambiente Inválida:', _env.error.format());
+  console.error('❌ Configuração de Ambiente Inválida:', z.treeifyError(_env.error));
   process.exit(1);
 }
 

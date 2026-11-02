@@ -27,9 +27,6 @@ export const registerUserSchema = z.object({
   // Consentimento explícito obrigatório no cadastro (LGPD art. 7º, I).
   acceptTerms: z.literal(true, {
     message: 'É necessário aceitar os Termos de Uso e a Política de Privacidade.',
-    errorMap: () => ({
-      message: 'É necessário aceitar os Termos de Uso e a Política de Privacidade.',
-    }),
   }),
 });
 
@@ -110,13 +107,13 @@ export function parseAndValidateBirthDate(val: unknown): string | null {
 }
 
 export const birthDateSchema = z
-  .string({ required_error: 'A data de nascimento é obrigatória.' })
+  .string({ error: 'A data de nascimento é obrigatória.' })
   .min(10, 'A data de nascimento é obrigatória.')
   .transform((val, ctx) => {
     const normalized = parseAndValidateBirthDate(val);
     if (!normalized) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: 'Data de nascimento inválida.',
       });
       return z.NEVER;
@@ -133,7 +130,7 @@ export const optionalBirthDateSchema = z
     const normalized = parseAndValidateBirthDate(val);
     if (!normalized) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: 'Data de nascimento inválida.',
       });
       return z.NEVER;
@@ -194,7 +191,7 @@ export const updateUserSchema = z
   .superRefine((data, ctx) => {
     if (data.newPassword && (!data.currentPassword || !data.currentPassword.trim())) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['currentPassword'],
         message: 'Informe a senha atual para alterar sua senha.',
       });

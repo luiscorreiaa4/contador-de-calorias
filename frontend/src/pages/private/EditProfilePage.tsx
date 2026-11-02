@@ -1,4 +1,4 @@
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm, useWatch, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from 'react-router';
 import { PersonalInfoSection } from '../../components/profile/PersonalInfoSection';
@@ -21,7 +21,7 @@ function PersonalInfoForm({ user }: { user: UserProfile }) {
     reset,
     formState: { errors, isDirty },
   } = useForm<PersonalInfoFormInputs>({
-    resolver: zodResolver(personalInfoSchema),
+    resolver: zodResolver(personalInfoSchema) as Resolver<PersonalInfoFormInputs>,
     mode: 'all',
     defaultValues: {
       name: user.name,

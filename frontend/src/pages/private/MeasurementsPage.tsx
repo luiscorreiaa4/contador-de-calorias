@@ -55,17 +55,19 @@ const getTodayBR = () => getLocalDateString().split('-').reverse().join('/');
 
 const measurementFormSchema = z.object({
   weight: z
-    .number({ invalid_type_error: 'INFORME UM PESO VÁLIDO.', required_error: 'INFORME SEU PESO.' })
+    .number({
+      error: (iss) => (iss.input === undefined ? 'INFORME SEU PESO.' : 'INFORME UM PESO VÁLIDO.'),
+    })
     .positive('O PESO DEVE SER MAIOR QUE ZERO.')
     .max(500, 'PESO INVÁLIDO.'),
   body_fat: z
-    .number({ invalid_type_error: 'INFORME UMA GORDURA VÁLIDA.' })
+    .number({ error: 'INFORME UMA GORDURA VÁLIDA.' })
     .positive('O PERCENTUAL DE GORDURA DEVE SER MAIOR QUE ZERO.')
     .max(100, 'PERCENTUAL INVÁLIDO.')
     .nullable()
     .optional(),
   measured_at: z
-    .string({ required_error: 'INFORME A DATA DA MEDIÇÃO.' })
+    .string({ error: 'INFORME A DATA DA MEDIÇÃO.' })
     .min(10, 'INFORME UMA DATA VÁLIDA.')
     .refine((val) => isValidDateValue(val), 'DATA INVÁLIDA OU NO FUTURO.'),
 });
