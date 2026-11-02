@@ -96,3 +96,6 @@ jobs:
 
     - name: Build Frontend
       run: npm --prefix frontend run build
+
+    - name: Build API Docker image
+      run: docker build -t caloriesync-api:ci .

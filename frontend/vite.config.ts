@@ -62,6 +62,8 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
+      // Piso um pouco abaixo da cobertura atual (78/72/75/80); subir conforme a cobertura crescer.
+      thresholds: { statements: 75, branches: 68, functions: 70, lines: 77 },
     },
   }
 });
