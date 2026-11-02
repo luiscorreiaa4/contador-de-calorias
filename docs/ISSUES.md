@@ -13,11 +13,11 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 |---|---|---|---|
 | 1 | [navegador] mover JWT para cookie HttpOnly e reduzir TTL da sessão | security, auth, priority:high | [x] 01/11/2026 |
 | 2 | [navegador] unificar leitura do token em `apiFetch` | auth, quality | [x] 01/11/2026 |
-| 3 | [navegador] CSP, HSTS e headers de segurança no host do front | security, devops | [adiado] |
-| 4 | [auth] bloqueio ou atraso progressivo de login por conta | security, auth, priority:high | [adiado] |
-| 5 | [auth] rate limit com store compartilhado, `TRUST_PROXY` e limiter por e-mail/global | security, auth, priority:high | [adiado] |
+| 3 | [navegador] CSP, HSTS e headers de segurança no host do front | security, devops | [x] 02/11/2026 |
+| 4 | [auth] bloqueio ou atraso progressivo de login por conta | security, auth, priority:high | [x] 02/11/2026 |
+| 5 | [auth] rate limit com store compartilhado, `TRUST_PROXY` e limiter por e-mail/global | security, auth, priority:high | [x] 02/11/2026 |
 | 6 | [auth] captcha em register, login e forgot-password | security, auth | [adiado] |
-| 7 | [auth] MFA (TOTP), ao menos para administradores | security, auth | [adiado] |
+| 7 | [auth] MFA (TOTP), ao menos para administradores | security, auth | [~] 02/11/2026 |
 | 8 | [auth] `register` não sobrescreve credenciais de conta não verificada | security, auth | [x] 01/11/2026 |
 | 9 | [autorização] role de banco com menor privilégio e role de migração | security, devops, priority:high | [adiado] |
 | 10 | [autorização] avaliar RLS no Postgres | security | [adiado] |
@@ -26,17 +26,17 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 | 13 | [infra] CORS: rejeitar `*` e `localhost` em produção | security | [x] 01/11/2026 |
 | 14 | [infra] e-mail: proibir `memory` em produção, exigir TLS e timeouts | security, devops | [x] 01/11/2026 |
 | 15 | [infra] criptografia em repouso para dados de saúde | security, legal | [adiado] |
-| 16 | [infra] atualizar deps `high` e auditar backend/frontend no CI | security, devops, priority:high | [adiado] |
+| 16 | [infra] atualizar deps `high` e auditar backend/frontend no CI | security, devops, priority:high | [~] 02/11/2026 |
 | 17 | [devops] fixar Docker/Actions por versão/SHA, `permissions` e handlers de processo | devops, security | [x] 01/11/2026 |
 | 18 | [segredos] `sourcemap: false`, remover `/test-compression-payload`, exigir VAPID | security | [x] 01/11/2026 |
-| 19 | [qualidade] formatter, commitlint/Husky e knip | quality | [adiado] |
+| 19 | [qualidade] formatter, commitlint/Husky e knip | quality | [~] 02/11/2026 |
 | 20 | [qualidade] `down` utilizável em todas as migrations e teste de rollback | quality, devops | [adiado] |
-| 21 | [tests] cobertura do backend e `thresholds` no front | tests | [adiado] |
+| 21 | [tests] cobertura do backend e `thresholds` no front | tests | [~] 02/11/2026 |
 | 22 | [tests] E2E com Playwright | tests | [adiado] |
 | 23 | [tests] testes de autorização por recurso e carga no CI | tests, security | [x] 01/11/2026 (IDOR) / [adiado] (Carga CI) |
-| 24 | [devops] deploy: Dockerfile, ambientes e etapa no CI | devops | [adiado] |
+| 24 | [devops] deploy: Dockerfile, ambientes e etapa no CI | devops | [~] 02/11/2026 |
 | 25 | [observability] rastreio de erros, métricas e alertas | observability | [adiado] |
-| 26 | [devops] backup do Postgres com teste de restauração | devops | [adiado] |
+| 26 | [devops] backup do Postgres com teste de restauração | devops | [~] 02/11/2026 |
 | 27 | [ux] página 404 própria | ux, seo | [x] 01/11/2026 |
 | 28 | [ux] auditar `prefers-reduced-motion` | ux, a11y | [x] 01/11/2026 |
 | 29 | [seo] meta OG/Twitter/canonical, `robots.txt`, `sitemap.xml`, `noindex` | seo | [x] 01/11/2026 |
@@ -63,18 +63,23 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 - **Testes:** `frontend/src/tests/api.test.ts` validando o envio do header `Authorization: Bearer <token>` a partir de `sessionStorage`.
 
 ### #3 [navegador] CSP, HSTS e headers de segurança no host do front
-**Labels:** security, devops · **Status:** `[adiado]`
-- **Motivo do adiamento:** A definição de headers no host estático do frontend (Vercel, Netlify, Cloudflare Pages, S3/CloudFront) depende da infraestrutura de deploy do frontend (#24), que ainda não foi escolhida nem provisionada pelo usuário.
+**Labels:** security, devops · **Status:** `[x]` (Concluído em 02/11/2026, parcial quanto ao host)
+- **O que foi feito:** Criado `frontend/public/_headers` (copiado para `dist/` pelo Vite) com HSTS, CSP (`script-src 'self'`, `object-src 'none'`, `frame-ancestors 'none'`), `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` e `Permissions-Policy`.
+- **Limitação:** o formato `_headers` é lido por Netlify e Cloudflare Pages. Vercel exige `vercel.json` e S3/CloudFront exige configuração própria; replicar os mesmos valores quando o host for escolhido (#24). `connect-src` está em `'self' https:`; restringir à origem da API em produção.
 - **Guia:** `03-seguranca-web.md` §6 (HTTPS e domínio com certificado SSL).
 
 ### #4 [auth] bloqueio ou atraso progressivo de login por conta
-**Labels:** security, auth, priority:high · **Status:** `[adiado]`
-- **Motivo do adiamento:** Requer decisão de negócio do usuário sobre a política de lockout: número exato de tentativas consecutivas permitidas antes do bloqueio, duração do bloqueio (em minutos), envio de e-mail de alerta de segurança e regras de desbloqueio antecipado.
+**Labels:** security, auth, priority:high · **Status:** `[x]` (Concluído em 02/11/2026)
+- **Política adotada (padrão, ajustável):** 5 falhas consecutivas bloqueiam a conta por 15 min (`MAX_LOGIN_ATTEMPTS`/`LOGIN_LOCK_MINUTES` em `auth.service.ts`). Sem e-mail de alerta nem desbloqueio antecipado; o fluxo de redefinição de senha zera o bloqueio. Conta bloqueada responde o mesmo 401 genérico, sem revelar o bloqueio nem a existência da conta. Após expirar, uma nova falha bloqueia de novo.
+- **O que foi feito:** migration `1793100000000_add-login-lockout.js` (`failed_login_attempts`, `locked_until`), `recordFailedLogin`/`resetFailedLogins` em `auth.model.ts`, checagem em `login`.
+- **Testes:** `backend/tests/integration/auth_login_lockout.test.ts` (escrito, ainda não executado: Docker/Postgres indisponíveis na sessão).
 - **Guia:** `03-seguranca-web.md` §3 (Quantidade de tentativas de login).
 
 ### #5 [auth] rate limit com store compartilhado, `TRUST_PROXY` e limiter por e-mail/global
-**Labels:** security, auth, priority:high · **Status:** `[adiado]`
-- **Motivo do adiamento:** Depende de escolha de infraestrutura do usuário (provisionar instância de Redis compartilhado vs usar tabela no PostgreSQL para o store do express-rate-limit) e da topologia de proxy reverso no deploy (#24).
+**Labels:** security, auth, priority:high · **Status:** `[x]` (Concluído em 02/11/2026)
+- **O que foi feito:** store compartilhado em Postgres (`backend/src/middlewares/pgRateLimitStore.ts`, tabela `rate_limits`, migration `1793200000000`), usado por todos os limiters de `/api/auth/*` fora de `NODE_ENV=test`; novo limiter de login só por e-mail (`loginEmailLimiter`, 20/15 min) contra ataque distribuído a uma conta. `TRUST_PROXY` e a chave IP+e-mail já existiam.
+- **Limitação:** linhas expiradas só são sobrescritas quando a chave reaparece; limpar por `reset_at` em um job se a tabela crescer. Redis ficou descartado (Postgres já existe).
+- **Testes:** `backend/tests/unit/pg_rate_limit_store.test.ts`; `auth_rate_limit.test.ts` segue passando com o store em memória.
 - **Guia:** `03-seguranca-web.md` §3 (Rate limit nos endpoints).
 
 ### #6 [auth] captcha em register, login e forgot-password
@@ -83,8 +88,10 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 - **Guia:** `03-seguranca-web.md` §3 (Captchas).
 
 ### #7 [auth] MFA (TOTP), ao menos para administradores
-**Labels:** security, auth · **Status:** `[adiado]`
-- **Motivo do adiamento:** Requer decisão de design/produto com o usuário sobre o fluxo de ativação, biblioteca escolhida, geração e armazenamento seguro de códigos de recuperação (recovery codes), e política de obrigatoriedade para administradores.
+**Labels:** security, auth · **Status:** `[~]` (backend concluído em 02/11/2026; falta UI)
+- **O que foi feito (backend):** TOTP RFC 6238 com `node:crypto` (`backend/src/utils/totp.ts`), segredo cifrado com AES-256-GCM (chave derivada de `AUTH_TOKEN_PEPPER`), 8 códigos de recuperação de uso único (só o hash é salvo). Rotas autenticadas `POST /api/users/me/mfa/{setup,enable,disable}`; `login` aceita `mfa_code` e responde 401 `MFA_REQUIRED` quando falta; código errado conta no bloqueio do #4. Migration `1793300000000`.
+- **Pendente:** tela de ativação (QR/segredo, recovery codes) e campo de código no formulário de login; sem isso uma conta com MFA ativo não consegue entrar pela UI. Obrigatoriedade para admins não foi imposta (exige a UI primeiro).
+- **Testes:** `backend/tests/integration/auth_mfa.test.ts` (vetor da RFC, fluxo completo, recuperação de uso único).
 - **Guia:** `03-seguranca-web.md` §3 (MFA).
 
 ### #8 [auth] `register` não sobrescreve credenciais de conta não verificada
@@ -128,8 +135,9 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 - **Guia:** `03-seguranca-web.md` §6 (Criptografia de dados sensíveis).
 
 ### #16 [infra] atualizar deps `high` e auditar backend/frontend no CI
-**Labels:** security, devops, priority:high · **Status:** `[adiado]`
-- **Motivo do adiamento:** Atualização de pacotes centrais com salto de major (ex: Zod v3 para v4, Vite, ou React) exige autorização e planejamento de migração pelo usuário para evitar quebra de contratos de runtime.
+**Labels:** security, devops, priority:high · **Status:** `[~]` (parcial em 02/11/2026)
+- **O que foi feito:** `npm audit fix` sem `--force` no front e no backend (lockfiles atualizados); suítes de backend e front passando.
+- **Pendente (salto de major, precisa de autorização):** `zod` 3→4 (front e backend) e `nodemailer` 7→major seguinte (backend) ainda marcados `high` pelo `npm audit`. O CI continua falhando nesses até migrar.
 - **Guia:** `03-seguranca-web.md` §6 (Dependências).
 
 ### #17 [devops] fixar Docker/Actions por versão/SHA, `permissions` e handlers de processo
@@ -143,8 +151,9 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 - **Testes:** `backend/tests/integration/compression.test.ts` e validação do diretório de build.
 
 ### #19 [qualidade] formatter, commitlint/Husky e knip
-**Labels:** quality · **Status:** `[adiado]`
-- **Motivo do adiamento:** A escolha do formatador de código (Prettier vs Biome), integração de hooks Git (Husky) e regras de commit dependem da preferência de tooling do usuário (conforme explicitamente assinalado: "decisão com /grill-me").
+**Labels:** quality · **Status:** `[~]` (parcial em 02/11/2026)
+- **O que foi feito:** Prettier (`.prettierrc.json`, `npm run format`/`format:check`), Husky com hook `commit-msg` rodando commitlint (`@commitlint/config-conventional`, `commitlint.config.js`). O formatter não foi aplicado ao repo inteiro nem entra no CI, para não gerar um diff gigante.
+- **Pendente:** knip (detecção de código morto) e rodar `npm run format` num commit isolado.
 - **Guia:** `05-engenharia-qualidade-devops.md` §4.
 
 ### #20 [qualidade] `down` utilizável em todas as migrations e teste de rollback
@@ -153,8 +162,9 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 - **Guia:** `05-engenharia-qualidade-devops.md` §2 (Rollback).
 
 ### #21 [tests] cobertura do backend e `thresholds` no front
-**Labels:** tests · **Status:** `[adiado]`
-- **Motivo do adiamento:** A definição dos percentuais mínimos de corte (thresholds de cobertura para statements, branches, functions, lines) depende de alinhamento com o usuário para evitar bloqueios indevidos no CI.
+**Labels:** tests · **Status:** `[~]` (parcial em 02/11/2026)
+- **O que foi feito:** `thresholds` no Vitest do front (statements 75, branches 68, functions 70, lines 77), logo abaixo da cobertura atual (78/72/75/80); o CI já roda `test:coverage`.
+- **Pendente:** cobertura do backend (`node:test` com `--experimental-test-coverage` passando pelo runner limitado).
 - **Guia:** `05-engenharia-qualidade-devops.md` §5 (Codecov).
 
 ### #22 [tests] E2E com Playwright
@@ -169,8 +179,9 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 - **Testes:** 13 testes de integração passando em `backend/tests/integration/authorization.test.ts`.
 
 ### #24 [devops] deploy: Dockerfile, ambientes e etapa no CI
-**Labels:** devops · **Status:** `[adiado]`
-- **Motivo do adiamento:** Depende da contratação e decisão do usuário sobre o provedor de nuvem para hospedagem do backend e frontend (ex: Railway, Render, Fly.io, AWS, Vercel).
+**Labels:** devops · **Status:** `[~]` (parcial em 02/11/2026)
+- **O que foi feito:** `Dockerfile` da API na raiz (node:24-slim, `npm start`), `.dockerignore`, passo `docker build` no CI. Build local verificado.
+- **Pendente:** escolha do provedor, ambientes (staging/prod), passo de deploy e execução de migrations no deploy.
 - **Guia:** `05-engenharia-qualidade-devops.md` §1.
 
 ### #25 [observability] rastreio de erros, métricas e alertas
@@ -179,8 +190,9 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 - **Guia:** `05-engenharia-qualidade-devops.md` §3.
 
 ### #26 [devops] backup do Postgres com teste de restauração
-**Labels:** devops · **Status:** `[adiado]`
-- **Motivo do adiamento:** Depende de infraestrutura de storage em nuvem contratada (ex: AWS S3, Cloudflare R2) para arquivamento dos dumps do banco e do ambiente de produção (#24).
+**Labels:** devops · **Status:** `[~]` (parcial em 02/11/2026)
+- **O que foi feito:** `backend/scripts/backup-db.mjs` (`backup` com `pg_dump` e `verify`, que restaura num banco temporário `*_restore_test`, confere `users` e o remove). Não foi executado nesta sessão.
+- **Pendente:** agendamento, envio ao storage (S3/R2) e rotina periódica do `verify`.
 - **Guia:** `05-engenharia-qualidade-devops.md` §2.
 
 ### #27 [ux] página 404 própria
