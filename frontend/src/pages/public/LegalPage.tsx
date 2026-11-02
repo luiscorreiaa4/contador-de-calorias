@@ -123,7 +123,7 @@ export const PrivacyPage: React.FC = () => (
     icon={<ShieldCheck className="w-3 h-3" aria-hidden="true" />}
     eyebrow="Documento Legal"
     title="Política de Privacidade"
-    updatedAt="19/10/2026"
+    updatedAt="02/11/2026"
   >
     <LegalSection title="1. Dados que Coletamos">
       <p>
@@ -165,6 +165,22 @@ export const PrivacyPage: React.FC = () => (
       <p>
         Senhas são armazenadas com hash bcrypt e nunca em texto puro. O acesso é protegido por autenticação JWT
         e limite de tentativas. Detalhes adicionais estão na página de Segurança.
+      </p>
+    </LegalSection>
+
+    <LegalSection title="7. Verificação Anti-abuso (Cloudflare Turnstile)">
+      <p>
+        No cadastro, no login e na recuperação de senha usamos o Cloudflare Turnstile para distinguir pessoas de
+        robôs. Ele pode coletar dados técnicos do navegador e do dispositivo, tratados pela Cloudflare conforme o{' '}
+        <a
+          href="https://www.cloudflare.com/en-gb/turnstile-privacy-policy/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary-ink underline"
+        >
+          Termo de Privacidade do Cloudflare Turnstile
+        </a>
+        , que integra esta política.
       </p>
     </LegalSection>
   </LegalPageLayout>

@@ -29,7 +29,10 @@ export const envSchema = z.object({
   VAPID_PUBLIC_KEY: z.string().optional(),
   VAPID_PRIVATE_KEY: z.string().optional(),
   // #6 — secret do Cloudflare Turnstile; sem ele o captcha fica desligado.
-  CAPTCHA_SECRET_KEY: z.string().min(1).optional(),
+  CAPTCHA_SECRET_KEY: z
+    .string()
+    .optional()
+    .transform((value) => value || undefined),
   // Número de saltos confiáveis (ex: "1") ou "false"; nunca "true".
   TRUST_PROXY: z
     .string()
