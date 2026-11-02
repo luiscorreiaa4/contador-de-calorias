@@ -24,7 +24,8 @@ describe('MfaCard', () => {
       ),
     );
     render(<MfaCard />);
-    await userEvent.click(await screen.findByRole('button', { name: /ativar mfa/i }));
+    expect(await screen.findByText(/app autenticador no celular/i)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: /começar/i }));
     expect(await screen.findByText('ABCDEFGH')).toBeInTheDocument();
     await userEvent.type(screen.getByLabelText(/código de 6 dígitos/i), '123456');
     await userEvent.click(screen.getByRole('button', { name: /confirmar e ativar/i }));

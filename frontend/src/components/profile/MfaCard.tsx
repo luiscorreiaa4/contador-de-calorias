@@ -55,7 +55,7 @@ export function MfaCard() {
       {profile.isPending && <p className="font-bold uppercase text-xs">CARREGANDO...</p>}
       {profile.isError && (
         <p role="alert" className="text-destructive">
-          Não foi possível carregar o estado do MFA.
+          Não foi possível carregar o estado da verificação em duas etapas.
         </p>
       )}
       {error && (
@@ -83,15 +83,25 @@ export function MfaCard() {
       {profile.data && !enabled && !setup.data && (
         <>
           <p className="text-muted-foreground">
-            Proteja a conta com um código gerado por um app autenticador.
+            Além da senha, o login passa a pedir um código de 6 dígitos que muda a cada 30
+            segundos. Ele é gerado por um aplicativo no seu celular, então ninguém entra na sua
+            conta só com a senha.
           </p>
+          <ol className="list-decimal pl-5 space-y-1 text-muted-foreground">
+            <li>
+              Instale um app autenticador no celular (Google Authenticator, Microsoft Authenticator
+              ou Authy).
+            </li>
+            <li>Toque em &quot;Começar&quot; para gerar a chave da sua conta.</li>
+            <li>Digite no app a chave e confirme com o código de 6 dígitos que ele mostrar.</li>
+          </ol>
           <button
             type="button"
             className={btn}
             disabled={setup.isPending}
             onClick={() => setup.mutate()}
           >
-            ATIVAR MFA
+            COMEÇAR
           </button>
         </>
       )}
@@ -104,9 +114,10 @@ export function MfaCard() {
             enable.mutate(code.trim());
           }}
         >
+          <p className="font-bold uppercase text-xs">PASSO 2: ADICIONE A CONTA NO APP</p>
           <p className="text-muted-foreground">
-            No app autenticador, adicione uma conta manualmente (tipo: baseado em tempo) com esta
-            chave:
+            No app autenticador, escolha &quot;Adicionar conta&quot; e depois &quot;Inserir chave de
+            configuração&quot; (tipo: baseado em tempo). Digite esta chave:
           </p>
           <p className="font-mono break-all select-all font-bold">{setup.data.secret}</p>
           <label
@@ -141,7 +152,13 @@ export function MfaCard() {
             disable.mutate(code.trim());
           }}
         >
-          <p className="font-bold uppercase text-xs">MFA ATIVO</p>
+          <p className="inline-block bg-primary text-primary-foreground border-2 border-edge px-2 py-1 font-black text-xs uppercase">
+            ATIVADA
+          </p>
+          <p className="text-muted-foreground">
+            O login da sua conta agora exige o código de 6 dígitos do app autenticador. Para
+            desativar, informe um código atual ou um código de recuperação.
+          </p>
           <label
             htmlFor="mfa-disable-code"
             className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground"
@@ -160,7 +177,7 @@ export function MfaCard() {
             className={btn}
             disabled={disable.isPending || code.trim().length < 6}
           >
-            DESATIVAR MFA
+            DESATIVAR VERIFICAÇÃO
           </button>
         </form>
       )}

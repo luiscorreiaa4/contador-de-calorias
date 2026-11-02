@@ -6,11 +6,14 @@ import {
   ProfileFormFeedback,
   ProfileSaveButton,
 } from '../../components/profile/ProfileFormFeedback';
-import { useProfileUpdate } from '../../hooks/useProfileSettings';
+import { useProfileQuery, useProfileUpdate } from '../../hooks/useProfileSettings';
 import { passwordSchema, type PasswordFormInputs } from '../../types/profile';
 
 export function AccountSecurityPage() {
   const mutation = useProfileUpdate();
+  const profile = useProfileQuery();
+  // Obrigatória só para admin; quem já ativou precisa continuar conseguindo desativar.
+  const showMfa = profile.data?.role === 'admin' || !!profile.data?.mfa_enabled;
   const {
     register,
     handleSubmit,
@@ -38,7 +41,7 @@ export function AccountSecurityPage() {
         <ProfileFormFeedback error={mutation.error} success={mutation.isSuccess} />
         <ProfileSaveButton pending={mutation.isPending} disabled={!isDirty} />
       </form>
-      <MfaCard />
+      {showMfa && <MfaCard />}
     </div>
   );
 }
