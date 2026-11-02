@@ -69,6 +69,12 @@ jobs:
       - name: Typecheck Backend
         run: npm --prefix backend run typecheck
 
+      - name: Format check
+        run: npm run format:check
+
+      - name: Dead code (knip)
+        run: npm run knip
+
       - name: Run Linter
         run: npm run lint
 
@@ -95,6 +101,25 @@ jobs:
         env:
           DATABASE_URL_TEST: postgres://postgres:postgres_test_password@localhost:5432/contador_calorias_test
         run: npm run test:rollback
+
+      - name: Load smoke (sem limite de latência)
+        env:
+          NODE_ENV: test
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USER: postgres
+          DB_PASSWORD: postgres_test_password
+          DB_NAME: contador_calorias_test
+          DATABASE_URL: postgres://postgres:postgres_test_password@localhost:5432/contador_calorias_test
+          JWT_SECRET: super_secret_test_key_with_at_least_32_chars_123!
+          CORS_ORIGIN: http://localhost:5173
+          APP_BASE_URL: http://localhost:5173
+          MAIL_FROM: CalorieSync <no-reply@caloriesync.local>
+          MAIL_TRANSPORT: memory
+          AUTH_TOKEN_PEPPER: super_secret_test_pepper_with_at_least_32_chars_456!
+          PORT: 3001
+          DURATION: 10
+        run: npm run test:load
 
       - name: Run Frontend Tests with Coverage
         run: npm --prefix frontend run test:coverage

@@ -1,0 +1,41 @@
+{
+  "workspaces": {
+    ".": {
+      "entry": ["scripts/*.mjs"]
+    },
+    "backend": {
+      "entry": [
+        "src/server.ts",
+        "scripts/*.{ts,js,mjs}",
+        "tests/**/*.test.ts",
+        "migrations/*.js",
+        "tests/load/autocannon.js"
+      ],
+      "project": ["src/**/*.ts", "scripts/**", "tests/**"]
+    },
+    "frontend": {
+      "entry": ["src/main.tsx", "src/**/*.test.{ts,tsx}", "scripts/*.mjs"],
+      "project": ["src/**/*.{ts,tsx}"]
+    },
+    "shared": {
+      "entry": ["src/index.ts"],
+      "project": ["src/**/*.ts"]
+    }
+  },
+  "rules": {
+    "exports": "off",
+    "types": "off",
+    "duplicates": "off",
+    "enumMembers": "off"
+  },
+  "ignoreDependencies": [
+    "@caloriesync/shared",
+    "@fontsource/inter",
+    "@fontsource/montserrat",
+    "@eslint/js",
+    "eslint-plugin-react-hooks",
+    "eslint-plugin-react-refresh",
+    "globals",
+    "typescript-eslint"
+  ]
+}
