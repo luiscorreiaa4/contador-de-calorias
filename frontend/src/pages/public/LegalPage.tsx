@@ -128,10 +128,21 @@ export const PrivacyPage: React.FC = () => (
   >
     <LegalSection title="1. Dados que Coletamos">
       <p>
-        Dados de cadastro (nome e e-mail), dados do perfil (sexo, data de nascimento, peso, altura,
-        percentual de gordura, nível de atividade e objetivo) e os registros de refeições, metas e
-        medições corporais que você cria na plataforma.
+        Dados de cadastro (nome e e-mail), dados do perfil e os registros de refeições, metas e
+        medições corporais que você cria na plataforma. Coletamos apenas o que o cálculo das suas
+        metas exige:
       </p>
+      <ul className="list-disc pl-5 space-y-1">
+        <li>
+          Sexo, data de nascimento (idade), peso e altura: entram na fórmula de gasto calórico.
+        </li>
+        <li>Nível de atividade: define o multiplicador do gasto energético diário.</li>
+        <li>Objetivo: define o ajuste calórico da meta (perder, manter ou ganhar peso).</li>
+        <li>
+          Percentual de gordura: opcional. Se informado, usamos uma fórmula mais precisa; se não,
+          usamos outra que dispensa esse dado.
+        </li>
+      </ul>
     </LegalSection>
 
     <LegalSection title="2. Finalidade e Base Legal">
@@ -152,7 +163,8 @@ export const PrivacyPage: React.FC = () => (
     <LegalSection title="4. Retenção">
       <p>
         Mantemos seus dados enquanto sua conta estiver ativa. Ao excluir a conta, todos os registros
-        associados são removidos de forma permanente.
+        associados são removidos de forma permanente do banco de dados. Cópias de segurança e logs
+        técnicos são mantidos por no máximo 30 dias e depois descartados.
       </p>
     </LegalSection>
 
@@ -185,6 +197,21 @@ export const PrivacyPage: React.FC = () => (
           Termo de Privacidade do Cloudflare Turnstile
         </a>
         , que integra esta política.
+      </p>
+    </LegalSection>
+
+    <LegalSection title="8. Monitoramento de Erros (Sentry)">
+      <p>
+        Quando ocorre uma falha no servidor, enviamos ao Sentry apenas informações técnicas do erro
+        (mensagem e trecho do código). Não enviamos o conteúdo das requisições, cookies, cabeçalhos
+        nem seus dados de saúde.
+      </p>
+    </LegalSection>
+
+    <LegalSection title="9. Incidentes de Segurança">
+      <p>
+        Em caso de incidente que possa causar risco relevante aos seus dados, comunicaremos você e a
+        Autoridade Nacional de Proteção de Dados (ANPD), conforme a LGPD, art. 48.
       </p>
     </LegalSection>
   </LegalPageLayout>
