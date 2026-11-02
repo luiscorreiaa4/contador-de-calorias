@@ -223,17 +223,19 @@ export async function incrementTokenVersion(userId: string, client: PoolClient):
 export interface UserAuthContext {
   token_version: number;
   role: 'user' | 'admin';
+  mfa_enabled: boolean;
 }
 
 export async function getUserAuthContext(userId: string): Promise<UserAuthContext | null> {
-  const result = await pool.query<{ token_version: number; role: 'user' | 'admin' }>(
-    'SELECT token_version, role FROM users WHERE id = $1',
+  const result = await pool.query<{ token_version: number; role: 'user' | 'admin'; mfa_enabled: boolean }>(
+    'SELECT token_version, role, (mfa_enabled_at IS NOT NULL) AS mfa_enabled FROM users WHERE id = $1',
     [userId]
   );
   if (!result.rows[0]) return null;
   return {
     token_version: Number(result.rows[0].token_version),
     role: result.rows[0].role,
+    mfa_enabled: result.rows[0].mfa_enabled,
   };
 }
 

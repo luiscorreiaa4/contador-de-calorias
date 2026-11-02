@@ -12,6 +12,7 @@ export interface AuthenticatedRequest extends Request {
   userId?: string;
   tokenVersion?: number;
   userRole?: 'user' | 'admin';
+  mfaEnabled?: boolean;
   requestId?: string;
 }
 
@@ -40,6 +41,14 @@ export function requireAdmin(req: Request | AuthenticatedRequest, res: Response,
       success: false,
       message: 'Acesso negado. Recurso restrito a administradores.',
       code: 'FORBIDDEN',
+    });
+  }
+  // #7: admin precisa de MFA ativo; /users/me/mfa/* não passa por aqui, então ele consegue ativar.
+  if (!(req as AuthenticatedRequest).mfaEnabled) {
+    return res.status(403).json({
+      success: false,
+      message: 'Ative a verificação em duas etapas para acessar a área administrativa.',
+      code: 'MFA_SETUP_REQUIRED',
     });
   }
   return next();
@@ -110,6 +119,7 @@ export async function authenticate(req: AuthenticatedRequest, res: Response, nex
   req.userId = parsed.userId;
   req.tokenVersion = authContext.token_version;
   req.userRole = authContext.role;
+  req.mfaEnabled = authContext.mfa_enabled;
   return next();
 }
 

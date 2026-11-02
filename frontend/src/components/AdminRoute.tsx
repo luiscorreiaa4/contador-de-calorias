@@ -36,5 +36,10 @@ export const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
     return <Navigate to="/" replace />;
   }
 
+  // #7: o backend bloqueia a API admin sem MFA; aqui só evitamos telas quebradas.
+  if (user.mfa_enabled === false) {
+    return <Navigate to="/configuracoes/seguranca" replace />;
+  }
+
   return children ? <>{children}</> : <Outlet />;
 };

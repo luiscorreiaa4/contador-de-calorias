@@ -41,7 +41,7 @@ export async function findUserByEmail(email: string): Promise<User | null> {
 
 export async function findUserById(id: string): Promise<UserWithoutPassword | null> {
   const result = await pool.query<UserWithoutPassword>(
-    'SELECT id, name, email, role, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, terms_accepted_at, email_verified_at, token_version, created_at, updated_at FROM users WHERE id = $1',
+    'SELECT id, name, email, role, goal, sex, birth_date, weight, height, body_fat, activity_level, daily_calories_goal, daily_proteins_goal, onboarding_completed, terms_accepted_at, email_verified_at, token_version, (mfa_enabled_at IS NOT NULL) AS mfa_enabled, created_at, updated_at FROM users WHERE id = $1',
     [id]
   );
   return mapUserRow(result.rows[0]);

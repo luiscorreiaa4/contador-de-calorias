@@ -17,7 +17,7 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 | 4 | [auth] bloqueio ou atraso progressivo de login por conta | security, auth, priority:high | [x] 02/11/2026 |
 | 5 | [auth] rate limit com store compartilhado, `TRUST_PROXY` e limiter por e-mail/global | security, auth, priority:high | [x] 02/11/2026 |
 | 6 | [auth] captcha em register, login e forgot-password | security, auth | [x] 02/11/2026 |
-| 7 | [auth] MFA (TOTP), ao menos para administradores | security, auth | [~] 02/11/2026 |
+| 7 | [auth] MFA (TOTP), ao menos para administradores | security, auth | [x] 02/11/2026 |
 | 8 | [auth] `register` não sobrescreve credenciais de conta não verificada | security, auth | [x] 01/11/2026 |
 | 9 | [autorização] role de banco com menor privilégio e role de migração | security, devops, priority:high | [adiado] |
 | 10 | [autorização] avaliar RLS no Postgres | security | [adiado] |
@@ -90,9 +90,11 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 - **Guia:** `03-seguranca-web.md` §3 (Captchas).
 
 ### #7 [auth] MFA (TOTP), ao menos para administradores
-**Labels:** security, auth · **Status:** `[~]` (backend concluído em 02/11/2026; falta UI)
+**Labels:** security, auth · **Status:** `[x]` (Concluído em 02/11/2026, sem QR; obrigatório para admins)
 - **O que foi feito (backend):** TOTP RFC 6238 com `node:crypto` (`backend/src/utils/totp.ts`), segredo cifrado com AES-256-GCM (chave derivada de `AUTH_TOKEN_PEPPER`), 8 códigos de recuperação de uso único (só o hash é salvo). Rotas autenticadas `POST /api/users/me/mfa/{setup,enable,disable}`; `login` aceita `mfa_code` e responde 401 `MFA_REQUIRED` quando falta; código errado conta no bloqueio do #4. Migration `1793300000000`.
-- **Pendente:** tela de ativação (QR/segredo, recovery codes) e campo de código no formulário de login; sem isso uma conta com MFA ativo não consegue entrar pela UI. Obrigatoriedade para admins não foi imposta (exige a UI primeiro).
+- **O que foi feito (front):** `MfaCard` em Segurança (ativar com chave digitada no app, códigos de recuperação exibidos uma vez, desativar com código); `LoginForm` mostra o campo de código ao receber `MFA_REQUIRED`; `GET /users/me` devolve `mfa_enabled`.
+- **Admins:** `requireAdmin` responde 403 `MFA_SETUP_REQUIRED` a admin sem MFA ativo (lido do banco a cada requisição, como o papel). `/api/users/me/mfa/*` não passa por esse guard, então o admin consegue ativar; `AdminRoute` redireciona para `/configuracoes/seguranca`. Helper de teste `createVerifiedAdmin` cria admin com MFA (opção `adminWithoutMfa`). Teste em `admin_rbac.test.ts`.
+- **Pendente:** QR code (hoje só a chave para digitação manual).
 - **Testes:** `backend/tests/integration/auth_mfa.test.ts` (vetor da RFC, fluxo completo, recuperação de uso único).
 - **Guia:** `03-seguranca-web.md` §3 (MFA).
 

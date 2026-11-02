@@ -18,6 +18,8 @@ export interface CreateVerifiedUserOptions {
   email?: string;
   password?: string;
   role?: 'user' | 'admin';
+  /** Admin criado sem MFA (padrão: com MFA ativo, para não bloquear as suítes de RBAC). */
+  adminWithoutMfa?: boolean;
 }
 
 /**
@@ -34,10 +36,10 @@ export async function createVerifiedUser(
   const passwordHash = await bcrypt.hash(password, 1);
 
   const result = await pool.query<{ id: string; name: string; email: string; role: 'user' | 'admin'; token_version: number }>(
-    `INSERT INTO users (name, email, password_hash, role, terms_accepted_at, email_verified_at)
-     VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    `INSERT INTO users (name, email, password_hash, role, terms_accepted_at, email_verified_at, mfa_enabled_at)
+     VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CASE WHEN $5::boolean THEN CURRENT_TIMESTAMP END)
      RETURNING id, name, email, role, token_version`,
-    [name.trim(), email, passwordHash, role]
+    [name.trim(), email, passwordHash, role, role === 'admin' && options.adminWithoutMfa !== true]
   );
 
   const row = result.rows[0];

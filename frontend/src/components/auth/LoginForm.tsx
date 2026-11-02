@@ -25,6 +25,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onEmailNotVerif
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [serverError, setServerError] = useState<string | null>(null);
+  const [mfaRequired, setMfaRequired] = useState(false);
 
   const loginMutation = useMutation({
     mutationFn: (data: LoginFormData) => loginUser(data),
@@ -35,6 +36,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onEmailNotVerif
     onError: (err: unknown) => {
       if (err instanceof ApiError && err.code === 'EMAIL_NOT_VERIFIED') {
         onEmailNotVerified?.(formData.email.trim(), formData.rememberMe);
+        return;
+      }
+      if (err instanceof ApiError && err.code === 'MFA_REQUIRED') {
+        setMfaRequired(true);
         return;
       }
 
@@ -135,6 +140,22 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onEmailNotVerif
           </p>
         )}
       </div>
+
+      {mfaRequired && (
+        <div className="space-y-2">
+          <Label htmlFor="login-mfa-code">Código de verificação em duas etapas</Label>
+          <Input
+            id="login-mfa-code"
+            autoComplete="one-time-code"
+            inputMode="numeric"
+            autoFocus
+            value={formData.mfaCode ?? ''}
+            onChange={(e) => setFormData({ ...formData, mfaCode: e.target.value })}
+            placeholder="000000 OU CÓDIGO DE RECUPERAÇÃO"
+            className="font-mono tracking-widest"
+          />
+        </div>
+      )}
 
       {/* Remember Me & Forgot Password */}
       <div className="flex items-center justify-between pt-2">

@@ -80,4 +80,18 @@ describe('RBAC & Role-based Authorization (D-22 / B1 / B11)', () => {
     assert.strictEqual(demotedProfile.status, 200);
     assert.strictEqual(demotedProfile.body.data.role, 'user', 'Na requisição seguinte o role deve ser "user"');
   });
+
+  it('4. Admin sem MFA recebe 403 MFA_SETUP_REQUIRED nas rotas admin, mas alcança o setup do MFA (#7)', async () => {
+    const admin = await createVerifiedAdmin({
+      email: `tester-rbac-nomfa-${Date.now()}@example.com`,
+      adminWithoutMfa: true,
+    });
+
+    const blocked = await request(app).get('/api/admin/foods').set('Authorization', `Bearer ${admin.token}`);
+    assert.strictEqual(blocked.status, 403);
+    assert.strictEqual(blocked.body.code, 'MFA_SETUP_REQUIRED');
+
+    const setup = await request(app).post('/api/users/me/mfa/setup').set('Authorization', `Bearer ${admin.token}`);
+    assert.strictEqual(setup.status, 200);
+  });
 });

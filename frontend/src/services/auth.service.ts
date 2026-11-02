@@ -18,6 +18,7 @@ export interface UserProfile {
   onboarding_completed: boolean;
   /** Papel de autorização do usuário (D-22 / B1). */
   role?: 'user' | 'admin';
+  mfa_enabled?: boolean;
   /** Presente nas respostas completas do backend (BL-12). */
   email_verified_at?: string | null;
   /** Versão do token usada para revogar sessões antigas (BL-12 / A8). */
@@ -74,10 +75,24 @@ export async function loginUser(data: LoginFormData): Promise<AuthResponseData> 
     body: JSON.stringify({
       email: data.email,
       password: data.password,
+      ...(data.mfaCode ? { mfa_code: data.mfaCode } : {}),
       captcha_token: await getCaptchaToken(),
     }),
   });
 }
+
+export interface MfaSetupData {
+  secret: string;
+  otpauth_url: string;
+}
+
+export const setupMfa = () => apiFetch<MfaSetupData>('/users/me/mfa/setup', { method: 'POST' });
+
+export const enableMfa = (code: string) =>
+  apiFetch<{ recovery_codes: string[] }>('/users/me/mfa/enable', { method: 'POST', body: JSON.stringify({ code }) });
+
+export const disableMfa = (code: string) =>
+  apiFetch<void>('/users/me/mfa/disable', { method: 'POST', body: JSON.stringify({ code }) });
 
 /** POST /auth/verify-email (A2/A6): valida o código e devolve sessão. */
 export async function verifyEmail(data: VerifyEmailData): Promise<AuthResponseData> {
