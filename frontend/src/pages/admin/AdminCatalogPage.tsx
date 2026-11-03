@@ -197,9 +197,7 @@ export const AdminCatalogPage: React.FC = () => {
       setEditingFood(null);
       setApiError(null);
       setFeedbackMessage(
-        editingFood
-          ? 'Alimento atualizado com sucesso no catálogo global!'
-          : 'Novo alimento cadastrado com sucesso no catálogo global!',
+        editingFood ? 'Alimento atualizado no catálogo.' : 'Alimento cadastrado no catálogo.',
       );
       if (res.warnings && res.warnings.length > 0) {
         setApiWarnings(res.warnings);
@@ -222,7 +220,7 @@ export const AdminCatalogPage: React.FC = () => {
       setFeedbackMessage(
         updatedFood.active
           ? `Alimento "${updatedFood.name}" reativado no catálogo.`
-          : `Alimento "${updatedFood.name}" desativado do catálogo global (B4).`,
+          : `Alimento "${updatedFood.name}" desativado do catálogo.`,
       );
       setApiWarnings([]);
     },
@@ -303,7 +301,7 @@ export const AdminCatalogPage: React.FC = () => {
               Catálogo Global de Alimentos
             </h1>
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-0.5">
-              Gestão e Curadoria Administrativa
+              Revisão e manutenção dos alimentos
             </p>
           </div>
         </div>
@@ -345,7 +343,7 @@ export const AdminCatalogPage: React.FC = () => {
         >
           <div className="flex items-center gap-2 text-warning uppercase font-black">
             <AlertTriangle className="w-4 h-4 text-warning shrink-0" aria-hidden="true" />
-            <span>Avisos de Divergência Calórica (B12):</span>
+            <span>Calorias diferentes do esperado:</span>
           </div>
           {apiWarnings.map((w, idx) => (
             <p key={idx} className="text-muted-foreground ml-6">
@@ -751,22 +749,21 @@ export const AdminCatalogPage: React.FC = () => {
       {/* Confirmação de Alteração de Status (B4) */}
       <ConfirmDialog
         isOpen={!!foodToToggleStatus}
-        title={foodToToggleStatus?.active ? 'Desativar Alimento?' : 'Reativar Alimento?'}
+        title={foodToToggleStatus?.active ? 'Desativar alimento?' : 'Reativar alimento?'}
         description={
           foodToToggleStatus?.active ? (
             <span>
               O alimento <strong>&quot;{foodToToggleStatus.name}&quot;</strong> deixará de aparecer
-              em novas buscas, mas continuará preservado no histórico de refeições já lançadas (B4,
-              B6).
+              nas buscas, mas continua nas refeições já registradas.
             </span>
           ) : (
             <span>
-              O alimento <strong>&quot;{foodToToggleStatus?.name}&quot;</strong> voltará a ficar
-              disponível para inclusão no diário alimentar.
+              O alimento <strong>&quot;{foodToToggleStatus?.name}&quot;</strong> volta a aparecer
+              nas buscas do diário.
             </span>
           )
         }
-        confirmLabel={foodToToggleStatus?.active ? 'Desativar Alimento' : 'Reativar Alimento'}
+        confirmLabel={foodToToggleStatus?.active ? 'Desativar alimento' : 'Reativar alimento'}
         variant={foodToToggleStatus?.active ? 'destructive' : 'primary'}
         isLoading={statusMutation.isPending}
         onConfirm={() => {

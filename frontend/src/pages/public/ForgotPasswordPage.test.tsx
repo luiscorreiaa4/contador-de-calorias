@@ -16,7 +16,7 @@ const renderPage = () =>
   );
 
 const GENERIC_MESSAGE =
-  /se os dados estiverem corretos, enviaremos uma mensagem para o e-mail informado/i;
+  /se houver uma conta com esse e-mail, você vai receber um link/i;
 
 describe('ForgotPasswordPage (BL-05)', () => {
   it('renderiza o formulário de recuperação', () => {

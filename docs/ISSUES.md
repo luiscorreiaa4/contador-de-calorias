@@ -90,7 +90,7 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 - **Guia:** `03-seguranca-web.md` §3 (Captchas).
 
 ### #7 [auth] MFA (TOTP), ao menos para administradores
-**Labels:** security, auth · **Status:** `[x]` (Concluído em 02/11/2026, sem QR; obrigatório para admins)
+**Labels:** security, auth · **Status:** `[x]` (Concluído em 02/11/2026; obrigatório para admins)
 - **O que foi feito (backend):** TOTP RFC 6238 com `node:crypto` (`backend/src/utils/totp.ts`), segredo cifrado com AES-256-GCM (chave derivada de `AUTH_TOKEN_PEPPER`), 8 códigos de recuperação de uso único (só o hash é salvo). Rotas autenticadas `POST /api/users/me/mfa/{setup,enable,disable}`; `login` aceita `mfa_code` e responde 401 `MFA_REQUIRED` quando falta; código errado conta no bloqueio do #4. Migration `1793300000000`.
 - **O que foi feito (front):** `MfaCard` em Segurança (ativar com chave digitada no app, códigos de recuperação exibidos uma vez, desativar com código); `LoginForm` mostra o campo de código ao receber `MFA_REQUIRED`; `GET /users/me` devolve `mfa_enabled`.
 - **Admins:** `requireAdmin` responde 403 `MFA_SETUP_REQUIRED` a admin sem MFA ativo (lido do banco a cada requisição, como o papel). `/api/users/me/mfa/*` não passa por esse guard, então o admin consegue ativar; `AdminRoute` redireciona para `/configuracoes/seguranca`. Helper de teste `createVerifiedAdmin` cria admin com MFA (opção `adminWithoutMfa`). Teste em `admin_rbac.test.ts`.

@@ -31,12 +31,12 @@ export const MealModalFooter: React.FC<MealModalFooterProps> = ({
         )}
       </div>
 
-      <div className="flex items-center gap-4 w-full sm:w-auto">
+      <div className="grid grid-cols-2 gap-3 w-full sm:flex sm:items-center sm:gap-4 sm:w-auto">
         <button
           type="button"
           onClick={onClose}
           disabled={isSubmitting}
-          className="flex-1 sm:flex-none px-6 py-3 font-black uppercase tracking-widest text-xs text-foreground bg-background border-2 border-border hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50"
+          className="whitespace-nowrap px-3 sm:px-6 py-3 font-black uppercase tracking-widest text-xs text-foreground bg-background border-2 border-border hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50"
         >
           CANCELAR
         </button>
@@ -44,7 +44,7 @@ export const MealModalFooter: React.FC<MealModalFooterProps> = ({
         <button
           type="submit"
           disabled={itemsCount === 0 || isSubmitting}
-          className="flex-1 sm:flex-none px-8 py-3 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-edge disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring shadow-hard-fill disabled:shadow-none"
+          className="whitespace-nowrap px-3 sm:px-8 py-3 bg-primary text-primary-foreground font-black uppercase tracking-wider sm:tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary/90 transition-all border-2 border-edge disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring shadow-hard-fill disabled:shadow-none"
         >
           {isSubmitting ? (
             <>
@@ -53,7 +53,7 @@ export const MealModalFooter: React.FC<MealModalFooterProps> = ({
             </>
           ) : (
             <>
-              <Utensils className="w-4 h-4" aria-hidden="true" />
+              <Utensils className="hidden sm:block w-4 h-4" aria-hidden="true" />
               <span>{isEditing ? 'SALVAR' : 'CRIAR REFEIÇÃO'}</span>
             </>
           )}

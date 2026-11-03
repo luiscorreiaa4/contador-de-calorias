@@ -30,6 +30,7 @@ export default defineConfig({
     },
   },
   build: {
+    // Nunca publicar .map (expõe o código-fonte). Se o Sentry entrar no front: "hidden" + upload + apagar.
     sourcemap: false,
     rollupOptions: {
       output: {

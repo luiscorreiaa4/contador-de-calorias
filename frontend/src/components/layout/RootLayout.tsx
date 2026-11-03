@@ -3,6 +3,7 @@ import { Outlet } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
 import { NewMealModalProvider } from '../../context/NewMealModalProvider';
 import { ThemeProvider } from '../../context/ThemeProvider';
+import { ToastProvider } from '../../context/ToastProvider';
 import { AppHeader } from './AppHeader';
 import { SwipeMain } from '../../navigation/SwipeMain';
 import { BottomNav } from './BottomNav';
@@ -11,8 +12,9 @@ import { Footer } from './Footer';
 const RootShell: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
   const showBottomNav = isAuthenticated && !!user?.onboarding_completed;
-  const [isOffline, setIsOffline] = useState(() =>
-    typeof navigator !== 'undefined' ? !navigator.onLine : false,
+  // `=== false`: no Node (prerender) `navigator` existe mas `onLine` é undefined.
+  const [isOffline, setIsOffline] = useState(
+    () => typeof navigator !== 'undefined' && navigator.onLine === false,
   );
 
   useEffect(() => {
@@ -37,7 +39,7 @@ const RootShell: React.FC = () => {
           role="status"
           className="w-full bg-warning text-warning-foreground py-1.5 px-4 text-center font-black text-xs uppercase tracking-wider border-b-2 border-border flex items-center justify-center gap-2"
         >
-          <span>MODO OFFLINE ATIVADO — DADOS CARREGADOS DO CACHE LOCAL</span>
+          <span>SEM CONEXÃO. MOSTRANDO OS DADOS SALVOS NO APARELHO</span>
         </div>
       )}
       {/* Skip to Main Content Link (A11y) */}
@@ -59,7 +61,12 @@ const RootShell: React.FC = () => {
         <Suspense
           fallback={
             <div className="flex items-center justify-center w-full h-64">
-              <div className="animate-spin rounded-none h-8 w-8 border-2 border-border border-b-foreground"></div>
+              <p
+                role="status"
+                className="text-xs font-bold uppercase tracking-widest text-muted-foreground"
+              >
+                CARREGANDO...
+              </p>
             </div>
           }
         >
@@ -77,8 +84,10 @@ const RootShell: React.FC = () => {
 
 export const RootLayout: React.FC = () => (
   <ThemeProvider>
-    <NewMealModalProvider>
-      <RootShell />
-    </NewMealModalProvider>
+    <ToastProvider>
+      <NewMealModalProvider>
+        <RootShell />
+      </NewMealModalProvider>
+    </ToastProvider>
   </ThemeProvider>
 );

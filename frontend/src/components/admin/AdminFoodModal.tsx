@@ -187,10 +187,10 @@ const AdminFoodFormInner: React.FC<AdminFoodFormInnerProps> = ({
               id="admin-food-modal-title"
               className="text-base sm:text-lg font-heading font-black text-foreground uppercase tracking-tight"
             >
-              {foodToEdit ? 'Editar Alimento do Catálogo' : 'Novo Alimento no Catálogo'}
+              {foodToEdit ? 'Editar alimento' : 'Novo alimento'}
             </h2>
             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mt-0.5">
-              Valores por 100 g / ml (D-22 / B9 & B12)
+              Valores por 100 g ou 100 ml
             </span>
           </div>
         </div>
@@ -339,7 +339,7 @@ const AdminFoodFormInner: React.FC<AdminFoodFormInnerProps> = ({
               <AlertTriangle className="w-4 h-4 text-warning shrink-0 mt-0.5" aria-hidden="true" />
               <div className="space-y-1">
                 <span className="text-[10px] uppercase tracking-widest text-warning block font-black">
-                  Aviso de cálculo teórico (não impede gravação):
+                  Confira os valores (dá para salvar mesmo assim):
                 </span>
                 {macroWarnings.map((w, idx) => (
                   <p key={idx} className="text-muted-foreground">
@@ -393,7 +393,7 @@ const AdminFoodFormInner: React.FC<AdminFoodFormInnerProps> = ({
             </div>
           </div>
 
-          {/* Medida Caseira (Opcional) */}
+          {/* Medida caseira (opcional) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label
@@ -441,7 +441,7 @@ const AdminFoodFormInner: React.FC<AdminFoodFormInnerProps> = ({
               htmlFor="admin-food-source-ref"
               className="block text-xs font-black uppercase tracking-wider text-foreground mb-1"
             >
-              Fonte Oficial Auditável (B9) *
+              Fonte dos dados *
             </label>
             <input
               id="admin-food-source-ref"
@@ -455,7 +455,7 @@ const AdminFoodFormInner: React.FC<AdminFoodFormInnerProps> = ({
               className="w-full px-3 py-2 text-sm bg-background border-2 border-border text-foreground font-mono uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
             />
             <span className="text-[10px] text-muted-foreground block mt-1">
-              Obrigatório para prevenir dados inventados. Toda alteração é auditada em log.
+              Obrigatória, para todo valor ter origem conhecida. Cada alteração fica no log de auditoria.
             </span>
           </div>
         </div>

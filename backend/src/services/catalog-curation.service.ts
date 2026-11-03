@@ -27,7 +27,7 @@ export interface CuratedImportResult {
   errors: string[];
 }
 
-export const curatedFoodItemSchema = z
+const curatedFoodItemSchema = z
   .object({
     name: z.string().trim().min(2, 'Nome deve ter no mínimo 2 caracteres.').max(255),
     calories: z
@@ -49,8 +49,6 @@ export const curatedFoodItemSchema = z
     message: 'A soma de proteínas, carboidratos e gorduras não pode exceder 100,5 g por 100 g.',
     path: ['proteins'],
   });
-
-export const curatedFoodsArraySchema = z.array(curatedFoodItemSchema);
 
 function escapeCsvField(val: unknown): string {
   if (val === null || val === undefined) return '';

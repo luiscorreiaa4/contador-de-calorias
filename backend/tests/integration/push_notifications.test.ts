@@ -37,6 +37,14 @@ describe('Push Notifications Feature (BL-27 / FEAT-C09)', () => {
     assert.ok(res.body.data.publicKey.length > 0);
   });
 
+  it('POST /api/push/subscribe - rejeita endpoint sem https (V-6)', async () => {
+    const res = await request(app)
+      .post('/api/push/subscribe')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ ...sampleSubscription, endpoint: 'http://169.254.169.254/latest' });
+    assert.strictEqual(res.status, 400);
+  });
+
   it('POST /api/push/subscribe - deve retornar 401 sem autenticação', async () => {
     const res = await request(app).post('/api/push/subscribe').send(sampleSubscription);
     assert.strictEqual(res.status, 401);

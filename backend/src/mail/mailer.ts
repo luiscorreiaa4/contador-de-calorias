@@ -44,7 +44,7 @@ interface SmtpConfig {
 /**
  * Adaptador SMTP via nodemailer (Mailpit em dev, provedor em produção).
  */
-export class SmtpMailer implements Mailer {
+class SmtpMailer implements Mailer {
   private readonly transporter: Transporter;
 
   constructor(config: SmtpConfig) {

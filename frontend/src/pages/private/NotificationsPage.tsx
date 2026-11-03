@@ -4,7 +4,7 @@ export function NotificationsPage() {
       <div className="space-y-1">
         <h2 className="font-heading font-black text-xl uppercase tracking-tighter">NOTIFICAÇÕES</h2>
         <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">
-          Gerencie os canais de lembrete de refeição e alertas automáticos da sua conta.
+          Escolha como quer receber lembretes de refeição.
         </p>
       </div>
 
@@ -36,8 +36,7 @@ export function NotificationsPage() {
                 </span>
               </div>
               <span className="text-xs text-muted-foreground font-medium block">
-                Receba avisos sonoros e visuais no navegador nos horários de café, almoço e jantar
-                para manter seu diário sempre em dia.
+                Aviso com som no navegador na hora do café, do almoço e do jantar.
               </span>
             </div>
           </label>
@@ -70,8 +69,7 @@ export function NotificationsPage() {
                 </span>
               </div>
               <span className="text-xs text-muted-foreground font-medium block">
-                Resumos diários, relatórios de consumo calórico e avisos de refeições pendentes
-                enviados diretamente para sua caixa de entrada.
+                Resumo diário de calorias e aviso das refeições que faltam registrar, por e-mail.
               </span>
             </div>
           </label>
@@ -104,8 +102,7 @@ export function NotificationsPage() {
                 </span>
               </div>
               <span className="text-xs text-muted-foreground font-medium block">
-                Lembretes instantâneos no seu celular por SMS ou WhatsApp para registrar café da
-                manhã, almoço, lanche e jantar.
+                Lembrete por SMS ou WhatsApp para registrar café da manhã, almoço, lanche e jantar.
               </span>
             </div>
           </label>

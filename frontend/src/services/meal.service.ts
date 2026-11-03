@@ -1,7 +1,7 @@
 import { apiFetch } from './api';
 
-import type { CreateMealDTO, CopyMealDTO, Meal, MealItem } from '@caloriesync/shared';
-export type { CreateMealDTO, CopyMealDTO, Meal, MealItem };
+import type { CreateMealDTO, CopyMealDTO, Meal } from '@caloriesync/shared';
+export type { CreateMealDTO, CopyMealDTO, Meal };
 
 export const copyMeal = async (data: CopyMealDTO): Promise<Meal | Meal[]> => {
   return apiFetch<Meal | Meal[]>('/meals/copy', {

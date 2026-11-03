@@ -7,7 +7,7 @@ import { NewMealModalProvider } from '../../context/NewMealModalProvider';
 import { BOTTOM_NAV_ITEMS } from '../../navigation/nav-items';
 import { BottomNav } from './BottomNav';
 
-function renderBar(path = '/') {
+function renderBar(path = '/app') {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <NewMealModalProvider>
@@ -18,7 +18,7 @@ function renderBar(path = '/') {
 }
 
 describe('BottomNav', () => {
-  it('renderiza 4 slots: Diário, Progresso, + e Conta, só a partir do módulo único', () => {
+  it('renderiza 4 slots: Diário, Histórico, + e Conta, só a partir do módulo único', () => {
     renderBar();
     const nav = screen.getByRole('navigation', { name: 'Navegação inferior' });
     expect(nav).toHaveClass('md:hidden');
@@ -33,13 +33,13 @@ describe('BottomNav', () => {
   });
 
   it.each([
-    ['/', 'Diário'],
-    ['/diario/2026-10-01', 'Diário'],
-    ['/evolucao/corpo', 'Progresso'],
-    ['/metas/diarias', 'Progresso'],
-    ['/conta', 'Conta'],
-    ['/perfil', 'Conta'],
-    ['/configuracoes/seguranca', 'Conta'],
+    ['/app', 'Diário'],
+    ['/app/diario/2026-10-01', 'Diário'],
+    ['/app/historico/corpo', 'Histórico'],
+    ['/app/metas/diarias', 'Conta'],
+    ['/app/conta', 'Conta'],
+    ['/app/perfil', 'Conta'],
+    ['/app/configuracoes/seguranca', 'Conta'],
   ])('em %s só o slot "%s" tem aria-current', (path, active) => {
     renderBar(path);
     const nav = screen.getByRole('navigation', { name: 'Navegação inferior' });
@@ -50,7 +50,7 @@ describe('BottomNav', () => {
   });
 
   it('o slot ativo usa o ícone preenchido e o inativo usa o de contorno', () => {
-    renderBar('/');
+    renderBar('/app');
     const nav = screen.getByRole('navigation', { name: 'Navegação inferior' });
     const activeSvg = within(nav).getByRole('link', { name: 'Diário' }).querySelector('svg');
     const inactiveSvg = within(nav).getByRole('link', { name: 'Conta' }).querySelector('svg');
@@ -65,13 +65,13 @@ describe('BottomNav', () => {
   });
 
   it('o "+" nunca recebe aria-current', () => {
-    renderBar('/');
+    renderBar('/app');
     expect(screen.getByRole('button', { name: 'Nova refeição' })).not.toHaveAttribute(
       'aria-current',
     );
   });
 
-  it.each(['/', '/evolucao/corpo', '/conta'])(
+  it.each(['/app', '/app/historico/corpo', '/app/conta'])(
     'o "+" abre o modal de nova refeição em %s',
     async (path) => {
       renderBar(path);

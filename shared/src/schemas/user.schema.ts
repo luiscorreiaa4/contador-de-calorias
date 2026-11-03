@@ -39,6 +39,8 @@ export const loginUserSchema = z.object({
     .max(72, 'A senha deve ter no máximo 72 caracteres.'),
   /** TOTP de 6 dígitos ou código de recuperação (só para contas com MFA). */
   mfa_code: z.string().trim().min(6).max(20).optional(),
+  /** false = cookie de sessão, apagado ao fechar o navegador (V-3). Padrão: persistente. */
+  remember_me: z.boolean().optional(),
 });
 
 /** Código do MFA (TOTP ou recuperação). */
@@ -53,6 +55,7 @@ export const emailVerificationCodeSchema = z
 export const verifyEmailSchema = z.object({
   email: emailSchema,
   code: emailVerificationCodeSchema,
+  remember_me: z.boolean().optional(),
 });
 
 export const resendVerificationCodeSchema = z.object({

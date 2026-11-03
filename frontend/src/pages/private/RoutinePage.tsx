@@ -48,8 +48,8 @@ function RoutineForm({ user }: { user: UserProfile }) {
           role="alert"
           className="border-2 border-border bg-warning/20 p-4 text-xs font-bold uppercase text-foreground"
         >
-          Atenção: o nível de atividade atual ('{user.activity_level}') não é reconhecido pelo
-          sistema. Por favor, selecione uma das opções válidas abaixo para atualizar sua rotina.
+          Atenção: o nível de atividade salvo ('{user.activity_level}') não existe mais. Escolha uma
+          das opções abaixo.
         </div>
       )}
       <RoutineGoalsSection

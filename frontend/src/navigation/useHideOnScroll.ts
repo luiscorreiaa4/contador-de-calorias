@@ -1,7 +1,7 @@
 import { useEffect, useState, type RefObject } from 'react';
 import { useLocation } from 'react-router';
 
-export const HIDE_ON_SCROLL = {
+const HIDE_ON_SCROLL = {
   topOffsetPx: 56,
   hideAfterPx: 8,
   showAfterPx: 4,
@@ -86,7 +86,12 @@ export function useHideOnScroll(barRef: RefObject<HTMLElement | null>): boolean 
   useEffect(() => {
     const onFocusIn = (event: FocusEvent) => {
       setFieldFocused(isTextField(event.target));
-      setBarFocused(event.target instanceof Node && !!barRef.current?.contains(event.target));
+      // Só foco de teclado: tocar num link da barra também foca e o foco persiste após navegar.
+      setBarFocused(
+        event.target instanceof HTMLElement &&
+          !!barRef.current?.contains(event.target) &&
+          event.target.matches(':focus-visible'),
+      );
     };
     const onFocusOut = () => {
       setFieldFocused(false);
@@ -101,7 +106,7 @@ export function useHideOnScroll(barRef: RefObject<HTMLElement | null>): boolean 
     };
   }, [barRef]);
 
-  const neverHideOnScroll = pathname.startsWith('/configuracoes');
+  const neverHideOnScroll = pathname.startsWith('/app/configuracoes');
   const hiddenByScroll =
     scrollHidden.path === pathname && scrollHidden.hidden && !neverHideOnScroll && !barFocused;
 

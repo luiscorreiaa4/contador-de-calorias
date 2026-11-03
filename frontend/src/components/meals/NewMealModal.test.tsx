@@ -335,29 +335,54 @@ describe('NewMealModal', () => {
     });
   });
 
-  it('deve permitir cadastrar um alimento personalizado e selecioná-lo automaticamente (BL-22)', async () => {
+  it('não mostra o cadastro de alimento fora de uma busca', async () => {
+    render(<NewMealModal isOpen={true} onClose={onClose} />);
+    await screen.findByRole('combobox');
+    expect(screen.queryByRole('button', { name: /cadastrar/i })).not.toBeInTheDocument();
+  });
+
+  it('deve permitir cadastrar um alimento personalizado a partir da busca e selecioná-lo (BL-22)', async () => {
     render(<NewMealModal isOpen={true} onClose={onClose} />);
 
-    const customTab = await screen.findByRole('button', { name: /novo alimento/i });
-    await userEvent.click(customTab);
+    await userEvent.type(await screen.findByRole('combobox'), 'Panqueca de Banana Fit');
+    await userEvent.click(
+      await screen.findByRole('button', { name: /cadastrar “panqueca de banana fit”/i }),
+    );
 
-    // Deve exibir o formulário de cadastro de alimento personalizado
-    expect(screen.getByLabelText(/nome do alimento/i)).toBeInTheDocument();
+    // O nome chega preenchido com o termo buscado
+    expect(screen.getByLabelText(/nome do alimento/i)).toHaveValue('PANQUECA DE BANANA FIT');
 
-    await userEvent.type(screen.getByLabelText(/nome do alimento/i), 'Panqueca de Banana Fit');
-    await userEvent.type(screen.getByLabelText(/kcal \/ 100g/i), '180');
+    await userEvent.type(screen.getByLabelText(/^kcal$/i), '180');
     await userEvent.type(screen.getByLabelText(/prot \(g\)/i), '8');
     await userEvent.type(screen.getByLabelText(/carb \(g\)/i), '30');
     await userEvent.type(screen.getByLabelText(/gord \(g\)/i), '3');
 
-    const saveBtn = screen.getByRole('button', { name: /cadastrar e selecionar/i });
-    await userEvent.click(saveBtn);
+    await userEvent.click(screen.getByRole('button', { name: /cadastrar e selecionar/i }));
 
     // Deve selecionar o alimento recém-criado e exibir o formulário de porção
     await waitFor(() => {
       expect(screen.getByText(/panqueca de banana fit/i)).toBeInTheDocument();
     });
     expect(screen.getByRole('spinbutton')).toBeInTheDocument();
+  });
+
+  it('valida o alimento personalizado antes de enviar', async () => {
+    let posted = false;
+    server.use(
+      http.post(`${baseURL}/foods/custom`, () => {
+        posted = true;
+        return HttpResponse.json({ success: false }, { status: 500 });
+      }),
+    );
+    render(<NewMealModal isOpen={true} onClose={onClose} />);
+
+    await userEvent.type(await screen.findByRole('combobox'), 'Bolo X');
+    await userEvent.click(await screen.findByRole('button', { name: /cadastrar “bolo x”/i }));
+    await userEvent.type(screen.getByLabelText(/^kcal$/i), '2000');
+    await userEvent.click(screen.getByRole('button', { name: /cadastrar e selecionar/i }));
+
+    expect(await screen.findByText(/calorias excessivas/i)).toBeInTheDocument();
+    expect(posted).toBe(false);
   });
 
   it('permite favoritar um alimento diretamente pelo card perto do botão de incluir', async () => {

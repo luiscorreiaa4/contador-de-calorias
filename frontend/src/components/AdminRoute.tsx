@@ -33,12 +33,12 @@ export const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
 
   // Usuário autenticado comum sem papel admin: redireciona para a raiz
   if (user?.role !== 'admin') {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/app" replace />;
   }
 
   // #7: o backend bloqueia a API admin sem MFA; aqui só evitamos telas quebradas.
   if (user.mfa_enabled === false) {
-    return <Navigate to="/configuracoes/seguranca" replace />;
+    return <Navigate to="/app/configuracoes/seguranca" replace />;
   }
 
   return children ? <>{children}</> : <Outlet />;

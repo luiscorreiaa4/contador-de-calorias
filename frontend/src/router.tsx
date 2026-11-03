@@ -1,12 +1,25 @@
 /* eslint-disable react-refresh/only-export-components */
-import { lazy } from 'react';
-import { createBrowserRouter, createMemoryRouter, Navigate, type RouteObject } from 'react-router';
+import { lazy, type FC } from 'react';
+import {
+  createMemoryRouter,
+  Navigate,
+  useLocation,
+  type RouteObject,
+} from 'react-router';
 import { RootLayout } from './components/layout/RootLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminRoute } from './components/AdminRoute';
 import { PublicRoute } from './components/PublicRoute';
 import { SectionLayout } from './components/layout/SectionLayout';
-import { CONFIG_TABS, EVOLUCAO_TABS, METAS_TABS, PROGRESSO_TABS } from './navigation/nav-items';
+import { CONFIG_TABS, HISTORICO_TABS, METAS_TABS } from './navigation/nav-items';
+// Import direto (sem lazy): a landing pré-renderizada hidrata sem cair no fallback do Suspense.
+import { LandingPage } from './pages/public/LandingPage';
+
+/** URLs antigas do app (antes de /app): mantêm favoritos, e-mails e o PWA instalado funcionando. */
+const ToApp: FC = () => {
+  const { pathname, search } = useLocation();
+  return <Navigate to={`/app${pathname}${search}`} replace />;
+};
 
 const AdminCatalogPage = lazy(() =>
   import('./pages/admin/AdminCatalogPage').then((m) => ({ default: m.AdminCatalogPage })),
@@ -81,6 +94,7 @@ export const routes: RouteObject[] = [
     path: '/',
     element: <RootLayout />,
     children: [
+      { index: true, element: <LandingPage /> },
       {
         element: <PublicRoute />,
         children: [
@@ -89,22 +103,18 @@ export const routes: RouteObject[] = [
         ],
       },
       {
+        path: 'app',
         element: <ProtectedRoute />,
         children: [
           { path: 'onboarding', element: <OnboardingFlow /> },
           { index: true, element: <DiaryPage /> },
-          { path: 'estatisticas', element: <Navigate to="/evolucao/alimentacao" replace /> },
-          { path: 'medidas', element: <Navigate to="/evolucao/corpo" replace /> },
           {
-            path: 'evolucao',
+            path: 'historico',
             element: (
               <SectionLayout
-                title="Progresso"
-                description="Acompanhe sua evolução e defina as metas que orientam seu dia."
-                parentTabs={PROGRESSO_TABS}
-                parentLabel="Progresso"
-                navLabel="Evolução"
-                links={EVOLUCAO_TABS}
+                title="Histórico"
+                description="Acompanhe sua alimentação, seu peso e suas medidas ao longo do tempo."
+                links={HISTORICO_TABS}
               />
             ),
             children: [
@@ -117,11 +127,8 @@ export const routes: RouteObject[] = [
             path: 'metas',
             element: (
               <SectionLayout
-                title="Progresso"
-                description="Acompanhe sua evolução e defina as metas que orientam seu dia."
-                parentTabs={PROGRESSO_TABS}
-                parentLabel="Progresso"
-                navLabel="Metas"
+                title="Metas"
+                description="Defina seu objetivo, sua rotina e as metas que orientam seu dia."
                 links={METAS_TABS}
               />
             ),
@@ -152,6 +159,14 @@ export const routes: RouteObject[] = [
           { path: 'diario/:date', element: <DiaryPage /> },
         ],
       },
+      // URLs antigas.
+      { path: 'estatisticas', element: <Navigate to="/app/historico/alimentacao" replace /> },
+      { path: 'medidas', element: <Navigate to="/app/historico/corpo" replace /> },
+      { path: 'evolucao/corpo', element: <Navigate to="/app/historico/corpo" replace /> },
+      { path: 'evolucao/*', element: <Navigate to="/app/historico/alimentacao" replace /> },
+      ...['onboarding', 'historico/*', 'metas/*', 'configuracoes/*', 'conta', 'perfil', 'diario/:date'].map(
+        (path) => ({ path, element: <ToApp /> }),
+      ),
       {
         element: <AdminRoute />,
         children: [{ path: 'admin/alimentos', element: <AdminCatalogPage /> }],
@@ -168,8 +183,6 @@ export const routes: RouteObject[] = [
     ],
   },
 ];
-
-export const router = createBrowserRouter(routes);
 
 export const createTestRouter = (initialEntries: string[] = ['/']) => {
   return createMemoryRouter(routes, { initialEntries });

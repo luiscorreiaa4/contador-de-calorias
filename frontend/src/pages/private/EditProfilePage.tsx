@@ -73,7 +73,7 @@ export function EditProfilePage() {
         <p className="text-muted-foreground">
           Atualize seus dados pessoais e corporais. Para alterar sua senha, acesse{' '}
           <Link
-            to="/configuracoes/seguranca"
+            to="/app/configuracoes/seguranca"
             className="underline font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             Segurança

@@ -14,7 +14,7 @@ function Bar() {
   );
 }
 
-function renderBar(path = '/') {
+function renderBar(path = '/app') {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <Bar />
@@ -96,8 +96,25 @@ describe('useHideOnScroll', () => {
     expect(isHidden()).toBe(false);
   });
 
+  it('foco por toque (sem :focus-visible) na barra não a fixa visível', () => {
+    const matches = HTMLElement.prototype.matches;
+    vi.spyOn(HTMLElement.prototype, 'matches').mockImplementation(function (
+      this: HTMLElement,
+      selector: string,
+    ) {
+      return selector === ':focus-visible' ? false : matches.call(this, selector);
+    });
+    renderBar();
+    act(() => {
+      screen.getByRole('button', { name: 'item' }).focus();
+    });
+    scrollTo(100);
+    scrollTo(150);
+    expect(isHidden()).toBe(true);
+  });
+
   it('nunca oculta ao rolar em /configuracoes/*', () => {
-    renderBar('/configuracoes/seguranca');
+    renderBar('/app/configuracoes/seguranca');
     scrollTo(100);
     scrollTo(300);
     expect(isHidden()).toBe(false);
@@ -105,7 +122,7 @@ describe('useHideOnScroll', () => {
 
   it('oculta com campo de texto em foco mesmo em /configuracoes/*', () => {
     render(
-      <MemoryRouter initialEntries={['/configuracoes/seguranca']}>
+      <MemoryRouter initialEntries={['/app/configuracoes/seguranca']}>
         <input aria-label="senha" />
         <Bar />
       </MemoryRouter>,

@@ -1,4 +1,6 @@
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { z } from 'zod';
 import type { PoolClient } from 'pg';
 import { pool } from '../database/pool.js';
 import { env } from '../config/env.js';
@@ -20,6 +22,7 @@ import {
   hashVerificationCode,
   normalizeEmail,
   safeCompareHex,
+  bcryptCost,
 } from '../utils/authTokens.js';
 import { getMailer } from '../mail/mailer.js';
 import {
@@ -51,10 +54,6 @@ function fail(message: string, statusCode: number, code?: string): never {
   error.statusCode = statusCode;
   if (code) error.code = code;
   throw error;
-}
-
-function saltRounds(): number {
-  return process.env.NODE_ENV === 'test' ? 1 : 10;
 }
 
 function withoutPassword(user: User): UserWithoutPassword {
@@ -131,7 +130,7 @@ async function issueVerificationCode(user: VerificationTarget): Promise<boolean>
  */
 export async function register(data: RegisterUserDTO): Promise<void> {
   const email = normalizeEmail(data.email);
-  const passwordHash = await bcrypt.hash(data.password, saltRounds());
+  const passwordHash = await bcrypt.hash(data.password, bcryptCost());
   const existing = await UserModel.findUserByEmail(email);
 
   if (existing) {
@@ -215,7 +214,7 @@ export async function login(data: LoginUserDTO): Promise<AuthResponse> {
   const publicUser = withoutPassword(rest);
   return {
     user: publicUser,
-    token: signAuthToken(user.id, Number(user.token_version)),
+    token: signAuthToken(user.id, Number(user.token_version), data.remember_me !== false),
   };
 }
 
@@ -278,7 +277,11 @@ export async function verifyEmail(data: VerifyEmailDTO): Promise<AuthResponse> {
 
   return {
     user: withoutPassword(verifiedUser),
-    token: signAuthToken(verifiedUser.id, Number(verifiedUser.token_version)),
+    token: signAuthToken(
+      verifiedUser.id,
+      Number(verifiedUser.token_version),
+      data.remember_me !== false,
+    ),
   };
 }
 
@@ -331,7 +334,7 @@ export async function forgotPassword(data: ForgotPasswordDTO): Promise<void> {
  */
 export async function resetPassword(data: ResetPasswordDTO): Promise<void> {
   const tokenHash = hashResetToken(data.token);
-  const passwordHash = await bcrypt.hash(data.password, saltRounds());
+  const passwordHash = await bcrypt.hash(data.password, bcryptCost());
 
   const client: PoolClient = await pool.connect();
   let finished = false;
@@ -362,5 +365,27 @@ export async function resetPassword(data: ResetPasswordDTO): Promise<void> {
     if (user) {
       sendMailInBackground(user.email, passwordChangedEmail(user.name));
     }
+  }
+}
+
+/**
+ * POST /api/auth/logout (V-2): revoga o `jti` do JWT apresentado; as outras sessões
+ * da conta continuam válidas. Token ausente ou inválido não faz nada.
+ */
+export async function logout(token: string | null): Promise<void> {
+  if (!token) return;
+  let claims: { jti?: unknown; exp?: unknown };
+  try {
+    claims = jwt.verify(token, env.JWT_SECRET, { algorithms: ['HS256'] }) as typeof claims;
+  } catch {
+    return;
+  }
+  // uuid checado antes do cast para UUID no banco; exp vem em segundos.
+  if (
+    typeof claims.jti === 'string' &&
+    z.string().uuid().safeParse(claims.jti).success &&
+    typeof claims.exp === 'number'
+  ) {
+    await AuthModel.revokeSession(claims.jti, new Date(claims.exp * 1000));
   }
 }

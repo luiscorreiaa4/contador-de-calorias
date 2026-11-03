@@ -41,7 +41,7 @@ Todo componente que consome dados de queries assíncronas DEVE tratar explicitam
 - **Mocks Exclusivos via MSW:** Toda interceptação de requisições nos testes deve ser realizada no nível de rede com Mock Service Worker (`src/mocks/handlers.ts`). Mocks manuais de `global.fetch` são proibidos.
 
 ## 7. Swipe entre Destinos da Barra Inferior
-- O swipe vive em `frontend/src/navigation/` (`swipe.ts`, `useSwipeNav.ts`, `SwipeMain.tsx`): navega entre os destinos da barra inferior (Diário ↔ Progresso ↔ Conta) com a tela acompanhando o dedo, só no mobile. **Não existe swipe entre abas irmãs**; a ordem vem de `BOTTOM_NAV_ITEMS`. É atalho: a barra inferior precisa funcionar sem ele.
+- O swipe vive em `frontend/src/navigation/` (`swipe.ts`, `useSwipeNav.ts`, `SwipeMain.tsx`): navega entre os destinos da barra inferior (Diário ↔ Histórico ↔ Conta) com a tela acompanhando o dedo, só no mobile. **Não existe swipe entre abas irmãs**; a ordem vem de `BOTTOM_NAV_ITEMS`. É atalho: a barra inferior precisa funcionar sem ele.
 - **Proibido** `onTouch*`/`onPointer*` do React para o gesto, `preventDefault` e listeners globais de toque.
 - **Marque `data-no-swipe`** no wrapper de todo gráfico Recharts, slider (`@radix-ui/react-slider` ou próprio), carrossel/lista deslizável, react-select e date picker. Contêineres com `overflow-x` rolável de fato são detectados automaticamente, mas marque mesmo assim quando souber.
 - Animações do gesto (arrasto, saída/entrada, retorno) usam `transform`/`opacity` inline só durante o gesto e respeitam `prefers-reduced-motion`; não deixe `transform` permanente no painel (cria contexto de empilhamento para `fixed`).

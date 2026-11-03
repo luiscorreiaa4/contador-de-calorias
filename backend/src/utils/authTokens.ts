@@ -16,6 +16,11 @@ export const MAX_VERIFICATION_SENDS_PER_HOUR = 5;
 /** Teto de pedidos de reset por e-mail em uma hora. */
 export const MAX_RESET_REQUESTS_PER_HOUR = 5;
 
+/** Custo do bcrypt: 1 só em testes (o pool aborta NODE_ENV=test fora de banco `_test`). */
+export function bcryptCost(): number {
+  return env.NODE_ENV === 'test' ? 1 : 10;
+}
+
 /**
  * Normaliza e-mail para consulta/persistência: trim + minúsculas, sem remover "+tag" (A11).
  */

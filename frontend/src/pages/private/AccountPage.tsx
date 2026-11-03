@@ -2,12 +2,14 @@ import React from 'react';
 import { Link } from 'react-router';
 import { ChevronRight, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useSignOut } from '../../hooks/useSignOut';
 import { useTheme } from '../../context/ThemeContext';
 import { ThemeToggle } from '../../components/layout/ThemeToggle';
 import { ACCOUNT_LINK_ITEMS, visibleItems } from '../../navigation/nav-items';
 
 export const AccountPage: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
+  const signOut = useSignOut();
   const { darkMode } = useTheme();
 
   const initials = user?.name
@@ -74,7 +76,7 @@ export const AccountPage: React.FC = () => {
 
       <button
         type="button"
-        onClick={logout}
+        onClick={signOut}
         className="flex min-h-14 w-full items-center gap-4 border-2 border-destructive px-4 text-xs font-black uppercase tracking-widest text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
       >
         <LogOut className="h-5 w-5" aria-hidden="true" />

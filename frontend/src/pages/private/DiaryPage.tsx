@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { Navigate, useNavigate, useParams } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
 import { useNewMealModal } from '../../context/NewMealModalContext';
 import {
@@ -16,6 +16,7 @@ import {
   ChevronDown,
   ChevronUp,
   CalendarDays,
+  RotateCcw,
   Copy,
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -29,20 +30,50 @@ import {
   parseLocalDateOrToday,
 } from '../../utils/date';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
+import { useToast } from '../../context/ToastContext';
+import { EXIT_MS } from '../../hooks/usePresence';
+import { prefersReducedMotion } from '../../navigation/swipe';
+
+/** Bloco estático no lugar de um número enquanto as refeições carregam (sem pulso, sem layout shift). */
+const NumberSkeleton: React.FC = () => (
+  <span aria-hidden="true" className="inline-block align-middle h-8 w-14 bg-muted" />
+);
 
 export const DiaryPage: React.FC = () => {
+  const { date } = useParams<{ date?: string }>();
+  // URL digitada com data inválida ou futura volta ao dia atual sem ficar no histórico.
+  if (date !== undefined && (!isValidLocalDateString(date) || date > getLocalDateString())) {
+    return <Navigate to="/app" replace />;
+  }
+  return <DiaryPageContent />;
+};
+
+const DiaryPageContent: React.FC = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const params = useParams<{ date?: string }>();
   const { user } = useAuth();
+  const showToast = useToast();
 
   const today = getLocalDateString();
   const selectedDate = isValidLocalDateString(params.date) ? params.date : today;
   const isToday = selectedDate === today;
 
   const goToDate = (date: string) => {
-    if (date === today) navigate('/');
-    else navigate(`/diario/${date}`);
+    if (date === today) navigate('/app');
+    else navigate(`/app/diario/${date}`);
+  };
+
+  const dateInputRef = React.useRef<HTMLInputElement>(null);
+  const openDatePicker = () => {
+    const input = dateInputRef.current;
+    if (!input) return;
+    try {
+      input.showPicker();
+    } catch {
+      // Navegador sem showPicker: o foco no input ainda permite digitar a data.
+      input.focus();
+    }
   };
 
   const { open: openMealModal } = useNewMealModal();
@@ -55,7 +86,7 @@ export const DiaryPage: React.FC = () => {
 
   const {
     data: todayMeals,
-    isLoading,
+    isPending,
     isError,
     error,
     refetch: refetchMeals,
@@ -77,13 +108,28 @@ export const DiaryPage: React.FC = () => {
     queryFn: () => getActiveGoal(selectedDate),
   });
 
+  // Otimista: o card some (saída de 150 ms) antes da resposta; em erro, volta e avisa por toast.
+  const [exitingIds, setExitingIds] = React.useState<string[]>([]);
   const deleteMealMutation = useMutation({
     mutationFn: deleteMeal,
-    onSuccess: () => {
+    onMutate: async (id: string) => {
+      const queryKey = ['todayMeals', selectedDate];
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<Meal[]>(queryKey);
+      setExitingIds((ids) => [...ids, id]);
+      await new Promise((resolve) => setTimeout(resolve, prefersReducedMotion() ? 0 : EXIT_MS));
+      queryClient.setQueryData<Meal[]>(queryKey, (old) => old?.filter((m) => m.id !== id));
+      return { previous, queryKey };
+    },
+    onSuccess: () => showToast('REFEIÇÃO APAGADA.'),
+    onError: (err: Error, _id, context) => {
+      if (context) queryClient.setQueryData(context.queryKey, context.previous);
+      showToast(`NÃO FOI POSSÍVEL APAGAR A REFEIÇÃO: ${err.message.toUpperCase()}`, 'error');
+    },
+    onSettled: (_data, _err, id) => {
+      setExitingIds((ids) => ids.filter((x) => x !== id));
       queryClient.invalidateQueries({ queryKey: ['todayMeals'] });
       queryClient.invalidateQueries({ queryKey: ['mealStats'] });
-      setIsDeleteModalOpen(false);
-      setMealToDelete(null);
     },
   });
 
@@ -142,12 +188,9 @@ export const DiaryPage: React.FC = () => {
   const fatsPercent =
     dailyFatsGoal !== null ? Math.min((consumedFats / dailyFatsGoal) * 100, 100) : 0;
 
-  const selectedDateLabel = parseLocalDateOrToday(selectedDate).toLocaleDateString('pt-BR', {
-    weekday: 'long',
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  });
+  const selectedDateObj = parseLocalDateOrToday(selectedDate);
+  const selectedDateLabel = selectedDateObj.toLocaleDateString('pt-BR'); // DD/MM/AAAA
+  const selectedWeekday = selectedDateObj.toLocaleDateString('pt-BR', { weekday: 'long' });
 
   const canGoNext = selectedDate < today;
 
@@ -170,49 +213,84 @@ export const DiaryPage: React.FC = () => {
       </div>
 
       {/* Navegação por Data */}
-      <div className="bg-card border-2 border-border shadow-hard p-4 flex items-center justify-between gap-2 sm:gap-4">
-        <button
-          type="button"
-          onClick={() => goToDate(addDaysToDateString(selectedDate, -1))}
-          aria-label="Dia anterior"
-          className="w-12 h-12 sm:w-auto sm:h-auto shrink-0 px-0 sm:px-4 py-2 border-2 border-border bg-background text-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-        >
-          <ChevronLeft className="w-4 h-4" aria-hidden="true" />
-          <span className="hidden sm:inline">Dia anterior</span>
-        </button>
-
-        <div className="min-w-0 flex-1 sm:flex-none flex flex-col items-center gap-1 text-center">
-          <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-primary-ink">
-            <CalendarDays className="w-3.5 h-3.5" aria-hidden="true" />
-            {isToday ? 'Hoje' : 'Diário'}
-          </span>
-          <span
-            data-testid="diary-date"
-            className="text-xs sm:text-sm font-heading font-black uppercase tracking-tight text-foreground"
+      <div className="bg-card border-2 border-border shadow-hard p-4">
+        <div className="flex items-center justify-between gap-2 sm:gap-4">
+          <button
+            type="button"
+            onClick={() => goToDate(addDaysToDateString(selectedDate, -1))}
+            aria-label="Dia anterior"
+            className="w-12 h-12 sm:w-auto sm:h-auto shrink-0 px-0 sm:px-4 py-2 border-2 border-border bg-background text-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
-            {selectedDateLabel}
-          </span>
-          {!isToday && (
-            <button
-              type="button"
-              onClick={() => goToDate(today)}
-              className="text-[10px] font-bold uppercase tracking-widest text-primary-ink underline underline-offset-2 hover:text-primary-ink/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              Voltar para hoje
-            </button>
-          )}
-        </div>
+            <ChevronLeft className="w-4 h-4" aria-hidden="true" />
+            <span className="hidden sm:inline">Dia anterior</span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => goToDate(addDaysToDateString(selectedDate, 1))}
-          disabled={!canGoNext}
-          aria-label="Próximo dia"
-          className="w-12 h-12 sm:w-auto sm:h-auto shrink-0 px-0 sm:px-4 py-2 border-2 border-border bg-background text-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-background"
-        >
-          <span className="hidden sm:inline">Próximo dia</span>
-          <ChevronRight className="w-4 h-4" aria-hidden="true" />
-        </button>
+          <div className="min-w-0 flex-1 sm:flex-none flex flex-col items-center gap-2 text-center">
+            <span className="h-6 max-w-full flex items-center text-[10px] font-bold uppercase tracking-[0.2em] text-primary-ink truncate">
+              {isToday ? `Hoje · ${selectedWeekday}` : selectedWeekday}
+            </span>
+            <div data-no-swipe className="relative max-w-full">
+              <button
+                type="button"
+                onClick={openDatePicker}
+                aria-label={`Escolher data: ${selectedWeekday}, ${selectedDateLabel}`}
+                className="group min-h-11 flex items-center gap-2 px-3 py-1.5 border-2 border-border bg-background text-foreground shadow-hard hover:bg-secondary hover:shadow-hard-hover active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                <CalendarDays className="w-4 h-4 text-primary-ink shrink-0" aria-hidden="true" />
+                <span
+                  data-testid="diary-date"
+                  className="text-base sm:text-lg font-heading font-black tracking-tight tabular-nums"
+                >
+                  {selectedDateLabel}
+                </span>
+                <ChevronDown
+                  className="w-4 h-4 text-muted-foreground group-hover:text-foreground shrink-0 transition-colors"
+                  aria-hidden="true"
+                />
+              </button>
+              {/* Calendário nativo: max impede escolher dias futuros. */}
+              <input
+                ref={dateInputRef}
+                type="date"
+                aria-label="Ir para data"
+                tabIndex={-1}
+                max={today}
+                value={selectedDate}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  if (isValidLocalDateString(next) && next <= today && next !== selectedDate) {
+                    goToDate(next);
+                  }
+                }}
+                className="sr-only"
+              />
+            </div>
+            {/* Faixa sempre reservada (mesma altura do dia da semana): a data fica no centro vertical, alinhada às setas. */}
+            <div className="h-6 flex items-center justify-center">
+              {!isToday && (
+                <button
+                  type="button"
+                  onClick={() => goToDate(today)}
+                  className="h-6 inline-flex items-center gap-1.5 px-2 text-[10px] font-black uppercase tracking-widest text-primary-ink hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <RotateCcw className="w-3 h-3" aria-hidden="true" />
+                  Voltar para hoje
+                </button>
+              )}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => goToDate(addDaysToDateString(selectedDate, 1))}
+            disabled={!canGoNext}
+            aria-label="Próximo dia"
+            className="w-12 h-12 sm:w-auto sm:h-auto shrink-0 px-0 sm:px-4 py-2 border-2 border-border bg-background text-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-background"
+          >
+            <span className="hidden sm:inline">Próximo dia</span>
+            <ChevronRight className="w-4 h-4" aria-hidden="true" />
+          </button>
+        </div>
       </div>
 
       {/* Alerta de erro ao carregar meta (A-098) */}
@@ -268,7 +346,7 @@ export const DiaryPage: React.FC = () => {
           <div>
             <div className="flex items-baseline gap-1">
               <span className="text-4xl font-heading font-black text-foreground tracking-tighter">
-                {consumedCalories.toFixed(0)}
+                {isPending ? <NumberSkeleton /> : consumedCalories.toFixed(0)}
               </span>
               <span className="text-sm font-bold text-muted-foreground">
                 /{dailyCaloriesGoal.toFixed(0)}
@@ -277,8 +355,8 @@ export const DiaryPage: React.FC = () => {
           </div>
           <div className="w-full bg-background border-2 border-border h-3 mt-4 overflow-hidden">
             <div
-              className="bg-primary h-full transition-all duration-500"
-              style={{ width: `${caloriesPercent}%` }}
+              className="bg-primary h-full origin-left transition-transform duration-200 ease-out"
+              style={{ transform: `scaleX(${caloriesPercent / 100})` }}
             />
           </div>
         </div>
@@ -300,7 +378,7 @@ export const DiaryPage: React.FC = () => {
             <div>
               <div className="flex items-baseline gap-1">
                 <span className="text-4xl font-heading font-black text-foreground tracking-tighter">
-                  {consumedProteins.toFixed(0)}
+                  {isPending ? <NumberSkeleton /> : consumedProteins.toFixed(0)}
                 </span>
                 <span className="text-sm font-bold text-muted-foreground">
                   /{dailyProteinsGoal.toFixed(0)}g
@@ -309,8 +387,8 @@ export const DiaryPage: React.FC = () => {
             </div>
             <div className="w-full bg-background border-2 border-border h-3 mt-4 overflow-hidden">
               <div
-                className="bg-primary h-full transition-all duration-500"
-                style={{ width: `${proteinsPercent}%` }}
+                className="bg-primary h-full origin-left transition-transform duration-200 ease-out"
+                style={{ transform: `scaleX(${proteinsPercent / 100})` }}
               />
             </div>
           </div>
@@ -328,7 +406,7 @@ export const DiaryPage: React.FC = () => {
             <div>
               <div className="flex items-baseline gap-1">
                 <span className="text-4xl font-heading font-black text-foreground tracking-tighter">
-                  {consumedCarbs.toFixed(0)}
+                  {isPending ? <NumberSkeleton /> : consumedCarbs.toFixed(0)}
                 </span>
                 <span className="text-sm font-bold text-muted-foreground">
                   {dailyCarbsGoal !== null ? `/${dailyCarbsGoal.toFixed(0)}g` : '/—'}
@@ -337,8 +415,8 @@ export const DiaryPage: React.FC = () => {
             </div>
             <div className="w-full bg-background border-2 border-border h-3 mt-4 overflow-hidden">
               <div
-                className="bg-primary h-full transition-all duration-500"
-                style={{ width: `${carbsPercent}%` }}
+                className="bg-primary h-full origin-left transition-transform duration-200 ease-out"
+                style={{ transform: `scaleX(${carbsPercent / 100})` }}
               />
             </div>
           </div>
@@ -356,7 +434,7 @@ export const DiaryPage: React.FC = () => {
             <div>
               <div className="flex items-baseline gap-1">
                 <span className="text-4xl font-heading font-black text-foreground tracking-tighter">
-                  {consumedFats.toFixed(0)}
+                  {isPending ? <NumberSkeleton /> : consumedFats.toFixed(0)}
                 </span>
                 <span className="text-sm font-bold text-muted-foreground">
                   {dailyFatsGoal !== null ? `/${dailyFatsGoal.toFixed(0)}g` : '/—'}
@@ -365,8 +443,8 @@ export const DiaryPage: React.FC = () => {
             </div>
             <div className="w-full bg-background border-2 border-border h-3 mt-4 overflow-hidden">
               <div
-                className="bg-primary h-full transition-all duration-500"
-                style={{ width: `${fatsPercent}%` }}
+                className="bg-primary h-full origin-left transition-transform duration-200 ease-out"
+                style={{ transform: `scaleX(${fatsPercent / 100})` }}
               />
             </div>
           </div>
@@ -387,7 +465,7 @@ export const DiaryPage: React.FC = () => {
               Registrar Refeição
             </h2>
             <p className="hidden sm:block text-[11px] font-bold tracking-widest text-muted-foreground uppercase mt-1">
-              Adicione o combustível da sua máquina.
+              Anote o que você comeu hoje.
             </p>
           </div>
         </div>
@@ -409,7 +487,7 @@ export const DiaryPage: React.FC = () => {
           <h3 className="text-xl font-heading font-black text-foreground uppercase tracking-tight flex items-center gap-2">
             {isToday ? 'Refeições de Hoje' : 'Refeições do Dia'}
             <span className="text-xs font-bold bg-primary text-primary-foreground px-2 py-0.5 border-2 border-edge">
-              {meals.length}
+              {isPending ? '–' : meals.length}
             </span>
           </h3>
 
@@ -438,11 +516,33 @@ export const DiaryPage: React.FC = () => {
           </div>
         )}
 
-        {isLoading ? (
-          <div className="bg-card border-2 border-border border-dashed p-8 text-center flex items-center justify-center">
-            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground animate-pulse">
-              CARREGANDO REFEIÇÕES...
-            </p>
+        {isPending ? (
+          <div role="status" className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <span className="sr-only">CARREGANDO REFEIÇÕES...</span>
+            {[0, 1].map((i) => (
+              <div
+                key={i}
+                aria-hidden="true"
+                className="bg-card border-2 border-border p-5 flex flex-col justify-between"
+              >
+                <div className="mb-4 border-b-2 border-border pb-4 space-y-2">
+                  <div className="h-6 w-32 bg-muted" />
+                  <div className="h-3 w-12 bg-muted" />
+                </div>
+                <div className="space-y-2 mb-6">
+                  {[0, 1, 2].map((row) => (
+                    <div key={row} className="flex items-center justify-between">
+                      <div className="h-4 w-2/5 bg-muted" />
+                      <div className="h-5 w-12 bg-muted" />
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-center gap-6 pt-4 border-t-2 border-border">
+                  <div className="h-4 w-20 bg-muted" />
+                  <div className="h-4 w-20 bg-muted" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : isError ? (
           <div
@@ -497,110 +597,124 @@ export const DiaryPage: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {meals.map((meal) => (
-              <div
-                key={meal.id}
-                className="bg-card border-2 border-border p-5 hover:shadow-hard transition-shadow flex flex-col justify-between group"
-              >
-                <div>
-                  <div className="flex items-start justify-between mb-4 border-b-2 border-border pb-4">
-                    <div>
-                      <h4 className="font-heading font-black text-lg text-foreground uppercase tracking-tighter">
-                        {meal.name}
-                      </h4>
-                      <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-muted-foreground mt-1">
-                        <Clock className="w-3 h-3" />
-                        <span>
-                          {new Date(meal.meal_time).toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          copyMealMutation.mutate({
-                            sourceMealId: meal.id,
-                            targetDate: selectedDate,
-                          });
-                        }}
-                        disabled={copyMealMutation.isPending}
-                        className="p-2 border-2 border-border bg-background text-foreground hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                        title="Duplicar refeição"
-                      >
-                        <Copy className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          openMealModal({ date: selectedDate, meal });
-                        }}
-                        className="p-2 border-2 border-border bg-background text-foreground hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                        title="Editar refeição"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setMealToDelete(meal);
-                          setIsDeleteModalOpen(true);
-                        }}
-                        className="p-2 border-2 border-border bg-background text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                        title="Excluir refeição"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 mb-6">
-                    {meal.items.slice(0, 3).map((item, idx) => {
-                      let formattedQuantity = `${Math.round(Number(item.quantity))} g`;
-                      if (item.unit === 'un' && item.display_amount) {
-                        const unitLabel = item.food_unit_name || 'un';
-                        const label =
-                          Number(item.display_amount) === 1 ? unitLabel : `${unitLabel}s`;
-                        formattedQuantity = `${item.display_amount} ${label} (${Math.round(Number(item.quantity))}g)`;
-                      } else if (item.unit === 'ml' || item.food_base_unit === 'ml') {
-                        formattedQuantity = `${Math.round(Number(item.quantity))} ml`;
-                      }
-
-                      return (
-                        <p
-                          key={idx}
-                          className="text-xs font-bold text-foreground flex items-center justify-between"
-                        >
-                          <span className="truncate pr-4 uppercase">{item.food_name}</span>
-                          <span className="text-[10px] text-muted-foreground shrink-0 bg-background border-2 border-border px-1.5 py-0.5 tracking-wider">
-                            {formattedQuantity}
+            {meals.map((meal) => {
+              const isTemp = meal.id.startsWith('temp-');
+              const isExiting = exitingIds.includes(meal.id);
+              return (
+                <div
+                  key={meal.id}
+                  aria-busy={isTemp || undefined}
+                  className={`bg-card border-2 border-border p-5 hover:shadow-hard transition-shadow flex flex-col justify-between group ${
+                    isExiting
+                      ? 'animate-out pointer-events-none'
+                      : isTemp
+                        ? 'animate-rise opacity-70'
+                        : ''
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-start justify-between mb-4 border-b-2 border-border pb-4">
+                      <div>
+                        <h4 className="font-heading font-black text-lg text-foreground uppercase tracking-tighter">
+                          {meal.name}
+                        </h4>
+                        <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-muted-foreground mt-1">
+                          <Clock className="w-3 h-3" />
+                          <span>
+                            {new Date(meal.meal_time).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
                           </span>
-                        </p>
-                      );
-                    })}
-                    {meal.items.length > 3 && (
-                      <p className="text-[10px] font-bold text-primary-ink uppercase tracking-widest pt-2">
-                        + {meal.items.length - 3} OUTROS ALIMENTOS...
-                      </p>
-                    )}
-                  </div>
-                </div>
+                        </div>
+                      </div>
+                      <fieldset
+                        disabled={isTemp || isExiting}
+                        className="flex items-center gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => {
+                            copyMealMutation.mutate({
+                              sourceMealId: meal.id,
+                              targetDate: selectedDate,
+                            });
+                          }}
+                          disabled={copyMealMutation.isPending}
+                          className="p-2 border-2 border-border bg-background text-foreground hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          title="Duplicar refeição"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            openMealModal({ date: selectedDate, meal });
+                          }}
+                          className="p-2 border-2 border-border bg-background text-foreground hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          title="Editar refeição"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMealToDelete(meal);
+                            setIsDeleteModalOpen(true);
+                          }}
+                          className="p-2 border-2 border-border bg-background text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          title="Excluir refeição"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </fieldset>
+                    </div>
 
-                <div className="flex items-center gap-6 text-xs pt-4 border-t-2 border-border mt-auto">
-                  <div className="flex items-center gap-2 font-black text-foreground uppercase tracking-widest">
-                    <Flame className="w-4 h-4 text-primary-ink" />
-                    <span>{Number(meal.total_calories).toFixed(0)} KCAL</span>
+                    <div className="space-y-2 mb-6">
+                      {meal.items.slice(0, 3).map((item, idx) => {
+                        let formattedQuantity = `${Math.round(Number(item.quantity))} g`;
+                        if (item.unit === 'un' && item.display_amount) {
+                          const unitLabel = item.food_unit_name || 'un';
+                          const label =
+                            Number(item.display_amount) === 1 ? unitLabel : `${unitLabel}s`;
+                          formattedQuantity = `${item.display_amount} ${label} (${Math.round(Number(item.quantity))}g)`;
+                        } else if (item.unit === 'ml' || item.food_base_unit === 'ml') {
+                          formattedQuantity = `${Math.round(Number(item.quantity))} ml`;
+                        }
+
+                        return (
+                          <p
+                            key={idx}
+                            className="text-xs font-bold text-foreground flex items-center justify-between"
+                          >
+                            <span className="truncate pr-4 uppercase">{item.food_name}</span>
+                            <span className="text-[10px] text-muted-foreground shrink-0 bg-background border-2 border-border px-1.5 py-0.5 tracking-wider">
+                              {formattedQuantity}
+                            </span>
+                          </p>
+                        );
+                      })}
+                      {meal.items.length > 3 && (
+                        <p className="text-[10px] font-bold text-primary-ink uppercase tracking-widest pt-2">
+                          + {meal.items.length - 3} OUTROS ALIMENTOS...
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 font-black text-foreground uppercase tracking-widest">
-                    <Beef className="w-4 h-4 text-primary-ink" />
-                    <span>{Number(meal.total_proteins).toFixed(0)}G PROT</span>
+
+                  <div className="flex items-center gap-6 text-xs pt-4 border-t-2 border-border mt-auto">
+                    <div className="flex items-center gap-2 font-black text-foreground uppercase tracking-widest">
+                      <Flame className="w-4 h-4 text-primary-ink" />
+                      <span>{Number(meal.total_calories).toFixed(0)} KCAL</span>
+                    </div>
+                    <div className="flex items-center gap-2 font-black text-foreground uppercase tracking-widest">
+                      <Beef className="w-4 h-4 text-primary-ink" />
+                      <span>{Number(meal.total_proteins).toFixed(0)}G PROT</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -618,9 +732,11 @@ export const DiaryPage: React.FC = () => {
         confirmLabel="Sim, Excluir"
         cancelLabel="Cancelar"
         variant="destructive"
-        isLoading={deleteMealMutation.isPending}
         onConfirm={() => {
-          if (mealToDelete) deleteMealMutation.mutate(mealToDelete.id);
+          if (!mealToDelete) return;
+          deleteMealMutation.mutate(mealToDelete.id);
+          setIsDeleteModalOpen(false);
+          setMealToDelete(null);
         }}
         onCancel={() => {
           setIsDeleteModalOpen(false);

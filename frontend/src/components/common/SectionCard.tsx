@@ -9,7 +9,7 @@ interface SectionCardProps {
   children: ReactNode;
 }
 
-/** Casca padrão dos cartões de conteúdo das telas de Progresso: título + ações no cabeçalho. */
+/** Casca padrão dos cartões de conteúdo das telas de Histórico: título + ações no cabeçalho. */
 export function SectionCard({
   title,
   titleAs: Title = 'h2',

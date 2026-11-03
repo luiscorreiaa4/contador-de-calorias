@@ -1,4 +1,4 @@
-export const APP_TIMEZONE = 'America/Sao_Paulo';
+const APP_TIMEZONE = 'America/Sao_Paulo';
 
 export function getLocalDateString(date: Date = new Date()): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: APP_TIMEZONE }).format(date);

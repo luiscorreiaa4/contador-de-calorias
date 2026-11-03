@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { getLocalDateString } from '../../utils/date';
 
 interface DatePickerInputProps {
   id: string;
@@ -204,6 +205,7 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
         <input
           ref={nativeInputRef}
           type="date"
+          max={getLocalDateString()}
           tabIndex={-1}
           value={getNativeDateValue()}
           onChange={handleNativeChange}
@@ -217,7 +219,7 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
           role="dialog"
           aria-modal="false"
           aria-label="Seletor de data"
-          className="absolute z-50 mt-2 right-0 sm:left-0 bg-card border-2 border-border shadow-hard p-4 w-72 rounded-none animate-in fade-in zoom-in-95 duration-150"
+          className="absolute z-50 mt-2 right-0 sm:left-0 bg-card border-2 border-border shadow-hard p-4 w-72 rounded-none"
         >
           <div className="flex items-center justify-between mb-4 border-b-2 border-border pb-2">
             <button

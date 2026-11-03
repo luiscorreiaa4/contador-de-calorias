@@ -1,6 +1,6 @@
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = `caloriesync-cache-${CACHE_VERSION}`;
-const STATIC_ASSETS = ['/', '/index.html', '/manifest.webmanifest', '/favicon.svg'];
+const STATIC_ASSETS = ['/spa.html', '/manifest.webmanifest', '/favicon.svg'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -58,7 +58,7 @@ self.addEventListener('fetch', (event) => {
         .catch(() =>
           caches
             .match(event.request)
-            .then((cached) => cached || caches.match('/') || caches.match('/index.html')),
+            .then((cached) => cached || caches.match('/spa.html')),
         ),
     );
     return;
@@ -109,7 +109,7 @@ self.addEventListener('push', (event) => {
     vibrate: shouldVibrate ? [100, 50, 100] : undefined,
     silent: !shouldVibrate,
     data: {
-      url: data.url || '/',
+      url: data.url || '/app',
     },
   };
 
@@ -119,7 +119,7 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   // Normaliza URL relativa com a origem atual para comparação correta com client.url absoluto (A-102)
-  const rawTargetUrl = event.notification.data?.url || '/';
+  const rawTargetUrl = event.notification.data?.url || '/app';
   const targetUrl = new URL(rawTargetUrl, self.location.origin).href;
 
   event.waitUntil(

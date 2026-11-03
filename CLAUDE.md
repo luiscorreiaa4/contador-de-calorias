@@ -7,7 +7,7 @@ Instruções e diretrizes operacionais para o Claude Code no projeto **CalorieSy
 ## 1. Stack e Versões [CONFIRMADO]
 - **Runtime:** Node.js v24.14.0 (mínimo v20+), npm 11.9.0.
 - **Frontend:** React 19.2.8, Vite 8.2.1, TypeScript 6.0.2, Tailwind CSS 3.4.19, Radix UI, TanStack Query v5.101.4, Zod 3.24.2, React Router 7.18.4.
-- **Backend:** Node.js com Express 4.21.2, TypeScript 5.7.3 (`tsx` 4.23.9), Zod 3.24.2, JWT (`jsonwebtoken` 9.0.2), `bcrypt` 5.1.1, PostgreSQL (driver `pg` 8.13.1, sem ORMs), `compression` 1.8.2, `nodemailer` 7.0.13 (SMTP; Mailpit em desenvolvimento).
+- **Backend:** Node.js com Express 4.21.2, TypeScript 5.7.3 (`tsx` 4.23.9), Zod 3.24.2, JWT (`jsonwebtoken` 9.0.2), `bcrypt` 6.0.0, PostgreSQL (driver `pg` 8.13.1, sem ORMs), `compression` 1.8.2, `nodemailer` 7.0.13 (SMTP; Mailpit em desenvolvimento).
 - **Banco de Dados:** PostgreSQL 14+, migrações puras via `node-pg-migrate` 9.0.0 em `backend/migrations/`.
 - **Testes Backend:** Node Native Test Runner (`node:test` + `node:assert` + `supertest` 7.3.0 via `tsx --test`).
 - **Testes Frontend:** Vitest 5.0.3 + React Testing Library (RTL) + MSW 2.15.0 + `@vitest/coverage-v8` 5.0.5.
@@ -105,9 +105,9 @@ Executar na **raiz** do monorepo:
   - **Usuário:** `testador123`
   - **Status:** `onboarding_completed: true` (dados corporais, rotina e metas diárias já calculados) e e-mail verificado. Não altere o cadastro dessa conta.
 - **Regras Mandatórias ao Executar o Navegador:**
-  - ❌ **PROIBIDO Criar Conta ou Refazer Onboarding:** Nunca acesse `/cadastro` nem passe pelas 5 etapas do wizard de onboarding (`/onboarding`).
+  - ❌ **PROIBIDO Criar Conta ou Refazer Onboarding:** Nunca acesse `/cadastro` nem passe pelas 5 etapas do wizard de onboarding (`/app/onboarding`).
   - ✅ **Fluxo de Login Direto:**
     1. Acesse `http://localhost:5173/login`.
     2. Na aba "ENTRAR", insira `teste@teste.com` no campo de e-mail e `123456` na senha.
     3. Clique no botão de submissão ("ENTRAR").
-    4. O sistema autentica imediatamente e direciona para o Diário (`/`), com acesso liberado a todas as telas (`/`, `/evolucao`, `/metas`, `/configuracoes`, `/perfil`).
+    4. O sistema autentica imediatamente e direciona para o Diário (`/app`), com acesso liberado a todas as telas (`/app`, `/app/historico`, `/app/metas`, `/app/configuracoes`, `/app/perfil`).

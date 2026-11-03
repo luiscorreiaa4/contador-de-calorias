@@ -1,0 +1,27 @@
+# CalorieSync
+
+> CalorieSync é um contador de calorias web, gratuito e em português, que calcula metas diárias de calorias e macronutrientes a partir do corpo e da rotina de cada pessoa e permite registrar refeições com alimentos da tabela TACO.
+
+## Para quem é
+
+- Pessoas no Brasil que querem perder peso, manter o peso ou ganhar massa acompanhando o que comem.
+- Quem prefere alimentos brasileiros com valores nutricionais de referência em vez de bases estrangeiras.
+- Não substitui nutricionista ou médico: as metas são estimativas.
+
+## Como funciona
+
+1. Cadastro com e-mail e senha, com confirmação por código enviado ao e-mail.
+2. Onboarding: sexo, data de nascimento, peso, altura, nível de atividade e objetivo (percentual de gordura é opcional).
+3. Taxa Metabólica Basal (TMB): fórmula de Mifflin-St Jeor; com percentual de gordura informado, Katch-McArdle (370 + 21,6 × massa magra).
+4. Gasto energético diário (TDEE): TMB × multiplicador de atividade (1,2 sedentário até 1,9 extremamente ativo).
+5. Meta por objetivo: −20% para perder peso, +15% para ganhar massa, TDEE para manter. Piso de 1.500 kcal (homens) e 1.200 kcal (mulheres).
+6. Macros: proteína 1,6 g/kg de massa de referência (até 35% das calorias), gordura 25% das calorias, carboidrato no restante.
+7. Registro de refeições com alimentos da Tabela Brasileira de Composição de Alimentos (TACO, Unicamp), em gramas, com histórico semanal e mensal, peso e medidas.
+
+## Páginas públicas
+
+- [Início e perguntas frequentes](https://app.caloriesync.com/): o que é o CalorieSync, como as metas são calculadas e FAQ.
+- [Termos de Uso](https://app.caloriesync.com/termos)
+- [Política de Privacidade](https://app.caloriesync.com/privacidade): dados coletados, finalidade, retenção e exclusão (LGPD).
+- [Segurança](https://app.caloriesync.com/seguranca)
+- [Criar conta](https://app.caloriesync.com/cadastro)

@@ -12,17 +12,12 @@ function createError(message: string, statusCode: number): CustomError {
   return err;
 }
 
-const DEFAULT_VAPID_PUBLIC_KEY =
-  'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U';
-
+// ID-4: sem chave configurada não há fallback; uma chave fixa não teria a privada correspondente.
 export function getPublicKey(): string {
-  if (env.VAPID_PUBLIC_KEY) {
-    return env.VAPID_PUBLIC_KEY;
-  }
-  if (env.NODE_ENV === 'production') {
+  if (!env.VAPID_PUBLIC_KEY) {
     throw createError('Chave pública VAPID não configurada no servidor.', 503);
   }
-  return DEFAULT_VAPID_PUBLIC_KEY;
+  return env.VAPID_PUBLIC_KEY;
 }
 
 export async function subscribe(userId: string, data: PushSubscriptionDTO) {

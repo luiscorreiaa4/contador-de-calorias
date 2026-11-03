@@ -20,7 +20,7 @@ export interface EnergyTargets {
   };
 }
 
-export type ActivityLevel = UserProfile['activity_level'];
+type ActivityLevel = UserProfile['activity_level'];
 
 const ACTIVITY_MULTIPLIERS: Record<ActivityLevel, number> = {
   sedentario: 1.2,

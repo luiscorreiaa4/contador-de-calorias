@@ -1,6 +1,7 @@
 import React, { Suspense, lazy, useCallback, useMemo, useState } from 'react';
 import { getLocalDateString } from '../utils/date';
 import type { Meal } from '../services/meal.service';
+import { usePresence } from '../hooks/usePresence';
 import { NewMealModalContext, type OpenNewMealOptions } from './NewMealModalContext';
 
 const NewMealModal = lazy(() =>
@@ -28,18 +29,21 @@ export const NewMealModalProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, []);
 
   const close = useCallback(() => {
-    setState((prev) => ({ ...prev, isOpen: false, meal: null }));
+    // Mantém `meal` durante a animação de saída; `open` sempre o redefine.
+    setState((prev) => ({ ...prev, isOpen: false }));
   }, []);
 
+  const { mounted, closing } = usePresence(state.isOpen);
   const value = useMemo(() => ({ open, close }), [open, close]);
 
   return (
     <NewMealModalContext.Provider value={value}>
       {children}
-      {state.isOpen && (
+      {mounted && (
         <Suspense fallback={null}>
           <NewMealModal
-            isOpen={state.isOpen}
+            isOpen
+            closing={closing}
             onClose={close}
             mealToEdit={state.meal}
             mealDate={state.date}

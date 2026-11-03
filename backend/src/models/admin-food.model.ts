@@ -28,7 +28,7 @@ const ADMIN_FOOD_COLUMNS = `
   admin_edited_at, created_at, updated_at
 `;
 
-export function mapAdminFoodRow(row: Record<string, unknown>): AdminFoodRow {
+function mapAdminFoodRow(row: Record<string, unknown>): AdminFoodRow {
   return {
     id: String(row.id),
     name: String(row.name),

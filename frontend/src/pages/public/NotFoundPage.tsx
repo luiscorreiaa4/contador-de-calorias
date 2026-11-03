@@ -14,10 +14,10 @@ export const NotFoundPage: React.FC = () => {
         <div className="space-y-2">
           <p className="text-6xl font-heading font-black tracking-tighter text-primary-ink">404</p>
           <h1 className="text-2xl sm:text-3xl font-heading font-black tracking-tight text-foreground uppercase">
-            Página Não Encontrada
+            Página não encontrada
           </h1>
           <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest">
-            O endereço solicitado não existe, foi removido ou nunca existiu.
+            Esta página não existe ou foi removida.
           </p>
         </div>
 
@@ -25,7 +25,7 @@ export const NotFoundPage: React.FC = () => {
           <Button asChild variant="default" className="gap-2">
             <Link to="/">
               <ArrowLeft className="w-4 h-4" aria-hidden="true" />
-              Voltar ao Início
+              Voltar ao início
             </Link>
           </Button>
         </div>

@@ -1,12 +1,7 @@
 'use client';
 
 import { Link } from 'react-router';
-import { Flame, ShieldAlert, Heart } from 'lucide-react';
-
-export interface FooterSectionProps {
-  darkMode?: boolean;
-  onToggleTheme?: (checked: boolean) => void;
-}
+import { Flame, ShieldAlert } from 'lucide-react';
 
 function FooterSection() {
   const currentYear = new Date().getFullYear();
@@ -28,7 +23,7 @@ function FooterSection() {
                 CALORIE<span className="bg-primary text-primary-foreground px-1 ml-0.5">SYNC</span>
               </span>
               <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
-                Constância e clareza para metas diárias.
+                Contador de calorias com metas diárias.
               </p>
             </div>
           </div>
@@ -44,13 +39,7 @@ function FooterSection() {
 
         {/* Bottom: Legal Links & Copyright */}
         <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-4 pt-6 border-t-2 border-border text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-          <p className="flex items-center gap-1.5">
-            © {currentYear} CalorieSync. Alta Performance{' '}
-            <Heart
-              className="w-3 h-3 text-primary-ink fill-current inline-block"
-              aria-hidden="true"
-            />{' '}
-          </p>
+          <p className="flex items-center gap-1.5">© {currentYear} CalorieSync.</p>
 
           <nav className="flex items-center gap-4">
             <Link

@@ -22,6 +22,7 @@ const sanitizeUserSession = (userData: UserProfile): SafeUserSession => ({
  * Recupera e valida com segurança a sessão armazenada, protegendo contra JSON corrompido (A-074).
  */
 function getStoredUserSession(): UserProfile | null {
+  if (typeof window === 'undefined') return null; // prerender no build
   try {
     const raw = localStorage.getItem('user_session') || sessionStorage.getItem('user_session');
     if (!raw) return null;

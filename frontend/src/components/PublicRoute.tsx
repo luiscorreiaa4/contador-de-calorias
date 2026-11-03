@@ -11,9 +11,9 @@ export const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
 
   if (isAuthenticated) {
     if (!user?.onboarding_completed) {
-      return <Navigate to="/onboarding" replace />;
+      return <Navigate to="/app/onboarding" replace />;
     }
-    return <Navigate to="/" replace />;
+    return <Navigate to="/app" replace />;
   }
 
   return children ? <>{children}</> : <Outlet />;

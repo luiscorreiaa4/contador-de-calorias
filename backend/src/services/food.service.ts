@@ -32,7 +32,7 @@ export async function createCustom(userId: string, data: CreateCustomFoodDTO) {
   }
 }
 
-async function getById(id: string, userId?: string) {
+async function getById(id: string, userId: string) {
   const food = await FoodModel.findById(id, userId);
   if (!food) {
     const error: CustomError = new Error('Alimento não encontrado.');

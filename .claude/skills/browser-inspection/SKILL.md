@@ -22,7 +22,7 @@ Este guia define os critérios de uso e o passo a passo obrigatório para automa
 
 Quando for estritamente necessário abrir o navegador:
 - ❌ **PROIBIDO Acessar `/cadastro`:** Não crie novas contas durante inspeções no navegador.
-- ❌ **PROIBIDO Passar pelo `/onboarding`:** Não preencha as 5 etapas do assistente de onboarding (dados corporais, objetivos, rotina).
+- ❌ **PROIBIDO Passar pelo `/app/onboarding`:** Não preencha as 5 etapas do assistente de onboarding (dados corporais, objetivos, rotina).
 - ✅ **OBRIGATÓRIO Fazer Login com a Conta Pré-Existente:** O banco de dados do projeto já possui contas de teste configuradas com `onboarding_completed: true` e dados completos.
 
 ---
@@ -51,7 +51,7 @@ Ao invocar o navegador (Claude in Chrome, navegador integrado ou Playwright), es
 6. Aguarde o redirecionamento para o Diário ("http://localhost:5173/").
 7. Agora navegue diretamente até a rota solicitada:
    - Diário: "/"
-   - Evolução / Estatísticas: "/evolucao"
+   - Histórico: "/historico"
    - Metas: "/metas"
    - Configurações: "/configuracoes"
    - Perfil: "/perfil"

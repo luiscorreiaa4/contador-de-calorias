@@ -9,7 +9,7 @@ export interface LogContext {
   [key: string]: unknown;
 }
 
-export interface StructuredLogRecord extends LogContext {
+interface StructuredLogRecord extends LogContext {
   level: LogLevel;
   time: string;
   message: string;

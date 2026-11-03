@@ -1,6 +1,6 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
-export interface ApiResponse<T> {
+interface ApiResponse<T> {
   success: boolean;
   data?: T;
   meta?: {

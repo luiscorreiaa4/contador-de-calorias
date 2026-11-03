@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { env } from '../config/env.js';
-import { readSessionCookie } from '../utils/sessionCookie.js';
+import { readRequestToken } from '../utils/sessionCookie.js';
 import { getUserAuthContext, type UserAuthContext } from '../models/auth.model.js';
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
@@ -15,6 +15,8 @@ export interface AuthenticatedRequest extends Request {
   tokenVersion?: number;
   userRole?: 'user' | 'admin';
   mfaEnabled?: boolean;
+  /** false quando a sessão foi aberta sem "lembrar de mim" (V-3). */
+  sessionPersistent?: boolean;
   requestId?: string;
 }
 
@@ -64,6 +66,8 @@ const tokenPayloadSchema = z.object({
   userId: z.string().min(1, 'Token inválido: userId ausente.'),
   // A8: claim obrigatório e inteiro não negativo.
   tv: z.number().int().nonnegative('Token inválido: tv ausente.'),
+  p: z.boolean().optional(),
+  jti: z.string().uuid(),
 });
 
 function rejectInvalidToken(res: Response) {
@@ -74,10 +78,7 @@ function rejectInvalidToken(res: Response) {
 }
 
 export async function authenticate(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  const authHeader = req.headers.authorization;
-  const bearer = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
-  const cookieToken = bearer ? null : readSessionCookie(req);
-  const token = bearer ?? cookieToken;
+  const { token, fromCookie } = readRequestToken(req);
   if (!token) {
     return res.status(401).json({
       success: false,
@@ -86,7 +87,7 @@ export async function authenticate(req: AuthenticatedRequest, res: Response, nex
   }
 
   // CSRF: cookie vai sozinho no navegador, então mutações exigem Origin permitida (além de SameSite=Strict).
-  if (cookieToken && !SAFE_METHODS.has(req.method)) {
+  if (fromCookie && !SAFE_METHODS.has(req.method)) {
     const origin = req.headers.origin;
     if (!origin || !allowedOrigins.includes(origin)) {
       return res
@@ -95,7 +96,7 @@ export async function authenticate(req: AuthenticatedRequest, res: Response, nex
     }
   }
 
-  let parsed: { userId: string; tv: number };
+  let parsed: z.infer<typeof tokenPayloadSchema>;
   try {
     const decoded = jwt.verify(token, env.JWT_SECRET, {
       algorithms: ['HS256'],
@@ -113,14 +114,14 @@ export async function authenticate(req: AuthenticatedRequest, res: Response, nex
   let authContext: UserAuthContext | null;
   try {
     // B1: papel vem SEMPRE do banco a cada requisição
-    authContext = await getUserAuthContext(parsed.userId);
+    authContext = await getUserAuthContext(parsed.userId, parsed.jti);
   } catch (error) {
     // Falha de infraestrutura não deve ser mascarada como token inválido.
     return next(error);
   }
 
-  // Usuário removido ou sessão revogada por troca de senha (A8).
-  if (authContext === null || authContext.token_version !== parsed.tv) {
+  // Usuário removido, sessões revogadas por troca de senha (A8) ou esta sessão encerrada no logout.
+  if (authContext === null || authContext.token_version !== parsed.tv || authContext.revoked) {
     return rejectInvalidToken(res);
   }
 
@@ -128,5 +129,6 @@ export async function authenticate(req: AuthenticatedRequest, res: Response, nex
   req.tokenVersion = authContext.token_version;
   req.userRole = authContext.role;
   req.mfaEnabled = authContext.mfa_enabled;
+  req.sessionPersistent = parsed.p !== false;
   return next();
 }

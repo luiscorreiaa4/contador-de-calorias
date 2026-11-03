@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { Suspense, lazy, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type CreateMeasurementDTO } from '@caloriesync/shared';
@@ -15,18 +15,12 @@ import {
   type BodyMeasurement,
 } from '../../services/measurement.service';
 import { getLocalDateString } from '../../utils/date';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-} from 'recharts';
+import { ChartSkeleton } from '../../components/charts/ChartSkeleton';
 import { Scale, TrendingDown, TrendingUp, Plus, AlertTriangle, Trash2 } from 'lucide-react';
 
 type Metric = 'weight' | 'fat';
+
+const MeasurementLineChart = lazy(() => import('../../components/charts/MeasurementLineChart'));
 
 const METRIC_OPTIONS = [
   { value: 'weight', label: 'PESO' },
@@ -231,11 +225,7 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
         </p>
 
         {isLoading ? (
-          <div className="flex items-center justify-center h-48 border-2 border-border border-dashed opacity-50">
-            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground animate-pulse">
-              CARREGANDO MEDIÇÕES...
-            </p>
-          </div>
+          <ChartSkeleton className="h-60 sm:h-72" label="CARREGANDO MEDIÇÕES..." />
         ) : isError ? (
           <div
             role="alert"
@@ -278,97 +268,9 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
             </button>
           </div>
         ) : (
-          <div data-no-swipe className="h-60 sm:h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={activeChartData}
-                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  vertical={false}
-                  stroke="hsl(var(--border))"
-                  opacity={0.5}
-                />
-                <XAxis
-                  dataKey="date"
-                  tickLine={false}
-                  axisLine={{ stroke: 'hsl(var(--border))', strokeWidth: 2 }}
-                  tick={{ fontSize: 10, fontWeight: 'bold', fill: 'hsl(var(--muted-foreground))' }}
-                />
-                <YAxis
-                  domain={
-                    metric === 'weight'
-                      ? ['dataMin - 2', 'dataMax + 2']
-                      : ['dataMin - 1', 'dataMax + 1']
-                  }
-                  tickLine={false}
-                  axisLine={{ stroke: 'hsl(var(--border))', strokeWidth: 2 }}
-                  tick={{ fontSize: 10, fontWeight: 'bold', fill: 'hsl(var(--muted-foreground))' }}
-                  tickFormatter={(v) => (metric === 'weight' ? `${v}kg` : `${v}%`)}
-                />
-                <Tooltip
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      const data = payload[0].payload as {
-                        date: string;
-                        weight: number;
-                        bodyFat?: number;
-                      };
-                      return (
-                        <div className="bg-card border-2 border-border p-3 shadow-hard">
-                          <p className="text-[10px] font-bold text-muted-foreground uppercase">
-                            {data.date}
-                          </p>
-                          {metric === 'weight' ? (
-                            <>
-                              <p className="text-sm font-black uppercase text-foreground">
-                                {data.weight} kg
-                              </p>
-                              {data.bodyFat !== undefined && (
-                                <p className="text-xs font-bold text-primary-ink uppercase">
-                                  {data.bodyFat}% gordura
-                                </p>
-                              )}
-                            </>
-                          ) : (
-                            <>
-                              <p className="text-sm font-black uppercase text-foreground">
-                                {data.bodyFat}% gordura
-                              </p>
-                              <p className="text-xs font-bold text-muted-foreground uppercase">
-                                {data.weight} kg
-                              </p>
-                            </>
-                          )}
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey={metric === 'weight' ? 'weight' : 'bodyFat'}
-                  stroke="hsl(var(--primary-ink))"
-                  strokeWidth={3}
-                  dot={{
-                    r: 4,
-                    strokeWidth: 2,
-                    fill: 'hsl(var(--card))',
-                    stroke: 'hsl(var(--primary-ink))',
-                  }}
-                  activeDot={{
-                    r: 6,
-                    fill: 'hsl(var(--primary-ink))',
-                    stroke: 'hsl(var(--foreground))',
-                    strokeWidth: 2,
-                  }}
-                  connectNulls
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          <Suspense fallback={<ChartSkeleton className="h-60 sm:h-72" />}>
+            <MeasurementLineChart data={activeChartData} metric={metric} />
+          </Suspense>
         )}
 
         {/* Faixa de resumo: 4 indicadores em linha (não vira grade 2x2 no mobile) */}

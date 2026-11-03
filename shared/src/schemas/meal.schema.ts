@@ -1,5 +1,11 @@
 import { z } from 'zod';
 
+// O dia da aplicação é o de America/Sao_Paulo (D-01); en-CA formata como YYYY-MM-DD.
+const appDateFormatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' });
+const appDate = (d: Date): string => appDateFormatter.format(d);
+const notFutureDay = (dateStr: string): boolean => dateStr <= appDate(new Date());
+const FUTURE_DATE_MESSAGE = 'Não é permitido registrar refeições em datas futuras.';
+
 export const createMealSchema = z.object({
   name: z
     .string()
@@ -7,7 +13,8 @@ export const createMealSchema = z.object({
     .max(100, 'O nome da refeição deve ter no máximo 100 caracteres.'),
   mealTime: z
     .string()
-    .datetime({ message: 'A data e hora da refeição deve ser um formato ISO válido.' }),
+    .datetime({ message: 'A data e hora da refeição deve ser um formato ISO válido.' })
+    .refine((v) => notFutureDay(appDate(new Date(v))), FUTURE_DATE_MESSAGE),
   items: z
     .array(
       z.object({
@@ -36,10 +43,12 @@ export const copyMealSchema = z
     sourceDate: z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data de origem deve estar no formato YYYY-MM-DD.')
+      .refine(notFutureDay, 'Data de origem não pode ser futura.')
       .optional(),
     targetDate: z
       .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data de destino deve estar no formato YYYY-MM-DD.'),
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data de destino deve estar no formato YYYY-MM-DD.')
+      .refine(notFutureDay, FUTURE_DATE_MESSAGE),
   })
   .refine((data) => data.sourceMealId || data.sourceDate, {
     message: 'sourceMealId ou sourceDate deve ser informado.',

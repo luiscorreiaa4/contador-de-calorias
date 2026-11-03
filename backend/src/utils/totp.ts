@@ -56,15 +56,28 @@ export function totpAt(secret: string, timeMs: number): string {
   return code.toString().padStart(6, '0');
 }
 
-/** Aceita o passo atual e um vizinho de cada lado (deriva de relógio). */
-export function verifyTotp(secret: string, code: string, nowMs: number = Date.now()): boolean {
-  let ok = false;
+/**
+ * Devolve o passo (contador) em que o código bate, aceitando um vizinho de cada lado
+ * (deriva de relógio), ou null. O chamador grava o passo para impedir reuso (V-4).
+ */
+export function matchTotpCounter(
+  secret: string,
+  code: string,
+  nowMs: number = Date.now(),
+): number | null {
+  const base = Math.floor(nowMs / 1000 / STEP_SECONDS);
+  let matched: number | null = null;
   for (const drift of [-1, 0, 1]) {
-    const expected = Buffer.from(totpAt(secret, nowMs + drift * STEP_SECONDS * 1000));
+    const expected = Buffer.from(totpAt(secret, (base + drift) * STEP_SECONDS * 1000));
     const given = Buffer.from(code);
-    if (given.length === expected.length && timingSafeEqual(given, expected)) ok = true;
+    if (given.length === expected.length && timingSafeEqual(given, expected))
+      matched = base + drift;
   }
-  return ok;
+  return matched;
+}
+
+export function verifyTotp(secret: string, code: string, nowMs: number = Date.now()): boolean {
+  return matchTotpCounter(secret, code, nowMs) !== null;
 }
 
 export function otpauthUrl(email: string, secret: string): string {

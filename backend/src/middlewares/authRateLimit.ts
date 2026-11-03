@@ -14,7 +14,7 @@ interface KeyOptions {
  * Única função de chave dos limitadores de autenticação. O Turnstile (BL-06/futuro)
  * deve ser integrado aqui para valer em todas as rotas de uma vez (A9).
  */
-export function authRateLimitKey(req: Request, options: KeyOptions = {}): string {
+function authRateLimitKey(req: Request, options: KeyOptions = {}): string {
   const ip = ipKeyGenerator(req.ip ?? '');
   if (options.includeEmail === false && !options.emailOnly) return ip;
 

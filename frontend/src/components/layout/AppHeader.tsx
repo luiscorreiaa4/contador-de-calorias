@@ -1,25 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
-import { Flame, Bell, Lock, Shield, LogOut, ChevronDown } from 'lucide-react';
+import { useSignOut } from '../../hooks/useSignOut';
+import { Flame, LogOut, ChevronDown } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
-import { CONFIG_TABS, DESKTOP_NAV_ITEMS, visibleItems } from '../../navigation/nav-items';
-
-const SETTINGS_ICONS = [Bell, Lock, Shield];
-const SETTINGS_LINKS = CONFIG_TABS.map((tab, index) => ({ ...tab, icon: SETTINGS_ICONS[index] }));
+import { ACCOUNT_LINK_ITEMS, DESKTOP_NAV_ITEMS, visibleItems } from '../../navigation/nav-items';
 
 interface AppHeaderProps {
-  onNavigateToEditProfile?: () => void;
   onNavigateToStats?: () => void;
   onNavigateToDiary?: () => void;
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
-  onNavigateToEditProfile,
   onNavigateToStats,
   onNavigateToDiary,
 }) => {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const signOut = useSignOut();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
@@ -27,23 +24,18 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
   const handleDiary = () => {
     if (onNavigateToDiary) onNavigateToDiary();
-    else navigate('/');
+    else navigate('/app');
     setMenuOpen(false);
   };
 
   const handleStats = () => {
     if (onNavigateToStats) onNavigateToStats();
-    else navigate('/evolucao/alimentacao');
-    setMenuOpen(false);
-  };
-
-  const handleEditProfile = () => {
-    if (onNavigateToEditProfile) onNavigateToEditProfile();
-    else navigate('/perfil');
+    else navigate('/app/historico/alimentacao');
     setMenuOpen(false);
   };
 
   const primaryLinks = visibleItems(DESKTOP_NAV_ITEMS, user?.role === 'admin');
+  const accountLinks = visibleItems(ACCOUNT_LINK_ITEMS, user?.role === 'admin');
 
   // Desktop usa a barra de abas; o dropdown só repete os links no mobile.
   const showMainNav = isAuthenticated && !!user?.onboarding_completed;
@@ -93,9 +85,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         {/* Logo */}
         <button
           type="button"
-          aria-label="CalorieSync — Diário"
+          aria-label={isAuthenticated ? 'CalorieSync — Diário' : 'CalorieSync — Início'}
           className="flex items-center gap-3 shrink-0 cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          onClick={handleDiary}
+          onClick={isAuthenticated ? handleDiary : () => navigate('/')}
         >
           <div className="w-10 h-10 bg-primary text-primary-foreground border-2 border-edge flex items-center justify-center shadow-hard transition-transform group-hover:-translate-y-0.5 group-hover:shadow-hard-hover">
             <Flame className="w-6 h-6 fill-current" aria-hidden="true" />
@@ -175,20 +167,16 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                         <NavLink
                           key={to}
                           to={to}
-                          end={to === '/'}
+                          end={to === '/app'}
                           onClick={(event) => {
                             setMenuOpen(false);
-                            if (to === '/' && onNavigateToDiary) {
+                            if (to === '/app' && onNavigateToDiary) {
                               event.preventDefault();
                               handleDiary();
                             }
-                            if (to === '/evolucao' && onNavigateToStats) {
+                            if (to === '/app/historico' && onNavigateToStats) {
                               event.preventDefault();
                               handleStats();
-                            }
-                            if (to === '/perfil' && onNavigateToEditProfile) {
-                              event.preventDefault();
-                              handleEditProfile();
                             }
                           }}
                           className={({ isActive }) =>
@@ -203,7 +191,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                     <div
                       className={`border-t-2 border-border mt-1 pt-2 ${showMainNav ? 'md:border-t-0 md:mt-0 md:pt-0' : ''}`}
                     >
-                      {SETTINGS_LINKS.map(({ to, label, icon: Icon }) => (
+                      {accountLinks.map(({ to, label, icon: Icon }) => (
                         <NavLink
                           key={to}
                           to={to}
@@ -219,7 +207,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
                   <div className="p-2 border-t-2 border-border bg-background">
                     <button
-                      onClick={logout}
+                      onClick={signOut}
                       className="flex items-center w-full px-3 py-3 text-xs font-bold uppercase tracking-widest text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <LogOut className="w-4 h-4 mr-3 transition-transform group-hover:-translate-x-1" />
@@ -244,7 +232,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               <NavLink
                 key={to}
                 to={to}
-                end={to === '/'}
+                end={to === '/app'}
                 onClick={() => setMenuOpen(false)}
                 className={({ isActive }) =>
                   `group relative flex items-center gap-2 px-5 py-3.5 text-xs font-black uppercase tracking-widest border-b-4 -mb-px transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${

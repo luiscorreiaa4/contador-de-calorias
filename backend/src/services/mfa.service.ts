@@ -1,13 +1,14 @@
 import * as AuthModel from '../models/auth.model.js';
 import * as UserModel from '../models/user.model.js';
+import { signAuthToken } from '../utils/jwt.js';
 import {
   decryptSecret,
   encryptSecret,
   generateRecoveryCodes,
   generateTotpSecret,
   hashRecoveryCode,
+  matchTotpCounter,
   otpauthUrl,
-  verifyTotp,
 } from '../utils/totp.js';
 
 interface MfaServiceError extends Error {
@@ -24,7 +25,11 @@ function fail(message: string, statusCode: number): never {
 export async function verifyMfaCode(userId: string, code: string): Promise<boolean> {
   const state = await AuthModel.getMfaState(userId);
   if (!state?.mfa_enabled_at || !state.mfa_secret_enc) return false;
-  if (/^\d{6}$/.test(code)) return verifyTotp(decryptSecret(state.mfa_secret_enc), code);
+  if (/^\d{6}$/.test(code)) {
+    const counter = matchTotpCounter(decryptSecret(state.mfa_secret_enc), code);
+    // V-4: cada passo TOTP vale uma vez só.
+    return counter !== null && AuthModel.claimTotpCounter(userId, counter);
+  }
   return AuthModel.consumeRecoveryCode(userId, hashRecoveryCode(code));
 }
 
@@ -38,18 +43,32 @@ export async function setupMfa(userId: string): Promise<{ secret: string; otpaut
   return { secret, otpauth_url: otpauthUrl(user.email, secret) };
 }
 
-/** Confirma o primeiro código, ativa o MFA e devolve os códigos de recuperação (exibidos uma vez). */
-export async function enableMfa(userId: string, code: string): Promise<string[]> {
+/**
+ * Confirma o primeiro código, ativa o MFA e devolve os códigos de recuperação (exibidos uma vez)
+ * e um token novo: as outras sessões caem (V-2).
+ */
+export async function enableMfa(
+  userId: string,
+  code: string,
+  persistentSession = true,
+): Promise<{ recoveryCodes: string[]; token: string }> {
   const state = await AuthModel.getMfaState(userId);
   if (!state?.mfa_secret_enc || state.mfa_enabled_at)
     fail('Inicie a configuração do MFA primeiro.', 400);
-  if (!verifyTotp(decryptSecret(state.mfa_secret_enc), code)) fail('Código inválido.', 400);
+  const counter = matchTotpCounter(decryptSecret(state.mfa_secret_enc), code);
+  if (counter === null) fail('Código inválido.', 400);
   const codes = generateRecoveryCodes();
-  await AuthModel.enableMfa(userId, codes.map(hashRecoveryCode));
-  return codes;
+  const tokenVersion = await AuthModel.enableMfa(userId, codes.map(hashRecoveryCode), counter);
+  return { recoveryCodes: codes, token: signAuthToken(userId, tokenVersion, persistentSession) };
 }
 
-export async function disableMfa(userId: string, code: string): Promise<void> {
+/** Desativa o MFA; as outras sessões caem e a atual recebe token novo (V-2). */
+export async function disableMfa(
+  userId: string,
+  code: string,
+  persistentSession = true,
+): Promise<{ token: string }> {
   if (!(await verifyMfaCode(userId, code))) fail('Código inválido.', 400);
-  await AuthModel.disableMfa(userId);
+  const tokenVersion = await AuthModel.disableMfa(userId);
+  return { token: signAuthToken(userId, tokenVersion, persistentSession) };
 }

@@ -2,9 +2,8 @@ import { apiFetch } from './api';
 import type {
   BodyMeasurement,
   CreateMeasurementDTO,
-  MeasurementQueryDTO,
 } from '@caloriesync/shared';
-export type { BodyMeasurement, CreateMeasurementDTO, MeasurementQueryDTO };
+export type { BodyMeasurement, CreateMeasurementDTO };
 
 export const getMeasurements = async (
   period?: '30d' | '90d' | 'all',

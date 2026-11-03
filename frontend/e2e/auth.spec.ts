@@ -11,7 +11,7 @@ async function login(page: Page, password = PASSWORD) {
 }
 
 test('visitante anônimo é levado ao login', async ({ page }) => {
-  await page.goto('/conta');
+  await page.goto('/app/conta');
   await expect(page).toHaveURL(/\/login/);
 });
 
@@ -38,7 +38,7 @@ test('login abre o diário com cookie HttpOnly e mantém a sessão ao recarregar
 
 test('sair da conta volta ao login', async ({ page }) => {
   await login(page);
-  await page.goto('/conta');
+  await page.goto('/app/conta');
   await page.getByRole('button', { name: /sair da conta/i }).click();
   await expect(page).toHaveURL(/\/login/);
 });

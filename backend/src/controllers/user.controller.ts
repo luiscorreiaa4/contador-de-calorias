@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import * as UserService from '../services/user.service.js';
-import { requireUserId } from '../middlewares/auth.js';
+import { requireUserId, type AuthenticatedRequest } from '../middlewares/auth.js';
 import { getSaoPauloDateString } from '../utils/date.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { setSessionCookie } from '../utils/sessionCookie.js';
@@ -16,7 +16,11 @@ export const getProfile = asyncHandler(async (req: Request, res: Response) => {
 
 export const updateProfile = asyncHandler(async (req: Request, res: Response) => {
   const userId = requireUserId(req);
-  const updatedUser = await UserService.updateProfile(userId, req.body);
+  const updatedUser = await UserService.updateProfile(
+    userId,
+    req.body,
+    (req as AuthenticatedRequest).sessionPersistent,
+  );
   if (updatedUser.token) setSessionCookie(res, updatedUser.token);
   return res.status(200).json({
     success: true,

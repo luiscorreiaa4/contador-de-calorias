@@ -1,5 +1,11 @@
-Na tela de adicionar alimentos a uma refeição, o botão +novo alimento(para adicionar um alimento ao banco de dados do usuario) está com muito destaque para uma função que deve ser pouco utilizada, acaba poluindo a tela mais importante do produto que seria a de adicionar refeição. A tela de cadastrar esse alimento também está desalinhada e feia no desktop, segue print das telas em que estou falando e planeje a melhor maneira de contornar esse problema.
+1. Arrumar a landing page horrorosa
 
-A MFA está muito confusa, na tela de verificação em duas etapas não há explicação clara de como ativar, que é necessário baixar um aplicativo para isso nem nada. nao explica o que é um MFA, aparece apenas MFA ATIVO quando ativo, e pelo que me lembro, autenticação em 2 fatores em aplicativos e sites grandes não costumam ser confusos e ter esse exato formato. Planeje e proponha a solução para esse problema.
+2. Dar um jeito de dar acesso sem login para visitantes.
 
-Remova a função diagnostico de serviço e o botão enviar lembrete de teste, na tela de notificações.
+3. Varrer todos os documentos antigos e deixando somente o que é relevante.
+
+4. Arrumar o readme para ficar algo mais comercial e atraente.
+
+5. Documentar esse projeto.
+
+6. Colocar em produção.

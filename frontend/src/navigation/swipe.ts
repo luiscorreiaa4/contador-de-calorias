@@ -1,5 +1,5 @@
 /**
- * Swipe horizontal entre os destinos da barra inferior (Diário ↔ Progresso ↔ Conta), só no mobile.
+ * Swipe horizontal entre os destinos da barra inferior (Diário ↔ Histórico ↔ Conta), só no mobile.
  * A tela acompanha o dedo; ao soltar, confirma a troca ou volta. Princípio: na dúvida, NÃO navegue.
  */
 

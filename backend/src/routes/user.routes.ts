@@ -3,6 +3,7 @@ import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import * as UserController from '../controllers/user.controller.js';
 import { validate } from '../middlewares/validate.js';
 import { authenticate } from '../middlewares/auth.js';
+import { PgRateLimitStore } from '../middlewares/pgRateLimitStore.js';
 import * as MfaController from '../controllers/mfa.controller.js';
 import {
   updateUserSchema,
@@ -24,6 +25,9 @@ const sensitiveActionLimiter = rateLimit({
   max: 15, // 15 tentativas para ações sensíveis de alteração de senha/exclusão
   standardHeaders: true,
   legacyHeaders: false,
+  // V-1: contador compartilhado entre instâncias e restarts, como os limitadores de /api/auth.
+  store:
+    process.env.NODE_ENV === 'test' ? undefined : new PgRateLimitStore('sensitiveActionLimiter'),
   keyGenerator: (req) => {
     const authReq = req as { userId?: string; ip?: string };
     const ip = ipKeyGenerator(req.ip ?? '');

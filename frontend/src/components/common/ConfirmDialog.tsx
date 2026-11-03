@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { AlertTriangle, Loader2, X } from 'lucide-react';
+import { usePresence } from '../../hooks/usePresence';
 
 export interface ConfirmDialogProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   const cancelBtnRef = useRef<HTMLButtonElement>(null);
   const onCancelRef = useRef(onCancel);
   const isLoadingRef = useRef(isLoading);
+  const { mounted, closing } = usePresence(isOpen);
 
   useEffect(() => {
     onCancelRef.current = onCancel;
@@ -84,7 +86,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     };
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  if (!mounted) return null;
 
   const isDestructive = variant === 'destructive';
   const titleId = 'confirm-dialog-title';
@@ -92,7 +94,11 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-background/90 backdrop-blur-sm"
+      className={`fixed inset-0 z-[200] flex items-center justify-center p-4 bg-background/90 backdrop-blur-sm ${
+        closing ? 'animate-out pointer-events-none' : 'animate-in'
+      }`}
+      aria-hidden={closing || undefined}
+      inert={closing}
       onClick={(e) => {
         if (e.target === e.currentTarget && !isLoading) {
           onCancel();
@@ -105,7 +111,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={descId}
-        className="w-full max-w-md bg-card border-2 border-border shadow-hard overflow-hidden animate-in"
+        className="w-full max-w-md bg-card border-2 border-border shadow-hard overflow-hidden"
       >
         <div className="p-6 border-b-2 border-border bg-background flex items-start justify-between">
           <div className="flex items-start gap-4">

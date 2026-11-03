@@ -52,6 +52,7 @@ export interface UpdateProfileData {
 export interface VerifyEmailData {
   email: string;
   code: string;
+  rememberMe?: boolean;
 }
 
 /** POST /auth/register (A4/A6): 202 genérico, sem sessão. */
@@ -76,6 +77,7 @@ export async function loginUser(data: LoginFormData): Promise<AuthResponseData> 
       email: data.email,
       password: data.password,
       ...(data.mfaCode ? { mfa_code: data.mfaCode } : {}),
+      remember_me: data.rememberMe,
       captcha_token: await getCaptchaToken(),
     }),
   });
@@ -104,6 +106,7 @@ export async function verifyEmail(data: VerifyEmailData): Promise<AuthResponseDa
     body: JSON.stringify({
       email: data.email,
       code: data.code,
+      remember_me: data.rememberMe ?? true,
     }),
   });
 }

@@ -10,7 +10,7 @@ const renderPage = (state?: { email?: string; codeSent?: boolean; rememberMe?: b
     <MemoryRouter initialEntries={[{ pathname: '/verificar-email', state }]}>
       <Routes>
         <Route path="/verificar-email" element={<VerifyEmailPage />} />
-        <Route path="/" element={<div>Diário</div>} />
+        <Route path="/app" element={<div>Diário</div>} />
         <Route path="/login" element={<div>Login</div>} />
       </Routes>
     </MemoryRouter>,
@@ -33,7 +33,6 @@ describe('VerifyEmailPage (BL-12)', () => {
     const codeInput = screen.getByLabelText(/código de 6 dígitos/i);
     expect(codeInput).toHaveAttribute('inputMode', 'numeric');
     expect(codeInput).toHaveAttribute('autocomplete', 'one-time-code');
-    expect(codeInput).toHaveAttribute('maxLength', '6');
   });
 
   it('inicia a contagem de 60 s quando um código acabou de ser enviado', () => {

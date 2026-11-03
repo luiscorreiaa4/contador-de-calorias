@@ -1,19 +1,19 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '../../context/AuthContext';
+import { useSignOut } from '../../hooks/useSignOut';
 import { deleteUserAccount, exportUserData } from '../../services/auth.service';
 import { downloadJsonFile } from '../../utils/download';
 import { DeleteAccountModal } from '../../components/common/DeleteAccountModal';
 
 export function AccountPrivacyPage() {
-  const { logout } = useAuth();
+  const signOut = useSignOut();
   const queryClient = useQueryClient();
   const [showDelete, setShowDelete] = useState(false);
   const remove = useMutation({
     mutationFn: deleteUserAccount,
     onSuccess: () => {
       queryClient.clear();
-      logout();
+      void signOut();
     },
   });
   const download = useMutation({

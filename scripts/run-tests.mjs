@@ -46,6 +46,7 @@ const testDefaults = {
   MAIL_TRANSPORT: 'memory',
   CAPTCHA_SECRET_KEY: '', // o .env local pode ligar o captcha
   SENTRY_DSN: '',
+  VAPID_PUBLIC_KEY: 'test-vapid-public-key',
   AUTH_TOKEN_PEPPER: 'super_secret_test_pepper_with_at_least_32_chars_456!',
 };
 const env = {

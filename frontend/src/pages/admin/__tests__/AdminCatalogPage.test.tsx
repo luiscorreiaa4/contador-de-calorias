@@ -60,7 +60,7 @@ describe('Painel do Catálogo Global (Admin)', () => {
     const { router } = renderApp('/admin/alimentos');
 
     await waitFor(() => {
-      expect(router.state.location.pathname).toBe('/');
+      expect(router.state.location.pathname).toBe('/app');
     });
   });
 
@@ -80,7 +80,7 @@ describe('Painel do Catálogo Global (Admin)', () => {
     localStorage.setItem('auth_session', '1');
     localStorage.setItem('user_session', JSON.stringify(regularUser));
 
-    renderApp('/');
+    renderApp('/app');
     expect(
       await screen.findByRole('navigation', { name: 'Navegação principal' }),
     ).toBeInTheDocument();
@@ -91,8 +91,9 @@ describe('Painel do Catálogo Global (Admin)', () => {
     localStorage.setItem('auth_session', 'admin');
     localStorage.setItem('user_session', JSON.stringify(adminUser));
 
-    const { router } = renderApp('/');
-    const adminNav = await screen.findByRole('navigation', { name: 'Navegação principal' });
+    const { router } = renderApp('/app');
+    await userEvent.click(await screen.findByRole('button', { name: 'Menu da conta' }));
+    const adminNav = screen.getByRole('navigation', { name: 'Menu da conta' });
     const catalogLink = within(adminNav).getByRole('link', { name: /Catálogo/i });
     expect(catalogLink).toBeInTheDocument();
 
@@ -144,7 +145,7 @@ describe('Painel do Catálogo Global (Admin)', () => {
     const newBtn = await screen.findByRole('button', { name: /\+ Novo Alimento/i });
     await userEvent.click(newBtn);
 
-    const dialog = screen.getByRole('dialog', { name: /Novo Alimento no Catálogo/i });
+    const dialog = screen.getByRole('dialog', { name: /Novo alimento/i });
     expect(dialog).toBeInTheDocument();
 
     // Preenche campos
@@ -154,7 +155,7 @@ describe('Painel do Catálogo Global (Admin)', () => {
     await userEvent.type(within(dialog).getByLabelText(/Carboidratos \(g\) \*/i), '66');
     await userEvent.type(within(dialog).getByLabelText(/Gorduras \(g\) \*/i), '7');
     await userEvent.type(
-      within(dialog).getByLabelText(/Fonte Oficial Auditável/i),
+      within(dialog).getByLabelText(/Fonte dos dados/i),
       'TACO 4ª ed., código 050',
     );
 
@@ -163,7 +164,7 @@ describe('Painel do Catálogo Global (Admin)', () => {
 
     // Confirma feedback de sucesso
     expect(
-      await screen.findByText(/Novo alimento cadastrado com sucesso no catálogo global!/i),
+      await screen.findByText(/Alimento cadastrado no catálogo\./i),
     ).toBeInTheDocument();
   });
 
@@ -177,7 +178,7 @@ describe('Painel do Catálogo Global (Admin)', () => {
     const editBtns = screen.getAllByRole('button', { name: /Editar Arroz Branco Cozido/i });
     await userEvent.click(editBtns[0]);
 
-    const dialog = screen.getByRole('dialog', { name: /Editar Alimento do Catálogo/i });
+    const dialog = screen.getByRole('dialog', { name: /Editar alimento/i });
     expect(dialog).toBeInTheDocument();
 
     const nameInput = within(dialog).getByLabelText(/Nome do Alimento/i) as HTMLInputElement;
@@ -186,7 +187,7 @@ describe('Painel do Catálogo Global (Admin)', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: /Salvar Alterações/i }));
 
     expect(
-      await screen.findByText(/Alimento atualizado com sucesso no catálogo global!/i),
+      await screen.findByText(/Alimento atualizado no catálogo\./i),
     ).toBeInTheDocument();
   });
 
@@ -203,14 +204,14 @@ describe('Painel do Catálogo Global (Admin)', () => {
     const confirmDialog = screen.getByRole('dialog', { name: /Desativar Alimento\?/i });
     expect(confirmDialog).toBeInTheDocument();
     expect(
-      within(confirmDialog).getByText(/deixará de aparecer em novas buscas/i),
+      within(confirmDialog).getByText(/deixará de aparecer nas buscas/i),
     ).toBeInTheDocument();
 
     await userEvent.click(
       within(confirmDialog).getByRole('button', { name: /Desativar Alimento/i }),
     );
 
-    expect(await screen.findByText(/desativado do catálogo global/i)).toBeInTheDocument();
+    expect(await screen.findByText(/desativado do catálogo/i)).toBeInTheDocument();
   });
   it('Persiste busca, ordenação e filtros na URL via useSearchParams', async () => {
     localStorage.setItem('auth_session', 'admin');

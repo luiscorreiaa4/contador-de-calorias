@@ -16,7 +16,7 @@ describe('Router & Navigation (PC-21 / D-16)', () => {
   });
 
   it('redireciona rota protegida / para /login quando não autenticado', async () => {
-    const router = createTestRouter(['/']);
+    const router = createTestRouter(['/app']);
     render(
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
@@ -60,7 +60,7 @@ describe('Router & Navigation (PC-21 / D-16)', () => {
       }),
     );
 
-    const router = createTestRouter(['/']);
+    const router = createTestRouter(['/app']);
     render(
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
@@ -70,7 +70,7 @@ describe('Router & Navigation (PC-21 / D-16)', () => {
     );
 
     await waitFor(() => {
-      expect(router.state.location.pathname).toBe('/onboarding');
+      expect(router.state.location.pathname).toBe('/app/onboarding');
     });
   });
 
@@ -96,7 +96,7 @@ describe('Router & Navigation (PC-21 / D-16)', () => {
     );
 
     await waitFor(() => {
-      expect(router.state.location.pathname).toBe('/evolucao/alimentacao');
+      expect(router.state.location.pathname).toBe('/app/historico/alimentacao');
     });
   });
 
@@ -112,7 +112,7 @@ describe('Router & Navigation (PC-21 / D-16)', () => {
       }),
     );
 
-    const router = createTestRouter(['/perfil']);
+    const router = createTestRouter(['/app/perfil']);
     render(
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
@@ -122,7 +122,7 @@ describe('Router & Navigation (PC-21 / D-16)', () => {
     );
 
     await waitFor(() => {
-      expect(router.state.location.pathname).toBe('/perfil');
+      expect(router.state.location.pathname).toBe('/app/perfil');
     });
   });
 

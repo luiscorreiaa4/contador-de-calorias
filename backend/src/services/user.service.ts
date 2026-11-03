@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import * as UserModel from '../models/user.model.js';
 import * as AuthModel from '../models/auth.model.js';
 import { signAuthToken } from '../utils/jwt.js';
+import { bcryptCost } from '../utils/authTokens.js';
 import { sendVerificationCodeForUser } from './auth.service.js';
 import { structuredLog } from '../config/logger.js';
 import {
@@ -115,6 +116,7 @@ export async function completeOnboarding(
 export async function updateProfile(
   userId: string,
   data: UpdateUserDTO,
+  persistentSession = true,
 ): Promise<UserWithoutPassword & { token?: string }> {
   const user = await UserModel.findFullUserById(userId);
   if (!user) {
@@ -165,8 +167,7 @@ export async function updateProfile(
       throw error;
     }
 
-    const saltRounds = process.env.NODE_ENV === 'test' ? 1 : 10;
-    newPasswordHash = await bcrypt.hash(data.newPassword, saltRounds);
+    newPasswordHash = await bcrypt.hash(data.newPassword, bcryptCost());
   }
 
   const client = await pool.connect();
@@ -282,7 +283,7 @@ export async function updateProfile(
     if (newPasswordHash || emailChanged) {
       // A8: revoga sessões anteriores na mesma transação e devolve token novo.
       const tokenVersion = await AuthModel.incrementTokenVersion(userId, client);
-      refreshedToken = signAuthToken(userId, tokenVersion);
+      refreshedToken = signAuthToken(userId, tokenVersion, persistentSession);
     }
 
     await client.query('COMMIT');
@@ -498,7 +499,7 @@ export interface UserDataExport {
   meals: Meal[];
 }
 
-export const EXPORT_SCHEMA_VERSION = '1.0';
+const EXPORT_SCHEMA_VERSION = '1.0';
 
 /** Retorna o JSON estruturado com todos os dados pessoais do usuário autenticado. */
 export async function exportUserData(userId: string): Promise<UserDataExport> {

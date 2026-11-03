@@ -9,6 +9,9 @@ const __dirname = path.dirname(__filename);
 // Carrega as variáveis de ambiente antes da validação garantindo localização correta
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
+// Placeholders do .env.example e similares: um segredo copiado sem trocar é público.
+const PLACEHOLDER_SECRET = /preencha|sua_senha|changeme|change_me|placeholder|example|exemplo/i;
+
 export const envSchema = z
   .object({
     PORT: z
@@ -16,7 +19,10 @@ export const envSchema = z
       .regex(/^\d+$/, 'PORT deve ser numérica')
       .refine((v) => Number(v) > 0 && Number(v) <= 65535, 'PORT fora do intervalo')
       .default('3001'),
-    NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+    // Sem default: ausente não pode virar "development" e desligar as travas de produção.
+    NODE_ENV: z.enum(['development', 'production', 'test'], {
+      message: 'NODE_ENV é obrigatório: "development", "production" ou "test".',
+    }),
     DB_HOST: z.string().min(1, 'DB_HOST é obrigatório'),
     DB_PORT: z
       .string()
@@ -86,7 +92,25 @@ export const envSchema = z
     AUTH_TOKEN_PEPPER: z.string().min(32, 'AUTH_TOKEN_PEPPER deve ter no mínimo 32 caracteres.'),
   })
   .superRefine((data, ctx) => {
+    for (const key of ['JWT_SECRET', 'AUTH_TOKEN_PEPPER'] as const) {
+      if (PLACEHOLDER_SECRET.test(data[key])) {
+        ctx.addIssue({
+          code: 'custom',
+          path: [key],
+          message: `${key} parece um placeholder; gere um valor aleatório (ex: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))").`,
+        });
+      }
+    }
+
     if (data.NODE_ENV === 'production') {
+      if (!data.CAPTCHA_SECRET_KEY) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['CAPTCHA_SECRET_KEY'],
+          message: 'CAPTCHA_SECRET_KEY é obrigatório em produção.',
+        });
+      }
+
       if (data.MAIL_TRANSPORT === 'memory') {
         ctx.addIssue({
           code: 'custom',

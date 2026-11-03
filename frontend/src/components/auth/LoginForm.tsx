@@ -9,6 +9,7 @@ import { ApiError } from '../../services/api';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Button } from '../ui/button';
+import { MfaCodeField } from './MfaCodeField';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -146,19 +147,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onEmailNotVerif
       </div>
 
       {mfaRequired && (
-        <div className="space-y-2">
-          <Label htmlFor="login-mfa-code">Código de verificação em duas etapas</Label>
-          <Input
-            id="login-mfa-code"
-            autoComplete="one-time-code"
-            inputMode="numeric"
-            autoFocus
-            value={formData.mfaCode ?? ''}
-            onChange={(e) => setFormData({ ...formData, mfaCode: e.target.value })}
-            placeholder="000000 OU CÓDIGO DE RECUPERAÇÃO"
-            className="font-mono tracking-widest"
-          />
-        </div>
+        <MfaCodeField
+          id="login-mfa-code"
+          autoFocus
+          value={formData.mfaCode ?? ''}
+          onChange={(mfaCode) => setFormData((prev) => ({ ...prev, mfaCode }))}
+        />
       )}
 
       {/* Remember Me & Forgot Password */}

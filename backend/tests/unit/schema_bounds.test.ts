@@ -6,6 +6,8 @@ import {
   createMeasurementSchema,
   createCustomFoodSchema,
   listFoodsQuerySchema,
+  createMealSchema,
+  copyMealSchema,
 } from '@caloriesync/shared';
 
 describe('Schema Bounds and Strict Validation (#11)', () => {
@@ -183,5 +185,22 @@ describe('Schema Bounds and Strict Validation (#11)', () => {
       createMeasurementSchema.safeParse({ ...validMeasurement, unauthorized: 'test' }).success,
       false,
     );
+  });
+
+  it('schemas de refeição rejeitam datas futuras e aceitam hoje e o passado', () => {
+    const item = { foodId: '00000000-0000-4000-8000-000000000001', quantity: 100 };
+    const meal = (mealTime: string) =>
+      createMealSchema.safeParse({ name: 'Almoço', mealTime, items: [item] }).success;
+    const tomorrow = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
+
+    assert.strictEqual(meal(new Date().toISOString()), true);
+    assert.strictEqual(meal('2026-01-10T12:00:00.000Z'), true);
+    assert.strictEqual(meal(tomorrow), false);
+
+    const tomorrowDate = tomorrow.slice(0, 10);
+    const copy = (data: object) => copyMealSchema.safeParse(data).success;
+    assert.strictEqual(copy({ sourceDate: '2026-01-09', targetDate: '2026-01-10' }), true);
+    assert.strictEqual(copy({ sourceDate: '2026-01-09', targetDate: tomorrowDate }), false);
+    assert.strictEqual(copy({ sourceDate: tomorrowDate, targetDate: '2026-01-10' }), false);
   });
 });

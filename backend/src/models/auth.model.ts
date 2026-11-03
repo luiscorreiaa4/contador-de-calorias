@@ -235,28 +235,32 @@ export interface UserAuthContext {
   token_version: number;
   role: 'user' | 'admin';
   mfa_enabled: boolean;
+  /** true se o `jti` desta sessão foi revogado no logout. */
+  revoked: boolean;
 }
 
-export async function getUserAuthContext(userId: string): Promise<UserAuthContext | null> {
+export async function getUserAuthContext(
+  userId: string,
+  jti: string,
+): Promise<UserAuthContext | null> {
   const result = await pool.query<{
     token_version: number;
     role: 'user' | 'admin';
     mfa_enabled: boolean;
+    revoked: boolean;
   }>(
-    'SELECT token_version, role, (mfa_enabled_at IS NOT NULL) AS mfa_enabled FROM users WHERE id = $1',
-    [userId],
+    `SELECT token_version, role, (mfa_enabled_at IS NOT NULL) AS mfa_enabled,
+            EXISTS (SELECT 1 FROM revoked_sessions WHERE jti = $2) AS revoked
+       FROM users WHERE id = $1`,
+    [userId, jti],
   );
   if (!result.rows[0]) return null;
   return {
     token_version: Number(result.rows[0].token_version),
     role: result.rows[0].role,
     mfa_enabled: result.rows[0].mfa_enabled,
+    revoked: result.rows[0].revoked,
   };
-}
-
-export async function getTokenVersion(userId: string): Promise<number | null> {
-  const ctx = await getUserAuthContext(userId);
-  return ctx ? ctx.token_version : null;
 }
 
 /** Soma uma falha de login e bloqueia a conta ao atingir `maxAttempts` (#4). */
@@ -306,17 +310,50 @@ export async function savePendingMfaSecret(userId: string, secretEnc: string): P
   return (result.rowCount ?? 0) > 0;
 }
 
-export async function enableMfa(userId: string, recoveryHashes: string[]): Promise<void> {
-  await pool.query(
-    `UPDATE users SET mfa_enabled_at = CURRENT_TIMESTAMP, mfa_recovery_hashes = $2 WHERE id = $1`,
-    [userId, recoveryHashes],
+/** Ativa o MFA e revoga as outras sessões (V-2); devolve o novo `token_version`. */
+export async function enableMfa(
+  userId: string,
+  recoveryHashes: string[],
+  usedCounter: number,
+): Promise<number> {
+  const result = await pool.query<{ token_version: number }>(
+    `UPDATE users SET mfa_enabled_at = CURRENT_TIMESTAMP, mfa_recovery_hashes = $2,
+            mfa_last_counter = $3, token_version = token_version + 1
+      WHERE id = $1 RETURNING token_version`,
+    [userId, recoveryHashes, usedCounter],
   );
+  return Number(result.rows[0]?.token_version ?? 0);
 }
 
-export async function disableMfa(userId: string): Promise<void> {
-  await pool.query(
-    `UPDATE users SET mfa_secret_enc = NULL, mfa_enabled_at = NULL, mfa_recovery_hashes = '{}' WHERE id = $1`,
+/** Desativa o MFA e revoga as outras sessões (V-2); devolve o novo `token_version`. */
+export async function disableMfa(userId: string): Promise<number> {
+  const result = await pool.query<{ token_version: number }>(
+    `UPDATE users SET mfa_secret_enc = NULL, mfa_enabled_at = NULL, mfa_recovery_hashes = '{}',
+            mfa_last_counter = NULL, token_version = token_version + 1
+      WHERE id = $1 RETURNING token_version`,
     [userId],
+  );
+  return Number(result.rows[0]?.token_version ?? 0);
+}
+
+/**
+ * Registra o passo TOTP aceito; false se ele (ou um posterior) já foi usado (V-4, anti-replay).
+ */
+export async function claimTotpCounter(userId: string, counter: number): Promise<boolean> {
+  const result = await pool.query(
+    `UPDATE users SET mfa_last_counter = $2
+      WHERE id = $1 AND (mfa_last_counter IS NULL OR mfa_last_counter < $2)`,
+    [userId, counter],
+  );
+  return (result.rowCount ?? 0) > 0;
+}
+
+/** Logout (V-2): revoga só esta sessão até ela expirar e descarta revogações já vencidas. */
+export async function revokeSession(jti: string, expiresAt: Date): Promise<void> {
+  await pool.query(`DELETE FROM revoked_sessions WHERE expires_at < now()`);
+  await pool.query(
+    `INSERT INTO revoked_sessions (jti, expires_at) VALUES ($1, $2) ON CONFLICT (jti) DO NOTHING`,
+    [jti, expiresAt],
   );
 }
 

@@ -12,7 +12,7 @@ const FOOD_COLUMNS =
  * Converte de forma centralizada uma linha do banco para a entidade Food tipada (A-014).
  * Assegura conversões numéricas consistentes e preservação de campos nulos.
  */
-export function mapFoodRow(row: Record<string, unknown>): Food {
+function mapFoodRow(row: Record<string, unknown>): Food {
   return {
     id: String(row.id),
     name: String(row.name),
@@ -31,7 +31,7 @@ export function mapFoodRow(row: Record<string, unknown>): Food {
 /**
  * Mapeia uma coleção de linhas para entidades Food (A-014).
  */
-export function mapFoodRows(rows: Record<string, unknown>[]): Food[] {
+function mapFoodRows(rows: Record<string, unknown>[]): Food[] {
   return rows.map(mapFoodRow);
 }
 
@@ -107,31 +107,28 @@ export async function searchFoods(
   }
 }
 
-export async function findById(id: string, userId?: string): Promise<Food | null> {
-  let query = `SELECT ${FOOD_COLUMNS} FROM foods WHERE id = $1 AND active = true`;
-  const params: unknown[] = [id];
-  if (userId) {
-    query += ` AND (user_id IS NULL OR user_id = $2)`;
-    params.push(userId);
-  }
-  const result = await pool.query(query, params);
+// V-7: `userId` obrigatório; sem ele a busca devolveria alimentos personalizados de outros usuários.
+export async function findById(id: string, userId: string): Promise<Food | null> {
+  const result = await pool.query(
+    `SELECT ${FOOD_COLUMNS} FROM foods
+      WHERE id = $1 AND active = true AND (user_id IS NULL OR user_id = $2)`,
+    [id, userId],
+  );
   return result.rows[0] ? mapFoodRow(result.rows[0] as unknown as Record<string, unknown>) : null;
 }
 
 export async function findByIds(
   ids: string[],
-  userId?: string,
+  userId: string,
   options?: { includeInactive?: boolean },
 ): Promise<(Food & { active?: boolean })[]> {
   if (ids.length === 0) return [];
   const activeFilter = options?.includeInactive ? '' : ' AND active = true';
-  let query = `SELECT ${FOOD_COLUMNS}, active FROM foods WHERE id = ANY($1::uuid[])${activeFilter}`;
-  const params: unknown[] = [ids];
-  if (userId) {
-    query += ` AND (user_id IS NULL OR user_id = $2)`;
-    params.push(userId);
-  }
-  const result = await pool.query(query, params);
+  const result = await pool.query(
+    `SELECT ${FOOD_COLUMNS}, active FROM foods
+      WHERE id = ANY($1::uuid[])${activeFilter} AND (user_id IS NULL OR user_id = $2)`,
+    [ids, userId],
+  );
   return result.rows.map((row) => ({
     ...mapFoodRow(row as Record<string, unknown>),
     active: Boolean(row.active),
@@ -189,14 +186,6 @@ export async function removeFavoriteFood(userId: string, foodId: string): Promis
     [userId, foodId],
   );
   return (result.rowCount ?? 0) > 0;
-}
-
-export async function getFavoriteFoodIds(userId: string): Promise<string[]> {
-  const result = await pool.query<{ food_id: string }>(
-    `SELECT food_id FROM user_favorite_foods WHERE user_id = $1 LIMIT 100`,
-    [userId],
-  );
-  return result.rows.map((r) => r.food_id);
 }
 
 export async function createCustomFood(

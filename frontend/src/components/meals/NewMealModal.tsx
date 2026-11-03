@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { X, Utensils, Star, Clock, Bookmark, Plus } from 'lucide-react';
+import { X, Utensils, Star, Clock, Bookmark, Search } from 'lucide-react';
 import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getFoods,
@@ -21,17 +21,21 @@ import {
 } from '../../services/savedMeal.service';
 import { FoodSearchSelect } from './FoodSearchSelect';
 import { FoodQuantityForm } from './FoodQuantityForm';
+import { CustomFoodForm } from './CustomFoodForm';
 import { MealItemList } from './MealItemList';
 import { MealModalFooter } from './MealModalFooter';
 import { calculateNutrients, type MealItem, type FoodOption } from '../../types/meal-modal';
 import { getLocalDateString, parseLocalDateOrToday } from '../../utils/date';
 import { ConfirmDialog } from '../common/ConfirmDialog';
+import { useToast } from '../../context/ToastContext';
 
 /** Tamanho da página do autocomplete de alimentos. */
 const FOOD_PAGE_SIZE = 50;
 
 interface NewMealModalProps {
   isOpen: boolean;
+  /** Animação de saída em curso (o provider mantém o modal montado por alguns ms). */
+  closing?: boolean;
   onClose: () => void;
   mealToEdit?: Meal | null;
   /** Data (YYYY-MM-DD) em que a refeição será registrada; padrão: hoje. */
@@ -40,11 +44,13 @@ interface NewMealModalProps {
 
 export const NewMealModal: React.FC<NewMealModalProps> = ({
   isOpen,
+  closing = false,
   onClose,
   mealToEdit,
   mealDate,
 }) => {
   const queryClient = useQueryClient();
+  const showToast = useToast();
   const [comboToDelete, setComboToDelete] = useState<SavedMeal | null>(null);
   const initialMealTimeStrRef = useRef<string>('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -104,15 +110,28 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({
     return foods.map((food) => ({ value: food.id, label: food.name.toUpperCase(), food }));
   }, [foods]);
 
+  // Otimista: o card entra no Diário e o modal fecha na hora; em erro, desfaz e avisa por toast.
+  // Os callbacks do useMutation seguem ativos depois que o modal desmonta.
   const createMealMutation = useMutation({
-    mutationFn: (data: CreateMealDTO) => createMeal(data),
-    onSuccess: () => {
+    mutationFn: ({ data }: { data: CreateMealDTO; optimistic: Meal; dateKey: string }) =>
+      createMeal(data),
+    // Sem retry: POST não é idempotente; repetir após um 5xx que já gravou duplica a refeição.
+    onMutate: async ({ optimistic, dateKey }) => {
+      const queryKey = ['todayMeals', dateKey];
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<Meal[]>(queryKey);
+      queryClient.setQueryData<Meal[]>(queryKey, (old = []) => [...old, optimistic]);
+      onClose();
+      return { previous, queryKey };
+    },
+    onSuccess: () => showToast('REFEIÇÃO SALVA.'),
+    onError: (error: Error, _vars, context) => {
+      if (context) queryClient.setQueryData(context.queryKey, context.previous);
+      showToast(`NÃO FOI POSSÍVEL SALVAR A REFEIÇÃO: ${error.message.toUpperCase()}`, 'error');
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['todayMeals'] });
       queryClient.invalidateQueries({ queryKey: ['mealStats'] });
-      onClose();
-    },
-    onError: (error: Error) => {
-      setErrorMessage(`ERRO AO SALVAR: ${error.message.toUpperCase()}`);
     },
   });
 
@@ -137,25 +156,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({
   const [comboName, setComboName] = useState('');
   const [isSavingCombo, setIsSavingCombo] = useState(false);
 
-  const [customFoodForm, setCustomFoodForm] = useState<{
-    name: string;
-    calories: string;
-    proteins: string;
-    carbs: string;
-    fats: string;
-    base_unit: 'g' | 'ml';
-    unit_name: string;
-    unit_weight: string;
-  }>({
-    name: '',
-    calories: '',
-    proteins: '',
-    carbs: '',
-    fats: '',
-    base_unit: 'g',
-    unit_name: '',
-    unit_weight: '',
-  });
+  const [customFoodName, setCustomFoodName] = useState('');
 
   const createCustomFoodMutation = useMutation({
     mutationFn: (data: CreateCustomFoodDTO) => createCustomFood(data),
@@ -163,16 +164,6 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({
       queryClient.invalidateQueries({ queryKey: ['foods'] });
       handleSelectFood(newFood);
       setActiveFoodTab('search');
-      setCustomFoodForm({
-        name: '',
-        calories: '',
-        proteins: '',
-        carbs: '',
-        fats: '',
-        base_unit: 'g',
-        unit_name: '',
-        unit_weight: '',
-      });
     },
     onError: (err: unknown) => {
       setErrorMessage(
@@ -387,6 +378,12 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({
     }
   }, [isOpen, isSubmitting, onClose]);
 
+  /** Cadastro é exceção: só aparece quando a busca não resolve. */
+  const openCustomFood = (name = '') => {
+    setCustomFoodName(name.trim());
+    setActiveFoodTab('custom');
+  };
+
   const handleSelectFood = (food: Food) => {
     setSelectedFood(food);
 
@@ -541,14 +538,46 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({
     if (mealToEdit) {
       updateMealMutation.mutate({ id: mealToEdit.id, data: payload });
     } else {
-      createMealMutation.mutate(payload);
+      createMealMutation.mutate({
+        data: payload,
+        dateKey: mealDate || getLocalDateString(),
+        optimistic: {
+          id: `temp-${Date.now()}`,
+          user_id: '',
+          name: mealLabel,
+          meal_time: finalMealTime,
+          total_calories: totalCalories,
+          total_proteins: mealItems.reduce((acc, item) => acc + item.proteins, 0),
+          items: mealItems.map((item) => ({
+            id: item.uid,
+            meal_id: '',
+            food_id: item.food.id,
+            food_name: item.food.name,
+            food_base_unit: item.food.base_unit,
+            food_unit_name: item.food.unit_name,
+            quantity: item.quantity,
+            unit: item.unit,
+            display_amount: item.displayAmount,
+            calories: item.calories,
+            proteins: item.proteins,
+            carbs: item.carbs,
+            fats: item.fats,
+          })),
+        },
+      });
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-4 bg-background/90 backdrop-blur-sm">
+    <div
+      className={`fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-4 bg-background/90 backdrop-blur-sm ${
+        closing ? 'animate-out pointer-events-none' : 'animate-in'
+      }`}
+      aria-hidden={closing || undefined}
+      inert={closing}
+    >
       <div
         ref={modalRef}
         role="dialog"
@@ -666,293 +695,52 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({
               </div>
 
               {!selectedFood && (
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setActiveFoodTab('search')}
-                    className={`flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-wider border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-x-px active:translate-y-px ${
-                      activeFoodTab === 'search'
-                        ? 'bg-primary text-primary-foreground border-edge'
-                        : 'bg-card text-foreground border-border hover:bg-background'
-                    }`}
-                  >
-                    Catálogo
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveFoodTab('recents')}
-                    className={`flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-wider border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-x-px active:translate-y-px ${
-                      activeFoodTab === 'recents'
-                        ? 'bg-primary text-primary-foreground border-edge'
-                        : 'bg-card text-foreground border-border hover:bg-background'
-                    }`}
-                  >
-                    <Clock className="w-3.5 h-3.5 shrink-0" />
-                    Recentes ({recentFoods.length})
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveFoodTab('favorites')}
-                    className={`flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-wider border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-x-px active:translate-y-px ${
-                      activeFoodTab === 'favorites'
-                        ? 'bg-primary text-primary-foreground border-edge'
-                        : 'bg-card text-foreground border-border hover:bg-background'
-                    }`}
-                  >
-                    <Star className="w-3.5 h-3.5 shrink-0 text-warning fill-warning" />
-                    Favoritos ({favoriteFoods.length})
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveFoodTab('combos')}
-                    className={`flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-wider border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-x-px active:translate-y-px ${
-                      activeFoodTab === 'combos'
-                        ? 'bg-primary text-primary-foreground border-edge'
-                        : 'bg-card text-foreground border-border hover:bg-background'
-                    }`}
-                  >
-                    <Bookmark className="w-3.5 h-3.5 shrink-0" />
-                    Combos ({savedMeals.length})
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveFoodTab('custom')}
-                    className={`col-span-2 flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-black uppercase tracking-widest border-2 border-dashed transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-x-px active:translate-y-px ${
-                      activeFoodTab === 'custom'
-                        ? 'bg-primary text-primary-foreground border-edge'
-                        : 'bg-secondary text-foreground border-border hover:bg-card'
-                    }`}
-                  >
-                    <Plus className="w-3.5 h-3.5 shrink-0" />
-                    Novo Alimento
-                  </button>
+                <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+                  {(
+                    [
+                      { tab: 'search', label: 'Catálogo', icon: Search, count: null },
+                      { tab: 'recents', label: 'Recentes', icon: Clock, count: recentFoods.length },
+                      {
+                        tab: 'favorites',
+                        label: 'Favoritos',
+                        icon: Star,
+                        count: favoriteFoods.length,
+                      },
+                      { tab: 'combos', label: 'Combos', icon: Bookmark, count: savedMeals.length },
+                    ] as const
+                  ).map(({ tab, label, icon: Icon, count }) => (
+                    <button
+                      key={tab}
+                      type="button"
+                      onClick={() => setActiveFoodTab(tab)}
+                      aria-pressed={activeFoodTab === tab}
+                      className={`min-w-0 flex flex-col items-center justify-center gap-1 px-0.5 sm:px-1 py-2 text-[9px] sm:text-[11px] font-black uppercase tracking-tight sm:tracking-wide border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-x-px active:translate-y-px ${
+                        activeFoodTab === tab
+                          ? 'bg-primary text-primary-foreground border-edge'
+                          : 'bg-card text-foreground border-border hover:bg-background'
+                      }`}
+                    >
+                      <span className="flex items-center gap-1" aria-hidden="true">
+                        <Icon
+                          className={`w-3.5 h-3.5 shrink-0 ${tab === 'favorites' ? 'text-warning fill-warning' : ''}`}
+                        />
+                        {count !== null && <span>{count}</span>}
+                      </span>
+                      <span className="max-w-full truncate">{label}</span>
+                      {count !== null && <span className="sr-only">({count})</span>}
+                    </button>
+                  ))}
                 </div>
               )}
 
               {!selectedFood ? (
                 activeFoodTab === 'custom' ? (
-                  <div className="space-y-3 bg-card p-3 border-2 border-border">
-                    <div className="flex items-center justify-between border-b-2 border-border pb-2">
-                      <span className="text-[10px] font-black uppercase tracking-wider text-foreground">
-                        CADASTRAR ALIMENTO PERSONALIZADO
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setActiveFoodTab('search')}
-                        className="text-[10px] font-bold uppercase text-muted-foreground hover:text-foreground"
-                      >
-                        CANCELAR
-                      </button>
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="custom-food-name"
-                        className="block text-[10px] font-black uppercase tracking-wider text-muted-foreground mb-1"
-                      >
-                        NOME DO ALIMENTO *
-                      </label>
-                      <input
-                        id="custom-food-name"
-                        type="text"
-                        value={customFoodForm.name}
-                        onChange={(e) =>
-                          setCustomFoodForm((prev) => ({
-                            ...prev,
-                            name: e.target.value.toUpperCase(),
-                          }))
-                        }
-                        placeholder="EX: WHEY PROTEIN CASEIRO..."
-                        className="w-full px-3 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                        required
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      <div>
-                        <label
-                          htmlFor="custom-food-calories"
-                          className="block text-[9px] font-black uppercase tracking-wider text-muted-foreground mb-1"
-                        >
-                          KCAL / 100{customFoodForm.base_unit} *
-                        </label>
-                        <input
-                          id="custom-food-calories"
-                          type="number"
-                          step="any"
-                          value={customFoodForm.calories}
-                          onChange={(e) =>
-                            setCustomFoodForm((prev) => ({ ...prev, calories: e.target.value }))
-                          }
-                          placeholder="0"
-                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring text-center"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label
-                          htmlFor="custom-food-proteins"
-                          className="block text-[9px] font-black uppercase tracking-wider text-muted-foreground mb-1"
-                        >
-                          PROT (G) *
-                        </label>
-                        <input
-                          id="custom-food-proteins"
-                          type="number"
-                          step="any"
-                          value={customFoodForm.proteins}
-                          onChange={(e) =>
-                            setCustomFoodForm((prev) => ({ ...prev, proteins: e.target.value }))
-                          }
-                          placeholder="0"
-                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring text-center"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label
-                          htmlFor="custom-food-carbs"
-                          className="block text-[9px] font-black uppercase tracking-wider text-muted-foreground mb-1"
-                        >
-                          CARB (G) *
-                        </label>
-                        <input
-                          id="custom-food-carbs"
-                          type="number"
-                          step="any"
-                          value={customFoodForm.carbs}
-                          onChange={(e) =>
-                            setCustomFoodForm((prev) => ({ ...prev, carbs: e.target.value }))
-                          }
-                          placeholder="0"
-                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring text-center"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label
-                          htmlFor="custom-food-fats"
-                          className="block text-[9px] font-black uppercase tracking-wider text-muted-foreground mb-1"
-                        >
-                          GORD (G) *
-                        </label>
-                        <input
-                          id="custom-food-fats"
-                          type="number"
-                          step="any"
-                          value={customFoodForm.fats}
-                          onChange={(e) =>
-                            setCustomFoodForm((prev) => ({ ...prev, fats: e.target.value }))
-                          }
-                          placeholder="0"
-                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring text-center"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                      <div>
-                        <label
-                          htmlFor="custom-food-base-unit"
-                          className="block text-[9px] font-black uppercase tracking-wider text-muted-foreground mb-1"
-                        >
-                          UNIDADE BASE
-                        </label>
-                        <select
-                          id="custom-food-base-unit"
-                          value={customFoodForm.base_unit}
-                          onChange={(e) =>
-                            setCustomFoodForm((prev) => ({
-                              ...prev,
-                              base_unit: e.target.value as 'g' | 'ml',
-                            }))
-                          }
-                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                        >
-                          <option value="g">GRAMAS (G)</option>
-                          <option value="ml">MILILITROS (ML)</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label
-                          htmlFor="custom-food-unit-name"
-                          className="block text-[9px] font-black uppercase tracking-wider text-muted-foreground mb-1"
-                        >
-                          PORÇÃO CASEIRA (OPCIONAL)
-                        </label>
-                        <input
-                          id="custom-food-unit-name"
-                          type="text"
-                          value={customFoodForm.unit_name}
-                          onChange={(e) =>
-                            setCustomFoodForm((prev) => ({ ...prev, unit_name: e.target.value }))
-                          }
-                          placeholder="EX: SCOOP, FATIA"
-                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                        />
-                      </div>
-                      <div>
-                        <label
-                          htmlFor="custom-food-unit-weight"
-                          className="block text-[9px] font-black uppercase tracking-wider text-muted-foreground mb-1"
-                        >
-                          PESO DA PORÇÃO ({customFoodForm.base_unit})
-                        </label>
-                        <input
-                          id="custom-food-unit-weight"
-                          type="number"
-                          step="any"
-                          value={customFoodForm.unit_weight}
-                          onChange={(e) =>
-                            setCustomFoodForm((prev) => ({ ...prev, unit_weight: e.target.value }))
-                          }
-                          placeholder="EX: 30"
-                          className="w-full px-2 py-1.5 bg-background border-2 border-border text-xs font-black uppercase outline-none focus:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring text-center"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="pt-2 flex justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setActiveFoodTab('search')}
-                        className="px-3 py-1.5 border-2 border-border text-xs font-black uppercase hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      >
-                        CANCELAR
-                      </button>
-                      <button
-                        type="button"
-                        disabled={createCustomFoodMutation.isPending || !customFoodForm.name.trim()}
-                        onClick={() => {
-                          const cal = parseFloat(customFoodForm.calories || '0');
-                          const prot = parseFloat(customFoodForm.proteins || '0');
-                          const carb = parseFloat(customFoodForm.carbs || '0');
-                          const fat = parseFloat(customFoodForm.fats || '0');
-                          const uWeight = customFoodForm.unit_weight
-                            ? parseFloat(customFoodForm.unit_weight)
-                            : undefined;
-
-                          createCustomFoodMutation.mutate({
-                            name: customFoodForm.name.trim(),
-                            calories: isNaN(cal) ? 0 : cal,
-                            proteins: isNaN(prot) ? 0 : prot,
-                            carbs: isNaN(carb) ? 0 : carb,
-                            fats: isNaN(fat) ? 0 : fat,
-                            base_unit: customFoodForm.base_unit,
-                            serving_weight: 100,
-                            unit_name: customFoodForm.unit_name.trim() || undefined,
-                            unit_weight: uWeight && !isNaN(uWeight) ? uWeight : undefined,
-                          });
-                        }}
-                        className="px-4 py-1.5 bg-primary text-primary-foreground text-xs font-black uppercase tracking-wider hover:bg-primary/90 border-2 border-edge disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      >
-                        {createCustomFoodMutation.isPending
-                          ? 'SALVANDO...'
-                          : 'CADASTRAR E SELECIONAR'}
-                      </button>
-                    </div>
-                  </div>
+                  <CustomFoodForm
+                    initialName={customFoodName}
+                    isPending={createCustomFoodMutation.isPending}
+                    onSubmit={(data) => createCustomFoodMutation.mutate(data)}
+                    onCancel={() => setActiveFoodTab('search')}
+                  />
                 ) : activeFoodTab === 'search' ? (
                   <FoodSearchSelect
                     options={foodOptions}
@@ -973,6 +761,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({
                     }}
                     onSearchChange={setSearchTerm}
                     onSelectFood={handleSelectFood}
+                    onCreateFood={openCustomFood}
                   />
                 ) : activeFoodTab === 'recents' ? (
                   <div className="space-y-2 max-h-60 overflow-y-auto">

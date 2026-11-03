@@ -1,21 +1,32 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { QRCodeSVG } from 'qrcode.react';
 import { useAuth } from '../../context/AuthContext';
 import { useProfileQuery } from '../../hooks/useProfileSettings';
 import { disableMfa, enableMfa, setupMfa } from '../../services/auth.service';
+import { OtpInput } from '../common/OtpInput';
+import { MfaCodeField } from '../auth/MfaCodeField';
 
-const field =
-  'w-full h-12 px-3 bg-background border-2 border-border rounded-none font-mono tracking-widest text-foreground focus:border-ring focus:outline-none';
 const btn =
   'border-2 border-border px-4 py-3 font-black text-xs uppercase hover:bg-secondary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
 
-/** Ativação/desativação do MFA (TOTP). Sem QR: o segredo é digitado no app autenticador. */
+/** Ativação/desativação do MFA (TOTP). O app lê o QR code ou recebe a chave digitada. */
 export function MfaCard() {
   const queryClient = useQueryClient();
   const profile = useProfileQuery();
   const [code, setCode] = useState('');
   const [recovery, setRecovery] = useState<string[] | null>(null);
+  const [copyStatus, setCopyStatus] = useState<string | null>(null);
   const { user, updateUserSession } = useAuth();
+  const copySecret = async (secret: string) => {
+    try {
+      await navigator.clipboard.writeText(secret);
+      setCopyStatus('CHAVE COPIADA');
+    } catch {
+      // A Clipboard API não existe fora de HTTPS e pode ser negada pelo navegador.
+      setCopyStatus('NÃO FOI POSSÍVEL COPIAR. SELECIONE A CHAVE MANUALMENTE.');
+    }
+  };
   const refresh = (mfa_enabled: boolean) => {
     // Mantém o contexto em sincronia: AdminRoute lê `mfa_enabled` daqui.
     if (user) updateUserSession({ ...user, mfa_enabled });
@@ -28,6 +39,7 @@ export function MfaCard() {
     onSuccess: (data) => {
       setRecovery(data.recovery_codes);
       setCode('');
+      setCopyStatus(null);
       setup.reset();
       refresh(true);
     },
@@ -83,9 +95,9 @@ export function MfaCard() {
       {profile.data && !enabled && !setup.data && (
         <>
           <p className="text-muted-foreground">
-            Além da senha, o login passa a pedir um código de 6 dígitos que muda a cada 30
-            segundos. Ele é gerado por um aplicativo no seu celular, então ninguém entra na sua
-            conta só com a senha.
+            Além da senha, o login passa a pedir um código de 6 dígitos que muda a cada 30 segundos.
+            Ele é gerado por um aplicativo no seu celular, então ninguém entra na sua conta só com a
+            senha.
           </p>
           <ol className="list-decimal pl-5 space-y-1 text-muted-foreground">
             <li>
@@ -93,7 +105,10 @@ export function MfaCard() {
               ou Authy).
             </li>
             <li>Toque em &quot;Começar&quot; para gerar a chave da sua conta.</li>
-            <li>Digite no app a chave e confirme com o código de 6 dígitos que ele mostrar.</li>
+            <li>
+              Escaneie o QR code no app (ou digite a chave) e confirme com o código de 6 dígitos que
+              ele mostrar.
+            </li>
           </ol>
           <button
             type="button"
@@ -115,25 +130,32 @@ export function MfaCard() {
           }}
         >
           <p className="font-bold uppercase text-xs">PASSO 2: ADICIONE A CONTA NO APP</p>
+          {/* Cores padrão da lib (preto sobre branco) nos dois temas: leitores falham com QR invertido. */}
+          <QRCodeSVG
+            value={setup.data.otpauth_url}
+            size={200}
+            marginSize={4}
+            role="img"
+            aria-label="QR code para adicionar a conta no app autenticador"
+          />
           <p className="text-muted-foreground">
-            No app autenticador, escolha &quot;Adicionar conta&quot; e depois &quot;Inserir chave de
-            configuração&quot; (tipo: baseado em tempo). Digite esta chave:
+            Escaneie o QR code com o app autenticador. Se não conseguir, escolha &quot;Inserir chave
+            de configuração&quot; (tipo: baseado em tempo) e digite esta chave:
           </p>
           <p className="font-mono break-all select-all font-bold">{setup.data.secret}</p>
+          <button type="button" className={btn} onClick={() => copySecret(setup.data.secret)}>
+            COPIAR CHAVE
+          </button>
+          <p role="status" className="font-bold uppercase text-xs">
+            {copyStatus}
+          </p>
           <label
             htmlFor="mfa-enable-code"
             className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground"
           >
             CÓDIGO DE 6 DÍGITOS
           </label>
-          <input
-            id="mfa-enable-code"
-            className={field}
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-          />
+          <OtpInput id="mfa-enable-code" value={code} onChange={setCode} />
           <button
             type="submit"
             className={btn}
@@ -159,19 +181,7 @@ export function MfaCard() {
             O login da sua conta agora exige o código de 6 dígitos do app autenticador. Para
             desativar, informe um código atual ou um código de recuperação.
           </p>
-          <label
-            htmlFor="mfa-disable-code"
-            className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground"
-          >
-            CÓDIGO OU CÓDIGO DE RECUPERAÇÃO PARA DESATIVAR
-          </label>
-          <input
-            id="mfa-disable-code"
-            className={field}
-            autoComplete="one-time-code"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-          />
+          <MfaCodeField id="mfa-disable-code" value={code} onChange={setCode} />
           <button
             type="submit"
             className={btn}

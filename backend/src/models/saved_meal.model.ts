@@ -123,7 +123,7 @@ export async function listByUser(userId: string): Promise<SavedMeal[]> {
   });
 }
 
-export async function findById(
+async function findById(
   savedMealId: string,
   client?: PoolClient,
 ): Promise<SavedMeal | null> {

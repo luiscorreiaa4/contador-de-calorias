@@ -1,24 +1,7 @@
 User-agent: *
-Disallow: /admin
-Disallow: /admin/*
-Disallow: /evolucao
-Disallow: /evolucao/*
-Disallow: /metas
-Disallow: /metas/*
-Disallow: /configuracoes
-Disallow: /configuracoes/*
-Disallow: /perfil
-Disallow: /onboarding
-Disallow: /diario
-Disallow: /diario/*
-Disallow: /api/
-
 Allow: /
-Allow: /login
-Allow: /cadastro
-Allow: /termos
-Allow: /privacidade
-Allow: /seguranca
+Disallow: /app
+Disallow: /admin
+Disallow: /api
 
 Sitemap: https://app.caloriesync.com/sitemap.xml
-
