@@ -148,3 +148,26 @@ jobs:
 
       - name: Build API Docker image
         run: docker build -t caloriesync-api:ci .
+
+      # Garante que a imagem resolve todos os imports (ex.: zod do shared/) antes do deploy.
+      - name: Smoke test API Docker image (imports)
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgres://postgres:postgres_test_password@localhost:5432/contador_calorias_test
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USER: postgres
+          DB_PASSWORD: postgres_test_password
+          DB_NAME: contador_calorias_test
+          JWT_SECRET: super_secret_test_key_with_at_least_32_chars_123!
+          CORS_ORIGIN: http://localhost:5173
+          APP_BASE_URL: http://localhost:5173
+          MAIL_FROM: CalorieSync <no-reply@caloriesync.local>
+          MAIL_TRANSPORT: memory
+          AUTH_TOKEN_PEPPER: super_secret_test_pepper_with_at_least_32_chars_456!
+        run: >-
+          docker run --rm
+          -e NODE_ENV -e DATABASE_URL -e DB_HOST -e DB_PORT -e DB_USER -e DB_PASSWORD -e DB_NAME -e JWT_SECRET -e CORS_ORIGIN
+          -e APP_BASE_URL -e MAIL_FROM -e MAIL_TRANSPORT -e AUTH_TOKEN_PEPPER
+          caloriesync-api:ci
+          node --import tsx -e "await import('./src/app.ts'); console.log('imports OK'); process.exit(0)"

@@ -3,6 +3,7 @@ FROM node:24-slim
 WORKDIR /app
 ENV NODE_ENV=production
 COPY shared ./shared
+RUN cd shared && npm ci --omit=dev
 COPY backend/package*.json ./backend/
 RUN cd backend && npm ci
 COPY backend ./backend
