@@ -4,4 +4,4 @@ Disallow: /app
 Disallow: /admin
 Disallow: /api
 
-Sitemap: https://app.caloriesync.com/sitemap.xml
+Sitemap: https://caloriesync-luiscorreia.netlify.app/sitemap.xml
