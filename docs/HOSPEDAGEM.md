@@ -342,7 +342,7 @@ Depois do deploy, **o GitHub é a fonte da verdade**: publicar = enviar código 
    npm --prefix frontend test
    npm run build
    ```
-3. **Commit** no padrão do projeto (commitlint): `feat(diario): adicionar X`, `fix(auth): corrigir Y`.
+3. **Commit** com mensagem descritiva (sugestão: `feat(diario): adicionar X`, `fix(auth): corrigir Y`; não há validação automática).
 4. **Abra um Pull Request** para `main`. O GitHub Actions (`.github/workflows/ci.yml`) roda auditoria, lint, testes e build. Só faça merge com o CI verde.
 5. **Merge em `main`** → Render publica a API nova e Netlify publica o site novo (alguns minutos). Acompanhe em **Deploys** (Netlify) e **Events/Logs** (Render).
 6. **Verifique em produção** com o checklist do passo 11 (os itens que a mudança tocou).
@@ -399,7 +399,7 @@ Adicione primeiro no Render/Netlify, depois faça o merge. Segredos nunca entram
 
 - Monorepo: `frontend/` (React 19, Vite, TanStack Query, Tailwind), `backend/` (Express + TypeScript, 4 camadas `routes → controllers → services → models`, SQL puro com `pg`, sem ORM), `shared/` (schemas Zod e tipos compartilhados).
 - Segurança: JWT em cookie HttpOnly `SameSite=Strict`, verificação de e-mail, bloqueio de conta, rate limit em Postgres, captcha opcional, MFA (TOTP) obrigatório para admins, RBAC com papel lido do banco a cada requisição, CORS estrito e papéis de banco com menor privilégio.
-- Qualidade: testes (backend com `node:test`, front com Vitest/RTL/MSW), CI no GitHub Actions, commitlint/Husky, Dockerfile.
+- Qualidade: testes (backend com `node:test`, front com Vitest/RTL/MSW), CI no GitHub Actions, Dockerfile.
 - Mais detalhes: `docs/ARCHITECTURE.md`, `docs/DECISOES.md`, `docs/DB_ROLES.md`, `docs/EMAIL_SETUP.md`, `docs/ADMIN.md`, `docs/MIGRATIONS.md` e o grafo em `.ua/knowledge-graph.json`.
 
 ---
