@@ -1,5 +1,5 @@
 // Metadados das páginas públicas pré-renderizadas no build (scripts/prerender.mjs).
-export const SITE_URL = 'https://app.caloriesync.com';
+export const SITE_URL = 'https://caloriesync-luiscorreia.netlify.app';
 export const OG_IMAGE = `${SITE_URL}/og-image.png`;
 
 export interface FaqItem {

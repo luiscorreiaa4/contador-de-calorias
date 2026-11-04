@@ -81,7 +81,7 @@ A ordem importa, porque cada serviço precisa do endereço do outro.
 
 ### Passo 1 · Reservar o nome do site no Netlify
 1. No Netlify: **Add new site → Import an existing project → GitHub** e escolha o repositório.
-2. **Não** publique ainda (ou deixe falhar). Em **Site configuration → Change site name**, escolha algo como `caloriesync-seunome`. O endereço será `https://caloriesync-seunome.netlify.app`.
+2. **Não** publique ainda (ou deixe falhar). Em **Site configuration → Change site name**, use `caloriesync-luiscorreia` (é o nome que o repositório já usa no SEO). O endereço será `https://caloriesync-luiscorreia.netlify.app`. Em **Build settings**, deixe **Base directory vazio** (o `netlify.toml` está na raiz).
 3. Anote esse endereço. Vamos chamá-lo de **`URL_SITE`**.
 
 ### Passo 2 · Criar o banco no Neon
@@ -108,11 +108,24 @@ Em vez de a API usar o usuário todo-poderoso, ela usa `app_user`, que só lê e
      -v dbname=neondb -f backend/scripts/provision-db-roles.sql
    ```
    (`dbname` é o nome do banco que aparece na connection string, normalmente `neondb`.)
-2. Passe a posse das tabelas ao `migration_user`:
+   No Neon o dono (`neondb_owner`) não é superusuário. O script já lida com isso: só mexe em `NOSUPERUSER/NOCREATEDB/NOCREATEROLE` quando preciso e faz `GRANT migration_user TO neondb_owner;` antes do `ALTER DEFAULT PRIVILEGES` (sem esse grant, o Neon responde "permission denied to change default privileges").
+2. Passe a posse das tabelas ao `migration_user`. **Não use `REASSIGN OWNED`**: no Neon ele falha porque tenta transferir o próprio banco. Rode com a `URL_ADMIN` (`psql "<URL_ADMIN>" -v ON_ERROR_STOP=1` e cole):
    ```sql
-   REASSIGN OWNED BY <usuario_da_URL_ADMIN> TO migration_user;
+   DO $$
+   DECLARE r record;
+   BEGIN
+     FOR r IN SELECT tablename FROM pg_tables
+               WHERE schemaname = 'public' AND tableowner <> 'migration_user' LOOP
+       EXECUTE format('ALTER TABLE public.%I OWNER TO migration_user', r.tablename);
+     END LOOP;
+     -- Sequences de serial/identity mudam junto com a tabela; aqui ficam as avulsas.
+     FOR r IN SELECT sequencename FROM pg_sequences
+               WHERE schemaname = 'public' AND sequenceowner <> 'migration_user' LOOP
+       EXECUTE format('ALTER SEQUENCE public.%I OWNER TO migration_user', r.sequencename);
+     END LOOP;
+   END $$;
+   ALTER FUNCTION public.f_unaccent(text) OWNER TO migration_user;
    ```
-   Se o Neon recusar, use `GRANT <usuario_da_URL_ADMIN> TO migration_user;`.
 3. Monte as duas URLs que serão usadas depois (troque o host pelo da sua string do Neon):
    - **`URL_MIGRACAO`** = `postgresql://migration_user:<senha_migracao>@<host>/neondb?sslmode=require`
    - API: `DB_HOST=<host>`, `DB_PORT=5432`, `DB_USER=app_user`, `DB_PASSWORD=<senha_app>`, `DB_NAME=neondb`
@@ -136,7 +149,7 @@ O cadastro só termina com o código de 6 dígitos enviado por e-mail, e "Esquec
 - **Um Gmail como remetente só chega na caixa de entrada se o envio sair do próprio Google.** Enviado por um terceiro (ex.: Brevo com remetente `@gmail.com`), falha na checagem DMARC e vai para o spam.
 - O **Google Apps Script** resolve as duas coisas de graça: é um pequeno programa na sua conta Google com um endereço HTTPS. A API manda o e-mail para esse endereço e o script envia pelo seu Gmail. Limite de ~100 destinatários/dia.
 
-> ⚠️ **Mudança de código pendente:** hoje a API só sabe enviar por SMTP (`backend/src/mail/mailer.ts`). Antes do deploy é preciso um adaptador novo, `MAIL_TRANSPORT=http`, que faz `POST` de `{ secret, to, subject, text, html }` para `MAIL_HTTP_URL`, com `MAIL_HTTP_URL`/`MAIL_HTTP_SECRET` validadas em `backend/src/config/env.ts`. Em desenvolvimento nada muda: o Mailpit continua com `MAIL_TRANSPORT=smtp`.
+> A API já tem o adaptador `MAIL_TRANSPORT=http` (`HttpMailer` em `backend/src/mail/mailer.ts`): faz `POST` de `{ secret, to, subject, text, html }` para `MAIL_HTTP_URL` e só considera enviado se o script responder `{"ok":true}`. `MAIL_HTTP_URL`/`MAIL_HTTP_SECRET` são validadas ao iniciar (`backend/src/config/env.ts`). Em desenvolvimento nada muda: o Mailpit continua com `MAIL_TRANSPORT=smtp`. Detalhes em `docs/EMAIL_SETUP.md` (seção 3.4).
 
 #### 5.1 Conta Gmail do projeto
 1. Crie um Gmail só para o projeto (ex.: `caloriesync.app@gmail.com`). É o remetente que os usuários verão, e assim o seu e-mail pessoal fica de fora.
@@ -175,48 +188,44 @@ O cadastro só termina com o código de 6 dígitos enviado por e-mail, e "Esquec
 
 > **Se um dia passar de ~100 e-mails/dia:** aí vale um domínio próprio com um provedor transacional por API HTTPS (ex.: Brevo, Resend). O adaptador `http` só muda de destino. Para portfólio, não precisa.
 
-### Passo 6 · Dois arquivos de configuração no front (pequena mudança de código)
-Esta é a única alteração de código necessária. Crie na pasta `frontend/`:
+### Passo 6 · Configuração do Netlify (já no repositório)
+O arquivo `netlify.toml` fica **na raiz do repositório** (não em `frontend/`), porque o build do front precisa do pacote `shared/` (`@caloriesync/shared`). No painel do Netlify (**Site configuration → Build & deploy → Build settings**) deixe **Base directory vazio**; comando e pasta publicada vêm do arquivo:
 
-**`frontend/netlify.toml`**
 ```toml
 [build]
-  base = "frontend"
-  command = "npm ci && npm run build"
-  publish = "dist"
+  command = "npm --prefix shared ci && npm --prefix frontend ci && npm --prefix frontend run build"
+  publish = "frontend/dist"
+
+[build.environment]
+  NODE_VERSION = "24"
+  VITE_API_URL = "/api"
 
 # O front fala com "/api"; o Netlify repassa para a API no Render.
 [[redirects]]
   from = "/api/*"
-  to = "https://<NOME_DA_API>.onrender.com/api/:splat"
+  to = "https://caloriesync-api.onrender.com/api/:splat"
   status = 200
   force = true
 
 # SPA: qualquer outra rota abre a casca vazia spa.html (React Router).
-# "/", "/termos", "/privacidade" e "/seguranca" já existem como HTML pré-renderizado e têm prioridade.
+# Sem force: "/", "/termos", "/privacidade" e "/seguranca" já existem como HTML pré-renderizado e têm prioridade.
 [[redirects]]
   from = "/*"
   to = "/spa.html"
   status = 200
 ```
 
+O proxy aponta para `caloriesync-api.onrender.com`. Se o nome do serviço no Render for outro (passo 7), troque no `netlify.toml` e faça commit.
+
 E, no painel do Netlify (**Site configuration → Environment variables**), defina:
-- `VITE_API_URL` = `/api` (relativo, para o cookie valer)
 - `VITE_CAPTCHA_SITE_KEY` = site key do Turnstile (passo 7a)
 
-**Trocar o endereço provisório do site (SEO).** As páginas públicas usam `https://app.caloriesync.com`, um domínio que **não existe**. Antes do primeiro deploy, troque por `URL_SITE` (sem barra final) nestes 4 arquivos e faça commit:
-- `frontend/src/seo/pages.ts` (constante `SITE_URL`: gera canonical, Open Graph, Twitter Card e JSON-LD)
-- `frontend/public/robots.txt` (linha `Sitemap:`)
-- `frontend/public/sitemap.xml`
-- `frontend/public/llms.txt`
-
-Confira que não sobrou nenhum com `git grep app.caloriesync.com`. Se o endereço continuar errado, o Google e as redes sociais apontam para um site inexistente.
+**Endereço do site (SEO).** As páginas públicas já usam `https://caloriesync-luiscorreia.netlify.app` (`SITE_URL` em `frontend/src/seo/pages.ts`, `robots.txt`, `sitemap.xml` e `llms.txt` em `frontend/public/`). Se o nome do site no Netlify (passo 1) for outro, troque nesses 4 arquivos (sem barra final) e confira com `git grep caloriesync-luiscorreia`.
 
 **Confirmar o texto "gratuito".** A landing (FAQ) e o JSON-LD (`offers` com preço 0 em `frontend/src/seo/pages.ts`) dizem que o CalorieSync é gratuito. Se um dia houver plano pago, ajuste os dois.
 
 Pontos de atenção que eu **não verifiquei** e você deve testar no final:
 - **Páginas pré-renderizadas:** o build gera `dist/index.html` (landing), `dist/termos/index.html`, `dist/privacidade/index.html` e `dist/seguranca/index.html` com o conteúdo já no HTML, e `dist/spa.html` (casca vazia) para o resto. O Netlify deveria servir `/termos` a partir de `termos/index.html` antes de aplicar o redirect `/*`; isso só foi simulado localmente. Teste no passo 11.
-- O `npm ci` do front precisa enxergar o pacote `shared/` (`@caloriesync/shared`). Se o build falhar por isso, troque `base`/`command` para rodar da raiz: `command = "npm ci && npm --prefix shared ci && npm run build"` com `base = "."` e `publish = "frontend/dist"`.
 - Netlify pode cortar respostas de proxy lentas (~26 s). Com a API dormindo, a primeira chamada pode dar erro 502/504; recarregar resolve (o passo 9 evita).
 
 ### Passo 7a · Criar o captcha (Cloudflare Turnstile), antes da API
@@ -229,6 +238,7 @@ Em produção a API **exige** `CAPTCHA_SECRET_KEY` e não sobe sem ela (proteç�
 ### Passo 7 · Publicar a API no Render
 1. No Render: **New → Web Service → conecte o GitHub → escolha o repositório**.
 2. Configure:
+   - **Name:** `caloriesync-api` (o `netlify.toml` repassa `/api` para `https://caloriesync-api.onrender.com`)
    - **Language/Runtime:** Docker (usa o `Dockerfile` da raiz)
    - **Branch:** `main`
    - **Instance Type:** Free
@@ -259,7 +269,7 @@ Em produção a API **exige** `CAPTCHA_SECRET_KEY` e não sobe sem ela (proteç�
    A API valida tudo ao iniciar e **se recusa a subir** com valor faltando ou inseguro; a mensagem aparece em **Logs**. Em produção ela recusa, entre outros: `NODE_ENV` ausente, segredo placeholder, `JWT_SECRET` igual ao pepper, `CAPTCHA_SECRET_KEY` vazia, `MAIL_TRANSPORT=memory`, SMTP sem usuário/senha, `CORS_ORIGIN`/`APP_BASE_URL` sem `https` ou com `localhost`.
    O `Dockerfile` já define `NODE_ENV=production`, mas declare a variável no Render mesmo assim: se um dia a API rodar fora dessa imagem, ela continua protegida.
 4. Clique em **Create Web Service**. Quando ficar "Live", anote o endereço (`https://<NOME_DA_API>.onrender.com`) e abra `/health`: deve responder `healthy`.
-5. Volte ao `netlify.toml` e troque `<NOME_DA_API>` pelo nome real. Faça commit e push para `main`.
+5. Se o nome não for `caloriesync-api`, troque o destino do `/api/*` no `netlify.toml` (raiz) pelo nome real. Faça commit e push para `main`.
 
 > **Nota `TRUST_PROXY`:** o limite de tentativas de login usa o IP do visitante. Com Netlify → Render há mais de um salto e o IP real pode não chegar à API; o efeito pior é que muitos visitantes pareçam o mesmo IP e dividam o limite. Para portfólio é aceitável. Teste errando a senha 5 vezes: a conta deve bloquear, e outro usuário não deve ser afetado.
 
@@ -293,7 +303,7 @@ O projeto proíbe criar admin por seed ou variável de ambiente. O caminho é:
 - [ ] Logado, F5 em `/app/historico` abre o app (fallback `spa.html`); `/historico` sem o prefixo redireciona para `/app/historico/...`
 - [ ] **Exibir código-fonte** (Ctrl+U) de `/`, `/termos`, `/privacidade` e `/seguranca` mostra o texto da página dentro de `<div id="root">`, o `<title>` próprio e o `<link rel="canonical">` com `URL_SITE` (se vier `<div id="root"></div>` vazio, o Netlify serviu `spa.html` no lugar do HTML pré-renderizado)
 - [ ] F12 → Console em `/` e `/termos` sem erro do React (`#418` = hidratação divergente)
-- [ ] `URL_SITE/robots.txt`, `URL_SITE/sitemap.xml`, `URL_SITE/llms.txt` e `URL_SITE/og-image.png` abrem e citam `URL_SITE`, não `app.caloriesync.com`
+- [ ] `URL_SITE/robots.txt`, `URL_SITE/sitemap.xml`, `URL_SITE/llms.txt` e `URL_SITE/og-image.png` abrem e citam `URL_SITE`
 - [ ] Prévia do link em redes sociais mostra a imagem 1200×630: teste no [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/) e no [Teste de pesquisa aprimorada do Google](https://search.google.com/test/rich-results) (deve achar `SoftwareApplication` e `FAQPage` em `/`)
 - [ ] O PWA instalado abre em `/app`
 - [ ] Cadastro envia e-mail **na caixa de entrada** (Gmail e Outlook) e o código verifica (passo 5.3)
@@ -320,12 +330,13 @@ O projeto proíbe criar admin por seed ou variável de ambiente. O caminho é:
 | `permission denied for table ...` | Script de papéis não rodou depois de uma migration nova, ou migração rodou com outro dono |
 | 502/504 na primeira visita | API dormindo (use o UptimeRobot) |
 | Não chega e-mail, log `auth_email_delivery_failed` com timeout | `MAIL_TRANSPORT=smtp` no Render (SMTP bloqueado no grátis); use `http` |
-| Não chega e-mail, script responde `{"ok":false}` | `MAIL_HTTP_SECRET` diferente do `MAIL_SECRET` do script |
+| Não chega e-mail, log `auth_email_delivery_failed` com `mail_http_rejected` (script respondeu `{"ok":false}`) | `MAIL_HTTP_SECRET` diferente do `MAIL_SECRET` do script |
+| Não chega e-mail, log com `mail_http_invalid_response` | O Google devolveu HTML: a implantação não está com acesso "Qualquer pessoa" ou a URL não é a `/exec` |
 | Não chega e-mail, erro em **Execuções** do Apps Script | Cota diária (~100) estourada, ou o script foi editado sem publicar uma **Nova versão** |
 | Resposta é uma página de login do Google em vez de JSON | Implantação com acesso diferente de **Qualquer pessoa**, ou URL de teste (`/dev`) em vez de `/exec` |
 | Link de redefinir senha abre `localhost` ou dá erro | `APP_BASE_URL` no Render diferente do `URL_SITE` |
 | `/termos` abre vazio no código-fonte ou mostra a landing | Redirect `/*` com `force = true` ou apontando para `/index.html`: deve ser `/spa.html` sem `force` |
-| Prévia em rede social sem imagem ou com link errado | `SITE_URL` ainda com `app.caloriesync.com` (veja o passo 6) ou cache antigo da rede social (use o Sharing Debugger para recarregar) |
+| Prévia em rede social sem imagem ou com link errado | `SITE_URL` diferente do endereço real do site (veja o passo 6) ou cache antigo da rede social (use o Sharing Debugger para recarregar) |
 
 ---
 
@@ -384,7 +395,7 @@ Adicione primeiro no Render/Netlify, depois faça o merge. Segredos nunca entram
 - **CSP:** `frontend/public/_headers` usa `connect-src 'self' https:`; com o proxy `/api` pode restringir só a `'self'` depois.
 - **Dados de saúde (LGPD):** os itens #15, #30, #31 e #32 do backlog (criptografia em repouso, consentimento específico, minimização, retenção) estão adiados. Para um portfólio com dados fictícios, tudo bem; **não divulgue o site como serviço real para dados de saúde de terceiros** sem tratar isso.
 - **SEO (pré-renderização):**
-  - O domínio `app.caloriesync.com` dos arquivos de SEO é provisório e precisa ser trocado (passo 6).
+  - O domínio dos arquivos de SEO é `caloriesync-luiscorreia.netlify.app`; se o site no Netlify tiver outro nome, troque (passo 6).
   - O texto "gratuito" (landing e JSON-LD) precisa ser confirmado se o modelo do produto mudar.
   - Ao navegar dentro do app (sem recarregar), o `<title>` da aba não muda; ele só vem certo no carregamento direto, que é o que buscadores e redes sociais leem.
   - O `FAQPage` do JSON-LD fica só na landing, porque o Google exige que as perguntas estejam visíveis na página.

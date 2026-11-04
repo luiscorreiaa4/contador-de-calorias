@@ -20,8 +20,8 @@
 
 ## Páginas públicas
 
-- [Início e perguntas frequentes](https://app.caloriesync.com/): o que é o CalorieSync, como as metas são calculadas e FAQ.
-- [Termos de Uso](https://app.caloriesync.com/termos)
-- [Política de Privacidade](https://app.caloriesync.com/privacidade): dados coletados, finalidade, retenção e exclusão (LGPD).
-- [Segurança](https://app.caloriesync.com/seguranca)
-- [Criar conta](https://app.caloriesync.com/cadastro)
+- [Início e perguntas frequentes](https://caloriesync-luiscorreia.netlify.app/): o que é o CalorieSync, como as metas são calculadas e FAQ.
+- [Termos de Uso](https://caloriesync-luiscorreia.netlify.app/termos)
+- [Política de Privacidade](https://caloriesync-luiscorreia.netlify.app/privacidade): dados coletados, finalidade, retenção e exclusão (LGPD).
+- [Segurança](https://caloriesync-luiscorreia.netlify.app/seguranca)
+- [Criar conta](https://caloriesync-luiscorreia.netlify.app/cadastro)

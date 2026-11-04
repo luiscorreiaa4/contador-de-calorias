@@ -9,7 +9,7 @@
 
 A separação já existia no código: a API lê `DB_*` e as migrations leem `DATABASE_URL`. Faltava só criar os papéis.
 
-### Provisionar (uma vez por banco, como superusuário)
+### Provisionar (uma vez por banco, como superusuário ou dono do banco)
 ```bash
 psql "$ADMIN_DATABASE_URL" -v ON_ERROR_STOP=1 \
   -v app_password="'<senha_app>'" -v migration_password="'<senha_migracao>'" \
@@ -18,7 +18,25 @@ psql "$ADMIN_DATABASE_URL" -v ON_ERROR_STOP=1 \
 Depois: `DB_USER=app_user` (+ senha) para a API e `DATABASE_URL=postgresql://migration_user:...` para as migrations. Rode o script também depois da **primeira** migration se o banco já tinha tabelas criadas por outro dono (o script cobre as existentes e, via `ALTER DEFAULT PRIVILEGES`, as futuras criadas por `migration_user`).
 
 Observações:
-- Tabelas já criadas por `postgres` continuam dele; para que `migration_user` as altere, faça `REASSIGN OWNED BY postgres TO migration_user` no banco (decisão do operador, não feita no script).
+- A senha é definida num `ALTER ROLE ... PASSWORD` separado. `NOSUPERUSER NOCREATEDB NOCREATEROLE` só é aplicado (via `\gexec`) se o papel tiver algum desses atributos: no Neon/Postgres 16 o dono do banco não é superusuário, e tocar em `SUPERUSER` falha com "Only roles with the SUPERUSER attribute may change the SUPERUSER attribute".
+- `ALTER DEFAULT PRIVILEGES FOR ROLE migration_user` e `ALTER ... OWNER TO migration_user` exigem que o executor herde e possa assumir `migration_user`. Sem superusuário (Neon), o script faz `GRANT migration_user TO <executor>` (ex.: `GRANT migration_user TO neondb_owner;`) antes do `ALTER DEFAULT PRIVILEGES`, só quando falta. No PG16 quem cria o papel já é membro com `ADMIN OPTION`, mas sem `INHERIT`/`SET`, e isso não basta.
+- Tabelas já criadas pelo dono (`postgres` local ou `neondb_owner` no Neon) continuam dele. Para que `migration_user` as altere, transfira a posse depois do script (decisão do operador, não feita no script). **Não use `REASSIGN OWNED`**: no Neon ele falha porque tenta transferir também o próprio banco. Use:
+  ```sql
+  DO $$
+  DECLARE r record;
+  BEGIN
+    FOR r IN SELECT tablename FROM pg_tables
+              WHERE schemaname = 'public' AND tableowner <> 'migration_user' LOOP
+      EXECUTE format('ALTER TABLE public.%I OWNER TO migration_user', r.tablename);
+    END LOOP;
+    -- Sequences de serial/identity mudam junto com a tabela; aqui ficam as avulsas.
+    FOR r IN SELECT sequencename FROM pg_sequences
+              WHERE schemaname = 'public' AND sequenceowner <> 'migration_user' LOOP
+      EXECUTE format('ALTER SEQUENCE public.%I OWNER TO migration_user', r.sequencename);
+    END LOOP;
+  END $$;
+  ALTER FUNCTION public.f_unaccent(text) OWNER TO migration_user;
+  ```
 - `CREATE EXTENSION` de `unaccent`/`pg_trgm`/`uuid-ossp` é permitido a não superusuário por serem *trusted* (PG13+), com `CREATE` no banco.
 - Em dev e nos testes segue valendo o usuário `postgres` do docker-compose; o script é para staging/produção.
 

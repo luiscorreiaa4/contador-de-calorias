@@ -1,0 +1,22 @@
+# Netlify: Base directory vazio (raiz do repo), porque o front importa o pacote shared/.
+[build]
+  command = "npm --prefix shared ci && npm --prefix frontend ci && npm --prefix frontend run build"
+  publish = "frontend/dist"
+
+[build.environment]
+  NODE_VERSION = "24"
+  # Relativo: o front chama a API pelo proxy abaixo (mesma origem para o cookie).
+  VITE_API_URL = "/api"
+
+# O front fala com "/api"; o Netlify repassa para a API no Render (mesma origem para o cookie SameSite=Strict).
+[[redirects]]
+  from = "/api/*"
+  to = "https://caloriesync-api.onrender.com/api/:splat"
+  status = 200
+  force = true
+
+# SPA: o resto abre a casca spa.html. Sem force, as páginas pré-renderizadas (/, /termos...) têm prioridade.
+[[redirects]]
+  from = "/*"
+  to = "/spa.html"
+  status = 200
