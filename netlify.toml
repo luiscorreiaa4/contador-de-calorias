@@ -5,6 +5,8 @@
 
 [build.environment]
   NODE_VERSION = "24"
+  # Relativo: o front chama a API pelo proxy abaixo (mesma origem para o cookie).
+  VITE_API_URL = "/api"
 
 # O front fala com "/api"; o Netlify repassa para a API no Render (mesma origem para o cookie SameSite=Strict).
 [[redirects]]

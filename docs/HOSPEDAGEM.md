@@ -198,6 +198,7 @@ O arquivo `netlify.toml` fica **na raiz do repositório** (não em `frontend/`),
 
 [build.environment]
   NODE_VERSION = "24"
+  VITE_API_URL = "/api"
 
 # O front fala com "/api"; o Netlify repassa para a API no Render.
 [[redirects]]
@@ -217,7 +218,6 @@ O arquivo `netlify.toml` fica **na raiz do repositório** (não em `frontend/`),
 O proxy aponta para `caloriesync-api.onrender.com`. Se o nome do serviço no Render for outro (passo 7), troque no `netlify.toml` e faça commit.
 
 E, no painel do Netlify (**Site configuration → Environment variables**), defina:
-- `VITE_API_URL` = `/api` (relativo, para o cookie valer)
 - `VITE_CAPTCHA_SITE_KEY` = site key do Turnstile (passo 7a)
 
 **Endereço do site (SEO).** As páginas públicas já usam `https://caloriesync-luiscorreia.netlify.app` (`SITE_URL` em `frontend/src/seo/pages.ts`, `robots.txt`, `sitemap.xml` e `llms.txt` em `frontend/public/`). Se o nome do site no Netlify (passo 1) for outro, troque nesses 4 arquivos (sem barra final) e confira com `git grep caloriesync-luiscorreia`.
