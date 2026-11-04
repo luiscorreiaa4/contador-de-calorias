@@ -130,6 +130,35 @@ describe('POST /api/auth/demo (visitante temporário)', () => {
     );
   });
 
+  it('cliques simultâneos não passam do teto (trava no banco)', async () => {
+    const active = await pool.query<{ count: string }>(
+      'SELECT COUNT(*) AS count FROM users WHERE is_guest',
+    );
+    const oneSlotLeft = Number(active.rows[0].count) + 1;
+
+    // Outro clique segura a trava e ocupa a última vaga antes de confirmar.
+    const other = await pool.connect();
+    try {
+      await other.query('BEGIN');
+      await other.query('SELECT pg_advisory_xact_lock(hashtext($1))', [GuestModel.GUEST_SIGNUP_LOCK]);
+      await other.query(
+        `INSERT INTO users (name, email, password_hash, terms_accepted_at, email_verified_at, is_guest)
+         VALUES ('Visitante', $1, 'x', now(), now(), true)`,
+        [`demo-race-a-${Date.now()}@visitante.invalid`],
+      );
+      const pending = GuestModel.createGuestUserWithinCap(
+        `demo-race-b-${Date.now()}@visitante.invalid`,
+        'x',
+        oneSlotLeft,
+      );
+      await new Promise((r) => setTimeout(r, 200));
+      await other.query('COMMIT');
+      assert.strictEqual(await pending, null);
+    } finally {
+      other.release();
+    }
+  });
+
   it('cria a conta mesmo sem alimentos do seed no catálogo', async () => {
     const found = await GuestModel.findGlobalFoodIdsByNames(['__inexistente__']);
     assert.strictEqual(found.size, 0);

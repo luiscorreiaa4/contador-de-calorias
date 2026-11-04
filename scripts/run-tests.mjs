@@ -81,6 +81,23 @@ const args = frontend
       ...(mode === 'backend' ? ['--test-force-exit'] : []),
       ...files,
     ];
+// Banco de teste sempre no esquema atual: migração nova não exige passo manual (idempotente).
+if (!frontend) {
+  const migrate = await runBounded(
+    process.execPath,
+    [
+      resolve(cwd, 'node_modules/node-pg-migrate/bin/node-pg-migrate.js'),
+      '--database-url-var',
+      'DATABASE_URL_TEST',
+      'up',
+    ],
+    { cwd, env },
+  );
+  if (migrate.code !== 0) {
+    console.error('Falha ao migrar o banco de teste (DATABASE_URL_TEST).');
+    process.exit(migrate.code || 1);
+  }
+}
 const result = await runBounded(process.execPath, args, { cwd, env });
 console.log(`Testes ${mode}: ${result.durationMs} ms; código ${result.code}.`);
 process.exitCode = result.code;

@@ -9,14 +9,43 @@ export async function isGuestUser(userId: string): Promise<boolean> {
   return result.rows[0]?.is_guest ?? false;
 }
 
-export async function createGuestUser(email: string, passwordHash: string): Promise<User> {
-  const result = await pool.query<User>(
-    `INSERT INTO users (name, email, password_hash, terms_accepted_at, email_verified_at, is_guest)
-     VALUES ('Visitante', $1, $2, now(), now(), true)
-     RETURNING *`,
-    [email, passwordHash],
-  );
-  return result.rows[0];
+export const GUEST_SIGNUP_LOCK = 'caloriesync:guest_signup';
+
+/**
+ * Cria o visitante só se houver vaga no teto. A trava de transação serializa os cliques
+ * simultâneos (contagem + insert atômicos) e o PostgreSQL a solta no COMMIT/ROLLBACK.
+ * Retorna null quando o teto já foi atingido.
+ */
+export async function createGuestUserWithinCap(
+  email: string,
+  passwordHash: string,
+  maxActive: number,
+): Promise<User | null> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [GUEST_SIGNUP_LOCK]);
+    const count = await client.query<{ count: string }>(
+      'SELECT COUNT(*) AS count FROM users WHERE is_guest',
+    );
+    if (Number(count.rows[0].count) >= maxActive) {
+      await client.query('ROLLBACK');
+      return null;
+    }
+    const result = await client.query<User>(
+      `INSERT INTO users (name, email, password_hash, terms_accepted_at, email_verified_at, is_guest)
+       VALUES ('Visitante', $1, $2, now(), now(), true)
+       RETURNING *`,
+      [email, passwordHash],
+    );
+    await client.query('COMMIT');
+    return result.rows[0];
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 /** Apaga só contas is_guest vencidas. meals antes: meal_items.food_id é RESTRICT p/ alimentos próprios. */
@@ -48,13 +77,6 @@ export async function deleteExpiredGuests(maxAgeHours: number, limit: number): P
   } finally {
     client.release();
   }
-}
-
-export async function countActiveGuests(): Promise<number> {
-  const result = await pool.query<{ count: string }>(
-    'SELECT COUNT(*) AS count FROM users WHERE is_guest',
-  );
-  return Number(result.rows[0].count);
 }
 
 export async function findGlobalFoodIdsByNames(names: string[]): Promise<Map<string, string>> {

@@ -21,8 +21,8 @@ Cada arquivo é aplicado uma única vez e registrado na tabela `pgmigrations`.
    reversão é parcial/ambígua, como em dados já deduplicados).
 4. **Nunca use comandos destrutivos** (`DROP TABLE`, `DROP DATABASE`, `TRUNCATE`) sem
    autorização prévia do usuário.
-5. **O banco de teste precisa receber a migração nova.** `scripts/run-tests.mjs` não migra sozinho;
-   aplique antes de testar com `npm --prefix backend run db:reset:test` (recria o banco `_test` e roda `up`).
+5. **O banco de teste é migrado automaticamente.** `scripts/run-tests.mjs` roda `node-pg-migrate up`
+   em `DATABASE_URL_TEST` antes de cada execução do backend; nada a fazer à mão.
 
 ## Migrações legadas congeladas (BL-15 / ARCH-017 / D-13)
 

@@ -69,13 +69,13 @@ export async function createGuestSession(
     });
   }
 
-  // shortcut: contagem e insert não são atômicos; cliques simultâneos podem passar um pouco do teto — trocar por advisory lock se virar problema.
-  if ((await GuestModel.countActiveGuests()) >= maxActive) {
-    fail('Demonstração indisponível no momento.', 503, 'DEMO_UNAVAILABLE');
-  }
-
   const passwordHash = await bcrypt.hash(randomBytes(32).toString('hex'), bcryptCost());
-  const created = await GuestModel.createGuestUser(`demo-${randomUUID()}@visitante.invalid`, passwordHash);
+  const created = await GuestModel.createGuestUserWithinCap(
+    `demo-${randomUUID()}@visitante.invalid`,
+    passwordHash,
+    maxActive,
+  );
+  if (!created) fail('Demonstração indisponível no momento.', 503, 'DEMO_UNAVAILABLE');
 
   try {
     await UserService.completeOnboarding(created.id, {
