@@ -70,7 +70,10 @@ export const envSchema = z
       message: 'MAIL_TRANSPORT deve ser "smtp", "memory" ou "http".',
     }),
     // MAIL_TRANSPORT=http: Web App do Google Apps Script (/exec) e segredo compartilhado.
-    MAIL_HTTP_URL: z.string().url('MAIL_HTTP_URL deve ser uma URL absoluta.').optional(),
+    MAIL_HTTP_URL: z
+      .union([z.literal(''), z.string().url('MAIL_HTTP_URL deve ser uma URL absoluta.')])
+      .optional()
+      .transform((value) => value || undefined),
     MAIL_HTTP_SECRET: z.string().optional(),
     MAIL_SMTP_HOST: z
       .string()

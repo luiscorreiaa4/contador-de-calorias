@@ -110,6 +110,13 @@ describe('CORS and Production Env Hardening (#13 / #14)', () => {
       MAIL_HTTP_SECRET: 'f3a9c1d27e8b4560a1b2c3d4e5f60718293a4b5c6d7e8f90',
     };
 
+    it('ignora MAIL_HTTP_* vazios com smtp (como no .env.example)', () => {
+      assert.deepStrictEqual(
+        issuePaths({ ...baseProdEnv, MAIL_HTTP_URL: '', MAIL_HTTP_SECRET: '' }),
+        [],
+      );
+    });
+
     it('aceita configuração http válida em produção', () => {
       assert.deepStrictEqual(issuePaths(httpProdEnv), []);
     });
