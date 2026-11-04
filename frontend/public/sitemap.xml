@@ -6,17 +6,17 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://caloriesync-luiscorreia.netlify.app/termos</loc>
+    <loc>https://caloriesync-luiscorreia.netlify.app/termos/</loc>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://caloriesync-luiscorreia.netlify.app/privacidade</loc>
+    <loc>https://caloriesync-luiscorreia.netlify.app/privacidade/</loc>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://caloriesync-luiscorreia.netlify.app/seguranca</loc>
+    <loc>https://caloriesync-luiscorreia.netlify.app/seguranca/</loc>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
