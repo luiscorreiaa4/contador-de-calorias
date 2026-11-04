@@ -171,9 +171,27 @@
     animation: motion-rise 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
+  /* Landing: faixa rolante (dupla para loop contínuo) e grade de fundo do hero */
+  .animate-marquee {
+    animation: marquee 28s linear infinite;
+  }
+
+  .bg-grid {
+    background-image:
+      linear-gradient(hsl(var(--border) / 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.08) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
   /* Noise texture background utility for that raw editorial feel */
   .bg-noise {
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+  }
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
   }
 }
 
