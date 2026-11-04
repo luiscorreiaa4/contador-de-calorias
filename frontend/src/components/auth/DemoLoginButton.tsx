@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Eye, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { demoLogin } from '../../services/auth.service';
@@ -12,9 +12,11 @@ export const DemoLoginButton: React.FC<Pick<ButtonProps, 'size' | 'variant' | 'c
 ) => {
   const { setAuthSession } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const mutation = useMutation({
     mutationFn: demoLogin,
     onSuccess: (response) => {
+      queryClient.clear(); // não vaza o cache de uma sessão anterior
       setAuthSession(response.user, false);
       navigate('/app');
     },

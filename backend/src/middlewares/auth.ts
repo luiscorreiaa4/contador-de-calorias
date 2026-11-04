@@ -10,6 +10,17 @@ const allowedOrigins = env.CORS_ORIGIN.split(',')
   .map((o) => o.trim())
   .filter(Boolean);
 
+/** Rejeita com 403 quando o Origin não está em CORS_ORIGIN (anti-abuso de rotas públicas que criam recursos). */
+export function requireAllowedOrigin(req: Request, res: Response, next: NextFunction) {
+  const origin = req.headers.origin;
+  if (!origin || !allowedOrigins.includes(origin)) {
+    return res
+      .status(403)
+      .json({ success: false, message: 'Origem não permitida.', code: 'FORBIDDEN' });
+  }
+  next();
+}
+
 export interface AuthenticatedRequest extends Request {
   userId?: string;
   tokenVersion?: number;

@@ -26,8 +26,8 @@ Este documento descreve detalhadamente os Requisitos Funcionais (RFs) e as regra
     com 500 visitantes ativos responde **503** `DEMO_UNAVAILABLE`.
 - **Endpoints autenticados de conta:**
   - `GET /api/users/me`: Dados cadastrais do usuário logado (sem hash de senha).
-  - `PUT /api/users/me`: Atualização de dados cadastrais, biometria e credenciais.
-  - `DELETE /api/users/me`: Exclusão definitiva mediante confirmação com a senha atual.
+  - `PUT /api/users/me`: Atualização de dados cadastrais, biometria e credenciais. Visitantes (`is_guest`) recebem `403` com `code: "DEMO_READ_ONLY"`.
+  - `DELETE /api/users/me`: Exclusão definitiva mediante confirmação com a senha atual. Visitantes recebem `403` `DEMO_READ_ONLY` (idem nas rotas de MFA).
   - `PUT /api/users/me/onboarding`: Conclusão única do onboarding.
 - **Regras de Negócio:**
   - **Criptografia:** Senhas são protegidas com `bcrypt` (fator de custo 10 em desenvolvimento/produção; custo 1 em ambiente de testes para agilidade).

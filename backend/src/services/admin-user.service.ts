@@ -23,8 +23,9 @@ export async function promoteUserToAdmin(email: string): Promise<AdminUserSummar
     role: 'user' | 'admin';
     email_verified_at: Date | null;
     token_version: number;
+    is_guest: boolean;
   }>(
-    'SELECT id, name, email, role, email_verified_at, token_version FROM users WHERE lower(email) = lower($1)',
+    'SELECT id, name, email, role, email_verified_at, token_version, is_guest FROM users WHERE lower(email) = lower($1)',
     [normalizedEmail],
   );
 
@@ -33,6 +34,12 @@ export async function promoteUserToAdmin(email: string): Promise<AdminUserSummar
   }
 
   const user = userRes.rows[0];
+
+  if (user.is_guest) {
+    throw new Error(
+      `Operação recusada: ${normalizedEmail} é uma conta de visitante e nunca pode ser administrador.`,
+    );
+  }
 
   if (!user.email_verified_at) {
     throw new Error(

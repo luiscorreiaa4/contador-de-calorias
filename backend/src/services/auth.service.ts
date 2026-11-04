@@ -304,7 +304,7 @@ export async function resendCode(data: ResendVerificationCodeDTO): Promise<void>
  */
 export async function forgotPassword(data: ForgotPasswordDTO): Promise<void> {
   const user = await UserModel.findUserByEmail(normalizeEmail(data.email));
-  if (!user || !user.email_verified_at) return;
+  if (!user || !user.email_verified_at || user.is_guest) return;
 
   const windowStart = new Date(Date.now() - 60 * 60 * 1000);
   const requestsInWindow = await AuthModel.countPasswordResetTokensSince(user.id, windowStart);

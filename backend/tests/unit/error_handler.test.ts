@@ -39,6 +39,25 @@ describe('errorHandler Security and PG Mapping (#12)', () => {
 
   const mockNext = () => {};
 
+  it('mantém mensagem e code de erro de negócio 5xx (DEMO_UNAVAILABLE) sem mascarar', () => {
+    const err = Object.assign(new Error('Demonstração indisponível no momento.'), {
+      statusCode: 503,
+      code: 'DEMO_UNAVAILABLE',
+    });
+    const res = mockRes();
+    errorHandler(err, mockReq, res, mockNext);
+    assert.strictEqual(res.statusCode, 503);
+    assert.strictEqual(res.body?.message, 'Demonstração indisponível no momento.');
+    assert.strictEqual(res.body?.code, 'DEMO_UNAVAILABLE');
+  });
+
+  it('continua mascarando 500 sem code de negócio', () => {
+    const res = mockRes();
+    errorHandler(new Error('segredo interno'), mockReq, res, mockNext);
+    assert.strictEqual(res.statusCode, 500);
+    assert.strictEqual(res.body?.message, 'Erro interno no servidor.');
+  });
+
   it('deve mapear erro de violação de unicidade (23505) para 409', () => {
     const pgError = Object.assign(
       new Error('duplicate key value violates unique constraint "users_email_key"'),

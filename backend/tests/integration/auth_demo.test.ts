@@ -5,17 +5,19 @@ import request from 'supertest';
 import { app } from '../../src/app.js';
 import { pool } from '../../src/database/pool.js';
 import { cleanupTestData } from '../helpers/db.js';
-import { createVerifiedUser } from '../helpers/auth.js';
+import { clearMailbox, createVerifiedUser, lastEmailTo } from '../helpers/auth.js';
 import * as GuestModel from '../../src/models/guest.model.js';
 import { createGuestSession } from '../../src/services/guest.service.js';
 import { getSaoPauloDateString } from '../../src/utils/date.js';
+
+const ORIGIN = 'http://localhost:5173';
 
 interface DemoBody {
   data: { token: string; user: Record<string, unknown> & { id: string } };
 }
 
 async function startDemo(): Promise<DemoBody['data']> {
-  const res = await request(app).post('/api/auth/demo');
+  const res = await request(app).post('/api/auth/demo').set('Origin', ORIGIN);
   assert.strictEqual(res.status, 200);
   return (res.body as DemoBody).data;
 }
@@ -25,8 +27,27 @@ const dayOffset = (days: number): string =>
 
 describe('POST /api/auth/demo (visitante temporário)', () => {
   closeTestPool(async () => {
-    await pool.query('DELETE FROM users WHERE is_guest');
+    await GuestModel.deleteExpiredGuests(0, 10_000);
     await cleanupTestData('tester-guest-%');
+  });
+
+  it('rejeita /demo sem Origin ou com Origin não permitida (403)', async () => {
+    const none = await request(app).post('/api/auth/demo');
+    assert.strictEqual(none.status, 403);
+    const evil = await request(app).post('/api/auth/demo').set('Origin', 'https://evil.example');
+    assert.strictEqual(evil.status, 403);
+    assert.strictEqual(evil.body.code, 'FORBIDDEN');
+  });
+
+  it('forgot-password de visitante responde 202 e não envia e-mail', async () => {
+    const g = await startDemo();
+    const { rows } = await pool.query<{ email: string }>('SELECT email FROM users WHERE id = $1', [
+      g.user.id,
+    ]);
+    clearMailbox();
+    const res = await request(app).post('/api/auth/forgot-password').send({ email: rows[0].email });
+    assert.strictEqual(res.status, 202);
+    assert.strictEqual(lastEmailTo(rows[0].email), undefined);
   });
 
   it('cria um visitante novo por clique, com metas e refeições', async () => {

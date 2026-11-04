@@ -57,11 +57,12 @@ export function errorHandler(err: CustomError, req: Request, res: Response, _nex
   }
 
   const statusCode = err.statusCode ?? err.status ?? 500;
-  const message =
-    statusCode >= 500 ? 'Erro interno no servidor.' : err.message || 'Erro na requisição.';
+  const isBusinessError = !!err.code && ALLOWED_BUSINESS_CODES.has(err.code);
+  const masked = statusCode >= 500 && !isBusinessError;
+  const message = masked ? 'Erro interno no servidor.' : err.message || 'Erro na requisição.';
   const requestId = (req as AuthenticatedRequest).requestId ?? req.headers['x-request-id'];
 
-  if (statusCode >= 500) {
+  if (masked) {
     reportServerError(err);
     structuredLog('error', 'unhandled_server_error', {
       requestId,

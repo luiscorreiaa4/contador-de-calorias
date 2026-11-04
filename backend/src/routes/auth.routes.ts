@@ -2,6 +2,7 @@ import { Router } from 'express';
 import * as AuthController from '../controllers/auth.controller.js';
 import { validate } from '../middlewares/validate.js';
 import { createAuthRateLimiter } from '../middlewares/authRateLimit.js';
+import { requireAllowedOrigin } from '../middlewares/auth.js';
 import { createCaptchaMiddleware } from '../middlewares/captcha.js';
 import {
   forgotPasswordSchema,
@@ -106,7 +107,7 @@ const demoLimiter = createAuthRateLimiter({
   includeEmail: false,
   message: 'Muitas sessões de demonstração. Tente novamente após 15 minutos.',
 });
-router.post('/demo', demoLimiter, AuthController.demoLogin);
+router.post('/demo', demoLimiter, requireAllowedOrigin, captcha, AuthController.demoLogin);
 router.post(
   '/verify-email',
   verifyEmailLimiter,

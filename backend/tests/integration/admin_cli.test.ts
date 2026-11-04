@@ -20,6 +20,16 @@ describe('Admin CLI Service (D-22 / B2 / B3 / B5)', () => {
     );
   });
 
+  it('1b. promoteUserToAdmin: recusa visitante', async () => {
+    const email = `tester-cli-guest-${Date.now()}@example.com`;
+    const user = await createVerifiedUser({ email });
+    await pool.query('UPDATE users SET is_guest = true WHERE id = $1', [user.id]);
+    await assert.rejects(
+      () => AdminUserService.promoteUserToAdmin(email),
+      (err: Error) => err.message.includes('visitante'),
+    );
+  });
+
   it('2. promoteUserToAdmin: rejeita usuário com e-mail não verificado', async () => {
     const email = `tester-cli-unverified-${Date.now()}@example.com`;
     // Cria usuário sem e-mail verificado

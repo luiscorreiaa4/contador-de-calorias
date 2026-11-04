@@ -359,6 +359,8 @@ O deploy do código **não** roda migrations; você roda:
 4. Como as tabelas novas pertencem ao `migration_user`, elas recebem as permissões do `app_user` automaticamente (configurado pelo script de papéis). Se aparecer `permission denied`, rode o script de papéis de novo.
 5. Migrations já aplicadas **não se editam**: crie uma nova (veja `docs/MIGRATIONS.md`).
 
+**Conta de visitante (`POST /api/auth/demo`):** a migration `1793600000000_add-guest-users` precisa rodar em produção (`npm run setup`, como acima) **antes** de subir o código novo. Ela é aditiva e segura com o código antigo no ar; sem ela, `PUT`/`DELETE /api/users/me` e MFA dão 500.
+
 ### Variáveis novas ou segredos
 Adicione primeiro no Render/Netlify, depois faça o merge. Segredos nunca entram no Git.
 
