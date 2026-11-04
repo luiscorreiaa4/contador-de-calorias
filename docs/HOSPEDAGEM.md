@@ -18,18 +18,18 @@ O CalorieSync tem **3 peças**, e cada uma vai para um lugar:
 | **API (back)** | Programa Node.js/Express que aplica as regras e fala com o banco | `backend/` (+ `shared/`) | **Render** |
 | **Banco** | PostgreSQL com usuários, refeições, catálogo de alimentos | migrations em `backend/migrations/` | **Neon** |
 
-Além delas, o cadastro envia e-mails (código de verificação, redefinir senha), então precisamos de um **serviço de e-mail**: **Brevo** (grátis). Também obrigatório e grátis: **Cloudflare Turnstile** (captcha; a API não sobe em produção sem ele). Opcional: **UptimeRobot** (mantém a API acordada).
+Além delas, o cadastro envia e-mails (código de verificação, redefinir senha), então precisamos de um **serviço de e-mail**: o seu próprio **Gmail**, acionado por um **Google Apps Script** (grátis, sem domínio). Também obrigatório e grátis: **Cloudflare Turnstile** (captcha; a API não sobe em produção sem ele). Opcional: **UptimeRobot** (mantém a API acordada).
 
 ```
 Navegador ──► Netlify (site + proxy /api) ──► Render (API) ──► Neon (Postgres)
-                                                  └──► Brevo (e-mails)
+                                                  └──► Google Apps Script ──► Gmail (e-mails, via HTTPS)
 ```
 
 ### Por que essa combinação
 - **Netlify**: o front já tem `frontend/public/_headers` (CSP, HSTS), formato que o Netlify lê. Plano grátis sem prazo de validade.
 - **Render**: roda o `Dockerfile` da API que já existe na raiz. Plano grátis sem cartão.
 - **Neon**: Postgres grátis **sem prazo de validade** (o Postgres grátis do Render **expira em 30 dias** e é apagado, por isso não usamos). Suporta as extensões `pg_trgm`, `unaccent` e `uuid-ossp` que o projeto usa.
-- **Brevo**: SMTP grátis (300 e-mails/dia), suficiente para portfólio.
+- **Gmail + Apps Script**: grátis e sem domínio. O e-mail sai dos servidores do próprio Google, então chega na caixa de entrada, e a API fala com ele por HTTPS, que o Render grátis permite (o Render grátis **bloqueia SMTP** desde set/2025, por isso Brevo/SMTP não funcionaria lá).
 
 ### A regra que obriga a usar o Netlify como "proxy"
 A sessão do usuário fica num cookie `cs_session` com `SameSite=Strict` (issue #1 em `docs/ISSUES.md`). Esse cookie **só é enviado se o site e a API parecerem o mesmo endereço**. Se o site estiver em `x.netlify.app` e a API em `y.onrender.com`, o login não funciona.
@@ -45,18 +45,19 @@ Solução sem mexer na lógica: o Netlify repassa tudo que começa com `/api/` p
 | **Render (API)** | Dorme após 15 min sem acesso; acordar leva até ~1 min. 750 horas/mês grátis. Sem disco persistente. | A **primeira visita** depois de um tempo parado fica lenta. Veja a mitigação no passo 9. |
 | **Neon (banco)** | Sem prazo; ~0,5 a 1 GB por projeto (confira); o computador do banco "hiberna" e acorda sozinho. | Basta para o projeto; o primeiro acesso após hibernar demora um pouco. |
 | **Netlify (site)** | Plano grátis com limite mensal de banda e builds. | Sobra para portfólio. |
-| **Brevo (e-mail)** | 300 e-mails/dia. | Sobra. **Sem domínio próprio o e-mail não chega de forma confiável** (ver passo 5). |
+| **Render (API), e-mail** | Bloqueia saída SMTP (portas 25, 465, 587) no plano grátis. | Por isso o e-mail sai por HTTPS (Apps Script), não por SMTP. |
+| **Gmail via Apps Script** | ~100 destinatários/dia (conta Gmail comum). | Sobra para portfólio: cada cadastro gasta 1 e-mail (2 se pedir reenvio). |
 
 Quem for avaliar seu portfólio pode pegar a API "dormindo". Coloque no README do projeto: *"A API gratuita pode levar ~1 min para acordar na primeira visita."*
 
-**Domínio próprio é pago** (~R$ 40/ano). O site e a API podem ficar nos endereços grátis `*.netlify.app` e `*.onrender.com`, mas **para os e-mails funcionarem de verdade o domínio é necessário** (o remetente precisa ser do seu domínio; ver passo 5). Ele não precisa apontar para o site.
+**Domínio próprio é opcional e pago** (~R$ 40/ano). Neste plano usamos os endereços grátis `*.netlify.app` e `*.onrender.com`, e o e-mail sai de um Gmail, sem domínio.
 
 ---
 
 ## 3. Antes de começar (uma vez só)
 
 1. Conta no **GitHub** com o repositório do projeto (já existe: `luiscorreiaa4/contador-de-calorias`). Tudo é publicado a partir dele.
-2. Crie contas gratuitas, entrando com o GitHub quando houver a opção: [Netlify](https://www.netlify.com), [Render](https://render.com), [Neon](https://neon.com), [Brevo](https://www.brevo.com), [Cloudflare](https://dash.cloudflare.com) (Turnstile) e [UptimeRobot](https://uptimerobot.com).
+2. Crie contas gratuitas, entrando com o GitHub quando houver a opção: [Netlify](https://www.netlify.com), [Render](https://render.com), [Neon](https://neon.com), [Cloudflare](https://dash.cloudflare.com) (Turnstile) e [UptimeRobot](https://uptimerobot.com).
 3. Instale na sua máquina o **cliente `psql`** (vem com o instalador do PostgreSQL; marque só "Command Line Tools"). Ele serve para rodar scripts SQL no Neon. Alternativa: usar o editor SQL do painel do Neon.
 4. Abra um **bloco de notas seguro** (ou gerenciador de senhas) para guardar senhas e chaves. **Nunca** coloque segredos em arquivos commitados nem em chat.
 
@@ -126,39 +127,53 @@ Em vez de a API usar o usuário todo-poderoso, ela usa `app_user`, que só lê e
 > Dev e testes locais continuam com o usuário `postgres` do Docker. O script só é para o banco hospedado.
 > Backup (opcional, pois o banco está vazio agora): `backend/scripts/backup-db.mjs`.
 
-### Passo 5 · Configurar o e-mail (Brevo)
+### Passo 5 · Configurar o e-mail (Gmail + Google Apps Script, grátis)
 
-O cadastro só termina com o código de 6 dígitos enviado por e-mail, e "Esqueci minha senha" depende do link enviado por e-mail. Se o e-mail não chegar, ninguém consegue usar o site. O código já está pronto (SMTP genérico, ver `docs/EMAIL_SETUP.md`); falta só a configuração externa abaixo.
+O cadastro só termina com o código de 6 dígitos enviado por e-mail, e "Esqueci minha senha" depende do link enviado por e-mail. Se o e-mail não chegar, ninguém consegue usar o site.
 
-**Por que um Gmail como remetente não basta:** Gmail, Outlook e Yahoo recusam ou mandam para o spam mensagens "de" `@gmail.com` enviadas por outro servidor (o Brevo), porque falham na checagem DMARC do Gmail. O Brevo não consegue autenticar domínios gratuitos (`gmail.com`, `yahoo.com`) e, sem domínio autenticado, troca o remetente por um endereço genérico dele. Serve para um teste rápido; para uso real, use um domínio seu.
+**Por que este caminho:**
+- **O Render grátis bloqueia SMTP** (portas 25, 465 e 587) desde setembro de 2025. Qualquer serviço via SMTP (Brevo, Gmail SMTP, SendGrid) fica sem resposta lá; só HTTPS passa.
+- **Um Gmail como remetente só chega na caixa de entrada se o envio sair do próprio Google.** Enviado por um terceiro (ex.: Brevo com remetente `@gmail.com`), falha na checagem DMARC e vai para o spam.
+- O **Google Apps Script** resolve as duas coisas de graça: é um pequeno programa na sua conta Google com um endereço HTTPS. A API manda o e-mail para esse endereço e o script envia pelo seu Gmail. Limite de ~100 destinatários/dia.
 
-#### 5.1 Comprar o domínio (uma vez)
-1. Registre um domínio barato (ex.: `caloriesync.com.br` no [Registro.br](https://registro.br), ou `.com` na Cloudflare/Porkbun). Exemplos abaixo usam `seudominio.com.br`.
-2. Recomendado: gerencie o DNS na **Cloudflare** (grátis), que você já usa para o Turnstile. No Registro.br, troque os servidores DNS pelos que a Cloudflare indicar.
+> ⚠️ **Mudança de código pendente:** hoje a API só sabe enviar por SMTP (`backend/src/mail/mailer.ts`). Antes do deploy é preciso um adaptador novo, `MAIL_TRANSPORT=http`, que faz `POST` de `{ secret, to, subject, text, html }` para `MAIL_HTTP_URL`, com `MAIL_HTTP_URL`/`MAIL_HTTP_SECRET` validadas em `backend/src/config/env.ts`. Em desenvolvimento nada muda: o Mailpit continua com `MAIL_TRANSPORT=smtp`.
 
-#### 5.2 Autenticar o domínio no Brevo
-1. No Brevo: **Configurações → Remetentes, domínios e IPs → Domínios → Adicionar domínio** e informe `seudominio.com.br`.
-2. O Brevo mostra os registros DNS. Crie **cada um** no painel de DNS (Cloudflare: **DNS → Records → Add record**), copiando nome e valor **exatamente como o Brevo exibe**:
-   - **Código Brevo** (`TXT`, prova que o domínio é seu);
-   - **DKIM** (`TXT` ou `CNAME`, assina as mensagens);
-   - **DMARC** (`TXT` em `_dmarc`). Se o Brevo não sugerir um, use `v=DMARC1; p=none; rua=mailto:seu-email@gmail.com`.
-   - SPF: crie só se o Brevo pedir. Se já existir um `TXT` começando com `v=spf1` no domínio, **edite esse** em vez de criar outro (dois SPF invalidam ambos).
-   - Na Cloudflare, registros `CNAME` de e-mail ficam com **Proxy desligado** (nuvem cinza).
-3. Clique em **Autenticar** no Brevo. A propagação leva de minutos a algumas horas; o domínio deve aparecer como **Autenticado** com DKIM e DMARC verdes.
+#### 5.1 Conta Gmail do projeto
+1. Crie um Gmail só para o projeto (ex.: `caloriesync.app@gmail.com`). É o remetente que os usuários verão, e assim o seu e-mail pessoal fica de fora.
+2. Ative a **verificação em duas etapas** nessa conta, porque o script terá permissão para enviar e-mails por ela.
 
-#### 5.3 Remetente e credencial SMTP
-1. Em **Remetentes → Adicionar remetente**, cadastre `no-reply@seudominio.com.br` com o nome `CalorieSync`. Com o domínio autenticado, não é preciso ter caixa de entrada nesse endereço.
-2. Em **SMTP & API → SMTP**, anote o servidor (`smtp-relay.brevo.com`), a porta `587` e o **login** (um endereço do tipo `xxxx@smtp-brevo.com`, não o seu e-mail), e gere uma **chave SMTP** (é a senha; guarde no bloco de notas seguro, ela só aparece uma vez).
-3. Esses valores vão no Render no passo 7: `MAIL_FROM="CalorieSync <no-reply@seudominio.com.br>"`, `MAIL_SMTP_USER`, `MAIL_SMTP_PASS`. O endereço em `MAIL_FROM` precisa ser **idêntico** ao remetente cadastrado.
+#### 5.2 Criar o script
+1. Logado nessa conta, abra [script.google.com](https://script.google.com) → **Novo projeto** e dê o nome `CalorieSync Mailer`.
+2. Apague o conteúdo de `Código.gs` e cole:
+   ```js
+   function doPost(e) {
+     const secret = PropertiesService.getScriptProperties().getProperty('MAIL_SECRET');
+     let body;
+     try { body = JSON.parse(e.postData.contents); } catch (err) { return reply(false); }
+     if (!secret || body.secret !== secret) return reply(false);
+     MailApp.sendEmail({ to: body.to, subject: body.subject, body: body.text, htmlBody: body.html, name: 'CalorieSync' });
+     return reply(true);
+   }
+   function reply(ok) {
+     return ContentService.createTextOutput(JSON.stringify({ ok: ok })).setMimeType(ContentService.MimeType.JSON);
+   }
+   ```
+3. Gere um segredo com o mesmo comando da seção 3 (`randomBytes(32)`). Em **Configurações do projeto (engrenagem) → Propriedades do script → Adicionar propriedade**, crie `MAIL_SECRET` com esse valor. O segredo fica fora do código.
+4. **Implantar → Nova implantação →** tipo **App da Web**. "Executar como": **Eu**. "Quem pode acessar": **Qualquer pessoa** (quem não tem o segredo recebe `{"ok":false}` e nada é enviado). Clique em **Implantar**.
+5. O Google pede autorização. Como o app é seu e não verificado, aparece "O Google não verificou este app": clique em **Avançado → Acessar CalorieSync Mailer (não seguro) → Permitir**. É esperado; a permissão é só para enviar e-mail como você.
+6. Copie a **URL do app da Web** (termina em `/exec`). Ela e o segredo vão no Render no passo 7 (`MAIL_HTTP_URL` e `MAIL_HTTP_SECRET`). Guarde os dois no bloco de notas seguro.
 
-#### 5.4 Testar depois do deploy (passo 11)
-1. Cadastre uma conta com um Gmail e outra com um Outlook/Hotmail; o código deve chegar em até 1 min, **na caixa de entrada**.
-2. No Gmail, abra a mensagem → **⋮ → Mostrar original**: SPF, DKIM e DMARC devem estar como `PASS`.
-3. Teste "Esqueci minha senha": o link precisa começar com o seu `URL_SITE` em `https://` (vem de `APP_BASE_URL`) e abrir a tela de nova senha.
-4. Opcional: mande um cadastro para o endereço de teste do [mail-tester.com](https://www.mail-tester.com) e busque nota 9+.
-5. Se não chegar: veja os **Logs do Render** (falhas aparecem como `auth_email_delivery_failed`, sem dados sensíveis) e o painel do Brevo (**Transacional → Logs**), que mostra se a mensagem foi enviada, rejeitada ou bloqueada.
+> Mudou o script depois? **Implantar → Gerenciar implantações → editar (lápis) → Versão: Nova versão**, e a URL continua a mesma. Uma "Nova implantação" gera outra URL.
 
-> **Atalho só para testar** (sem domínio): cadastre e confirme um Gmail seu em **Remetentes** e use-o em `MAIL_FROM`. Funciona para você, mas espere spam ou remetente trocado para outras pessoas. Não use assim no portfólio.
+#### 5.3 Testar depois do deploy (passo 11)
+1. Cadastre uma conta com outro Gmail e outra com um Outlook/Hotmail. O código deve chegar em até 1 min, **na caixa de entrada**, vindo do Gmail do projeto.
+2. Teste "Esqueci minha senha": o link precisa começar com o seu `URL_SITE` em `https://` (vem de `APP_BASE_URL`) e abrir a tela de nova senha.
+3. Se não chegar:
+   - **Logs do Render**: falhas aparecem como `auth_email_delivery_failed`, sem dados sensíveis.
+   - **Execuções** do Apps Script (menu à esquerda): cada pedido aparece ali, com o erro se houver (ex.: cota diária estourada).
+   - Pasta **Enviados** do Gmail do projeto: mostra o que de fato saiu.
+
+> **Se um dia passar de ~100 e-mails/dia:** aí vale um domínio próprio com um provedor transacional por API HTTPS (ex.: Brevo, Resend). O adaptador `http` só muda de destino. Para portfólio, não precisa.
 
 ### Passo 6 · Dois arquivos de configuração no front (pequena mudança de código)
 Esta é a única alteração de código necessária. Crie na pasta `frontend/`:
@@ -234,11 +249,10 @@ Em produção a API **exige** `CAPTCHA_SECRET_KEY` e não sobe sem ela (proteç�
 | `CORS_ORIGIN` | `URL_SITE` (ex.: `https://caloriesync-seunome.netlify.app`, **sem barra final, https obrigatório**) |
 | `APP_BASE_URL` | o mesmo `URL_SITE` |
 | `TRUST_PROXY` | `1` (a API está atrás do proxy do Render; ver nota abaixo) |
-| `MAIL_TRANSPORT` | `smtp` (`memory` é proibido em produção) |
-| `MAIL_FROM` | `CalorieSync <no-reply@seudominio.com.br>` (o remetente do passo 5.3) |
-| `MAIL_SMTP_HOST` / `MAIL_SMTP_PORT` | `smtp-relay.brevo.com` / `587` |
-| `MAIL_SMTP_USER` / `MAIL_SMTP_PASS` | login Brevo / chave SMTP |
-| `MAIL_SMTP_SECURE` | `false` (porta 587 usa STARTTLS) |
+| `MAIL_TRANSPORT` | `http` (passo 5; `smtp` não funciona no Render grátis e `memory` é proibido em produção) |
+| `MAIL_FROM` | `CalorieSync <caloriesync.app@gmail.com>` (o Gmail do projeto) |
+| `MAIL_HTTP_URL` | URL `/exec` do Apps Script (passo 5.2) |
+| `MAIL_HTTP_SECRET` | o `MAIL_SECRET` do script (passo 5.2) |
 | `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | geradas no passo "Segredos" (sem a pública, push responde 503) |
 | `CAPTCHA_SECRET_KEY` | secret do Turnstile (passo 7a); **obrigatória** em produção |
 
@@ -282,7 +296,7 @@ O projeto proíbe criar admin por seed ou variável de ambiente. O caminho é:
 - [ ] `URL_SITE/robots.txt`, `URL_SITE/sitemap.xml`, `URL_SITE/llms.txt` e `URL_SITE/og-image.png` abrem e citam `URL_SITE`, não `app.caloriesync.com`
 - [ ] Prévia do link em redes sociais mostra a imagem 1200×630: teste no [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/) e no [Teste de pesquisa aprimorada do Google](https://search.google.com/test/rich-results) (deve achar `SoftwareApplication` e `FAQPage` em `/`)
 - [ ] O PWA instalado abre em `/app`
-- [ ] Cadastro envia e-mail **na caixa de entrada** (Gmail e Outlook) e o código verifica; "Mostrar original" com SPF/DKIM/DMARC `PASS` (passo 5.4)
+- [ ] Cadastro envia e-mail **na caixa de entrada** (Gmail e Outlook) e o código verifica (passo 5.3)
 - [ ] "Esqueci minha senha" envia o link com `https://` + `URL_SITE` e a nova senha funciona
 - [ ] Cadastro/login passam pelo captcha sem erro `CAPTCHA_FAILED`
 - [ ] Logs do Render, no início, sem "Configuração de Ambiente Inválida"
@@ -305,8 +319,10 @@ O projeto proíbe criar admin por seed ou variável de ambiente. O caminho é:
 | Erro 403 `FORBIDDEN` em POST/PUT | `CORS_ORIGIN` diferente do endereço real do site |
 | `permission denied for table ...` | Script de papéis não rodou depois de uma migration nova, ou migração rodou com outro dono |
 | 502/504 na primeira visita | API dormindo (use o UptimeRobot) |
-| Não chega e-mail | `MAIL_FROM` diferente do remetente cadastrado, chave SMTP errada (log `auth_email_delivery_failed` no Render), conta Brevo ainda em análise ou bloqueada (painel do Brevo) |
-| E-mail cai no spam ou com remetente `brevosend` | Domínio não autenticado (DKIM/DMARC pendentes) ou `MAIL_FROM` com Gmail; refaça o passo 5.2 |
+| Não chega e-mail, log `auth_email_delivery_failed` com timeout | `MAIL_TRANSPORT=smtp` no Render (SMTP bloqueado no grátis); use `http` |
+| Não chega e-mail, script responde `{"ok":false}` | `MAIL_HTTP_SECRET` diferente do `MAIL_SECRET` do script |
+| Não chega e-mail, erro em **Execuções** do Apps Script | Cota diária (~100) estourada, ou o script foi editado sem publicar uma **Nova versão** |
+| Resposta é uma página de login do Google em vez de JSON | Implantação com acesso diferente de **Qualquer pessoa**, ou URL de teste (`/dev`) em vez de `/exec` |
 | Link de redefinir senha abre `localhost` ou dá erro | `APP_BASE_URL` no Render diferente do `URL_SITE` |
 | `/termos` abre vazio no código-fonte ou mostra a landing | Redirect `/*` com `force = true` ou apontando para `/index.html`: deve ser `/spa.html` sem `force` |
 | Prévia em rede social sem imagem ou com link errado | `SITE_URL` ainda com `app.caloriesync.com` (veja o passo 6) ou cache antigo da rede social (use o Sharing Debugger para recarregar) |
@@ -390,6 +406,7 @@ Adicione primeiro no Render/Netlify, depois faça o merge. Segredos nunca entram
 - [Render: Deploy for Free](https://render.com/docs/free) (spin-down de 15 min, 750 h, sem disco, Postgres grátis expira em 30 dias)
 - [Render: Postgres grátis expira em 30 dias](https://render.com/changelog/free-postgresql-instances-now-expire-after-30-days-previously-90)
 - [Neon: limites do plano grátis](https://neon.com/faqs/free-plan-limits-and-quotas) e [anúncio de 1 GB por projeto](https://neon.com/blog/neon-free-plan-1-gb-per-project)
-- [Brevo: servidor SMTP grátis](https://www.brevo.com/free-smtp-server) (300 e-mails/dia)
-- [Brevo: autenticar seu domínio (código Brevo, DKIM, DMARC)](https://help.brevo.com/hc/en-us/articles/12163873383186) e [FAQ: domínios gratuitos não podem ser autenticados](https://help.brevo.com/hc/en-us/articles/17286219877778)
+- [Render: plano grátis bloqueia saída SMTP (25, 465, 587) desde 26/09/2025](https://render.com/changelog/free-web-services-will-no-longer-allow-outbound-traffic-to-smtp-ports)
+- [Apps Script: Web Apps](https://developers.google.com/apps-script/guides/web), [MailApp](https://developers.google.com/apps-script/reference/mail/mail-app) e [cotas](https://developers.google.com/apps-script/guides/services/quotas)
+- [Brevo: domínios gratuitos (gmail.com) não podem ser autenticados](https://help.brevo.com/hc/en-us/articles/17286219877778)
 - [Netlify: rewrites e proxies](https://docs.netlify.com/routing/redirects/rewrites-proxies/)
