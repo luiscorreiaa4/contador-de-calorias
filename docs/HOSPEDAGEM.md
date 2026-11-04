@@ -391,7 +391,7 @@ Adicione primeiro no Render/Netlify, depois faça o merge. Segredos nunca entram
 ## 6. Pendências e riscos (honestidade)
 
 - **Itens do `ISSUES.md` ligados a este plano:** #9 (papéis, concluído no passo 4), #24 (deploy: este plano vira o "provedor escolhido"), #26 (backup agendado) e #25 (monitoramento de erros) seguem pendentes.
-- **Não testado:** nada deste plano foi executado ainda; `netlify.toml` e os limites de proxy/IP precisam do seu teste real.
+- **Executado em 04/11/2026:** deploy no ar e checklist do passo 11 aprovado. Pendências encontradas em produção: #34 (`/login` logado dá 404), #35 (landing acessível logado) e #36 (canonical sem a barra final do redirect) em `docs/ISSUES.md`. O teste de bloqueio por IP atrás do proxy Netlify → Render (nota `TRUST_PROXY`) ainda não foi feito.
 - **CSP:** `frontend/public/_headers` usa `connect-src 'self' https:`; com o proxy `/api` pode restringir só a `'self'` depois.
 - **Dados de saúde (LGPD):** os itens #15, #30, #31 e #32 do backlog (criptografia em repouso, consentimento específico, minimização, retenção) estão adiados. Para um portfólio com dados fictícios, tudo bem; **não divulgue o site como serviço real para dados de saúde de terceiros** sem tratar isso.
 - **SEO (pré-renderização):**
