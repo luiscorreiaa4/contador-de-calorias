@@ -87,6 +87,7 @@ export class HttpMailer implements Mailer {
   constructor(private readonly config: HttpMailerConfig) {}
 
   async send(message: MailMessage): Promise<void> {
+    const signal = AbortSignal.timeout(this.config.timeoutMs ?? 10000);
     let response: Response;
     try {
       response = await fetch(this.config.url, {
@@ -94,11 +95,11 @@ export class HttpMailer implements Mailer {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ secret: this.config.secret, ...message }),
         redirect: 'follow',
-        signal: AbortSignal.timeout(this.config.timeoutMs ?? 10000),
+        signal,
       });
-    } catch (error) {
-      const timedOut = error instanceof Error && error.name === 'TimeoutError';
-      throw new Error(timedOut ? 'mail_http_timeout' : 'mail_http_request_failed');
+    } catch {
+      // Sem `cause` de propósito: o erro do undici carrega a URL do script.
+      throw new Error(signal.aborted ? 'mail_http_timeout' : 'mail_http_request_failed');
     }
 
     if (!response.ok) throw new Error(`mail_http_status_${response.status}`);
