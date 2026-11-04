@@ -120,6 +120,7 @@ describe('Atomic Transactions & Rollback on Failure (PC-17 / ARCH-002 / TST-012)
         await UserService.updateProfile(userId, {
           name: 'Nome Alterado Que Nao Deve Persistir',
           weight: 350, // viola check_test_profile_fail
+          birthDate: undefined,
         });
       }, /check_test_profile_fail/);
     } finally {

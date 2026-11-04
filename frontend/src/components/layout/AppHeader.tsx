@@ -11,10 +11,7 @@ interface AppHeaderProps {
   onNavigateToDiary?: () => void;
 }
 
-export const AppHeader: React.FC<AppHeaderProps> = ({
-  onNavigateToStats,
-  onNavigateToDiary,
-}) => {
+export const AppHeader: React.FC<AppHeaderProps> = ({ onNavigateToStats, onNavigateToDiary }) => {
   const { user, isAuthenticated } = useAuth();
   const signOut = useSignOut();
   const [menuOpen, setMenuOpen] = useState(false);

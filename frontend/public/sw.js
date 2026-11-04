@@ -56,9 +56,7 @@ self.addEventListener('fetch', (event) => {
           return networkResponse;
         })
         .catch(() =>
-          caches
-            .match(event.request)
-            .then((cached) => cached || caches.match('/spa.html')),
+          caches.match(event.request).then((cached) => cached || caches.match('/spa.html')),
         ),
     );
     return;

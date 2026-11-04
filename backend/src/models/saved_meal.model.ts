@@ -123,10 +123,7 @@ export async function listByUser(userId: string): Promise<SavedMeal[]> {
   });
 }
 
-async function findById(
-  savedMealId: string,
-  client?: PoolClient,
-): Promise<SavedMeal | null> {
+async function findById(savedMealId: string, client?: PoolClient): Promise<SavedMeal | null> {
   const db = client || pool;
   const mealRes = await db.query<{
     id: string;

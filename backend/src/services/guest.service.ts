@@ -18,17 +18,29 @@ const SEED_MEALS = [
   {
     name: 'Café da manhã',
     time: '07:30',
-    items: [['Pão Francês', 50], ['Ovo Cozido', 100], ['Leite Integral', 200]],
+    items: [
+      ['Pão Francês', 50],
+      ['Ovo Cozido', 100],
+      ['Leite Integral', 200],
+    ],
   },
   {
     name: 'Almoço',
     time: '12:30',
-    items: [['Arroz Branco Cozido', 150], ['Feijão Carioca Cozido', 100], ['Frango Grelhado', 120]],
+    items: [
+      ['Arroz Branco Cozido', 150],
+      ['Feijão Carioca Cozido', 100],
+      ['Frango Grelhado', 120],
+    ],
   },
   {
     name: 'Jantar',
     time: '19:30',
-    items: [['Aveia em Flocos', 40], ['Banana Prata', 100], ['Maçã', 150]],
+    items: [
+      ['Aveia em Flocos', 40],
+      ['Banana Prata', 100],
+      ['Maçã', 150],
+    ],
   },
 ] as const;
 
@@ -51,7 +63,11 @@ async function seedMeals(userId: string, seedFoodNames: string[]): Promise<void>
         return foodId ? [{ foodId, quantity }] : [];
       });
       if (items.length === 0) continue;
-      await MealService.createMeal(userId, { name: meal.name, mealTime: mealTime.toISOString(), items });
+      await MealService.createMeal(userId, {
+        name: meal.name,
+        mealTime: mealTime.toISOString(),
+        items,
+      });
     }
   }
 }

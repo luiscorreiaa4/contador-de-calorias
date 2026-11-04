@@ -134,7 +134,10 @@ describe('Navegação por finalidade', () => {
     await userEvent.click(trigger);
     const menu = screen.getByRole('navigation', { name: 'Menu da conta' });
     expect(within(menu).getByRole('link', { name: 'Metas' })).toHaveAttribute('href', '/app/metas');
-    expect(within(menu).getByRole('link', { name: 'Perfil' })).toHaveAttribute('href', '/app/perfil');
+    expect(within(menu).getByRole('link', { name: 'Perfil' })).toHaveAttribute(
+      'href',
+      '/app/perfil',
+    );
     expect(within(menu).getByRole('link', { name: 'Configurações' })).toHaveAttribute(
       'href',
       '/app/configuracoes',

@@ -6,7 +6,7 @@ import { createCaptchaMiddleware } from '../../src/middlewares/captcha.js';
 function run(secret: string | undefined, body: object, siteverify?: { success: boolean } | Error) {
   const fetchMock = mock.method(globalThis, 'fetch', async () => {
     if (siteverify instanceof Error) throw siteverify;
-    return { json: async () => siteverify } as Response;
+    return { json: async () => siteverify } as unknown as globalThis.Response;
   });
   let status = 0;
   let payload: { code?: string } = {};

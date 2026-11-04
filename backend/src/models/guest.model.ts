@@ -63,10 +63,9 @@ export async function deleteExpiredGuests(maxAgeHours: number, limit: number): P
     let removed = 0;
     if (list.length > 0) {
       await client.query('DELETE FROM meals WHERE user_id = ANY($1::uuid[])', [list]);
-      const del = await client.query(
-        'DELETE FROM users WHERE is_guest AND id = ANY($1::uuid[])',
-        [list],
-      );
+      const del = await client.query('DELETE FROM users WHERE is_guest AND id = ANY($1::uuid[])', [
+        list,
+      ]);
       removed = del.rowCount ?? 0;
     }
     await client.query('COMMIT');

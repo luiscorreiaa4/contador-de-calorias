@@ -1,8 +1,5 @@
 import { apiFetch } from './api';
-import type {
-  BodyMeasurement,
-  CreateMeasurementDTO,
-} from '@caloriesync/shared';
+import type { BodyMeasurement, CreateMeasurementDTO } from '@caloriesync/shared';
 export type { BodyMeasurement, CreateMeasurementDTO };
 
 export const getMeasurements = async (

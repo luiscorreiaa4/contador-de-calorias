@@ -40,7 +40,10 @@ describe('AccountPage', () => {
 
   it('oferece Metas, Perfil e Configurações (do módulo único) e esconde o Catálogo de usuário comum', async () => {
     renderPage();
-    expect(await screen.findByRole('link', { name: /perfil/i })).toHaveAttribute('href', '/app/perfil');
+    expect(await screen.findByRole('link', { name: /perfil/i })).toHaveAttribute(
+      'href',
+      '/app/perfil',
+    );
     expect(screen.getByRole('link', { name: /metas/i })).toHaveAttribute('href', '/app/metas');
     expect(screen.getByRole('link', { name: /configurações/i })).toHaveAttribute(
       'href',

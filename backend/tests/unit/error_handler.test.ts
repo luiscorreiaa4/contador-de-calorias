@@ -35,7 +35,7 @@ describe('errorHandler Security and PG Mapping (#12)', () => {
     originalUrl: '/api/test',
     id: 'req-123',
     headers: {},
-  } as Request;
+  } as unknown as Request;
 
   const mockNext = () => {};
 

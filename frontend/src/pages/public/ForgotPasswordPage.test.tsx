@@ -15,8 +15,7 @@ const renderPage = () =>
     </MemoryRouter>,
   );
 
-const GENERIC_MESSAGE =
-  /se houver uma conta com esse e-mail, você vai receber um link/i;
+const GENERIC_MESSAGE = /se houver uma conta com esse e-mail, você vai receber um link/i;
 
 describe('ForgotPasswordPage (BL-05)', () => {
   it('renderiza o formulário de recuperação', () => {

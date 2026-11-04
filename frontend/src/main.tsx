@@ -29,7 +29,8 @@ const app = (
 // O prerender é deslogado e em tema claro: com sessão ou tema escuro o cliente renderiza outro
 // header/ícone, e hidratar daria erro de hidratação e um re-render completo.
 const rootEl = document.getElementById('root')!;
-if (rootEl.hasChildNodes() && !hasStoredSession() && !getInitialDarkMode()) hydrateRoot(rootEl, app);
+if (rootEl.hasChildNodes() && !hasStoredSession() && !getInitialDarkMode())
+  hydrateRoot(rootEl, app);
 else createRoot(rootEl).render(app);
 
 if ('serviceWorker' in navigator) {

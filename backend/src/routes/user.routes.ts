@@ -41,7 +41,13 @@ const sensitiveActionLimiter = rateLimit({
 });
 
 router.get('/me', authenticate, UserController.getProfile);
-router.post('/me/mfa/setup', authenticate, blockGuestUser, sensitiveActionLimiter, MfaController.setup);
+router.post(
+  '/me/mfa/setup',
+  authenticate,
+  blockGuestUser,
+  sensitiveActionLimiter,
+  MfaController.setup,
+);
 router.post(
   '/me/mfa/enable',
   authenticate,

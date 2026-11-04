@@ -1,11 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { lazy, type FC } from 'react';
-import {
-  createMemoryRouter,
-  Navigate,
-  useLocation,
-  type RouteObject,
-} from 'react-router';
+import { createMemoryRouter, Navigate, useLocation, type RouteObject } from 'react-router';
 import { RootLayout } from './components/layout/RootLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminRoute } from './components/AdminRoute';
@@ -164,9 +159,15 @@ export const routes: RouteObject[] = [
       { path: 'medidas', element: <Navigate to="/app/historico/corpo" replace /> },
       { path: 'evolucao/corpo', element: <Navigate to="/app/historico/corpo" replace /> },
       { path: 'evolucao/*', element: <Navigate to="/app/historico/alimentacao" replace /> },
-      ...['onboarding', 'historico/*', 'metas/*', 'configuracoes/*', 'conta', 'perfil', 'diario/:date'].map(
-        (path) => ({ path, element: <ToApp /> }),
-      ),
+      ...[
+        'onboarding',
+        'historico/*',
+        'metas/*',
+        'configuracoes/*',
+        'conta',
+        'perfil',
+        'diario/:date',
+      ].map((path) => ({ path, element: <ToApp /> })),
       {
         element: <AdminRoute />,
         children: [{ path: 'admin/alimentos', element: <AdminCatalogPage /> }],

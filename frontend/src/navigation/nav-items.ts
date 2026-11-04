@@ -16,14 +16,7 @@ import {
  */
 
 export interface NavDestination {
-  id:
-    | 'diario'
-    | 'historico'
-    | 'conta'
-    | 'metas'
-    | 'catalogo'
-    | 'perfil'
-    | 'configuracoes';
+  id: 'diario' | 'historico' | 'conta' | 'metas' | 'catalogo' | 'perfil' | 'configuracoes';
   label: string;
   shortLabel: string;
   to: string;

@@ -163,9 +163,7 @@ describe('Painel do Catálogo Global (Admin)', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: /Cadastrar Alimento/i }));
 
     // Confirma feedback de sucesso
-    expect(
-      await screen.findByText(/Alimento cadastrado no catálogo\./i),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/Alimento cadastrado no catálogo\./i)).toBeInTheDocument();
   });
 
   it('Edita alimento existente e exibe modal com valores preenchidos', async () => {
@@ -186,9 +184,7 @@ describe('Painel do Catálogo Global (Admin)', () => {
 
     await userEvent.click(within(dialog).getByRole('button', { name: /Salvar Alterações/i }));
 
-    expect(
-      await screen.findByText(/Alimento atualizado no catálogo\./i),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/Alimento atualizado no catálogo\./i)).toBeInTheDocument();
   });
 
   it('Desativa alimento com diálogo acessível de confirmação (B4)', async () => {
@@ -203,9 +199,7 @@ describe('Painel do Catálogo Global (Admin)', () => {
 
     const confirmDialog = screen.getByRole('dialog', { name: /Desativar Alimento\?/i });
     expect(confirmDialog).toBeInTheDocument();
-    expect(
-      within(confirmDialog).getByText(/deixará de aparecer nas buscas/i),
-    ).toBeInTheDocument();
+    expect(within(confirmDialog).getByText(/deixará de aparecer nas buscas/i)).toBeInTheDocument();
 
     await userEvent.click(
       within(confirmDialog).getByRole('button', { name: /Desativar Alimento/i }),

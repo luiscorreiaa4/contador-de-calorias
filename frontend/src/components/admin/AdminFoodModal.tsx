@@ -455,7 +455,8 @@ const AdminFoodFormInner: React.FC<AdminFoodFormInnerProps> = ({
               className="w-full px-3 py-2 text-sm bg-background border-2 border-border text-foreground font-mono uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
             />
             <span className="text-[10px] text-muted-foreground block mt-1">
-              Obrigatória, para todo valor ter origem conhecida. Cada alteração fica no log de auditoria.
+              Obrigatória, para todo valor ter origem conhecida. Cada alteração fica no log de
+              auditoria.
             </span>
           </div>
         </div>

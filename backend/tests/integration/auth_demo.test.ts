@@ -140,7 +140,9 @@ describe('POST /api/auth/demo (visitante temporário)', () => {
     const other = await pool.connect();
     try {
       await other.query('BEGIN');
-      await other.query('SELECT pg_advisory_xact_lock(hashtext($1))', [GuestModel.GUEST_SIGNUP_LOCK]);
+      await other.query('SELECT pg_advisory_xact_lock(hashtext($1))', [
+        GuestModel.GUEST_SIGNUP_LOCK,
+      ]);
       await other.query(
         `INSERT INTO users (name, email, password_hash, terms_accepted_at, email_verified_at, is_guest)
          VALUES ('Visitante', $1, 'x', now(), now(), true)`,
@@ -168,7 +170,9 @@ describe('POST /api/auth/demo (visitante temporário)', () => {
   });
 
   it('não bloqueia alteração de perfil de usuário comum', async () => {
-    const common = await createVerifiedUser({ email: `tester-guest-common-${Date.now()}@example.com` });
+    const common = await createVerifiedUser({
+      email: `tester-guest-common-${Date.now()}@example.com`,
+    });
     const res = await request(app)
       .put('/api/users/me')
       .set('Authorization', `Bearer ${common.token}`)

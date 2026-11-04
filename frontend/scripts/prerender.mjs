@@ -62,7 +62,8 @@ for (const page of PUBLIC_PAGES) {
   const h1s = body.match(/<h1[\s>]/g)?.length ?? 0;
   if (h1s !== 1) throw new Error(`${page.path} tem ${h1s} <h1>; esperado exatamente 1`);
   // Script inline (streaming do React) seria bloqueado pela CSP e deixaria o conteúdo escondido.
-  if (/<script|<template/.test(body)) throw new Error(`${page.path} saiu com <script>/<template> inline`);
+  if (/<script|<template/.test(body))
+    throw new Error(`${page.path} saiu com <script>/<template> inline`);
 
   const html = template
     .replace(SEO_BLOCK, () => head(page))
