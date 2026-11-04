@@ -19,7 +19,7 @@ Origem: auditoria de 01/11/2026 (relatório removido; histórico no git) (itens 
 | 6 | [auth] captcha em register, login e forgot-password | security, auth | [x] 02/11/2026 |
 | 7 | [auth] MFA (TOTP), ao menos para administradores | security, auth | [x] 02/11/2026 |
 | 8 | [auth] `register` não sobrescreve credenciais de conta não verificada | security, auth | [x] 01/11/2026 |
-| 9 | [autorização] role de banco com menor privilégio e role de migração | security, devops, priority:high | [adiado] |
+| 9 | [autorização] role de banco com menor privilégio e role de migração | security, devops, priority:high | [x] 04/11/2026 |
 | 10 | [autorização] avaliar RLS no Postgres | security | [x] 02/11/2026 |
 | 11 | [entrada] min/max nos schemas numéricos, teto de `page` e `.strict()` | security, quality | [x] 01/11/2026 |
 | 12 | [infra] mapear erros do `pg` e não expor `err.code`/`err.message` brutos | security | [x] 01/11/2026 |
@@ -34,7 +34,7 @@ Origem: auditoria de 01/11/2026 (relatório removido; histórico no git) (itens 
 | 21 | [tests] cobertura do backend e `thresholds` no front | tests | [x] 02/11/2026 |
 | 22 | [tests] E2E com Playwright | tests | [x] 02/11/2026 |
 | 23 | [tests] testes de autorização por recurso e carga no CI | tests, security | [x] 02/11/2026 |
-| 24 | [devops] deploy: Dockerfile, ambientes e etapa no CI | devops | [adiado] |
+| 24 | [devops] deploy: Dockerfile, ambientes e etapa no CI | devops | [x] 04/11/2026 |
 | 25 | [observability] rastreio de erros, métricas e alertas | observability | [adiado] |
 | 26 | [devops] backup do Postgres com teste de restauração | devops | [adiado] |
 | 27 | [ux] página 404 própria | ux, seo | [x] 01/11/2026 |
@@ -44,6 +44,9 @@ Origem: auditoria de 01/11/2026 (relatório removido; histórico no git) (itens 
 | 31 | [legal] minimização dos campos de saúde | legal | [x] 02/11/2026 |
 | 32 | [legal] exclusão, retenção e plano de incidentes | legal | [x] 02/11/2026 |
 | 33 | [a11y] skip link, landmarks, contraste WCAG AA e axe no CI | a11y, tests | [x] 01/11/2026 |
+| 34 | [ux] logado, abrir `/login` pela URL mostra 404 em vez de ir ao app | ux, auth | [x] 04/11/2026 |
+| 35 | [ux] logado, a landing `/` continua acessível | ux | [x] 04/11/2026 |
+| 36 | [seo] canonical de `/termos`, `/privacidade` e `/seguranca` sem a barra final do redirect 301 | seo | [x] 04/11/2026 |
 
 ---
 
@@ -104,9 +107,9 @@ Origem: auditoria de 01/11/2026 (relatório removido; histórico no git) (itens 
 - **Testes:** `backend/tests/integration/auth_email_verification.test.ts` comprovando que o segundo cadastro não altera o `password_hash` existente.
 
 ### #9 [autorização] role de banco com menor privilégio e role de migração
-**Labels:** security, devops, priority:high · **Status:** `[adiado]` (código pronto; depende de hospedagem)
+**Labels:** security, devops, priority:high · **Status:** `[x]` (Concluído em 04/11/2026 no Neon)
 - **O que foi feito:** `backend/scripts/provision-db-roles.sql` (idempotente) cria `app_user` (só DML, sem `UPDATE/DELETE` em `admin_audit_log`) e `migration_user` (DDL), com `ALTER DEFAULT PRIVILEGES`. A API (`DB_*`) e as migrations (`DATABASE_URL`) já usam credenciais separadas. Passo a passo em `docs/DB_ROLES.md` e no passo 4 de `docs/HOSPEDAGEM.md`.
-- **Adiado porque:** exige o Postgres hospedado (Neon). Quando existir: rodar o script e trocar `DB_USER`/`DATABASE_URL`.
+- **Concluído:** papéis criados no Neon e testados (`app_user` recebe `permission denied` em `CREATE TABLE` e em `UPDATE admin_audit_log`); tabelas e `f_unaccent` transferidas para `migration_user`. A API no Render usa `app_user`.
 - **Guia:** `03-seguranca-web.md` §4 (Princípio do menor privilégio).
 
 ### #10 [autorização] avaliar RLS no Postgres
@@ -188,9 +191,10 @@ Origem: auditoria de 01/11/2026 (relatório removido; histórico no git) (itens 
 - **Limitação:** a busca autenticada de alimentos só entra com `LOAD_TOKEN` (Bearer); sem ele só `/health` é testado.
 
 ### #24 [devops] deploy: Dockerfile, ambientes e etapa no CI
-**Labels:** devops · **Status:** `[adiado]` (depende de hospedagem)
+**Labels:** devops · **Status:** `[x]` (Concluído em 04/11/2026)
 - **O que foi feito:** `Dockerfile` da API na raiz (node:24-slim, `npm start`), `.dockerignore`, passo `docker build` no CI. Plano de hospedagem em `docs/HOSPEDAGEM.md` (Netlify, Render, Neon, Brevo).
-- **Adiado porque:** exige criar as contas, o `netlify.toml`, o serviço no Render e os ambientes. Migrations no deploy continuam manuais (`URL_MIGRACAO`).
+- **Concluído:** site em `https://caloriesync-luiscorreia.netlify.app` (Netlify, `netlify.toml` na raiz, proxy `/api`), API em `https://caloriesync-api.onrender.com` (Render, Docker; PR #8 instalou as dependências de `shared/` na imagem), banco no Neon (US East 1), e-mail por Gmail + Apps Script (`MAIL_TRANSPORT=http`), Turnstile e UptimeRobot em `/health`. Migrations no deploy continuam manuais (`URL_MIGRACAO`).
+- **Lacuna do CI:** o passo `docker build` só monta a imagem; um erro de import só apareceu ao iniciar no Render. Vale um smoke test que rode o container.
 - **Guia:** `05-engenharia-qualidade-devops.md` §1.
 
 ### #25 [observability] rastreio de erros, métricas e alertas
@@ -241,3 +245,29 @@ Origem: auditoria de 01/11/2026 (relatório removido; histórico no git) (itens 
 **Labels:** a11y, tests · **Status:** `[x]` (Concluído em 01/11/2026)
 - **O que foi feito:** Adicionado link de acessibilidade "Pular para o conteúdo principal" (`sr-only focus:not-sr-only`) no topo de `frontend/src/components/layout/RootLayout.tsx` apontando para `#main-content`. O componente `frontend/src/navigation/SwipeMain.tsx` recebeu `id="main-content"` e `tabIndex={-1}` no elemento `<main>`. Razões de contraste AA validadas através dos 27 testes de contraste em `frontend/src/styles/tokens.contrast.test.ts`.
 - **Testes:** `frontend/src/tests/skip_link.test.tsx` validando a renderização do skip link e seu destino no DOM.
+
+### #34 [ux] logado, abrir `/login` pela URL mostra 404 em vez de ir ao app
+**Labels:** ux, auth · **Status:** `[x]` (04/11/2026; não reproduzido)
+- **Como reproduzir:** em produção, logado e com onboarding concluído, digitar `https://caloriesync-luiscorreia.netlify.app/login` na barra de endereço.
+- **Esperado:** redirecionar para `/app` (o Diário), como `PublicRoute` faz (`<Navigate to="/app" replace />`).
+- **Obtido:** página 404.
+- **Pistas a verificar:** o `PublicRoute` (`frontend/src/components/PublicRoute.tsx`) parece correto, então o problema pode estar na ordem da hidratação da sessão (`AuthContext`) num carregamento direto via `spa.html`, no destino de algum redirect intermediário ou na interação com o fallback `/* → /spa.html` do `netlify.toml`. Conferir também se acontece no dev local (`npm run dev:all`) ou só no build de produção (`npm run build` + `vite preview`).
+- **Critério de aceite:** logado, abrir `/login` e `/cadastro` pela URL leva a `/app` (ou a `/app/onboarding` se o onboarding não terminou); teste RTL cobrindo o caso.
+- **Investigação:** o servidor responde `200` com `spa.html` em `/login`; no build de produção, com a sessão simulada no storage, `/login` faz `replace('/app')`; o teste RTL também passa sem mudança de código. Não deu para testar com sessão real no navegador automatizado (o Turnstile bloqueia login e demo). Se voltar a acontecer, anotar a URL exata, o navegador e se havia PWA/service worker instalado.
+- **O que foi feito:** teste de regressão `frontend/src/tests/logged_in_public_routes.test.tsx` (`/login` e `/cadastro` logado vão a `/app` ou ao onboarding, sem 404).
+
+### #35 [ux] logado, a landing `/` continua acessível
+**Labels:** ux · **Status:** `[x]` (Concluído em 04/11/2026)
+- **Como reproduzir:** logado, digitar a URL raiz `https://caloriesync-luiscorreia.netlify.app/`.
+- **Obtido:** a landing pública aparece.
+- **Decisão pendente:** redirecionar o usuário logado para `/app` ou manter a landing com um botão "Ir para o app" no lugar de "Entrar/Cadastrar". Cuidado: `/` é pré-renderizada para SEO; o redirect deve acontecer só no cliente, depois da hidratação, sem mudar o HTML servido a buscadores.
+- **Critério de aceite:** comportamento decidido implementado e testado; o HTML pré-renderizado de `/` continua igual.
+- **Decisão:** redirecionar. A landing entrou no `PublicRoute` (`frontend/src/router.tsx`), que leva a `/app` ou `/app/onboarding`. O prerender é deslogado, então o HTML de `/` não mudou (conferido contra produção). `useSignOut` navega para `/` com `state: { signedOut: true }` para o `PublicRoute` não devolver ao app antes do `logout`.
+- **Testes:** `logged_in_public_routes.test.tsx` e `navigation.test.tsx` ("Sair da conta" leva à landing).
+
+### #36 [seo] canonical de `/termos`, `/privacidade` e `/seguranca` sem a barra final do redirect 301
+**Labels:** seo · **Status:** `[x]` (Concluído em 04/11/2026)
+- **Evidência:** em produção, `/termos` responde `301` para `/termos/` (Netlify serve `termos/index.html`), mas o `<link rel="canonical">` aponta para `/termos`, sem barra. O canonical deve apontar para a URL final, sem redirect.
+- **O que fazer:** alinhar `SITE_URL`/caminhos em `frontend/src/seo/pages.ts` e o `sitemap.xml` com a URL final (com barra) ou configurar o Netlify para servir sem barra (`Pretty URLs`/redirect). Atualizar `llms.txt` se mudar.
+- **Critério de aceite:** `curl -I` no canonical de cada página pública responde `200`, sem redirect.
+- **O que foi feito:** canonical e `og:url` com barra final em `frontend/scripts/prerender.mjs`; `sitemap.xml` e `llms.txt` também. `curl` em `/termos/`, `/privacidade/` e `/seguranca/` responde `200`. Os links internos do app seguem sem barra (navegação no cliente, sem requisição).
