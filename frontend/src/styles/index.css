@@ -127,6 +127,10 @@
 }
 
 @layer base {
+  html {
+    touch-action: manipulation;
+  }
+
   body {
     font-family: 'Inter', system-ui, sans-serif;
     background-color: hsl(var(--background));

@@ -163,10 +163,10 @@ export const FoodSearchSelect: React.FC<FoodSearchSelectProps> = ({
           styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
           classNames={{
             control: (state) =>
-              `bg-background border-2 border-border rounded-none text-xs font-black shadow-none min-h-[48px] uppercase ${
+              `bg-background border-2 border-border rounded-none text-base md:text-xs font-black shadow-none min-h-[48px] uppercase ${
                 state.isFocused ? 'border-ring' : 'hover:border-foreground'
               }`,
-            input: () => 'text-foreground py-0.5 uppercase',
+            input: () => 'text-foreground py-0.5 uppercase text-base md:text-xs',
             singleValue: () => 'text-foreground uppercase',
             menu: () =>
               'bg-card border-2 border-border rounded-none shadow-hard mt-2 overflow-hidden',

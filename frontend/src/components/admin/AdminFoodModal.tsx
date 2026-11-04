@@ -174,7 +174,7 @@ const AdminFoodFormInner: React.FC<AdminFoodFormInnerProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="admin-food-modal-title"
-      className="w-full max-w-xl bg-card border-2 border-border shadow-hard flex flex-col max-h-[92vh] overflow-hidden"
+      className="w-full max-w-xl bg-card border-2 border-border shadow-hard flex flex-col max-h-[calc(92vh-env(safe-area-inset-top))] overflow-hidden"
     >
       {/* Header */}
       <div className="p-4 sm:p-6 border-b-2 border-border bg-background flex items-center justify-between shrink-0">
@@ -235,7 +235,7 @@ const AdminFoodFormInner: React.FC<AdminFoodFormInnerProps> = ({
               onChange={(e) => setName(e.target.value)}
               placeholder="EX.: ARROZ BRANCO COZIDO"
               disabled={isLoading}
-              className="w-full px-3 py-2 text-sm bg-background border-2 border-border text-foreground font-mono uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
+              className="w-full px-3 py-2 text-base md:text-sm bg-background border-2 border-border text-foreground font-mono uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
             />
           </div>
 
@@ -259,7 +259,7 @@ const AdminFoodFormInner: React.FC<AdminFoodFormInnerProps> = ({
                 onChange={(e) => setCalories(e.target.value === '' ? '' : Number(e.target.value))}
                 placeholder="0"
                 disabled={isLoading}
-                className="w-full px-3 py-2 text-sm bg-background border-2 border-border text-foreground font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
+                className="w-full px-3 py-2 text-base md:text-sm bg-background border-2 border-border text-foreground font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
               />
             </div>
 
@@ -281,7 +281,7 @@ const AdminFoodFormInner: React.FC<AdminFoodFormInnerProps> = ({
                 onChange={(e) => setProteins(e.target.value === '' ? '' : Number(e.target.value))}
                 placeholder="0"
                 disabled={isLoading}
-                className="w-full px-3 py-2 text-sm bg-background border-2 border-border text-foreground font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
+                className="w-full px-3 py-2 text-base md:text-sm bg-background border-2 border-border text-foreground font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
               />
             </div>
 
@@ -303,7 +303,7 @@ const AdminFoodFormInner: React.FC<AdminFoodFormInnerProps> = ({
                 onChange={(e) => setCarbs(e.target.value === '' ? '' : Number(e.target.value))}
                 placeholder="0"
                 disabled={isLoading}
-                className="w-full px-3 py-2 text-sm bg-background border-2 border-border text-foreground font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
+                className="w-full px-3 py-2 text-base md:text-sm bg-background border-2 border-border text-foreground font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
               />
             </div>
 
@@ -325,7 +325,7 @@ const AdminFoodFormInner: React.FC<AdminFoodFormInnerProps> = ({
                 onChange={(e) => setFats(e.target.value === '' ? '' : Number(e.target.value))}
                 placeholder="0"
                 disabled={isLoading}
-                className="w-full px-3 py-2 text-sm bg-background border-2 border-border text-foreground font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
+                className="w-full px-3 py-2 text-base md:text-sm bg-background border-2 border-border text-foreground font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
               />
             </div>
           </div>
@@ -364,7 +364,7 @@ const AdminFoodFormInner: React.FC<AdminFoodFormInnerProps> = ({
                 value={baseUnit}
                 onChange={(e) => setBaseUnit(e.target.value as 'g' | 'ml')}
                 disabled={isLoading}
-                className="w-full px-3 py-2 text-sm bg-background border-2 border-border text-foreground font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
+                className="w-full px-3 py-2 text-base md:text-sm bg-background border-2 border-border text-foreground font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
               >
                 <option value="g">GRAMAS (g)</option>
                 <option value="ml">MILILITROS (ml)</option>
@@ -388,7 +388,7 @@ const AdminFoodFormInner: React.FC<AdminFoodFormInnerProps> = ({
                   setServingWeight(e.target.value === '' ? '' : Number(e.target.value))
                 }
                 disabled={isLoading}
-                className="w-full px-3 py-2 text-sm bg-background border-2 border-border text-foreground font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
+                className="w-full px-3 py-2 text-base md:text-sm bg-background border-2 border-border text-foreground font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
               />
             </div>
           </div>
@@ -410,7 +410,7 @@ const AdminFoodFormInner: React.FC<AdminFoodFormInnerProps> = ({
                 onChange={(e) => setUnitName(e.target.value)}
                 placeholder="EX.: COLHER DE SOPA, FATIA"
                 disabled={isLoading}
-                className="w-full px-3 py-2 text-sm bg-background border-2 border-border text-foreground font-mono uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
+                className="w-full px-3 py-2 text-base md:text-sm bg-background border-2 border-border text-foreground font-mono uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
               />
             </div>
 
@@ -430,7 +430,7 @@ const AdminFoodFormInner: React.FC<AdminFoodFormInnerProps> = ({
                 onChange={(e) => setUnitWeight(e.target.value === '' ? '' : Number(e.target.value))}
                 placeholder="EX.: 25"
                 disabled={isLoading}
-                className="w-full px-3 py-2 text-sm bg-background border-2 border-border text-foreground font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
+                className="w-full px-3 py-2 text-base md:text-sm bg-background border-2 border-border text-foreground font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
               />
             </div>
           </div>
@@ -452,7 +452,7 @@ const AdminFoodFormInner: React.FC<AdminFoodFormInnerProps> = ({
               onChange={(e) => setSourceRef(e.target.value)}
               placeholder="EX.: TACO 4ª ED., CÓD. 001 OU RÓTULO PRODUTO X"
               disabled={isLoading}
-              className="w-full px-3 py-2 text-sm bg-background border-2 border-border text-foreground font-mono uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
+              className="w-full px-3 py-2 text-base md:text-sm bg-background border-2 border-border text-foreground font-mono uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px]"
             />
             <span className="text-[10px] text-muted-foreground block mt-1">
               Obrigatória, para todo valor ter origem conhecida. Cada alteração fica no log de

@@ -42,7 +42,7 @@ describe('Confirmação de e-mail (BL-12 / D-21)', () => {
 
     const message = lastEmailTo(email);
     assert.ok(message, 'e-mail de verificação deve ser enviado');
-    assert.match(message.subject, /confirme seu e-mail/i);
+    assert.strictEqual(message.subject, `CalorieSync: seu código é ${verificationCodeFor(email)}`);
     assert.match(verificationCodeFor(email), /^\d{6}$/);
     assert.strictEqual(response.headers['cache-control'], 'no-store');
   });

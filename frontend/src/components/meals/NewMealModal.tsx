@@ -583,7 +583,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="new-meal-modal-title"
-        className="w-full max-w-xl bg-card border-2 border-border shadow-hard overflow-hidden flex flex-col max-h-[92vh]"
+        className="w-full max-w-xl bg-card border-2 border-border shadow-hard overflow-hidden flex flex-col max-h-[calc(92vh-env(safe-area-inset-top))]"
       >
         {/* Header */}
         <div className="p-6 border-b-2 border-border flex items-center justify-between bg-background shrink-0">
@@ -644,7 +644,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({
                   value={mealName}
                   onChange={(e) => setMealName(e.target.value.toUpperCase())}
                   placeholder="EX: ALMOÇO..."
-                  className="w-full px-4 py-3 bg-background border-2 border-border text-sm font-black text-foreground uppercase placeholder:text-muted-foreground focus:border-ring focus:outline-none focus-visible:border-ring focus-visible:outline-none outline-none transition-colors"
+                  className="w-full px-4 py-3 bg-background border-2 border-border text-base md:text-sm font-black text-foreground uppercase placeholder:text-muted-foreground focus:border-ring focus:outline-none focus-visible:border-ring focus-visible:outline-none outline-none transition-colors"
                   disabled={isSubmitting}
                 />
               </div>
@@ -668,7 +668,7 @@ export const NewMealModal: React.FC<NewMealModalProps> = ({
                     setMealTimeStr(val);
                   }}
                   placeholder="00:00"
-                  className="w-full px-4 py-3 bg-background border-2 border-border text-sm font-black text-foreground uppercase placeholder:text-muted-foreground focus:border-ring focus:outline-none focus-visible:border-ring focus-visible:outline-none outline-none transition-colors text-center"
+                  className="w-full px-4 py-3 bg-background border-2 border-border text-base md:text-sm font-black text-foreground uppercase placeholder:text-muted-foreground focus:border-ring focus:outline-none focus-visible:border-ring focus-visible:outline-none outline-none transition-colors text-center"
                   disabled={isSubmitting}
                 />
               </div>
