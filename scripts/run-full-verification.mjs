@@ -48,6 +48,37 @@ const steps = [
     args: ['build', '-t', 'caloriesync-api:ci', '.'],
     skip: () => !available('docker', ['info']) && 'Docker não está rodando',
   },
+  {
+    // Só importa os módulos (sem banco): pega dependência faltando na imagem.
+    name: 'Smoke da imagem Docker da API (imports)',
+    cmd: 'docker',
+    args: [
+      'run',
+      '--rm',
+      ...Object.entries({
+        NODE_ENV: 'test',
+        DATABASE_URL: 'postgres://postgres:x@localhost:5432/contador_calorias_test',
+        DB_HOST: 'localhost',
+        DB_PORT: '5432',
+        DB_USER: 'postgres',
+        DB_PASSWORD: 'x',
+        DB_NAME: 'contador_calorias_test',
+        JWT_SECRET: 'super_secret_test_key_with_at_least_32_chars_123!',
+        CORS_ORIGIN: 'http://localhost:5173',
+        APP_BASE_URL: 'http://localhost:5173',
+        MAIL_FROM: 'CalorieSync <no-reply@caloriesync.local>',
+        MAIL_TRANSPORT: 'memory',
+        AUTH_TOKEN_PEPPER: 'super_secret_test_pepper_with_at_least_32_chars_456!',
+      }).flatMap(([k, v]) => ['-e', `${k}=${v}`]),
+      'caloriesync-api:ci',
+      'node',
+      '--import',
+      'tsx',
+      '-e',
+      "await import('./src/app.ts'); console.log('imports OK'); process.exit(0)",
+    ],
+    skip: () => !available('docker', ['info']) && 'Docker não está rodando',
+  },
 ];
 
 const started = Date.now();
