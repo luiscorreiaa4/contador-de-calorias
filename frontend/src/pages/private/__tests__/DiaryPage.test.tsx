@@ -1,35 +1,35 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect } from 'vitest';
 import { MemoryRouter, Routes, Route } from 'react-router';
 import { render } from '../../../tests/setup/test-utils';
 import { DiaryPage } from '../DiaryPage';
 import { NewMealModalProvider } from '../../../context/NewMealModalProvider';
+import { ToastProvider } from '../../../context/ToastProvider';
 import { server } from '../../../mocks/server';
 import { http, HttpResponse } from 'msw';
-import { getLocalDateString, addDaysToDateString, parseLocalDateOrToday } from '../../../utils/date';
+import {
+  getLocalDateString,
+  addDaysToDateString,
+  parseLocalDateOrToday,
+} from '../../../utils/date';
 
 const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 function formatDateLabel(dateStr: string): string {
-  return parseLocalDateOrToday(dateStr).toLocaleDateString('pt-BR', {
-    weekday: 'long',
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  });
+  return parseLocalDateOrToday(dateStr).toLocaleDateString('pt-BR');
 }
 
-function renderDiary(initialPath = '/') {
+function renderDiary(initialPath = '/app') {
   return render(
     <MemoryRouter initialEntries={[initialPath]}>
       <NewMealModalProvider>
         <Routes>
-          <Route path="/" element={<DiaryPage />} />
-          <Route path="/diario/:date" element={<DiaryPage />} />
+          <Route path="/app" element={<DiaryPage />} />
+          <Route path="/app/diario/:date" element={<DiaryPage />} />
         </Routes>
       </NewMealModalProvider>
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 }
 
@@ -81,7 +81,7 @@ describe('DiaryPage Async States (PC-27)', () => {
     server.use(
       http.get(`${baseURL}/meals/today`, () => {
         return HttpResponse.json({ success: false, message: 'Erro no servidor' }, { status: 500 });
-      })
+      }),
     );
 
     renderDiary();
@@ -123,7 +123,7 @@ describe('DiaryPage Async States (PC-27)', () => {
             },
           ],
         });
-      })
+      }),
     );
 
     renderDiary();
@@ -153,7 +153,7 @@ describe('DiaryPage — navegação de datas (BL-02)', () => {
         const date = url.searchParams.get('date');
         if (date) requestedDates.push(date);
         return HttpResponse.json({ success: true, data: [] });
-      })
+      }),
     );
 
     renderDiary();
@@ -183,11 +183,48 @@ describe('DiaryPage — navegação de datas (BL-02)', () => {
     const today = getLocalDateString();
     const twoDaysAgo = addDaysToDateString(today, -2);
 
-    renderDiary(`/diario/${twoDaysAgo}`);
+    renderDiary(`/app/diario/${twoDaysAgo}`);
 
     expect(await screen.findByTestId('diary-date')).toHaveTextContent(formatDateLabel(twoDaysAgo));
     expect(screen.getByText(/refeições do dia/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /próximo dia/i })).toBeEnabled();
+  });
+
+  it.each([
+    ['futura', () => addDaysToDateString(getLocalDateString(), 1)],
+    ['inexistente', () => '2026-02-30'],
+  ])('redireciona para hoje quando a URL traz data %s', async (_label, makeDate) => {
+    renderDiary(`/app/diario/${makeDate()}`);
+
+    expect(await screen.findByTestId('diary-date')).toHaveTextContent(
+      formatDateLabel(getLocalDateString()),
+    );
+    expect(screen.getByText(/refeições de hoje/i)).toBeInTheDocument();
+  });
+
+  it('salta para uma data passada pelo calendário da data', async () => {
+    const target = addDaysToDateString(getLocalDateString(), -10);
+    renderDiary();
+
+    fireEvent.change(await screen.findByLabelText(/ir para data/i), {
+      target: { value: target },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('diary-date')).toHaveTextContent(formatDateLabel(target));
+    });
+  });
+
+  it('ignora data futura vinda do calendário', async () => {
+    renderDiary();
+
+    fireEvent.change(await screen.findByLabelText(/ir para data/i), {
+      target: { value: addDaysToDateString(getLocalDateString(), 3) },
+    });
+
+    expect(screen.getByTestId('diary-date')).toHaveTextContent(
+      formatDateLabel(getLocalDateString()),
+    );
   });
 });
 
@@ -214,7 +251,7 @@ describe('DiaryPage — Copiar Refeição (BL-18 / FEAT-C03 / D-20)', () => {
             },
           ],
         });
-      })
+      }),
     );
 
     renderDiary();
@@ -280,7 +317,7 @@ describe('DiaryPage — Copiar Refeição (BL-18 / FEAT-C03 / D-20)', () => {
             total_proteins: 28,
           },
         });
-      })
+      }),
     );
 
     renderDiary();
@@ -294,5 +331,75 @@ describe('DiaryPage — Copiar Refeição (BL-18 / FEAT-C03 / D-20)', () => {
       expect(copyMealId).toBe('meal-to-copy-123');
       expect(screen.getByRole('status')).toHaveTextContent(/copiada\(s\) com sucesso/i);
     });
+  });
+});
+
+describe('DiaryPage — exclusão otimista', () => {
+  const meal = {
+    id: 'meal-del-1',
+    user_id: '1',
+    name: 'Lanche Da Tarde',
+    meal_time: '2026-10-15T15:00:00.000Z',
+    total_calories: 200,
+    total_proteins: 10,
+    items: [],
+  };
+
+  function renderWithToasts() {
+    return render(
+      <ToastProvider>
+        <MemoryRouter initialEntries={['/app']}>
+          <NewMealModalProvider>
+            <Routes>
+              <Route path="/app" element={<DiaryPage />} />
+            </Routes>
+          </NewMealModalProvider>
+        </MemoryRouter>
+      </ToastProvider>,
+    );
+  }
+
+  async function confirmDelete() {
+    const user = userEvent.setup();
+    await user.click(await screen.findByTitle('Excluir refeição'));
+    await user.click(screen.getByRole('button', { name: /sim, excluir/i }));
+  }
+
+  it('remove o card antes da resposta e confirma por toast', async () => {
+    let resolveDelete: () => void = () => {};
+    server.use(
+      http.get(`${baseURL}/meals/today`, () => HttpResponse.json({ success: true, data: [meal] })),
+      http.delete(
+        `${baseURL}/meals/:id`,
+        () =>
+          new Promise<Response>((resolve) => {
+            resolveDelete = () => resolve(HttpResponse.json({ success: true }));
+          }),
+      ),
+    );
+    renderWithToasts();
+    await confirmDelete();
+
+    // Ainda sem resposta do servidor, o card já saiu.
+    await waitFor(() => expect(screen.queryByText(/lanche da tarde/i)).not.toBeInTheDocument());
+    server.use(
+      http.get(`${baseURL}/meals/today`, () => HttpResponse.json({ success: true, data: [] })),
+    );
+    resolveDelete();
+    expect(await screen.findByText('REFEIÇÃO APAGADA.')).toBeInTheDocument();
+  });
+
+  it('desfaz a remoção e avisa quando a API falha', async () => {
+    server.use(
+      http.get(`${baseURL}/meals/today`, () => HttpResponse.json({ success: true, data: [meal] })),
+      http.delete(`${baseURL}/meals/:id`, () =>
+        HttpResponse.json({ success: false, message: 'falhou' }, { status: 500 }),
+      ),
+    );
+    renderWithToasts();
+    await confirmDelete();
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/não foi possível apagar/i);
+    expect(screen.getByText(/lanche da tarde/i)).toBeInTheDocument();
   });
 });

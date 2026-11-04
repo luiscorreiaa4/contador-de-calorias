@@ -25,7 +25,7 @@ describe('guarda do swipe (data-no-swipe)', () => {
 
     expect(
       offenders.map((file) => path.relative(srcRoot, file)),
-      'Adicione data-no-swipe ao wrapper (ou "no-swipe-guard-allow: <motivo>")'
+      'Adicione data-no-swipe ao wrapper (ou "no-swipe-guard-allow: <motivo>")',
     ).toEqual([]);
   });
 });

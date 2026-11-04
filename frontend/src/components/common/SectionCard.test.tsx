@@ -7,9 +7,11 @@ describe('SectionCard', () => {
     render(
       <SectionCard title="Média de consumo" actions={<button type="button">7D</button>}>
         <p>corpo</p>
-      </SectionCard>
+      </SectionCard>,
     );
-    expect(screen.getByRole('heading', { level: 2, name: /média de consumo/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 2, name: /média de consumo/i }),
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '7D' })).toBeInTheDocument();
     expect(screen.getByText('corpo')).toBeInTheDocument();
   });
@@ -18,7 +20,7 @@ describe('SectionCard', () => {
     render(
       <SectionCard title="Gráfico" titleAs="h3">
         <p>corpo</p>
-      </SectionCard>
+      </SectionCard>,
     );
     expect(screen.getByRole('heading', { level: 3, name: /gráfico/i })).toBeInTheDocument();
   });
@@ -27,7 +29,7 @@ describe('SectionCard', () => {
     render(
       <SectionCard>
         <p>corpo</p>
-      </SectionCard>
+      </SectionCard>,
     );
     expect(screen.queryByRole('banner')).not.toBeInTheDocument();
     expect(screen.queryByRole('heading')).not.toBeInTheDocument();

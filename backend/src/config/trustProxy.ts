@@ -11,7 +11,7 @@ export function parseTrustProxy(raw: string | undefined): number | false {
 
   if (!/^\d+$/.test(value)) {
     throw new Error(
-      'TRUST_PROXY deve ser um número inteiro de saltos (ex: "1") ou "false"; nunca "true".'
+      'TRUST_PROXY deve ser um número inteiro de saltos (ex: "1") ou "false"; nunca "true".',
     );
   }
 

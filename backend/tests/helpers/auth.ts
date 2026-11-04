@@ -18,6 +18,8 @@ export interface CreateVerifiedUserOptions {
   email?: string;
   password?: string;
   role?: 'user' | 'admin';
+  /** Admin criado sem MFA (padrão: com MFA ativo, para não bloquear as suítes de RBAC). */
+  adminWithoutMfa?: boolean;
 }
 
 /**
@@ -25,7 +27,7 @@ export interface CreateVerifiedUserOptions {
  * Usado pelas suítes que precisam apenas de uma sessão válida, sem passar pelo fluxo de e-mail.
  */
 export async function createVerifiedUser(
-  options: CreateVerifiedUserOptions = {}
+  options: CreateVerifiedUserOptions = {},
 ): Promise<TestUser> {
   const name = options.name ?? 'Tester';
   const email = (options.email ?? `tester-${randomUUID()}@example.com`).trim().toLowerCase();
@@ -33,11 +35,17 @@ export async function createVerifiedUser(
   const role = options.role ?? 'user';
   const passwordHash = await bcrypt.hash(password, 1);
 
-  const result = await pool.query<{ id: string; name: string; email: string; role: 'user' | 'admin'; token_version: number }>(
-    `INSERT INTO users (name, email, password_hash, role, terms_accepted_at, email_verified_at)
-     VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+  const result = await pool.query<{
+    id: string;
+    name: string;
+    email: string;
+    role: 'user' | 'admin';
+    token_version: number;
+  }>(
+    `INSERT INTO users (name, email, password_hash, role, terms_accepted_at, email_verified_at, mfa_enabled_at)
+     VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CASE WHEN $5::boolean THEN CURRENT_TIMESTAMP END)
      RETURNING id, name, email, role, token_version`,
-    [name.trim(), email, passwordHash, role]
+    [name.trim(), email, passwordHash, role, role === 'admin' && options.adminWithoutMfa !== true],
   );
 
   const row = result.rows[0];
@@ -52,7 +60,7 @@ export async function createVerifiedUser(
 }
 
 export async function createVerifiedAdmin(
-  options: Omit<CreateVerifiedUserOptions, 'role'> = {}
+  options: Omit<CreateVerifiedUserOptions, 'role'> = {},
 ): Promise<TestUser> {
   return createVerifiedUser({ ...options, role: 'admin' });
 }
@@ -64,7 +72,7 @@ export async function markEmailVerified(email: string): Promise<void> {
         SET email_verified_at = COALESCE(email_verified_at, CURRENT_TIMESTAMP),
             updated_at = CURRENT_TIMESTAMP
       WHERE lower(email) = lower($1)`,
-    [email.trim().toLowerCase()]
+    [email.trim().toLowerCase()],
   );
   if ((result.rowCount ?? 0) === 0) {
     throw new Error(`Usuário de teste não encontrado para verificação: ${email}`);

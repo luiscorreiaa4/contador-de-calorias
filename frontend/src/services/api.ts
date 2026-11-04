@@ -1,6 +1,6 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
-export interface ApiResponse<T> {
+interface ApiResponse<T> {
   success: boolean;
   data?: T;
   meta?: {
@@ -39,26 +39,37 @@ export class ApiError extends Error {
   }
 }
 
+/** Chaves não secretas da sessão no cliente; o JWT vive só no cookie HttpOnly. `auth_token` é legado (limpeza). */
+const SESSION_KEYS = ['auth_session', 'user_session', 'auth_token'] as const;
+
+export function clearStoredSession() {
+  for (const key of SESSION_KEYS) {
+    localStorage.removeItem(key);
+    sessionStorage.removeItem(key);
+  }
+}
+
 function handleUnauthorizedCleanup() {
-  localStorage.removeItem('auth_token');
-  localStorage.removeItem('user_session');
-  sessionStorage.removeItem('auth_token');
-  sessionStorage.removeItem('user_session');
+  clearStoredSession();
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new Event('auth:unauthorized'));
   }
 }
 
-export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const token = localStorage.getItem('auth_token');
+/** Indica se há sessão no cliente (marcador não secreto; a autoridade é o cookie validado pelo backend). */
+export function hasStoredSession(): boolean {
+  if (typeof window === 'undefined') return false;
+  return !!(localStorage.getItem('auth_session') || sessionStorage.getItem('auth_session'));
+}
 
+export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options?.headers,
   };
 
   const response = await fetch(`${API_URL}${path}`, {
+    credentials: 'include',
     ...options,
     headers,
   });
@@ -96,16 +107,17 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
   return json.data as T;
 }
 
-export async function apiFetchWithMeta<T>(path: string, options?: RequestInit): Promise<ApiResponseWithMeta<T>> {
-  const token = localStorage.getItem('auth_token');
-
+export async function apiFetchWithMeta<T>(
+  path: string,
+  options?: RequestInit,
+): Promise<ApiResponseWithMeta<T>> {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options?.headers,
   };
 
   const response = await fetch(`${API_URL}${path}`, {
+    credentials: 'include',
     ...options,
     headers,
   });

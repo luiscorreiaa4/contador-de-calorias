@@ -8,7 +8,7 @@ Aplicação web para acompanhamento nutricional, registro de refeições e anál
 - **Organização de refeições:** cópia de refeições ou do dia anterior, alimentos recentes e favoritos, refeições salvas e combos reutilizáveis.
 - **Catálogo de alimentos e administração:** busca sem distinção de acentos ou maiúsculas (`unaccent` + `pg_trgm`), catálogo administrativo com paginação server-side numerada, filtros e ordenação multicamada persistidos na URL, e cadastro de alimentos personalizados.
 - **Metas nutricionais:** cálculo automático a partir dos dados corporais, objetivo e atividade física, com opção de ajuste manual e histórico de vigência.
-- **Evolução:** gráficos de consumo alimentar em períodos de 7 e 30 dias e acompanhamento de peso e gordura corporal.
+- **Histórico:** gráficos de consumo alimentar em períodos de 7 e 30 dias e acompanhamento de peso e gordura corporal.
 - **Conta e privacidade:** confirmação de e-mail no cadastro, recuperação de senha por link, gestão de perfil, alteração de senha, exportação de dados e exclusão da conta.
 - **Experiência web:** recursos de PWA, cache de assets e navegação, indicação de conexão offline e infraestrutura de suporte a notificações push.
 
@@ -77,7 +77,7 @@ DB_NAME=contador_calorias
 DATABASE_URL=postgresql://postgres:substitua_pela_senha_local@localhost:5432/contador_calorias
 
 JWT_SECRET=substitua_por_uma_chave_aleatoria_de_pelo_menos_32_caracteres
-JWT_EXPIRES_IN=7d
+JWT_EXPIRES_IN=1d
 CORS_ORIGIN=http://localhost:5173
 
 APP_BASE_URL=http://localhost:5173
@@ -153,7 +153,7 @@ As variáveis do backend ficam em `backend/.env`. Os campos de conexão devem se
 | `DB_NAME` | Nome do banco; em desenvolvimento, `contador_calorias` |
 | `DATABASE_URL` | URL de conexão utilizada pelas migrações |
 | `JWT_SECRET` | Chave de assinatura de sessão; obrigatória, com no mínimo 32 caracteres |
-| `JWT_EXPIRES_IN` | Validade configurável do token (ex: `7d`), aplicada na geração da sessão JWT |
+| `JWT_EXPIRES_IN` | Validade configurável do token (ex: `1d`; também define a validade do cookie `cs_session`), aplicada na geração da sessão JWT |
 | `CORS_ORIGIN` | Origem autorizada para o frontend; localmente, `http://localhost:5173` |
 | `APP_BASE_URL` | URL pública do frontend usada no link de redefinição de senha; HTTPS em produção |
 | `MAIL_FROM` | Remetente dos e-mails transacionais, com domínio verificado no provedor |
@@ -219,11 +219,11 @@ O backend segue o fluxo `routes → controllers → services → models`, com SQ
 
 | Área | Páginas principais |
 | --- | --- |
-| Diário | Resumo e registro do dia (`/`), diário por data (`/diario/:date`) |
-| Evolução | Alimentação (`/evolucao/alimentacao`) e corpo (`/evolucao/corpo`) |
-| Metas | Objetivo e rotina (`/metas/rotina`), calorias e macros (`/metas/diarias`) |
-| Perfil | Dados pessoais (`/perfil`) |
-| Configurações | Notificações, segurança e privacidade (`/configuracoes/...`) |
+| Diário | Resumo e registro do dia (`/app`), diário por data (`/app/diario/:date`) |
+| Histórico | Alimentação (`/app/historico/alimentacao`) e corpo (`/app/historico/corpo`) |
+| Metas | Objetivo e rotina (`/app/metas/rotina`), calorias e macros (`/app/metas/diarias`) |
+| Perfil | Dados pessoais (`/app/perfil`) |
+| Configurações | Notificações, segurança e privacidade (`/app/configuracoes/...`) |
 | Administração | Catálogo global de alimentos (`/admin/alimentos`, exclusivo para administradores) |
 | Autenticação pública | Login (`/login`), cadastro (`/cadastro`), verificação de e-mail (`/verificar-email`), recuperação (`/esqueci-senha`) e redefinição (`/redefinir-senha`) |
 
@@ -242,6 +242,5 @@ O [guia de navegação](docs/UX_NAVIGATION.md) detalha as responsabilidades das 
 | [Identidade visual](docs/CORES.md) | Paleta, tokens semânticos e critérios de contraste |
 | [Roadmap](docs/ROADMAP.md) | Fases de desenvolvimento e marcos do produto |
 | [Decisões](docs/DECISOES.md) | Decisões de arquitetura e produto (D-xx) |
-| [Performance](docs/PERFORMANCE_BASELINE.md) | Medições e referências de desempenho |
 
-Relatórios de revisão estão em `docs/reviews/`; registros históricos ficam em `docs/archive/`.
+Relatórios de auditoria e revisões antigas foram removidos; o histórico deles está no `git log`.

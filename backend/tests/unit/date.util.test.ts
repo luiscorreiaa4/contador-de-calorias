@@ -6,7 +6,7 @@ describe('Date Utilities (getSaoPauloDateString - D-01 / CA-04)', () => {
   it('deve manter o dia correto às 21:30 em Brasília (quando UTC já virou o dia)', () => {
     // 21:30 BRT (UTC-3) corresponde a 00:30 UTC do dia seguinte
     const dateAt2130BRT = new Date('2026-10-15T21:30:00-03:00');
-    
+
     // O toISOString() gerava o bug de virar o dia para 2026-10-16
     const buggyIsoDate = dateAt2130BRT.toISOString().split('T')[0];
     assert.strictEqual(buggyIsoDate, '2026-10-16');

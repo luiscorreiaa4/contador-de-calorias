@@ -8,7 +8,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { server } from '../../../mocks/server';
 import { http, HttpResponse } from 'msw';
 
-const render = (ui: ReactElement) => rtlRender(<MemoryRouter initialEntries={['/estatisticas']}>{ui}</MemoryRouter>);
+const render = (ui: ReactElement) =>
+  rtlRender(<MemoryRouter initialEntries={['/estatisticas']}>{ui}</MemoryRouter>);
 
 const createTestQueryClient = () =>
   new QueryClient({
@@ -25,7 +26,7 @@ describe('StatsPage (PC-27)', () => {
     render(
       <QueryClientProvider client={queryClient}>
         <StatsPage />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     expect(screen.getByText(/carregando estatísticas/i)).toBeInTheDocument();
@@ -35,15 +36,18 @@ describe('StatsPage (PC-27)', () => {
     const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
     server.use(
       http.get(`${baseURL}/meals/stats`, () => {
-        return HttpResponse.json({ success: false, message: 'Falha de conexão com o banco' }, { status: 500 });
-      })
+        return HttpResponse.json(
+          { success: false, message: 'Falha de conexão com o banco' },
+          { status: 500 },
+        );
+      }),
     );
 
     const queryClient = createTestQueryClient();
     render(
       <QueryClientProvider client={queryClient}>
         <StatsPage />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     const alert = await screen.findByRole('alert');
@@ -69,17 +73,19 @@ describe('StatsPage (PC-27)', () => {
             chartData: [],
           },
         });
-      })
+      }),
     );
 
     const queryClient = createTestQueryClient();
     render(
       <QueryClientProvider client={queryClient}>
         <StatsPage />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
-    expect(await screen.findByText(/nenhum histórico registrado neste período/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/nenhum histórico registrado neste período/i),
+    ).toBeInTheDocument();
   });
 
   it('renders stats and chart when data is present', async () => {
@@ -87,7 +93,7 @@ describe('StatsPage (PC-27)', () => {
     render(
       <QueryClientProvider client={queryClient}>
         <StatsPage />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     await waitFor(() => {
@@ -100,20 +106,22 @@ describe('StatsPage (PC-27)', () => {
     render(
       <QueryClientProvider client={createTestQueryClient()}>
         <StatsPage embedded />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     expect(await screen.findByText('2000')).toBeInTheDocument();
     expect(screen.getByText('2200')).toBeInTheDocument();
     expect(screen.getByText(/média dos 1 de 7 dias com refeição registrada/i)).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 3, name: /calorias por dia/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 3, name: /calorias por dia/i }),
+    ).toBeInTheDocument();
   });
 
   it('o período vira chips no cabeçalho do card: 7D ativo e 30D troca a consulta', async () => {
     render(
       <QueryClientProvider client={createTestQueryClient()}>
         <StatsPage embedded />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     const week = screen.getByRole('button', { name: 'Últimos 7 dias' });
@@ -129,12 +137,14 @@ describe('StatsPage (PC-27)', () => {
   it('o filtro de período continua disponível no estado de erro', async () => {
     const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
     server.use(
-      http.get(`${baseURL}/meals/stats`, () => HttpResponse.json({ success: false, message: 'Falha' }, { status: 500 }))
+      http.get(`${baseURL}/meals/stats`, () =>
+        HttpResponse.json({ success: false, message: 'Falha' }, { status: 500 }),
+      ),
     );
     render(
       <QueryClientProvider client={createTestQueryClient()}>
         <StatsPage embedded />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     expect(await screen.findByRole('alert')).toBeInTheDocument();
@@ -145,7 +155,7 @@ describe('StatsPage (PC-27)', () => {
     render(
       <QueryClientProvider client={createTestQueryClient()}>
         <StatsPage embedded />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     expect(screen.getByRole('heading', { level: 2, name: /alimentação/i })).toHaveClass('sr-only');

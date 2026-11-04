@@ -98,7 +98,11 @@ describe('Custom Foods Feature (BL-22 / FEAT-C05 / D-07)', () => {
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.success, true);
     const found = res.body.data.foods.find((f: { id: string }) => f.id === customFoodId);
-    assert.strictEqual(found, undefined, 'Usuário 2 não deve acessar alimento privado de outro usuário');
+    assert.strictEqual(
+      found,
+      undefined,
+      'Usuário 2 não deve acessar alimento privado de outro usuário',
+    );
   });
 
   it('POST /api/foods/custom - deve rejeitar criação de alimento com mesmo nome pelo mesmo usuário com 409 (A-003)', async () => {
@@ -115,7 +119,10 @@ describe('Custom Foods Feature (BL-22 / FEAT-C05 / D-07)', () => {
 
     assert.strictEqual(res.status, 409);
     assert.strictEqual(res.body.success, false);
-    assert.strictEqual(res.body.message, 'Você já possui um alimento ativo cadastrado com este nome.');
+    assert.strictEqual(
+      res.body.message,
+      'Você já possui um alimento ativo cadastrado com este nome.',
+    );
   });
 
   it('POST /api/foods/custom - usuário 2 deve conseguir criar alimento com o mesmo nome de usuário 1 (A-003)', async () => {

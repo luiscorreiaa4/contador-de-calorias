@@ -15,7 +15,7 @@ interface SwipeMainProps {
 export function SwipeMain({ enabled, className, children }: SwipeMainProps) {
   const { areaRef, panelRef } = useSwipeNav<HTMLElement, HTMLDivElement>(enabled);
   return (
-    <main ref={areaRef} className={className}>
+    <main id="main-content" tabIndex={-1} ref={areaRef} className={className}>
       <div ref={panelRef} className="w-full flex items-center justify-center">
         {children}
       </div>

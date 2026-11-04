@@ -8,7 +8,7 @@ import { createVerifiedUser } from '../helpers/auth.js';
 
 describe('Meal Routes (Integration)', () => {
   closeTestPool(async () => {
-      await cleanupTestData('tester-tz-%');
+    await cleanupTestData('tester-tz-%');
   });
 
   it('GET /api/meals/today - deve retornar 401 sem token (Não Autorizado)', async () => {
@@ -28,7 +28,7 @@ describe('Meal Routes (Integration)', () => {
       password: 'password123',
     });
     userToken = user.token;
-    
+
     const foodsRes = await request(app)
       .get('/api/foods')
       .set('Authorization', `Bearer ${userToken}`);
@@ -45,7 +45,7 @@ describe('Meal Routes (Integration)', () => {
       .send({
         name: 'Ceia Tardia',
         mealTime: mealTime,
-        items: [{ foodId, quantity: 100 }]
+        items: [{ foodId, quantity: 100 }],
       });
 
     assert.strictEqual(createRes.status, 201);
@@ -56,7 +56,7 @@ describe('Meal Routes (Integration)', () => {
     const todayRes = await request(app)
       .get('/api/meals/today?date=2026-10-06')
       .set('Authorization', `Bearer ${userToken}`);
-      
+
     assert.strictEqual(todayRes.body.data.length, 1);
     assert.strictEqual(todayRes.body.data[0].name, 'Ceia Tardia');
 
@@ -64,7 +64,7 @@ describe('Meal Routes (Integration)', () => {
     const tomorrowRes = await request(app)
       .get('/api/meals/today?date=2026-10-07')
       .set('Authorization', `Bearer ${userToken}`);
-      
+
     assert.strictEqual(tomorrowRes.body.data.length, 0);
 
     // GET /api/meals/stats - refeição às 23:59 deve ser agrupada na data de Brasília (CA-14 / D-01)
@@ -73,9 +73,14 @@ describe('Meal Routes (Integration)', () => {
       .set('Authorization', `Bearer ${userToken}`);
 
     assert.strictEqual(statsRes.status, 200);
-    const dayItem = statsRes.body.data.chartData.find((d: { date: string }) => d.date === '2026-10-06');
+    const dayItem = statsRes.body.data.chartData.find(
+      (d: { date: string }) => d.date === '2026-10-06',
+    );
     assert.ok(dayItem, 'Data 2026-10-06 deve constar no chartData');
-    assert.ok(dayItem.consumed_calories > 0, 'Consumo deve estar atribuído a 2026-10-06 e não ao dia seguinte');
+    assert.ok(
+      dayItem.consumed_calories > 0,
+      'Consumo deve estar atribuído a 2026-10-06 e não ao dia seguinte',
+    );
   });
 
   it('PUT /api/meals/:id - deve atualizar refeição e substituir itens atomicamente', async () => {
@@ -87,7 +92,7 @@ describe('Meal Routes (Integration)', () => {
       .send({
         name: 'Ceia Atualizada',
         mealTime: mealTime,
-        items: [{ foodId, quantity: 200 }]
+        items: [{ foodId, quantity: 200 }],
       });
 
     assert.strictEqual(res.status, 200);

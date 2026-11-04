@@ -27,28 +27,28 @@ export interface CuratedImportResult {
   errors: string[];
 }
 
-export const curatedFoodItemSchema = z.object({
-  name: z.string().trim().min(2, 'Nome deve ter no mínimo 2 caracteres.').max(255),
-  calories: z.number().min(0, 'Calorias não podem ser negativas.').max(900, 'Calorias máximas de 900.'),
-  proteins: z.number().min(0).max(100, 'Proteínas máximas de 100.'),
-  carbs: z.number().min(0).max(100, 'Carboidratos máximos de 100.'),
-  fats: z.number().min(0).max(100, 'Gorduras máximas de 100.'),
-  base_unit: z.enum(['g', 'ml']).default('g'),
-  serving_weight: z.number().positive().default(100),
-  unit_name: z.string().trim().max(50).nullable().optional(),
-  unit_weight: z.number().positive().max(5000).nullable().optional(),
-  source: z.string().trim().min(2, 'O campo source é obrigatório.').max(50),
-  source_ref: z.string().trim().min(2, 'O campo source_ref é obrigatório (B9).').max(255),
-  external_id: z.string().trim().max(100).optional(),
-}).refine(
-  (data) => data.proteins + data.carbs + data.fats <= 100.5,
-  {
+const curatedFoodItemSchema = z
+  .object({
+    name: z.string().trim().min(2, 'Nome deve ter no mínimo 2 caracteres.').max(255),
+    calories: z
+      .number()
+      .min(0, 'Calorias não podem ser negativas.')
+      .max(900, 'Calorias máximas de 900.'),
+    proteins: z.number().min(0).max(100, 'Proteínas máximas de 100.'),
+    carbs: z.number().min(0).max(100, 'Carboidratos máximos de 100.'),
+    fats: z.number().min(0).max(100, 'Gorduras máximas de 100.'),
+    base_unit: z.enum(['g', 'ml']).default('g'),
+    serving_weight: z.number().positive().default(100),
+    unit_name: z.string().trim().max(50).nullable().optional(),
+    unit_weight: z.number().positive().max(5000).nullable().optional(),
+    source: z.string().trim().min(2, 'O campo source é obrigatório.').max(50),
+    source_ref: z.string().trim().min(2, 'O campo source_ref é obrigatório (B9).').max(255),
+    external_id: z.string().trim().max(100).optional(),
+  })
+  .refine((data) => data.proteins + data.carbs + data.fats <= 100.5, {
     message: 'A soma de proteínas, carboidratos e gorduras não pode exceder 100,5 g por 100 g.',
     path: ['proteins'],
-  }
-);
-
-export const curatedFoodsArraySchema = z.array(curatedFoodItemSchema);
+  });
 
 function escapeCsvField(val: unknown): string {
   if (val === null || val === undefined) return '';
@@ -63,7 +63,10 @@ function escapeCsvField(val: unknown): string {
  * Heurística de sugestões de duplicatas para revisão do catálogo
  */
 function detectDuplicateSuggestion(name: string, allNames: string[]): string {
-  const clean = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const clean = name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
 
   if (/tipo\s*\d+/i.test(clean)) {
     return 'Variante por tipo (ex.: tipo 1 / tipo 2)';
@@ -71,11 +74,17 @@ function detectDuplicateSuggestion(name: string, allNames: string[]): string {
 
   const prepMatch = clean.match(/\b(cru|cozid[ao]|grelhad[ao]|frit[ao]|assad[ao]|refogad[ao])\b/);
   if (prepMatch) {
-    const rootName = clean.replace(/\b(cru|cozid[ao]|grelhad[ao]|frit[ao]|assad[ao]|refogad[ao])\b/g, '').replace(/\s+/g, ' ').trim();
+    const rootName = clean
+      .replace(/\b(cru|cozid[ao]|grelhad[ao]|frit[ao]|assad[ao]|refogad[ao])\b/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
     if (rootName.length > 3) {
       const related = allNames.filter((other) => {
         if (other === name) return false;
-        const otherClean = other.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const otherClean = other
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '');
         return otherClean.includes(rootName);
       });
       if (related.length > 0) {
@@ -112,7 +121,20 @@ export async function exportCatalogToCsv(client?: PoolClient): Promise<CatalogEx
   const foods = res.rows;
   const allNames = foods.map((f) => f.name);
 
-  const header = ['id', 'external_id', 'source', 'nome', 'kcal', 'proteina', 'carboidrato', 'gordura', 'ativo', 'sugestao', 'decisao', 'novo_nome'].join(';');
+  const header = [
+    'id',
+    'external_id',
+    'source',
+    'nome',
+    'kcal',
+    'proteina',
+    'carboidrato',
+    'gordura',
+    'ativo',
+    'sugestao',
+    'decisao',
+    'novo_nome',
+  ].join(';');
 
   let inactiveCount = 0;
   let suggestionCount = 0;
@@ -214,11 +236,17 @@ function parseCsvLines(csvContent: string): string[][] {
  */
 export async function applyCatalogDecisions(
   csvContent: string,
-  options: { dryRun: boolean; client?: PoolClient }
+  options: { dryRun: boolean; client?: PoolClient },
 ): Promise<CatalogApplyResult> {
   const lines = parseCsvLines(csvContent);
   if (lines.length === 0) {
-    return { totalRows: 0, withDecisions: 0, modified: 0, unchanged: 0, errors: ['Arquivo CSV vazio.'] };
+    return {
+      totalRows: 0,
+      withDecisions: 0,
+      modified: 0,
+      unchanged: 0,
+      errors: ['Arquivo CSV vazio.'],
+    };
   }
 
   const rawHeader = lines[0].map((h) => h.toLowerCase().trim());
@@ -270,12 +298,16 @@ export async function applyCatalogDecisions(
 
       const validDecisions = ['ocultar', 'desativar', 'renomear', 'reativar', 'ativar'];
       if (!validDecisions.includes(decisao)) {
-        errors.push(`Linha ${lineNum}: Decisão desconhecida "${decisao}". Permitidos: ocultar, renomear, reativar.`);
+        errors.push(
+          `Linha ${lineNum}: Decisão desconhecida "${decisao}". Permitidos: ocultar, renomear, reativar.`,
+        );
         continue;
       }
 
       if (decisao === 'renomear' && (!novoNome || novoNome.length < 2)) {
-        errors.push(`Linha ${lineNum}: Decisão "renomear" exige coluna "novo_nome" com pelo menos 2 caracteres.`);
+        errors.push(
+          `Linha ${lineNum}: Decisão "renomear" exige coluna "novo_nome" com pelo menos 2 caracteres.`,
+        );
         continue;
       }
 
@@ -284,10 +316,7 @@ export async function applyCatalogDecisions(
         id: string;
         name: string;
         active: boolean;
-      }>(
-        `SELECT id, name, active FROM foods WHERE id = $1 AND user_id IS NULL`,
-        [id]
-      );
+      }>(`SELECT id, name, active FROM foods WHERE id = $1 AND user_id IS NULL`, [id]);
 
       if (existingRes.rows.length === 0) {
         errors.push(`Linha ${lineNum}: Alimento com ID "${id}" não encontrado no catálogo global.`);
@@ -322,7 +351,7 @@ export async function applyCatalogDecisions(
                admin_edited_at = NOW(),
                updated_at = NOW()
            WHERE id = $3`,
-          [targetName, targetActive, id]
+          [targetName, targetActive, id],
         );
 
         await recordAuditLog(dbClient, {
@@ -371,7 +400,7 @@ export async function applyCatalogDecisions(
  */
 export async function importCuratedFoods(
   jsonContent: string,
-  options: { dryRun: boolean; client?: PoolClient }
+  options: { dryRun: boolean; client?: PoolClient },
 ): Promise<CuratedImportResult> {
   let parsed: unknown;
   try {
@@ -407,13 +436,20 @@ export async function importCuratedFoods(
     const raw = parsed[i];
     const validation = curatedFoodItemSchema.safeParse(raw);
     if (!validation.success) {
-      const issueMsgs = validation.error.issues.map((iss) => `${iss.path.join('.')}: ${iss.message}`).join(', ');
+      const issueMsgs = validation.error.issues
+        .map((iss) => `${iss.path.join('.')}: ${iss.message}`)
+        .join(', ');
       errors.push(`Item [${i}] "${raw?.name || 'sem nome'}": ${issueMsgs}`);
       continue;
     }
 
     const item = validation.data;
-    const itemWarnings = calculateCaloricWarnings(item.calories, item.proteins, item.carbs, item.fats);
+    const itemWarnings = calculateCaloricWarnings(
+      item.calories,
+      item.proteins,
+      item.carbs,
+      item.fats,
+    );
     for (const w of itemWarnings) {
       reviewWarnings.push(`[REVISAR] Item "${item.name}": ${w}`);
     }
@@ -440,12 +476,17 @@ export async function importCuratedFoods(
     }
 
     for (const food of validItems) {
-      const extId = food.external_id || `curated-${food.name.toLowerCase().replace(/[^a-z0-9]/g, '-').slice(0, 50)}`;
+      const extId =
+        food.external_id ||
+        `curated-${food.name
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, '-')
+          .slice(0, 50)}`;
 
       if (options.dryRun) {
         const check = await dbClient.query<{ id: string }>(
           `SELECT id FROM foods WHERE source = $1 AND external_id = $2`,
-          [food.source, extId]
+          [food.source, extId],
         );
         if (check.rows.length > 0) {
           updated++;
@@ -462,7 +503,7 @@ export async function importCuratedFoods(
              AND user_id IS NULL
              AND f_unaccent(lower(name)) = f_unaccent(lower($1))
              AND (source IS NULL OR NOT (source = $2 AND external_id = $3))`,
-          [food.name, food.source, extId]
+          [food.name, food.source, extId],
         );
 
         const query = `
@@ -491,9 +532,18 @@ export async function importCuratedFoods(
         `;
 
         const values = [
-          food.name, food.calories, food.proteins, food.carbs, food.fats,
-          food.base_unit, food.serving_weight, food.unit_name || null, food.unit_weight || null,
-          food.source, food.source_ref, extId,
+          food.name,
+          food.calories,
+          food.proteins,
+          food.carbs,
+          food.fats,
+          food.base_unit,
+          food.serving_weight,
+          food.unit_name || null,
+          food.unit_weight || null,
+          food.source,
+          food.source_ref,
+          extId,
         ];
 
         const res = await dbClient.query<{ is_inserted: boolean; id: string }>(query, values);
@@ -512,7 +562,12 @@ export async function importCuratedFoods(
           entity_type: 'food',
           entity_id: row.id,
           before: null,
-          after: { name: food.name, source: food.source, source_ref: food.source_ref, calories: food.calories },
+          after: {
+            name: food.name,
+            source: food.source,
+            source_ref: food.source_ref,
+            calories: food.calories,
+          },
         });
       }
     }

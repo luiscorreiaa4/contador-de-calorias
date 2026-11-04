@@ -7,7 +7,7 @@ Instruções e diretrizes operacionais de IA para o projeto **CalorieSync**.
 ## 1. Stack e Versões [CONFIRMADO]
 - **Runtime:** Node.js v24.14.0 (mínimo v20+), npm 11.9.0.
 - **Frontend:** React 19.2.8, Vite 8.2.1, TypeScript 6.0.2, Tailwind CSS 3.4.19, Radix UI, TanStack Query v5.101.4, Zod 3.24.2, React Router 7.18.4.
-- **Backend:** Node.js com Express 4.21.2, TypeScript 5.7.3 (`tsx` 4.23.9), Zod 3.24.2, JWT (`jsonwebtoken` 9.0.2), `bcrypt` 5.1.1, PostgreSQL (driver `pg` 8.13.1, sem ORMs), `compression` 1.8.2, `nodemailer` 7.0.13 (SMTP; Mailpit em desenvolvimento).
+- **Backend:** Node.js com Express 4.21.2, TypeScript 5.7.3 (`tsx` 4.23.9), Zod 3.24.2, JWT (`jsonwebtoken` 9.0.2), `bcrypt` 6.0.0, PostgreSQL (driver `pg` 8.13.1, sem ORMs), `compression` 1.8.2, `nodemailer` 7.0.13 (SMTP; Mailpit em desenvolvimento).
 - **Banco de Dados:** PostgreSQL 14+, migrações puras via `node-pg-migrate` 9.0.0 em `backend/migrations/`.
 - **Testes Backend:** Node Native Test Runner (`node:test` + `node:assert` + `supertest` 7.3.0 via `tsx --test`).
 - **Testes Frontend:** Vitest 5.0.3 + React Testing Library (RTL) + MSW 2.15.0 + `@vitest/coverage-v8` 5.0.5.
@@ -24,6 +24,7 @@ Executar na **raiz** do monorepo:
 - `npm run docker:down` — Encerra os containers de desenvolvimento.
 - `npm run test` — Executa testes do backend em banco isolado (`contador_calorias_test`).
 - `npm run test:strict` — Executa backend sem force-exit e mantém sockets ociosos visíveis; obrigatório na verificação final.
+- `npm run test:full` — Roda localmente os mesmos passos do CI (`.github/workflows/ci.yml`), parando no primeiro erro; use antes do push.
 - `npm run test:full` — Executa toda a bateria de verificação do CI do GitHub (audit, typecheck, lint, test:strict, frontend coverage e build).
 - `npm run test:file -- tests/integration/meal_items_batch.test.ts` — Executa um arquivo em modo estrito, com CWD fixo e timeout.
 - `npm run test:backend:file <caminho>` — Executa um único arquivo de teste no backend (ex: `tests/integration/meal_items_batch.test.ts`).
@@ -50,6 +51,7 @@ Executar na **raiz** do monorepo:
 6. **Autenticação por E-mail (BL-12/BL-05):** Rotas públicas em `/api/auth/*` com `Cache-Control: no-store`; cadastro responde `202` sem JWT; login de conta não verificada responde `403` com `code: "EMAIL_NOT_VERIFIED"`; JWT carrega `tv` validado contra `users.token_version`.
 7. **Entrega de E-mail:** `Mailer` plugável (`SmtpMailer`/`MemoryMailer`) escolhido por `MAIL_TRANSPORT`; Mailpit em desenvolvimento (UI `http://localhost:8025`); `NODE_ENV=test` usa memória.
 8. **RBAC e Catálogo Global (D-22 / B1–B12):** Rotas administrativas sob `/api/admin/*` com guard `router.use(authenticate, requireAdmin)`; consulta de papel `role` por PK no PostgreSQL a cada requisição; auditoria atômica obrigatória (`admin_audit_log`); desativação sem deleção física (`active = false`).
+9. **Visitante Temporário:** `POST /api/auth/demo` cria a cada clique um usuário `is_guest` (apagado após 2 h, teto de 500 ativos); `blockGuestUser` bloqueia edição de conta, MFA e push com `403 DEMO_READ_ONLY`.
 
 ---
 
@@ -74,28 +76,27 @@ Executar na **raiz** do monorepo:
 
 ## 5. Ponteiros de Documentação e Regras Detalhadas
 - **Regras Detalhadas & Skills:**
-  - Backend: [.agents/rules/backend-rules.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/.agents/rules/backend-rules.md)
-  - React: [.agents/rules/react-rules.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/.agents/rules/react-rules.md)
-  - Estilo e UI: [.agents/rules/style-rules.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/.agents/rules/style-rules.md)
-  - Inspeção no Browser (E2E): [.agents/skills/browser-inspection/SKILL.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/.agents/skills/browser-inspection/SKILL.md)
+  - Backend: [.agents/rules/backend-rules.md](.agents/rules/backend-rules.md)
+  - React: [.agents/rules/react-rules.md](.agents/rules/react-rules.md)
+  - Estilo e UI: [.agents/rules/style-rules.md](.agents/rules/style-rules.md)
+  - Inspeção no Browser (E2E): [.agents/skills/browser-inspection/SKILL.md](.agents/skills/browser-inspection/SKILL.md)
 - **Documentação de Sistema:**
-  - Manual do Administrador (RBAC & Audit): [docs/ADMIN.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/ADMIN.md)
-  - Manual de Curadoria do Catálogo: [docs/CURADORIA_CATALOGO.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/CURADORIA_CATALOGO.md)
-  - Plano e Decisões Administrativas (D-22): [docs/ADMIN_PLAN.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/ADMIN_PLAN.md)
-  - Arquitetura & Banco (ER): [docs/ARCHITECTURE.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/ARCHITECTURE.md)
-  - Especificação e Fórmulas de Negócio: [docs/SPEC.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/SPEC.md)
-  - Estratégia de Testes: [docs/TESTING.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/TESTING.md)
-  - Planejamento de Fases: [docs/ROADMAP.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/ROADMAP.md)
-  - Design System e Cores: [docs/CORES.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/CORES.md)
-  - Navegação e Rotas: [docs/UX_NAVIGATION.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/UX_NAVIGATION.md)
-  - Migrações: [docs/MIGRATIONS.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/MIGRATIONS.md)
-  - E-mail transacional: [docs/EMAIL_SETUP.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/EMAIL_SETUP.md)
-  - Decisões de arquitetura: [docs/DECISOES.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/DECISOES.md)
+  - Manual do Administrador (RBAC & Audit): [docs/ADMIN.md](docs/ADMIN.md)
+  - Manual de Curadoria do Catálogo: [docs/CURADORIA_CATALOGO.md](docs/CURADORIA_CATALOGO.md)
+  - Arquitetura & Banco (ER): [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+  - Especificação e Fórmulas de Negócio: [docs/SPEC.md](docs/SPEC.md)
+  - Estratégia de Testes: [docs/TESTING.md](docs/TESTING.md)
+  - Planejamento de Fases: [docs/ROADMAP.md](docs/ROADMAP.md)
+  - Design System e Cores: [docs/CORES.md](docs/CORES.md)
+  - Navegação e Rotas: [docs/UX_NAVIGATION.md](docs/UX_NAVIGATION.md)
+  - Migrações: [docs/MIGRATIONS.md](docs/MIGRATIONS.md)
+  - E-mail transacional: [docs/EMAIL_SETUP.md](docs/EMAIL_SETUP.md)
+  - Decisões de arquitetura: [docs/DECISOES.md](docs/DECISOES.md)
 
 ---
 
 ## 6. Inspeções no Navegador (Browser Subagent / E2E) e Conta de Teste
-- **Skill de Referência:** [.agents/skills/browser-inspection/SKILL.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/.agents/skills/browser-inspection/SKILL.md)
+- **Skill de Referência:** [.agents/skills/browser-inspection/SKILL.md](.agents/skills/browser-inspection/SKILL.md)
 - ❌ **PROIBIDO Abrir Navegador para Alterações Simples de CSS/Estilo:** NUNCA abra o subagente do navegador (`browser_subagent`) para conferir pequenas alterações visuais, classes CSS, cores, paddings ou ajustes pontuais. Isso consome tempo e tokens em excesso.
 - ✅ **Casos Exclusivos em que o Browser Pode ser Aberto:**
   1. Apenas quando o usuário **pedir explicitamente** (ex: "abra o navegador", "tire prints", "inspecione a tela no chrome").
@@ -106,9 +107,9 @@ Executar na **raiz** do monorepo:
   - **Usuário:** `testador123`
   - **Status:** `onboarding_completed: true` (dados corporais, rotina e metas diárias já calculados) e e-mail verificado. Não altere o cadastro dessa conta.
 - **Regras Mandatórias ao Executar o Browser Subagent:**
-  - ❌ **PROIBIDO Criar Conta ou Refazer Onboarding:** Nunca acesse `/cadastro` nem passe pelas 5 etapas do wizard de onboarding (`/onboarding`).
+  - ❌ **PROIBIDO Criar Conta ou Refazer Onboarding:** Nunca acesse `/cadastro` nem passe pelas 5 etapas do wizard de onboarding (`/app/onboarding`).
   - ✅ **Fluxo de Login Direto:**
     1. Acesse `http://localhost:5173/login`.
     2. Na aba "ENTRAR", insira `teste@teste.com` no campo de e-mail e `123456` na senha.
     3. Clique no botão de submissão ("ENTRAR").
-    4. O sistema autentica imediatamente e direciona para o Diário (`/`), com acesso liberado a todas as telas (`/`, `/evolucao`, `/metas`, `/configuracoes`, `/perfil`).
+    4. O sistema autentica imediatamente e direciona para o Diário (`/app`), com acesso liberado a todas as telas (`/app`, `/app/historico`, `/app/metas`, `/app/configuracoes`, `/app/perfil`).

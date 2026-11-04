@@ -68,7 +68,10 @@ export async function createAdminFood(data: AdminCreateFoodDTO): Promise<AdminFo
 /**
  * Atualiza alimento global existente (B6, B12).
  */
-export async function updateAdminFood(id: string, data: AdminUpdateFoodDTO): Promise<AdminFoodSaveResponse> {
+export async function updateAdminFood(
+  id: string,
+  data: AdminUpdateFoodDTO,
+): Promise<AdminFoodSaveResponse> {
   return apiFetch<AdminFoodSaveResponse>(`/admin/foods/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),

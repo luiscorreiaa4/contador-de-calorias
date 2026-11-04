@@ -1,7 +1,7 @@
 import { apiFetch } from './api';
 
-import type { CreateMealDTO, CopyMealDTO, Meal, MealItem } from '@caloriesync/shared';
-export type { CreateMealDTO, CopyMealDTO, Meal, MealItem };
+import type { CreateMealDTO, CopyMealDTO, Meal } from '@caloriesync/shared';
+export type { CreateMealDTO, CopyMealDTO, Meal };
 
 export const copyMeal = async (data: CopyMealDTO): Promise<Meal | Meal[]> => {
   return apiFetch<Meal | Meal[]>('/meals/copy', {
@@ -57,10 +57,14 @@ export interface MealStats {
   }[];
 }
 
-export const getMealStats = async (period: 'week' | 'month' = 'month', dateStr?: string, signal?: AbortSignal): Promise<MealStats> => {
+export const getMealStats = async (
+  period: 'week' | 'month' = 'month',
+  dateStr?: string,
+  signal?: AbortSignal,
+): Promise<MealStats> => {
   const params = new URLSearchParams();
   params.append('period', period);
   if (dateStr) params.append('date', dateStr);
-  
+
   return apiFetch<MealStats>(`/meals/stats?${params.toString()}`, { signal });
 };

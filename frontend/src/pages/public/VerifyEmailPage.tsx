@@ -17,6 +17,7 @@ import { AuthPageShell } from '../../components/auth/AuthPageShell';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Button } from '../../components/ui/button';
+import { OtpInput } from '../../components/common/OtpInput';
 
 interface VerifyEmailLocationState {
   email?: string;
@@ -49,10 +50,11 @@ export const VerifyEmailPage: React.FC = () => {
   }, [seconds]);
 
   const verifyMutation = useMutation({
-    mutationFn: () => verifyEmail({ email: email.trim(), code }),
+    mutationFn: () =>
+      verifyEmail({ email: email.trim(), code, rememberMe: state.rememberMe ?? true }),
     onSuccess: (response) => {
-      setAuthSession(response.user, response.token, state.rememberMe ?? true);
-      navigate('/', { replace: true });
+      setAuthSession(response.user, state.rememberMe ?? true);
+      navigate('/app', { replace: true });
     },
   });
 
@@ -65,7 +67,7 @@ export const VerifyEmailPage: React.FC = () => {
   });
 
   if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/app" replace />;
   }
 
   const handleSubmit = (event: React.FormEvent) => {
@@ -94,20 +96,15 @@ export const VerifyEmailPage: React.FC = () => {
         : null;
 
   const resendError = resendMutation.error;
-  const resendErrorMessage =
-    resendError instanceof Error ? resendError.message : null;
+  const resendErrorMessage = resendError instanceof Error ? resendError.message : null;
 
   return (
-    <AuthPageShell
-      title="Confirme seu e-mail"
-      description="Falta pouco para liberar seu acesso"
-    >
+    <AuthPageShell title="Confirme seu e-mail" description="Digite o código que enviamos para você">
       <form onSubmit={handleSubmit} className="space-y-6" noValidate>
         <div className="flex items-start gap-3 border-2 border-border bg-secondary p-4">
           <ShieldCheck className="w-5 h-5 shrink-0 text-primary-ink" aria-hidden="true" />
           <p className="text-xs font-medium leading-relaxed text-secondary-foreground">
-            Enviamos um código numérico de 6 dígitos. Ele expira em 15 minutos e pode ser usado
-            apenas uma vez.
+            O código tem 6 dígitos, vale por 15 minutos e só pode ser usado uma vez.
           </p>
         </div>
 
@@ -160,22 +157,15 @@ export const VerifyEmailPage: React.FC = () => {
 
         <div className="space-y-2">
           <Label htmlFor="verify-code">Código de 6 dígitos</Label>
-          <Input
+          <OtpInput
             id="verify-code"
-            type="text"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            pattern="[0-9]*"
-            maxLength={6}
             value={code}
-            onChange={(event) => {
-              setCode(event.target.value.replace(/\D/g, '').slice(0, 6));
+            onChange={(next) => {
+              setCode(next);
               setFieldError(null);
             }}
-            placeholder="000000"
-            aria-invalid={!!fieldError}
+            invalid={!!fieldError}
             aria-describedby={fieldError ? 'verify-code-error' : undefined}
-            className="text-center font-mono text-2xl tracking-[0.5em]"
           />
         </div>
 

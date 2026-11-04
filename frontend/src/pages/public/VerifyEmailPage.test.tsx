@@ -5,19 +5,15 @@ import { MemoryRouter, Route, Routes } from 'react-router';
 import { render } from '../../tests/setup/test-utils';
 import { VerifyEmailPage } from './VerifyEmailPage';
 
-const renderPage = (
-  state?: { email?: string; codeSent?: boolean; rememberMe?: boolean }
-) =>
+const renderPage = (state?: { email?: string; codeSent?: boolean; rememberMe?: boolean }) =>
   render(
-    <MemoryRouter
-      initialEntries={[{ pathname: '/verificar-email', state }]}
-    >
+    <MemoryRouter initialEntries={[{ pathname: '/verificar-email', state }]}>
       <Routes>
         <Route path="/verificar-email" element={<VerifyEmailPage />} />
-        <Route path="/" element={<div>Diário</div>} />
+        <Route path="/app" element={<div>Diário</div>} />
         <Route path="/login" element={<div>Login</div>} />
       </Routes>
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 
 describe('VerifyEmailPage (BL-12)', () => {
@@ -29,13 +25,14 @@ describe('VerifyEmailPage (BL-12)', () => {
   it('exibe o e-mail recebido pelo router e o campo de código acessível', () => {
     renderPage({ email: 'novo@example.com', codeSent: true });
 
-    expect(screen.getByRole('heading', { level: 1, name: /confirme seu e-mail/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 1, name: /confirme seu e-mail/i }),
+    ).toBeInTheDocument();
     expect(screen.getByText('novo@example.com')).toBeInTheDocument();
 
     const codeInput = screen.getByLabelText(/código de 6 dígitos/i);
     expect(codeInput).toHaveAttribute('inputMode', 'numeric');
     expect(codeInput).toHaveAttribute('autocomplete', 'one-time-code');
-    expect(codeInput).toHaveAttribute('maxLength', '6');
   });
 
   it('inicia a contagem de 60 s quando um código acabou de ser enviado', () => {
@@ -64,7 +61,7 @@ describe('VerifyEmailPage (BL-12)', () => {
 
     expect(await screen.findByText('Diário')).toBeInTheDocument();
     await waitFor(() => {
-      expect(localStorage.getItem('auth_token')).toBe('verified-token');
+      expect(localStorage.getItem('auth_session')).toBe('1');
     });
   });
 
@@ -75,7 +72,7 @@ describe('VerifyEmailPage (BL-12)', () => {
     await userEvent.click(screen.getByRole('button', { name: /confirmar e-mail/i }));
 
     expect(await screen.findByText(/código inválido ou expirado/i)).toBeInTheDocument();
-    expect(localStorage.getItem('auth_token')).toBeNull();
+    expect(localStorage.getItem('auth_session')).toBeNull();
   });
 
   it('reenvia o código e respeita o novo intervalo de 60 s', async () => {
@@ -87,7 +84,7 @@ describe('VerifyEmailPage (BL-12)', () => {
     await userEvent.click(resend);
 
     expect(
-      await screen.findByText(/se os dados estiverem corretos, enviaremos uma nova mensagem/i)
+      await screen.findByText(/se os dados estiverem corretos, enviaremos uma nova mensagem/i),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /reenviar código em 60s/i })).toBeDisabled();
   });

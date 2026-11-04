@@ -35,7 +35,7 @@ describe('AuthContext storage privacy (PC-19 / SEC-018)', () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
 
     act(() => {
-      result.current.setAuthSession(fullUser, 'jwt_token_123');
+      result.current.setAuthSession(fullUser);
     });
 
     // Em memória, os dados completos estão disponíveis para a UI
@@ -85,12 +85,11 @@ describe('AuthContext storage privacy (PC-19 / SEC-018)', () => {
       onboarding_completed: true,
     };
     localStorage.setItem('user_session', JSON.stringify(savedSession));
-    localStorage.setItem('auth_token', 'token-valido-123');
+    localStorage.setItem('auth_session', '1');
 
     const { result } = renderHook(() => useAuth(), { wrapper });
 
     expect(result.current.isAuthenticated).toBe(true);
-    expect(result.current.token).toBe('token-valido-123');
     expect(result.current.user?.id).toBe('user-persistido');
     expect(result.current.user?.name).toBe('Usuário Persistido');
     expect(result.current.user?.email).toBe('persistido@teste.com');
@@ -100,7 +99,7 @@ describe('AuthContext storage privacy (PC-19 / SEC-018)', () => {
 
   it('deve descartar sessão incompleta ou corrompida e inicializar limpo sem crash (A-129)', () => {
     localStorage.setItem('user_session', JSON.stringify({ invalidField: true }));
-    localStorage.setItem('auth_token', 'token-invalido');
+    localStorage.setItem('auth_session', '1');
 
     const { result } = renderHook(() => useAuth(), { wrapper });
 

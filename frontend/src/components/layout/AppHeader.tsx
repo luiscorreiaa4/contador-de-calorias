@@ -1,25 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
-import { Flame, Bell, Lock, Shield, LogOut, ChevronDown } from 'lucide-react';
+import { useSignOut } from '../../hooks/useSignOut';
+import { Flame, LogOut, ChevronDown } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
-import { CONFIG_TABS, DESKTOP_NAV_ITEMS, visibleItems } from '../../navigation/nav-items';
-
-const SETTINGS_ICONS = [Bell, Lock, Shield];
-const SETTINGS_LINKS = CONFIG_TABS.map((tab, index) => ({ ...tab, icon: SETTINGS_ICONS[index] }));
+import { ACCOUNT_LINK_ITEMS, DESKTOP_NAV_ITEMS, visibleItems } from '../../navigation/nav-items';
 
 interface AppHeaderProps {
-  onNavigateToEditProfile?: () => void;
   onNavigateToStats?: () => void;
   onNavigateToDiary?: () => void;
 }
 
-export const AppHeader: React.FC<AppHeaderProps> = ({
-  onNavigateToEditProfile,
-  onNavigateToStats,
-  onNavigateToDiary,
-}) => {
-  const { user, isAuthenticated, logout } = useAuth();
+export const AppHeader: React.FC<AppHeaderProps> = ({ onNavigateToStats, onNavigateToDiary }) => {
+  const { user, isAuthenticated } = useAuth();
+  const signOut = useSignOut();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
@@ -27,23 +21,18 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
   const handleDiary = () => {
     if (onNavigateToDiary) onNavigateToDiary();
-    else navigate('/');
+    else navigate('/app');
     setMenuOpen(false);
   };
 
   const handleStats = () => {
     if (onNavigateToStats) onNavigateToStats();
-    else navigate('/evolucao/alimentacao');
-    setMenuOpen(false);
-  };
-
-  const handleEditProfile = () => {
-    if (onNavigateToEditProfile) onNavigateToEditProfile();
-    else navigate('/perfil');
+    else navigate('/app/historico/alimentacao');
     setMenuOpen(false);
   };
 
   const primaryLinks = visibleItems(DESKTOP_NAV_ITEMS, user?.role === 'admin');
+  const accountLinks = visibleItems(ACCOUNT_LINK_ITEMS, user?.role === 'admin');
 
   // Desktop usa a barra de abas; o dropdown só repete os links no mobile.
   const showMainNav = isAuthenticated && !!user?.onboarding_completed;
@@ -91,7 +80,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
         {/* Logo */}
-        <button type="button" aria-label="CalorieSync — Diário" className="flex items-center gap-3 shrink-0 cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background" onClick={handleDiary}>
+        <button
+          type="button"
+          aria-label={isAuthenticated ? 'CalorieSync — Diário' : 'CalorieSync — Início'}
+          className="flex items-center gap-3 shrink-0 cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          onClick={isAuthenticated ? handleDiary : () => navigate('/')}
+        >
           <div className="w-10 h-10 bg-primary text-primary-foreground border-2 border-edge flex items-center justify-center shadow-hard transition-transform group-hover:-translate-y-0.5 group-hover:shadow-hard-hover">
             <Flame className="w-6 h-6 fill-current" aria-hidden="true" />
           </div>
@@ -145,7 +139,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
               {/* Dropdown panel */}
               {menuOpen && (
-                <div id="account-navigation" className="absolute right-0 top-full mt-2 w-64 bg-card border-2 border-border shadow-hard overflow-hidden z-[100] opacity-100">
+                <div
+                  id="account-navigation"
+                  className="absolute right-0 top-full mt-2 w-64 bg-card border-2 border-border shadow-hard overflow-hidden z-[100] opacity-100"
+                >
                   <div className="p-4 border-b-2 border-border bg-secondary flex justify-between items-start gap-2">
                     <div className="min-w-0">
                       <p className="text-sm font-black font-heading uppercase text-foreground truncate">
@@ -158,27 +155,56 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                     <ThemeToggle size="sm" />
                   </div>
 
-                  <nav aria-label="Menu da conta" className="p-2 flex flex-col gap-1 max-h-[60vh] overflow-y-auto">
+                  <nav
+                    aria-label="Menu da conta"
+                    className="p-2 flex flex-col gap-1 max-h-[60vh] overflow-y-auto"
+                  >
                     <div className={`flex flex-col gap-1 ${showMainNav ? 'md:hidden' : ''}`}>
                       {primaryLinks.map(({ to, label, icon: Icon }) => (
-                        <NavLink key={to} to={to} end={to === '/'} onClick={event => {
-                          setMenuOpen(false);
-                          if (to === '/' && onNavigateToDiary) { event.preventDefault(); handleDiary(); }
-                          if (to === '/evolucao' && onNavigateToStats) { event.preventDefault(); handleStats(); }
-                          if (to === '/perfil' && onNavigateToEditProfile) { event.preventDefault(); handleEditProfile(); }
-                        }} className={({ isActive }) => `flex items-center px-3 py-3 text-xs font-bold uppercase tracking-wider focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${isActive ? 'bg-primary text-primary-foreground border-2 border-edge' : 'hover:bg-secondary'}`}>
-                          <Icon className="w-4 h-4 mr-3" aria-hidden="true" />{label}
+                        <NavLink
+                          key={to}
+                          to={to}
+                          end={to === '/app'}
+                          onClick={(event) => {
+                            setMenuOpen(false);
+                            if (to === '/app' && onNavigateToDiary) {
+                              event.preventDefault();
+                              handleDiary();
+                            }
+                            if (to === '/app/historico' && onNavigateToStats) {
+                              event.preventDefault();
+                              handleStats();
+                            }
+                          }}
+                          className={({ isActive }) =>
+                            `flex items-center px-3 py-3 text-xs font-bold uppercase tracking-wider focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${isActive ? 'bg-primary text-primary-foreground border-2 border-edge' : 'hover:bg-secondary'}`
+                          }
+                        >
+                          <Icon className="w-4 h-4 mr-3" aria-hidden="true" />
+                          {label}
                         </NavLink>
                       ))}
                     </div>
-                    <div className={`border-t-2 border-border mt-1 pt-2 ${showMainNav ? 'md:border-t-0 md:mt-0 md:pt-0' : ''}`}>
-                      {SETTINGS_LINKS.map(({ to, label, icon: Icon }) => <NavLink key={to} to={to} onClick={() => setMenuOpen(false)} className="flex items-center px-3 py-3 text-xs font-bold uppercase tracking-wider hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><Icon className="w-4 h-4 mr-3" aria-hidden="true" />{label}</NavLink>)}
+                    <div
+                      className={`border-t-2 border-border mt-1 pt-2 ${showMainNav ? 'md:border-t-0 md:mt-0 md:pt-0' : ''}`}
+                    >
+                      {accountLinks.map(({ to, label, icon: Icon }) => (
+                        <NavLink
+                          key={to}
+                          to={to}
+                          onClick={() => setMenuOpen(false)}
+                          className="flex items-center px-3 py-3 text-xs font-bold uppercase tracking-wider hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          <Icon className="w-4 h-4 mr-3" aria-hidden="true" />
+                          {label}
+                        </NavLink>
+                      ))}
                     </div>
                   </nav>
 
                   <div className="p-2 border-t-2 border-border bg-background">
                     <button
-                      onClick={logout}
+                      onClick={signOut}
                       className="flex items-center w-full px-3 py-3 text-xs font-bold uppercase tracking-widest text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <LogOut className="w-4 h-4 mr-3 transition-transform group-hover:-translate-x-1" />
@@ -189,20 +215,21 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               )}
             </div>
           ) : (
-            <div className="hidden sm:block">
-              {/* Optional: Add a CTA here if not logged in */}
-            </div>
+            <div className="hidden sm:block">{/* Optional: Add a CTA here if not logged in */}</div>
           )}
         </div>
       </div>
       {showMainNav && (
         <div className="hidden md:block border-t-2 border-border bg-card">
-          <nav aria-label="Navegação principal" className="max-w-5xl mx-auto px-6 flex items-stretch gap-1">
+          <nav
+            aria-label="Navegação principal"
+            className="max-w-5xl mx-auto px-6 flex items-stretch gap-1"
+          >
             {primaryLinks.map(({ to, label, icon: Icon }) => (
               <NavLink
                 key={to}
                 to={to}
-                end={to === '/'}
+                end={to === '/app'}
                 onClick={() => setMenuOpen(false)}
                 className={({ isActive }) =>
                   `group relative flex items-center gap-2 px-5 py-3.5 text-xs font-black uppercase tracking-widest border-b-4 -mb-px transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${

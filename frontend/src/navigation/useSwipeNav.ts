@@ -115,7 +115,12 @@ export function useSwipeNav<A extends HTMLElement, P extends HTMLElement>(enable
 
       const touch = event.touches[0];
       width = window.innerWidth || 1;
-      start = { x: touch.clientX, y: touch.clientY, t: event.timeStamp, edge: isEdgeTouch(touch.clientX, width) };
+      start = {
+        x: touch.clientX,
+        y: touch.clientY,
+        t: event.timeStamp,
+        edge: isEdgeTouch(touch.clientX, width),
+      };
       phase = 'pending';
     };
 

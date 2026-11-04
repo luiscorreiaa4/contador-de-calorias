@@ -11,26 +11,27 @@ const byId = (id: string) => BOTTOM_NAV_ITEMS.find((item) => item.id === id)!;
 
 describe('nav-items', () => {
   it('Diário fica ativo na tela inicial e no diário por data, mas não em outras rotas', () => {
-    expect(isDestinationActive('/', byId('diario'))).toBe(true);
-    expect(isDestinationActive('/diario/2026-10-01', byId('diario'))).toBe(true);
-    expect(isDestinationActive('/evolucao/corpo', byId('diario'))).toBe(false);
+    expect(isDestinationActive('/app', byId('diario'))).toBe(true);
+    expect(isDestinationActive('/app/diario/2026-10-01', byId('diario'))).toBe(true);
+    expect(isDestinationActive('/app/historico/corpo', byId('diario'))).toBe(false);
   });
 
-  it('Progresso fica ativo em Evolução e em Metas', () => {
-    const progresso = byId('progresso');
-    expect(isDestinationActive('/evolucao', progresso)).toBe(true);
-    expect(isDestinationActive('/evolucao/corpo', progresso)).toBe(true);
-    expect(isDestinationActive('/metas/diarias', progresso)).toBe(true);
-    expect(isDestinationActive('/perfil', progresso)).toBe(false);
+  it('Histórico fica ativo só nas próprias rotas', () => {
+    const historico = byId('historico');
+    expect(isDestinationActive('/app/historico', historico)).toBe(true);
+    expect(isDestinationActive('/app/historico/corpo', historico)).toBe(true);
+    expect(isDestinationActive('/app/metas/diarias', historico)).toBe(false);
+    expect(isDestinationActive('/app/perfil', historico)).toBe(false);
   });
 
-  it('Conta fica ativa em /conta, /perfil e /configuracoes e subrotas', () => {
+  it('Conta fica ativa em /conta, /metas, /perfil e /configuracoes e subrotas', () => {
     const conta = byId('conta');
-    expect(isDestinationActive('/conta', conta)).toBe(true);
-    expect(isDestinationActive('/perfil', conta)).toBe(true);
-    expect(isDestinationActive('/configuracoes', conta)).toBe(true);
-    expect(isDestinationActive('/configuracoes/seguranca', conta)).toBe(true);
-    expect(isDestinationActive('/', conta)).toBe(false);
+    expect(isDestinationActive('/app/conta', conta)).toBe(true);
+    expect(isDestinationActive('/app/metas/diarias', conta)).toBe(true);
+    expect(isDestinationActive('/app/perfil', conta)).toBe(true);
+    expect(isDestinationActive('/app/configuracoes', conta)).toBe(true);
+    expect(isDestinationActive('/app/configuracoes/seguranca', conta)).toBe(true);
+    expect(isDestinationActive('/app', conta)).toBe(false);
   });
 
   it('cada destino tem ícone de contorno e ícone preenchido', () => {
@@ -42,9 +43,11 @@ describe('nav-items', () => {
   });
 
   it('Catálogo só aparece para admin', () => {
-    expect(visibleItems(DESKTOP_NAV_ITEMS, false).map((i) => i.id)).not.toContain('catalogo');
-    expect(visibleItems(DESKTOP_NAV_ITEMS, true).map((i) => i.id)).toContain('catalogo');
-    expect(visibleItems(ACCOUNT_LINK_ITEMS, false).map((i) => i.id)).toEqual(['perfil', 'configuracoes']);
+    expect(visibleItems(ACCOUNT_LINK_ITEMS, true).map((i) => i.id)).toContain('catalogo');
+    expect(visibleItems(ACCOUNT_LINK_ITEMS, false).map((i) => i.id)).toEqual([
+      'metas',
+      'perfil',
+      'configuracoes',
+    ]);
   });
-
 });

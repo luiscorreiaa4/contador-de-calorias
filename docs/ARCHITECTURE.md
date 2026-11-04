@@ -110,6 +110,7 @@ erDiagram
         BOOLEAN onboarding_completed "DEFAULT FALSE"
         TIMESTAMPTZ email_verified_at "NULLABLE"
         INTEGER token_version "NOT NULL, DEFAULT 0"
+        BOOLEAN is_guest "NOT NULL, DEFAULT FALSE"
         TIMESTAMPTZ terms_accepted_at "NULLABLE"
         TIMESTAMPTZ created_at "DEFAULT CURRENT_TIMESTAMP"
         TIMESTAMPTZ updated_at "DEFAULT CURRENT_TIMESTAMP"
@@ -215,6 +216,7 @@ erDiagram
 - `users`:
   - `users_email_lower_key`: índice único em `lower(email)` (migração `1792600000000_add-users-email-lower-index.js`).
   - `email_verified_at` e `token_version` adicionados pela migração de BL-12/BL-05.
+  - `is_guest` e índice parcial `users_guest_created_at_idx` em `(created_at) WHERE is_guest` (migração `1793600000000_add-guest-users.js`), usados pela limpeza de visitantes.
 - `email_verification_codes`:
   - Índice `ON email_verification_codes(user_id, created_at DESC)` para localizar o código mais recente e contar envios por janela.
 - `password_reset_tokens`:

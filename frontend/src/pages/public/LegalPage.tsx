@@ -68,51 +68,52 @@ const LegalPageLayout: React.FC<LegalPageLayoutProps> = ({
 export const TermsPage: React.FC = () => (
   <LegalPageLayout
     icon={<FileText className="w-3 h-3" aria-hidden="true" />}
-    eyebrow="Documento Legal"
+    eyebrow="Documento legal"
     title="Termos de Uso"
     updatedAt="19/10/2026"
   >
-    <LegalSection title="1. Aceitação dos Termos">
+    <LegalSection title="1. Aceite dos termos">
       <p>
-        Ao criar uma conta no CalorieSync você declara ter lido e concordado com estes Termos de Uso e
-        com a nossa Política de Privacidade. O aceite é registrado com data e hora no momento do cadastro.
+        Ao criar uma conta no CalorieSync você declara ter lido e concordado com estes Termos de Uso
+        e com a nossa Política de Privacidade. O aceite é registrado com data e hora no momento do
+        cadastro.
       </p>
     </LegalSection>
 
-    <LegalSection title="2. Descrição do Serviço">
+    <LegalSection title="2. O que é o serviço">
       <p>
-        O CalorieSync é uma ferramenta de acompanhamento nutricional que estima calorias e macronutrientes
-        a partir dos alimentos registrados e das metas definidas por você. As estimativas são aproximadas e
-        dependem dos dados informados.
+        O CalorieSync é uma ferramenta de acompanhamento nutricional que estima calorias e
+        macronutrientes a partir dos alimentos registrados e das metas definidas por você. As
+        estimativas são aproximadas e dependem dos dados informados.
       </p>
     </LegalSection>
 
-    <LegalSection title="3. Responsabilidades do Usuário">
+    <LegalSection title="3. Suas responsabilidades">
       <p>
-        Você é responsável pela veracidade das informações cadastradas, pela guarda da sua senha e pelo uso
-        adequado da plataforma. É proibido tentar acessar dados de outras pessoas ou comprometer a segurança
-        do serviço.
+        Você é responsável pela veracidade das informações cadastradas, pela guarda da sua senha e
+        pelo uso adequado da plataforma. É proibido tentar acessar dados de outras pessoas ou
+        comprometer a segurança do serviço.
       </p>
     </LegalSection>
 
-    <LegalSection title="4. Aviso de Saúde">
+    <LegalSection title="4. Aviso de saúde">
       <p>
-        As estimativas nutricionais apresentadas não substituem orientação médica ou de nutricionista. Consulte
-        um profissional de saúde antes de adotar dietas restritivas.
+        As estimativas nutricionais apresentadas não substituem orientação médica ou de
+        nutricionista. Consulte um profissional de saúde antes de adotar dietas restritivas.
       </p>
     </LegalSection>
 
-    <LegalSection title="5. Propriedade Intelectual">
+    <LegalSection title="5. Propriedade intelectual">
       <p>
-        A marca, o layout e o código do CalorieSync pertencem aos seus titulares. Os dados que você registra
-        permanecem seus e podem ser exportados ou excluídos a qualquer momento.
+        A marca, o layout e o código do CalorieSync pertencem aos seus titulares. Os dados que você
+        registra permanecem seus e podem ser exportados ou excluídos a qualquer momento.
       </p>
     </LegalSection>
 
-    <LegalSection title="6. Alterações e Contato">
+    <LegalSection title="6. Alterações">
       <p>
-        Podemos atualizar estes termos para refletir melhorias do serviço, sempre publicando a nova versão
-        nesta página. O uso contínuo após a atualização implica concordância.
+        Podemos atualizar estes termos. A versão nova sempre é publicada nesta página, e continuar
+        usando o serviço depois disso significa que você concorda com ela.
       </p>
     </LegalSection>
   </LegalPageLayout>
@@ -121,50 +122,96 @@ export const TermsPage: React.FC = () => (
 export const PrivacyPage: React.FC = () => (
   <LegalPageLayout
     icon={<ShieldCheck className="w-3 h-3" aria-hidden="true" />}
-    eyebrow="Documento Legal"
+    eyebrow="Documento legal"
     title="Política de Privacidade"
-    updatedAt="19/10/2026"
+    updatedAt="02/11/2026"
   >
-    <LegalSection title="1. Dados que Coletamos">
+    <LegalSection title="1. Dados que coletamos">
       <p>
-        Dados de cadastro (nome e e-mail), dados do perfil (sexo, data de nascimento, peso, altura, percentual
-        de gordura, nível de atividade e objetivo) e os registros de refeições, metas e medições corporais que
-        você cria na plataforma.
+        Dados de cadastro (nome e e-mail), dados do perfil e os registros de refeições, metas e
+        medições corporais que você cria na plataforma. Coletamos apenas o que o cálculo das suas
+        metas exige:
       </p>
+      <ul className="list-disc pl-5 space-y-1">
+        <li>
+          Sexo, data de nascimento (idade), peso e altura: entram na fórmula de gasto calórico.
+        </li>
+        <li>Nível de atividade: define o multiplicador do gasto energético diário.</li>
+        <li>Objetivo: define o ajuste calórico da meta (perder, manter ou ganhar peso).</li>
+        <li>
+          Percentual de gordura: opcional. Se informado, usamos uma fórmula mais precisa; se não,
+          usamos outra que dispensa esse dado.
+        </li>
+      </ul>
     </LegalSection>
 
-    <LegalSection title="2. Finalidade e Base Legal">
+    <LegalSection title="2. Finalidade e base legal">
       <p>
-        Tratamos esses dados para operar o serviço e calcular suas metas nutricionais. A base legal é a execução
-        do contrato e o consentimento que você concede no cadastro (LGPD, art. 7º).
+        Tratamos esses dados para operar o serviço e calcular suas metas nutricionais. A base legal
+        é a execução do contrato e o consentimento que você concede no cadastro (LGPD, art. 7º).
       </p>
     </LegalSection>
 
     <LegalSection title="3. Compartilhamento">
       <p>
-        Não vendemos nem compartilhamos seus dados pessoais com terceiros para fins de publicidade. Dados podem
-        ser tratados por provedores de infraestrutura estritamente para hospedar o serviço.
+        Não vendemos nem compartilhamos seus dados pessoais com terceiros para fins de publicidade.
+        Dados podem ser tratados por provedores de infraestrutura estritamente para hospedar o
+        serviço.
       </p>
     </LegalSection>
 
     <LegalSection title="4. Retenção">
       <p>
-        Mantemos seus dados enquanto sua conta estiver ativa. Ao excluir a conta, todos os registros associados
-        são removidos de forma permanente.
+        Mantemos seus dados enquanto sua conta estiver ativa. Ao excluir a conta, todos os registros
+        associados são removidos de forma permanente do banco de dados. Cópias de segurança e logs
+        técnicos são mantidos por no máximo 30 dias e depois descartados.
       </p>
     </LegalSection>
 
-    <LegalSection title="5. Seus Direitos (LGPD, art. 18)">
+    <LegalSection title="5. Seus direitos (LGPD, art. 18)">
       <p>
-        Você pode acessar, corrigir, exportar e excluir seus dados diretamente na página de perfil. A exportação
-        gera um arquivo JSON com o histórico completo, e a exclusão elimina sua conta e todos os dados vinculados.
+        Você pode acessar, corrigir, exportar e excluir seus dados diretamente na página de perfil.
+        A exportação gera um arquivo JSON com o histórico completo, e a exclusão elimina sua conta e
+        todos os dados vinculados.
       </p>
     </LegalSection>
 
     <LegalSection title="6. Segurança">
       <p>
-        Senhas são armazenadas com hash bcrypt e nunca em texto puro. O acesso é protegido por autenticação JWT
-        e limite de tentativas. Detalhes adicionais estão na página de Segurança.
+        Senhas são armazenadas com hash bcrypt e nunca em texto puro. O acesso é protegido por
+        autenticação JWT e limite de tentativas. Mais detalhes na página de Segurança.
+      </p>
+    </LegalSection>
+
+    <LegalSection title="7. Verificação contra robôs (Cloudflare Turnstile)">
+      <p>
+        No cadastro, no login e na recuperação de senha usamos o Cloudflare Turnstile para
+        distinguir pessoas de robôs. Ele pode coletar dados técnicos do navegador e do dispositivo,
+        tratados pela Cloudflare conforme o{' '}
+        <a
+          href="https://www.cloudflare.com/en-gb/turnstile-privacy-policy/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary-ink underline"
+        >
+          Termo de Privacidade do Cloudflare Turnstile
+        </a>
+        , que integra esta política.
+      </p>
+    </LegalSection>
+
+    <LegalSection title="8. Monitoramento de erros (Sentry)">
+      <p>
+        Quando ocorre uma falha no servidor, enviamos ao Sentry apenas informações técnicas do erro
+        (mensagem e trecho do código). Não enviamos o conteúdo das requisições, cookies, cabeçalhos
+        nem seus dados de saúde.
+      </p>
+    </LegalSection>
+
+    <LegalSection title="9. Incidentes de segurança">
+      <p>
+        Em caso de incidente que possa causar risco relevante aos seus dados, comunicaremos você e a
+        Autoridade Nacional de Proteção de Dados (ANPD), conforme a LGPD, art. 48.
       </p>
     </LegalSection>
   </LegalPageLayout>
@@ -173,36 +220,35 @@ export const PrivacyPage: React.FC = () => (
 export const SecurityPage: React.FC = () => (
   <LegalPageLayout
     icon={<Lock className="w-3 h-3" aria-hidden="true" />}
-    eyebrow="Documento Legal"
+    eyebrow="Documento legal"
     title="Segurança"
     updatedAt="19/10/2026"
   >
-    <LegalSection title="1. Proteção de Credenciais">
+    <LegalSection title="1. Senhas">
       <p>
-        As senhas são processadas com bcrypt e nunca são armazenadas ou trafegadas em texto puro. Recomendamos
-        senhas longas e únicas para sua conta.
+        As senhas são processadas com bcrypt e nunca são armazenadas ou trafegadas em texto puro.
+        Recomendamos senhas longas e únicas para sua conta.
       </p>
     </LegalSection>
 
-    <LegalSection title="2. Sessões e Autenticação">
+    <LegalSection title="2. Sessão e login">
       <p>
-        O acesso é autenticado por token JWT criptográfico com expiração temporária automática. Recomendamos
-        o encerramento explícito da sessão (logout) e a atualização de credenciais em caso de suspeita
-        de acesso indevido.
+        O acesso usa um token JWT assinado que expira sozinho. Se suspeitar que alguém entrou na sua
+        conta, saia da sessão e troque a senha.
       </p>
     </LegalSection>
 
-    <LegalSection title="3. Mitigações de Ataque">
+    <LegalSection title="3. Proteção contra ataques">
       <p>
-        Aplicamos limite de tentativas de autenticação por IP e por e-mail, cabeçalhos de segurança HTTP e
-        validação rigorosa de todos os dados de entrada.
+        Aplicamos limite de tentativas de autenticação por IP e por e-mail, cabeçalhos de segurança
+        HTTP e validação de todos os dados recebidos.
       </p>
     </LegalSection>
 
-    <LegalSection title="4. Reportar Vulnerabilidades">
+    <LegalSection title="4. Como relatar uma falha">
       <p>
-        Se você identificar uma falha de segurança, entre em contato pelo e-mail de privacidade antes de tornar
-        o problema público. Investigaremos e responderemos o quanto antes.
+        Se você identificar uma falha de segurança, entre em contato pelo e-mail de privacidade
+        antes de tornar o problema público. Vamos investigar e responder o quanto antes.
       </p>
     </LegalSection>
   </LegalPageLayout>

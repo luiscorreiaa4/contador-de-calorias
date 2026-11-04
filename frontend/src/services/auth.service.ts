@@ -1,4 +1,5 @@
 import { apiFetch } from './api';
+import { getCaptchaToken } from './captcha';
 import type { LoginFormData, RegisterFormData } from '../types/auth';
 
 export interface UserProfile {
@@ -17,6 +18,7 @@ export interface UserProfile {
   onboarding_completed: boolean;
   /** Papel de autorização do usuário (D-22 / B1). */
   role?: 'user' | 'admin';
+  mfa_enabled?: boolean;
   /** Presente nas respostas completas do backend (BL-12). */
   email_verified_at?: string | null;
   /** Versão do token usada para revogar sessões antigas (BL-12 / A8). */
@@ -25,13 +27,13 @@ export interface UserProfile {
   updated_at: string;
 }
 
+/** O JWT vai em cookie HttpOnly; o corpo traz só o usuário (o `token` do backend é ignorado). */
 export interface AuthResponseData {
   user: UserProfile;
-  token: string;
 }
 
-/** Resposta de PUT /users/me: inclui token novo após troca de senha/e-mail. */
-export type UpdateProfileResult = UserProfile & { token?: string };
+/** Resposta de PUT /users/me; o cookie é renovado pelo backend após troca de senha/e-mail. */
+export type UpdateProfileResult = UserProfile;
 
 export interface UpdateProfileData {
   name?: string;
@@ -50,6 +52,7 @@ export interface UpdateProfileData {
 export interface VerifyEmailData {
   email: string;
   code: string;
+  rememberMe?: boolean;
 }
 
 /** POST /auth/register (A4/A6): 202 genérico, sem sessão. */
@@ -61,6 +64,7 @@ export async function registerUser(data: RegisterFormData): Promise<void> {
       email: data.email,
       password: data.password,
       acceptTerms: data.acceptTerms,
+      captcha_token: await getCaptchaToken(),
     }),
   });
 }
@@ -72,9 +76,35 @@ export async function loginUser(data: LoginFormData): Promise<AuthResponseData> 
     body: JSON.stringify({
       email: data.email,
       password: data.password,
+      ...(data.mfaCode ? { mfa_code: data.mfaCode } : {}),
+      remember_me: data.rememberMe,
+      captcha_token: await getCaptchaToken(),
     }),
   });
 }
+
+/** POST /auth/demo: cria um visitante temporário (`is_guest`) e devolve a sessão, sem senha. */
+export const demoLogin = async () =>
+  apiFetch<AuthResponseData>('/auth/demo', {
+    method: 'POST',
+    body: JSON.stringify({ captcha_token: await getCaptchaToken() }),
+  });
+
+export interface MfaSetupData {
+  secret: string;
+  otpauth_url: string;
+}
+
+export const setupMfa = () => apiFetch<MfaSetupData>('/users/me/mfa/setup', { method: 'POST' });
+
+export const enableMfa = (code: string) =>
+  apiFetch<{ recovery_codes: string[] }>('/users/me/mfa/enable', {
+    method: 'POST',
+    body: JSON.stringify({ code }),
+  });
+
+export const disableMfa = (code: string) =>
+  apiFetch<void>('/users/me/mfa/disable', { method: 'POST', body: JSON.stringify({ code }) });
 
 /** POST /auth/verify-email (A2/A6): valida o código e devolve sessão. */
 export async function verifyEmail(data: VerifyEmailData): Promise<AuthResponseData> {
@@ -83,6 +113,7 @@ export async function verifyEmail(data: VerifyEmailData): Promise<AuthResponseDa
     body: JSON.stringify({
       email: data.email,
       code: data.code,
+      remember_me: data.rememberMe ?? true,
     }),
   });
 }
@@ -99,7 +130,7 @@ export async function resendVerificationCode(email: string): Promise<void> {
 export async function forgotPassword(email: string): Promise<void> {
   return apiFetch<void>('/auth/forgot-password', {
     method: 'POST',
-    body: JSON.stringify({ email }),
+    body: JSON.stringify({ email, captcha_token: await getCaptchaToken() }),
   });
 }
 
@@ -111,13 +142,26 @@ export async function resetPassword(token: string, password: string): Promise<vo
   });
 }
 
-export async function completeUserOnboarding(data: { sex: string; birthDate: string; goal: string; weight: number; height: number; body_fat?: number; activity_level: string; }): Promise<AuthResponseData> {
+export async function completeUserOnboarding(data: {
+  sex: string;
+  birthDate: string;
+  goal: string;
+  weight: number;
+  height: number;
+  body_fat?: number;
+  activity_level: string;
+}): Promise<AuthResponseData> {
   const user = await apiFetch<UserProfile>('/users/me/onboarding', {
     method: 'PUT',
     body: JSON.stringify(data),
   });
   // O endpoint retorna o user atualizado; a sessão atual continua válida.
-  return { user, token: localStorage.getItem('auth_token') || '' };
+  return { user };
+}
+
+/** POST /auth/logout: o backend expira o cookie HttpOnly. */
+export async function logoutUser(): Promise<void> {
+  return apiFetch<void>('/auth/logout', { method: 'POST' });
 }
 
 export async function getCurrentUserProfile(): Promise<UserProfile> {

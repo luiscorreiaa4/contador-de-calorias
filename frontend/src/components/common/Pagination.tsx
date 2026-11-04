@@ -1,11 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import React from 'react';
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 export interface PaginationProps {
   page: number;
@@ -20,7 +15,10 @@ export function formatNumberPtBr(num: number): string {
   return new Intl.NumberFormat('pt-BR').format(num);
 }
 
-export function getPaginationWindow(current: number, total: number): (number | 'ellipsis-start' | 'ellipsis-end')[] {
+export function getPaginationWindow(
+  current: number,
+  total: number,
+): (number | 'ellipsis-start' | 'ellipsis-end')[] {
   if (total <= 7) {
     return Array.from({ length: total }, (_, i) => i + 1);
   }

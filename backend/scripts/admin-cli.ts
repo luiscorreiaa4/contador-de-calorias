@@ -15,10 +15,14 @@ async function main() {
   const dbName = process.env.DB_NAME || 'contador_calorias';
   const nodeEnv = process.env.NODE_ENV || 'development';
 
-  console.log(`[CalorieSync Admin CLI] Ambiente: ${nodeEnv} | Alvo: ${host}:${port} | Banco: ${dbName}`);
+  console.log(
+    `[CalorieSync Admin CLI] Ambiente: ${nodeEnv} | Alvo: ${host}:${port} | Banco: ${dbName}`,
+  );
 
   if (nodeEnv === 'production' && !hasYesFlag && (command === 'promote' || command === 'demote')) {
-    console.error('ERRO: Em ambiente de produção, é obrigatório passar o argumento "--yes" para confirmar a operação.');
+    console.error(
+      'ERRO: Em ambiente de produção, é obrigatório passar o argumento "--yes" para confirmar a operação.',
+    );
     process.exit(1);
   }
 
@@ -40,7 +44,9 @@ async function main() {
           process.exit(1);
         }
         const user = await AdminUserService.demoteAdminToUser(email);
-        console.log(`SUCESSO: Administrador "${user.name}" (${user.email}) foi rebaixado para usuário comum.`);
+        console.log(
+          `SUCESSO: Administrador "${user.name}" (${user.email}) foi rebaixado para usuário comum.`,
+        );
         break;
       }
 

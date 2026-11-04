@@ -47,7 +47,7 @@ export function validate(schemas: ValidationSchemas) {
           message: result.error.issues.map((i) => i.message).join(', '),
         });
       }
-      req.query = result.data;
+      req.query = result.data as typeof req.query;
       res.locals.validated.query = result.data;
     }
 

@@ -52,7 +52,7 @@ describe('Tratamento de Erros, Middlewares e Observabilidade (Lote 05)', () => {
       (err: unknown) => {
         const error = err as Error & { statusCode?: number };
         return error.statusCode === 401 && error.message === 'Usuário não autenticado.';
-      }
+      },
     );
   });
 

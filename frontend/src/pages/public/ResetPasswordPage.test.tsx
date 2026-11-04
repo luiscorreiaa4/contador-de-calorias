@@ -16,7 +16,7 @@ const renderPage = () =>
         <Route path="/esqueci-senha" element={<div>Recuperar senha</div>} />
         <Route path="/login" element={<div>Login</div>} />
       </Routes>
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 
 describe('ResetPasswordPage (BL-05)', () => {
@@ -47,7 +47,7 @@ describe('ResetPasswordPage (BL-05)', () => {
     expect(screen.getByText(/link inválido ou expirado/i)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /solicitar novo link/i })).toHaveAttribute(
       'href',
-      '/esqueci-senha'
+      '/esqueci-senha',
     );
   });
 
@@ -74,10 +74,10 @@ describe('ResetPasswordPage (BL-05)', () => {
   });
 
   it('redefine a senha, encerra a sessão antiga e orienta o login sem abrir nova sessão', async () => {
-    sessionStorage.setItem('auth_token', 'token-antigo');
+    sessionStorage.setItem('auth_session', 'token-antigo');
     sessionStorage.setItem(
       'user_session',
-      JSON.stringify({ id: '1', name: 'Test User', email: 'test@example.com' })
+      JSON.stringify({ id: '1', name: 'Test User', email: 'test@example.com' }),
     );
     window.history.replaceState(null, '', `/redefinir-senha#token=${VALID_TOKEN}`);
     renderPage();
@@ -87,14 +87,14 @@ describe('ResetPasswordPage (BL-05)', () => {
     await userEvent.click(screen.getByRole('button', { name: /redefinir senha/i }));
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: /senha redefinida/i })
+      await screen.findByRole('heading', { level: 1, name: /senha redefinida/i }),
     ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /ir para o login/i })).toHaveAttribute(
       'href',
-      '/login'
+      '/login',
     );
-    expect(localStorage.getItem('auth_token')).toBeNull();
-    expect(sessionStorage.getItem('auth_token')).toBeNull();
+    expect(localStorage.getItem('auth_session')).toBeNull();
+    expect(sessionStorage.getItem('auth_session')).toBeNull();
     expect(sessionStorage.getItem('user_session')).toBeNull();
   });
 
@@ -107,11 +107,11 @@ describe('ResetPasswordPage (BL-05)', () => {
     await userEvent.click(screen.getByRole('button', { name: /redefinir senha/i }));
 
     expect(
-      await screen.findByText(/link inválido ou expirado\. solicite uma nova redefinição/i)
+      await screen.findByText(/link inválido ou expirado\. solicite uma nova redefinição/i),
     ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /solicitar novo link/i })).toHaveAttribute(
       'href',
-      '/esqueci-senha'
+      '/esqueci-senha',
     );
   });
 });

@@ -26,6 +26,6 @@ export async function recordAuditLog(client: PoolClient, entry: AuditLogEntry): 
       entry.entity_id,
       entry.before !== undefined && entry.before !== null ? JSON.stringify(entry.before) : null,
       entry.after !== undefined && entry.after !== null ? JSON.stringify(entry.after) : null,
-    ]
+    ],
   );
 }

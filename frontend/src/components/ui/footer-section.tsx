@@ -1,15 +1,10 @@
-"use client"
+'use client';
 
-import { Link } from "react-router"
-import { Flame, ShieldAlert, Heart } from "lucide-react"
-
-export interface FooterSectionProps {
-  darkMode?: boolean
-  onToggleTheme?: (checked: boolean) => void
-}
+import { Link } from 'react-router';
+import { Flame, ShieldAlert } from 'lucide-react';
 
 function FooterSection() {
-  const currentYear = new Date().getFullYear()
+  const currentYear = new Date().getFullYear();
 
   return (
     <footer className="relative border-t-2 border-border bg-background text-foreground transition-colors duration-300 mt-10 sm:mt-16">
@@ -28,7 +23,7 @@ function FooterSection() {
                 CALORIE<span className="bg-primary text-primary-foreground px-1 ml-0.5">SYNC</span>
               </span>
               <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
-                Constância e clareza para metas diárias.
+                Contador de calorias com metas diárias.
               </p>
             </div>
           </div>
@@ -39,17 +34,12 @@ function FooterSection() {
         {/* Middle: Simplified Health Disclaimer */}
         <div className="flex items-center gap-2 text-[9px] text-muted-foreground uppercase tracking-widest opacity-60 hover:opacity-100 transition-opacity">
           <ShieldAlert className="w-3 h-3 text-primary-ink shrink-0" aria-hidden="true" />
-          <p>
-            ESTIMATIVAS NUTRICIONAIS. NÃO SUBSTITUI ORIENTAÇÃO MÉDICA.
-          </p>
+          <p>ESTIMATIVAS NUTRICIONAIS. NÃO SUBSTITUI ORIENTAÇÃO MÉDICA.</p>
         </div>
 
         {/* Bottom: Legal Links & Copyright */}
         <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-4 pt-6 border-t-2 border-border text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-          <p className="flex items-center gap-1.5">
-            © {currentYear} CalorieSync. Alta Performance{' '}
-            <Heart className="w-3 h-3 text-primary-ink fill-current inline-block" aria-hidden="true" />{' '}
-          </p>
+          <p className="flex items-center gap-1.5">© {currentYear} CalorieSync.</p>
 
           <nav className="flex items-center gap-4">
             <Link
@@ -58,14 +48,18 @@ function FooterSection() {
             >
               Privacidade
             </Link>
-            <span className="text-border" aria-hidden="true">/</span>
+            <span className="text-border" aria-hidden="true">
+              /
+            </span>
             <Link
               to="/termos"
               className="hover:text-primary-ink transition-colors focus:outline-none focus:text-primary-ink"
             >
               Termos de Uso
             </Link>
-            <span className="text-border" aria-hidden="true">/</span>
+            <span className="text-border" aria-hidden="true">
+              /
+            </span>
             <Link
               to="/seguranca"
               className="hover:text-primary-ink transition-colors focus:outline-none focus:text-primary-ink"
@@ -76,7 +70,7 @@ function FooterSection() {
         </div>
       </div>
     </footer>
-  )
+  );
 }
 
-export { FooterSection }
+export { FooterSection };

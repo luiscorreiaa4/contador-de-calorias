@@ -7,3 +7,5 @@
 741e8b32f4585bd6af77c963c09c8700f6e2b098:backend/tests/unit/password_security.test.ts:generic-api-key:47
 741e8b32f4585bd6af77c963c09c8700f6e2b098:backend/tests/unit/password_security.test.ts:generic-api-key:61
 
+# Hash ff84ac49797644035099cab1f563d52a33fee91a: placeholder de AUTH_TOKEN_PEPPER no .env.example
+ff84ac49797644035099cab1f563d52a33fee91a:backend/.env.example:generic-api-key:41

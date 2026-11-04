@@ -35,7 +35,7 @@ export const ForgotPasswordPage: React.FC = () => {
   return (
     <AuthPageShell
       title="Recuperar senha"
-      description="Enviaremos um link seguro para redefinir seu acesso"
+      description="Enviamos um link para você criar uma nova senha"
     >
       {forgotMutation.isSuccess ? (
         <div className="space-y-6">
@@ -49,15 +49,14 @@ export const ForgotPasswordPage: React.FC = () => {
                 Verifique seu e-mail
               </p>
               <p className="text-xs font-medium leading-relaxed text-secondary-foreground">
-                Se os dados estiverem corretos, enviaremos uma mensagem para o e-mail informado com
-                as instruções para redefinir sua senha. O link expira em 30 minutos.
+                Se houver uma conta com esse e-mail, você vai receber um link para criar uma nova
+                senha. O link expira em 30 minutos.
               </p>
             </div>
           </div>
 
           <p className="text-xs font-medium leading-relaxed text-muted-foreground">
-            Não encontrou a mensagem? Confira a caixa de spam ou aguarde alguns minutos antes de
-            solicitar um novo envio.
+            Não chegou? Olhe a caixa de spam ou espere alguns minutos antes de pedir outro.
           </p>
 
           <Link
@@ -99,7 +98,7 @@ export const ForgotPasswordPage: React.FC = () => {
           </div>
 
           <p className="text-xs font-medium leading-relaxed text-muted-foreground">
-            Por segurança, não informamos se um e-mail está cadastrado. A resposta é sempre a mesma.
+            Por segurança, a resposta é a mesma esteja o e-mail cadastrado ou não.
           </p>
 
           {serverError && (

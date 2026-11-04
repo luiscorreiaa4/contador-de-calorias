@@ -1,18 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ThemeContext } from './ThemeContext';
+import { ThemeContext, getInitialDarkMode } from './ThemeContext';
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [darkMode, setDarkMode] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      return (
-        localStorage.getItem('theme') === 'dark' ||
-        (!('theme' in localStorage) &&
-          typeof window.matchMedia === 'function' &&
-          window.matchMedia('(prefers-color-scheme: dark)').matches)
-      );
-    }
-    return false;
-  });
+  const [darkMode, setDarkMode] = useState<boolean>(getInitialDarkMode);
 
   useEffect(() => {
     const root = document.documentElement;

@@ -6,7 +6,15 @@ import { Pagination, getPaginationWindow } from '../Pagination';
 describe('Pagination Component', () => {
   it('calcula janela de páginas com reticências corretamente (1 ... 11 [12] 13 ... 137)', () => {
     expect(getPaginationWindow(1, 5)).toEqual([1, 2, 3, 4, 5]);
-    expect(getPaginationWindow(12, 137)).toEqual([1, 'ellipsis-start', 11, 12, 13, 'ellipsis-end', 137]);
+    expect(getPaginationWindow(12, 137)).toEqual([
+      1,
+      'ellipsis-start',
+      11,
+      12,
+      13,
+      'ellipsis-end',
+      137,
+    ]);
     expect(getPaginationWindow(1, 10)).toEqual([1, 2, 'ellipsis-end', 10]);
     expect(getPaginationWindow(10, 10)).toEqual([1, 'ellipsis-start', 9, 10]);
   });
@@ -23,7 +31,7 @@ describe('Pagination Component', () => {
         pageSize={25}
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}
-      />
+      />,
     );
 
     // Texto pt-BR: Mostrando 276–300 de 3.412 alimentos
@@ -51,7 +59,7 @@ describe('Pagination Component', () => {
         pageSize={25}
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}
-      />
+      />,
     );
 
     // Clica no botão "Próxima página"
@@ -79,7 +87,7 @@ describe('Pagination Component', () => {
         pageSize={25}
         onPageChange={vi.fn()}
         onPageSizeChange={vi.fn()}
-      />
+      />,
     );
 
     expect(screen.getByRole('button', { name: 'Primeira página' })).toBeDisabled();
@@ -97,7 +105,7 @@ describe('Pagination Component', () => {
         pageSize={25}
         onPageChange={vi.fn()}
         onPageSizeChange={vi.fn()}
-      />
+      />,
     );
 
     expect(screen.getByRole('button', { name: 'Primeira página' })).not.toBeDisabled();
@@ -117,7 +125,7 @@ describe('Pagination Component', () => {
         pageSize={25}
         onPageChange={vi.fn()}
         onPageSizeChange={handlePageSizeChange}
-      />
+      />,
     );
 
     const select = screen.getByRole('combobox', { name: 'Itens por página' });
@@ -125,4 +133,3 @@ describe('Pagination Component', () => {
     expect(handlePageSizeChange).toHaveBeenCalledWith(50);
   });
 });
-

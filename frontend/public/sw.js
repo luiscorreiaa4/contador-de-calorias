@@ -1,30 +1,25 @@
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = `caloriesync-cache-${CACHE_VERSION}`;
-const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.webmanifest',
-  '/favicon.svg',
-];
+const STATIC_ASSETS = ['/spa.html', '/manifest.webmanifest', '/favicon.svg'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) =>
       cache.addAll(STATIC_ASSETS).catch((err) => {
         console.warn('Falha parcial ao pré-armazenar assets no Service Worker:', err);
-      })
-    )
+      }),
+    ),
   );
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
-      )
-    )
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))),
+      ),
   );
   self.clients.claim();
 });
@@ -42,22 +37,27 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  const isNavigation = event.request.mode === 'navigate' || event.request.destination === 'document';
+  const isNavigation =
+    event.request.mode === 'navigate' || event.request.destination === 'document';
 
   // Network-First para documentos e rotas de navegação (A-101): previne que o app shell fique preso no cache
   if (isNavigation) {
     event.respondWith(
       fetch(event.request)
         .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          if (
+            networkResponse &&
+            networkResponse.status === 200 &&
+            networkResponse.type === 'basic'
+          ) {
             const clone = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
           }
           return networkResponse;
         })
         .catch(() =>
-          caches.match(event.request).then((cached) => cached || caches.match('/') || caches.match('/index.html'))
-        )
+          caches.match(event.request).then((cached) => cached || caches.match('/spa.html')),
+        ),
     );
     return;
   }
@@ -67,7 +67,11 @@ self.addEventListener('fetch', (event) => {
     caches.match(event.request).then((cached) => {
       const fetchPromise = fetch(event.request)
         .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          if (
+            networkResponse &&
+            networkResponse.status === 200 &&
+            networkResponse.type === 'basic'
+          ) {
             const clone = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
           }
@@ -76,7 +80,7 @@ self.addEventListener('fetch', (event) => {
         .catch(() => cached);
 
       return cached || fetchPromise;
-    })
+    }),
   );
 });
 
@@ -103,7 +107,7 @@ self.addEventListener('push', (event) => {
     vibrate: shouldVibrate ? [100, 50, 100] : undefined,
     silent: !shouldVibrate,
     data: {
-      url: data.url || '/',
+      url: data.url || '/app',
     },
   };
 
@@ -113,7 +117,7 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   // Normaliza URL relativa com a origem atual para comparação correta com client.url absoluto (A-102)
-  const rawTargetUrl = event.notification.data?.url || '/';
+  const rawTargetUrl = event.notification.data?.url || '/app';
   const targetUrl = new URL(rawTargetUrl, self.location.origin).href;
 
   event.waitUntil(
@@ -126,6 +130,6 @@ self.addEventListener('notificationclick', (event) => {
       if (clients.openWindow) {
         return clients.openWindow(targetUrl);
       }
-    })
+    }),
   );
 });

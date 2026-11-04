@@ -8,7 +8,7 @@ import { createVerifiedUser } from '../helpers/auth.js';
 
 describe('Food Routes (Integration)', () => {
   closeTestPool(async () => {
-      await cleanupTestData('tester-food-%');
+    await cleanupTestData('tester-food-%');
   });
 
   let userToken: string;
@@ -26,7 +26,7 @@ describe('Food Routes (Integration)', () => {
     const res = await request(app)
       .get('/api/foods?limit=2&page=1')
       .set('Authorization', `Bearer ${userToken}`);
-    
+
     assert.strictEqual(res.status, 200);
     assert.ok(Array.isArray(res.body.data.foods));
     assert.ok(typeof res.body.data.total === 'number');
@@ -37,7 +37,7 @@ describe('Food Routes (Integration)', () => {
     const res = await request(app)
       .get('/api/foods?search=maca')
       .set('Authorization', `Bearer ${userToken}`);
-    
+
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.success, true);
     assert.ok(Array.isArray(res.body.data.foods));
@@ -49,9 +49,12 @@ describe('Food Routes (Integration)', () => {
     const res = await request(app)
       .get('/api/foods?limit=100')
       .set('Authorization', `Bearer ${userToken}`);
-    
+
     assert.strictEqual(res.status, 400); // Porque o validador limit max é 50
-    assert.match(res.body.message, /(Number must be less than or equal to 50|O limite deve ser no máximo 50)/);
+    assert.match(
+      res.body.message,
+      /(Number must be less than or equal to 50|O limite deve ser no máximo 50)/,
+    );
   });
 
   it('GET /api/foods - rejeita busca com mais de 100 caracteres (CA-11)', async () => {

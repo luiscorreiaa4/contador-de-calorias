@@ -4,6 +4,7 @@ export interface LoginFormData {
   email: string;
   password: string;
   rememberMe: boolean;
+  mfaCode?: string;
 }
 
 export interface RegisterFormData {

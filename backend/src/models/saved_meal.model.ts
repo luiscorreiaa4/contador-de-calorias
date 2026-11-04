@@ -16,13 +16,13 @@ export async function listByUser(userId: string): Promise<SavedMeal[]> {
      WHERE user_id = $1
      ORDER BY created_at DESC
      LIMIT 100`,
-    [userId]
+    [userId],
   );
 
   const meals = mealsResult.rows;
   if (meals.length === 0) return [];
 
-  const mealIds = meals.map(m => m.id);
+  const mealIds = meals.map((m) => m.id);
 
   const itemsResult = await pool.query<{
     id: string;
@@ -51,7 +51,7 @@ export async function listByUser(userId: string): Promise<SavedMeal[]> {
      JOIN foods f ON f.id = smi.food_id
      WHERE smi.saved_meal_id = ANY($1::uuid[])
      ORDER BY smi.created_at ASC`,
-    [mealIds]
+    [mealIds],
   );
 
   const itemsByMeal: Record<string, SavedMealItem[]> = {};
@@ -80,7 +80,7 @@ export async function listByUser(userId: string): Promise<SavedMeal[]> {
         unit: row.unit as 'g' | 'ml' | 'un' | undefined,
         displayAmount: row.display_amount != null ? Number(row.display_amount) : undefined,
       },
-      food
+      food,
     );
 
     itemsByMeal[row.saved_meal_id].push({
@@ -101,7 +101,7 @@ export async function listByUser(userId: string): Promise<SavedMeal[]> {
     });
   }
 
-  return meals.map(m => {
+  return meals.map((m) => {
     const items = itemsByMeal[m.id] || [];
     const total_calories = items.reduce((acc, it) => acc + it.calories, 0);
     const total_proteins = items.reduce((acc, it) => acc + it.proteins, 0);
@@ -123,7 +123,7 @@ export async function listByUser(userId: string): Promise<SavedMeal[]> {
   });
 }
 
-export async function findById(savedMealId: string, client?: PoolClient): Promise<SavedMeal | null> {
+async function findById(savedMealId: string, client?: PoolClient): Promise<SavedMeal | null> {
   const db = client || pool;
   const mealRes = await db.query<{
     id: string;
@@ -135,7 +135,7 @@ export async function findById(savedMealId: string, client?: PoolClient): Promis
     `SELECT id, user_id, name, created_at, updated_at
      FROM saved_meals
      WHERE id = $1`,
-    [savedMealId]
+    [savedMealId],
   );
 
   const meal = mealRes.rows[0];
@@ -168,10 +168,10 @@ export async function findById(savedMealId: string, client?: PoolClient): Promis
      JOIN foods f ON f.id = smi.food_id
      WHERE smi.saved_meal_id = $1
      ORDER BY smi.created_at ASC`,
-    [savedMealId]
+    [savedMealId],
   );
 
-  const items: SavedMealItem[] = itemsResult.rows.map(row => {
+  const items: SavedMealItem[] = itemsResult.rows.map((row) => {
     const food = {
       id: row.food_id,
       name: row.food_name,
@@ -192,7 +192,7 @@ export async function findById(savedMealId: string, client?: PoolClient): Promis
         unit: row.unit as 'g' | 'ml' | 'un' | undefined,
         displayAmount: row.display_amount != null ? Number(row.display_amount) : undefined,
       },
-      food
+      food,
     );
 
     return {
@@ -240,7 +240,7 @@ export async function createWithItems(
     quantity: number;
     unit?: string;
     displayAmount?: number | null;
-  }[]
+  }[],
 ): Promise<SavedMeal> {
   const client = await pool.connect();
 
@@ -257,7 +257,7 @@ export async function createWithItems(
       `INSERT INTO saved_meals (user_id, name)
        VALUES ($1, $2)
        RETURNING id, user_id, name, created_at, updated_at`,
-      [userId, name]
+      [userId, name],
     );
 
     const savedMeal = mealRes.rows[0];
@@ -268,22 +268,20 @@ export async function createWithItems(
       const placeholders: string[] = [];
       items.forEach((item, index) => {
         const base = index * 5;
-        placeholders.push(
-          `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`
-        );
+        placeholders.push(`($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`);
         values.push(
           savedMeal.id,
           item.foodId,
           item.quantity,
           item.unit || 'g',
-          item.displayAmount ?? null
+          item.displayAmount ?? null,
         );
       });
 
       await client.query(
         `INSERT INTO saved_meal_items (saved_meal_id, food_id, quantity, unit, display_amount)
          VALUES ${placeholders.join(', ')}`,
-        values
+        values,
       );
     }
 
@@ -303,9 +301,9 @@ export async function createWithItems(
 }
 
 export async function deleteById(userId: string, id: string): Promise<boolean> {
-  const result = await pool.query(
-    `DELETE FROM saved_meals WHERE id = $1 AND user_id = $2`,
-    [id, userId]
-  );
+  const result = await pool.query(`DELETE FROM saved_meals WHERE id = $1 AND user_id = $2`, [
+    id,
+    userId,
+  ]);
   return (result.rowCount ?? 0) > 0;
 }

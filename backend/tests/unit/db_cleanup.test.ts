@@ -7,35 +7,24 @@ import { pool } from '../../src/database/pool.js';
 describe('Database Test Cleanup Helper (PC-14 / D-11)', () => {
   closeTestPool();
   it('trava de segurança em runtime: deve rejeitar qualquer banco que não termine em _test', () => {
-    assert.throws(
-      () => assertIsTestDatabase('contador_calorias'),
-      /Segurança D-11 violada/
-    );
-    assert.throws(
-      () => assertIsTestDatabase('production_db'),
-      /Segurança D-11 violada/
-    );
-    assert.throws(
-      () => assertIsTestDatabase(undefined),
-      /Segurança D-11 violada/
-    );
+    assert.throws(() => assertIsTestDatabase('contador_calorias'), /Segurança D-11 violada/);
+    assert.throws(() => assertIsTestDatabase('production_db'), /Segurança D-11 violada/);
+    assert.throws(() => assertIsTestDatabase(undefined), /Segurança D-11 violada/);
     assert.doesNotThrow(() => assertIsTestDatabase('contador_calorias_test'));
   });
 
   it('trava de padrão: deve rejeitar padrão que não comece com tester-', async () => {
-    await assert.rejects(
-      async () => cleanupTestData('admin%'),
-      /Segurança D-11 violada/
-    );
+    await assert.rejects(async () => cleanupTestData('admin%'), /Segurança D-11 violada/);
   });
 
   it('deve limpar registros de teste com email tester-% preservando outros usuários', async () => {
     const testEmail = `tester-cleanup-${Date.now()}@example.com`;
 
-    await pool.query(
-      'INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3)',
-      ['Cleanup Tester', testEmail, 'hash123']
-    );
+    await pool.query('INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3)', [
+      'Cleanup Tester',
+      testEmail,
+      'hash123',
+    ]);
 
     // Confirma inserção
     const beforeTest = await pool.query('SELECT id FROM users WHERE email = $1', [testEmail]);

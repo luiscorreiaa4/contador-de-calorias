@@ -11,16 +11,22 @@ function LocationProbe() {
   return <output data-testid="path">{useLocation().pathname}</output>;
 }
 
-function renderArea(path = '/', children: React.ReactNode = <p>conteúdo</p>, enabled = true) {
+function renderArea(path = '/app', children: React.ReactNode = <p>conteúdo</p>, enabled = true) {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <SwipeMain enabled={enabled}>{children}</SwipeMain>
       <LocationProbe />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 }
 
-function fire(target: Element, type: TouchType, touches: Point[], changed: Point[], timeStamp: number) {
+function fire(
+  target: Element,
+  type: TouchType,
+  touches: Point[],
+  changed: Point[],
+  timeStamp: number,
+) {
   const event = new Event(type, { bubbles: true, cancelable: true });
   const toList = (points: Point[]) => points.map((p) => ({ clientX: p.x, clientY: p.y }));
   Object.defineProperty(event, 'touches', { value: toList(touches) });
@@ -64,14 +70,14 @@ afterEach(() => {
 
 describe('useSwipeNav — navegação entre destinos da barra inferior', () => {
   it.each([
-    ['/', LEFT, '/evolucao'],
-    ['/evolucao/alimentacao', LEFT, '/conta'],
-    ['/metas/diarias', LEFT, '/conta'],
-    ['/evolucao/corpo', RIGHT, '/'],
-    ['/conta', RIGHT, '/evolucao'],
-    ['/perfil', RIGHT, '/evolucao'],
-    ['/configuracoes/seguranca', RIGHT, '/evolucao'],
-    ['/diario/2026-10-01', LEFT, '/evolucao'],
+    ['/app', LEFT, '/app/historico'],
+    ['/app/historico/alimentacao', LEFT, '/app/conta'],
+    ['/app/metas/diarias', RIGHT, '/app/historico'],
+    ['/app/historico/corpo', RIGHT, '/app'],
+    ['/app/conta', RIGHT, '/app/historico'],
+    ['/app/perfil', RIGHT, '/app/historico'],
+    ['/app/configuracoes/seguranca', RIGHT, '/app/historico'],
+    ['/app/diario/2026-10-01', LEFT, '/app/historico'],
   ])('em %s o gesto leva a %s', (start, gesture, expected) => {
     renderArea(start);
     swipe(screen.getByText('conteúdo'), gesture.from, gesture.to);
@@ -79,24 +85,24 @@ describe('useSwipeNav — navegação entre destinos da barra inferior', () => {
     expect(path()).toBe(expected);
   });
 
-  it('não percorre as abas irmãs: em Evolução, deslizar para a esquerda vai para Conta, não para Metas', () => {
-    renderArea('/evolucao/corpo');
+  it('não percorre as abas irmãs: em Histórico, deslizar para a esquerda vai para Conta, não para a aba vizinha', () => {
+    renderArea('/app/historico/corpo');
     swipe(screen.getByText('conteúdo'), LEFT.from, LEFT.to);
     settle();
-    expect(path()).toBe('/conta');
+    expect(path()).toBe('/app/conta');
   });
 
   it('não dá a volta: primeiro destino à direita e último à esquerda não navegam', () => {
-    const first = renderArea('/');
+    const first = renderArea('/app');
     swipe(screen.getByText('conteúdo'), RIGHT.from, RIGHT.to);
     settle();
-    expect(path()).toBe('/');
+    expect(path()).toBe('/app');
     first.unmount();
 
-    renderArea('/conta');
+    renderArea('/app/conta');
     swipe(screen.getByText('conteúdo'), LEFT.from, LEFT.to);
     settle();
-    expect(path()).toBe('/conta');
+    expect(path()).toBe('/app/conta');
   });
 
   it('só funciona em telas que pertencem a um destino da barra (não em /admin nem /termos)', () => {
@@ -107,23 +113,23 @@ describe('useSwipeNav — navegação entre destinos da barra inferior', () => {
   });
 
   it('desligado (sem barra inferior) não faz nada', () => {
-    renderArea('/', <p>conteúdo</p>, false);
+    renderArea('/app', <p>conteúdo</p>, false);
     swipe(screen.getByText('conteúdo'), LEFT.from, LEFT.to);
     settle();
-    expect(path()).toBe('/');
+    expect(path()).toBe('/app');
   });
 
   it('flick curto e rápido confirma a troca', () => {
-    renderArea('/');
+    renderArea('/app');
     swipe(screen.getByText('conteúdo'), { x: 300, y: 300 }, { x: 250, y: 301 }, 60);
     settle();
-    expect(path()).toBe('/evolucao');
+    expect(path()).toBe('/app/historico');
   });
 });
 
 describe('useSwipeNav — animação', () => {
   it('a tela acompanha o dedo durante o arrasto e fica sem transform ao terminar', () => {
-    renderArea('/');
+    renderArea('/app');
     const target = screen.getByText('conteúdo');
     fire(target, 'touchstart', [LEFT.from], [LEFT.from], 1000);
     fire(target, 'touchmove', [{ x: 250, y: 301 }], [{ x: 250, y: 301 }], 1050);
@@ -137,14 +143,14 @@ describe('useSwipeNav — animação', () => {
   });
 
   it('ao confirmar, a tela sai deslizando para o lado do gesto antes de navegar', () => {
-    renderArea('/');
+    renderArea('/app');
     swipe(screen.getByText('conteúdo'), LEFT.from, LEFT.to);
     expect(panel().style.transform).toBe('translateX(-390px)');
-    expect(path()).toBe('/');
+    expect(path()).toBe('/app');
     act(() => {
       vi.advanceTimersByTime(SWIPE_CONFIG.exitMs);
     });
-    expect(path()).toBe('/evolucao');
+    expect(path()).toBe('/app/historico');
     // a nova tela entra pelo lado oposto
     expect(panel().style.transform).toBe('translateX(0px)');
     settle();
@@ -152,31 +158,31 @@ describe('useSwipeNav — animação', () => {
   });
 
   it('arrasto curto volta ao lugar sem navegar', () => {
-    renderArea('/');
+    renderArea('/app');
     swipe(screen.getByText('conteúdo'), { x: 300, y: 300 }, { x: 270, y: 301 }, 400);
     expect(panel().style.transform).toBe('translateX(0px)');
     settle();
-    expect(path()).toBe('/');
+    expect(path()).toBe('/app');
     expect(panel().style.transform).toBe('');
   });
 
   it('na ponta da fila o arrasto tem resistência e volta', () => {
-    renderArea('/');
+    renderArea('/app');
     const target = screen.getByText('conteúdo');
     fire(target, 'touchstart', [RIGHT.from], [RIGHT.from], 1000);
     fire(target, 'touchmove', [{ x: 250, y: 301 }], [{ x: 250, y: 301 }], 1050);
     expect(panel().style.transform).toBe('translateX(25px)'); // 100px * 0.25
     fire(target, 'touchend', [], [{ x: 250, y: 301 }], 1100);
     settle();
-    expect(path()).toBe('/');
+    expect(path()).toBe('/app');
     expect(panel().style.transform).toBe('');
   });
 
   it('com prefers-reduced-motion navega direto, sem animar', () => {
     vi.stubGlobal('matchMedia', (query: string) => ({ matches: true, media: query }));
-    renderArea('/');
+    renderArea('/app');
     swipe(screen.getByText('conteúdo'), LEFT.from, LEFT.to);
-    expect(path()).toBe('/evolucao');
+    expect(path()).toBe('/app/historico');
     expect(panel().style.transform).toBe('');
     vi.unstubAllGlobals();
   });
@@ -184,7 +190,7 @@ describe('useSwipeNav — animação', () => {
 
 describe('useSwipeNav — proteções', () => {
   it('nunca chama preventDefault', () => {
-    renderArea('/');
+    renderArea('/app');
     const target = screen.getByText('conteúdo');
     const events = [
       fire(target, 'touchstart', [LEFT.from], [LEFT.from], 1000),
@@ -196,103 +202,134 @@ describe('useSwipeNav — proteções', () => {
 
   it('em tela larga (desktop) é ignorado', () => {
     vi.stubGlobal('matchMedia', (query: string) => ({ matches: false, media: query }));
-    renderArea('/');
+    renderArea('/app');
     swipe(screen.getByText('conteúdo'), LEFT.from, LEFT.to);
     settle();
-    expect(path()).toBe('/');
+    expect(path()).toBe('/app');
     vi.unstubAllGlobals();
   });
 
   it('ignora toque dentro de [data-no-swipe]', () => {
-    renderArea('/', <div data-no-swipe><p>conteúdo</p></div>);
+    renderArea(
+      '/app',
+      <div data-no-swipe>
+        <p>conteúdo</p>
+      </div>,
+    );
     swipe(screen.getByText('conteúdo'), LEFT.from, LEFT.to);
     settle();
-    expect(path()).toBe('/');
+    expect(path()).toBe('/app');
   });
 
   it('ignora toque dentro de role="slider"', () => {
-    renderArea('/', <div role="slider" aria-label="meta" aria-valuenow={1}><p>conteúdo</p></div>);
+    renderArea(
+      '/app',
+      <div role="slider" aria-label="meta" aria-valuenow={1}>
+        <p>conteúdo</p>
+      </div>,
+    );
     swipe(screen.getByText('conteúdo'), LEFT.from, LEFT.to);
     settle();
-    expect(path()).toBe('/');
+    expect(path()).toBe('/app');
   });
 
   it('ignora toque dentro de ancestral rolável na horizontal', () => {
-    renderArea('/', <div data-testid="scroller"><p>conteúdo</p></div>);
+    renderArea(
+      '/app',
+      <div data-testid="scroller">
+        <p>conteúdo</p>
+      </div>,
+    );
     const scroller = screen.getByTestId('scroller');
     Object.defineProperty(scroller, 'scrollWidth', { value: 600, configurable: true });
     Object.defineProperty(scroller, 'clientWidth', { value: 200, configurable: true });
     const original = window.getComputedStyle.bind(window);
     vi.spyOn(window, 'getComputedStyle').mockImplementation((element: Element) =>
-      element === scroller ? ({ overflowX: 'auto' } as CSSStyleDeclaration) : original(element)
+      element === scroller ? ({ overflowX: 'auto' } as CSSStyleDeclaration) : original(element),
     );
     swipe(screen.getByText('conteúdo'), LEFT.from, LEFT.to);
     settle();
-    expect(path()).toBe('/');
+    expect(path()).toBe('/app');
   });
 
   it('overflow-x auto sem conteúdo excedente não bloqueia', () => {
-    renderArea('/', <div data-testid="scroller"><p>conteúdo</p></div>);
+    renderArea(
+      '/app',
+      <div data-testid="scroller">
+        <p>conteúdo</p>
+      </div>,
+    );
     const scroller = screen.getByTestId('scroller');
     Object.defineProperty(scroller, 'scrollWidth', { value: 200, configurable: true });
     Object.defineProperty(scroller, 'clientWidth', { value: 200, configurable: true });
     const original = window.getComputedStyle.bind(window);
     vi.spyOn(window, 'getComputedStyle').mockImplementation((element: Element) =>
-      element === scroller ? ({ overflowX: 'auto' } as CSSStyleDeclaration) : original(element)
+      element === scroller ? ({ overflowX: 'auto' } as CSSStyleDeclaration) : original(element),
     );
     swipe(screen.getByText('conteúdo'), LEFT.from, LEFT.to);
     settle();
-    expect(path()).toBe('/evolucao');
+    expect(path()).toBe('/app/historico');
   });
 
   it('ignora gesto com dois dedos e cancela se o segundo dedo entrar no meio', () => {
-    renderArea('/');
+    renderArea('/app');
     const target = screen.getByText('conteúdo');
     fire(target, 'touchstart', [LEFT.from, { x: 10, y: 10 }], [LEFT.from], 1000);
     fire(target, 'touchend', [], [LEFT.to], 1150);
     settle();
-    expect(path()).toBe('/');
+    expect(path()).toBe('/app');
 
     fire(target, 'touchstart', [LEFT.from], [LEFT.from], 2000);
     fire(target, 'touchmove', [{ x: 250, y: 301 }], [{ x: 250, y: 301 }], 2050);
-    fire(target, 'touchmove', [{ x: 200, y: 301 }, { x: 50, y: 50 }], [{ x: 50, y: 50 }], 2100);
+    fire(
+      target,
+      'touchmove',
+      [
+        { x: 200, y: 301 },
+        { x: 50, y: 50 },
+      ],
+      [{ x: 50, y: 50 }],
+      2100,
+    );
     settle();
     fire(target, 'touchend', [], [LEFT.to], 2150);
     settle();
-    expect(path()).toBe('/');
+    expect(path()).toBe('/app');
     expect(panel().style.transform).toBe('');
   });
 
   it('ignora com texto selecionado', () => {
-    renderArea('/');
-    vi.spyOn(window, 'getSelection').mockReturnValue({ toString: () => 'trecho' } as unknown as Selection);
+    renderArea('/app');
+    vi.spyOn(window, 'getSelection').mockReturnValue({
+      toString: () => 'trecho',
+    } as unknown as Selection);
     swipe(screen.getByText('conteúdo'), LEFT.from, LEFT.to);
     settle();
-    expect(path()).toBe('/');
+    expect(path()).toBe('/app');
   });
 
   it('ignora com campo de texto em foco', () => {
     render(<input aria-label="busca" />);
-    renderArea('/');
+    renderArea('/app');
     screen.getByLabelText('busca').focus();
     swipe(screen.getByText('conteúdo'), LEFT.from, LEFT.to);
     settle();
-    expect(path()).toBe('/');
+    expect(path()).toBe('/app');
   });
 
   it('ignora com [role="dialog"] aberto', () => {
-    renderArea('/');
+    renderArea('/app');
     const dialog = document.createElement('div');
     dialog.setAttribute('role', 'dialog');
     dialog.setAttribute('data-test-overlay', '');
     document.body.appendChild(dialog);
     swipe(screen.getByText('conteúdo'), LEFT.from, LEFT.to);
     settle();
-    expect(path()).toBe('/');
+    expect(path()).toBe('/app');
   });
 
   it('touchcancel no meio do arrasto devolve a tela e não navega', () => {
-    renderArea('/');
+    renderArea('/app');
     const target = screen.getByText('conteúdo');
     fire(target, 'touchstart', [LEFT.from], [LEFT.from], 1000);
     fire(target, 'touchmove', [{ x: 200, y: 301 }], [{ x: 200, y: 301 }], 1050);
@@ -300,30 +337,30 @@ describe('useSwipeNav — proteções', () => {
     settle();
     fire(target, 'touchend', [], [LEFT.to], 1150);
     settle();
-    expect(path()).toBe('/');
+    expect(path()).toBe('/app');
     expect(panel().style.transform).toBe('');
   });
 
   it('toque em Portal (fora do contêiner) não dispara', () => {
-    renderArea('/');
+    renderArea('/app');
     const portal = document.createElement('div');
     portal.setAttribute('data-test-overlay', '');
     document.body.appendChild(portal);
     swipe(portal, LEFT.from, LEFT.to);
     settle();
-    expect(path()).toBe('/');
+    expect(path()).toBe('/app');
   });
 
   it('toque iniciado na borda da tela não arrasta (gesto de voltar do sistema)', () => {
-    renderArea('/');
+    renderArea('/app');
     swipe(screen.getByText('conteúdo'), { x: 10, y: 300 }, { x: 250, y: 302 });
     settle();
-    expect(path()).toBe('/');
+    expect(path()).toBe('/app');
     expect(panel().style.transform).toBe('');
   });
 
   it('movimento vertical libera a rolagem: não arrasta nem navega', () => {
-    renderArea('/');
+    renderArea('/app');
     const target = screen.getByText('conteúdo');
     fire(target, 'touchstart', [LEFT.from], [LEFT.from], 1000);
     fire(target, 'touchmove', [{ x: 295, y: 340 }], [{ x: 295, y: 340 }], 1050);
@@ -332,6 +369,6 @@ describe('useSwipeNav — proteções', () => {
     expect(panel().style.transform).toBe('');
     fire(target, 'touchend', [], [{ x: 150, y: 345 }], 1150);
     settle();
-    expect(path()).toBe('/');
+    expect(path()).toBe('/app');
   });
 });

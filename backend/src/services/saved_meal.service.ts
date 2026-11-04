@@ -12,9 +12,9 @@ export async function listSavedMeals(userId: string) {
 
 export async function createSavedMeal(userId: string, data: CreateSavedMealDTO) {
   // Otimização: Fetch all foods at once (evitar N+1 queries)
-  const foodIds = [...new Set(data.items.map(item => item.foodId))];
+  const foodIds = [...new Set(data.items.map((item) => item.foodId))];
   const foods = await FoodModel.findByIds(foodIds, userId);
-  const foodsMap = new Map(foods.map(f => [f.id, f]));
+  const foodsMap = new Map(foods.map((f) => [f.id, f]));
 
   for (const item of data.items) {
     const food = foodsMap.get(item.foodId);
@@ -31,7 +31,9 @@ export async function createSavedMeal(userId: string, data: CreateSavedMealDTO) 
 export async function deleteSavedMeal(userId: string, id: string) {
   const success = await SavedMealModel.deleteById(userId, id);
   if (!success) {
-    const error: CustomError = new Error('Combo de refeição não encontrado ou não pertence a este usuário.');
+    const error: CustomError = new Error(
+      'Combo de refeição não encontrado ou não pertence a este usuário.',
+    );
     error.statusCode = 404;
     throw error;
   }

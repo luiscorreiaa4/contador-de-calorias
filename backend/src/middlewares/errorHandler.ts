@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { structuredLog } from '../config/logger.js';
+import { reportServerError } from '../config/sentry.js';
 import type { AuthenticatedRequest } from './auth.js';
 
 interface CustomError extends Error {
@@ -9,12 +10,32 @@ interface CustomError extends Error {
   code?: string;
 }
 
-export function errorHandler(
-  err: CustomError,
-  req: Request,
-  res: Response,
-  _next: NextFunction
-) {
+const ALLOWED_BUSINESS_CODES = new Set([
+  'EMAIL_NOT_VERIFIED',
+  'INVALID_VERIFICATION_CODE',
+  'INVALID_RESET_TOKEN',
+  'USER_NOT_FOUND',
+  'FORBIDDEN',
+  'MFA_REQUIRED',
+  'MFA_SETUP_REQUIRED',
+  'CAPTCHA_FAILED',
+  'DEMO_UNAVAILABLE',
+]);
+
+interface PgMappedError {
+  statusCode: number;
+  message: string;
+}
+
+const PG_ERROR_MAP: Record<string, PgMappedError> = {
+  '22003': { statusCode: 400, message: 'Valor numérico fora dos limites permitidos.' },
+  '22P02': { statusCode: 400, message: 'Dado em formato inválido.' },
+  '23505': { statusCode: 409, message: 'Registro já existente.' },
+  '23503': { statusCode: 400, message: 'Recurso relacionado não encontrado.' },
+  '23514': { statusCode: 400, message: 'Os dados fornecidos violam as restrições permitidas.' },
+};
+
+export function errorHandler(err: CustomError, req: Request, res: Response, _next: NextFunction) {
   // Trata erros de sintaxe JSON do body-parser (A-017)
   if (
     (err instanceof SyntaxError && err.status === 400 && 'body' in err) ||
@@ -26,11 +47,23 @@ export function errorHandler(
     });
   }
 
+  // Mapeamento defensivo de erros PostgreSQL conhecidos (#12)
+  if (typeof err.code === 'string' && PG_ERROR_MAP[err.code]) {
+    const mapped = PG_ERROR_MAP[err.code];
+    return res.status(mapped.statusCode).json({
+      success: false,
+      message: mapped.message,
+    });
+  }
+
   const statusCode = err.statusCode ?? err.status ?? 500;
-  const message = statusCode === 500 ? 'Erro interno no servidor.' : (err.message || 'Erro interno no servidor.');
+  const isBusinessError = !!err.code && ALLOWED_BUSINESS_CODES.has(err.code);
+  const masked = statusCode >= 500 && !isBusinessError;
+  const message = masked ? 'Erro interno no servidor.' : err.message || 'Erro na requisição.';
   const requestId = (req as AuthenticatedRequest).requestId ?? req.headers['x-request-id'];
 
-  if (statusCode >= 500) {
+  if (masked) {
+    reportServerError(err);
     structuredLog('error', 'unhandled_server_error', {
       requestId,
       method: req.method,
@@ -45,7 +78,9 @@ export function errorHandler(
     success: false,
     message,
   };
-  if (err.code) {
+
+  // Só códigos de negócio estáveis chegam ao cliente (#12 / backend-rules.md)
+  if (err.code && ALLOWED_BUSINESS_CODES.has(err.code)) {
     responsePayload.code = err.code;
   }
 

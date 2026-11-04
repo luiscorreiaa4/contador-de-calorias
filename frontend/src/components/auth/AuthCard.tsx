@@ -15,8 +15,7 @@ export const AuthCard: React.FC<AuthCardProps> = ({ initialMode }) => {
   const location = useLocation();
 
   const defaultMode: AuthMode =
-    initialMode ||
-    (location.pathname === '/cadastro' ? 'register' : 'login');
+    initialMode || (location.pathname === '/cadastro' ? 'register' : 'login');
 
   const [mode, setMode] = useState<AuthMode>(defaultMode);
   const [isSuccessMessage, setIsSuccessMessage] = useState<string | null>(null);
@@ -59,7 +58,7 @@ export const AuthCard: React.FC<AuthCardProps> = ({ initialMode }) => {
     }
 
     setIsSuccessMessage('Login efetuado com sucesso! Redirecionando...');
-    navigate('/');
+    navigate('/app');
     setTimeout(() => setIsSuccessMessage(null), 4000);
   };
 
@@ -77,7 +76,7 @@ export const AuthCard: React.FC<AuthCardProps> = ({ initialMode }) => {
           {mode === 'register' ? 'Crie sua conta' : 'Bem-vindo de volta'}
         </h1>
         <p className="mt-2 text-sm font-medium text-muted-foreground uppercase tracking-widest">
-          Monitore calorias. Supere metas.
+          Registre o que come e acompanhe suas metas.
         </p>
       </div>
 

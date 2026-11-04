@@ -12,17 +12,33 @@ interface RoutineGoalsSectionProps {
 }
 
 const goals = [
-  { key: 'perder_peso', label: 'EMAGRECER', icon: <Flame className="w-5 h-5" aria-hidden="true" /> },
+  {
+    key: 'perder_peso',
+    label: 'EMAGRECER',
+    icon: <Flame className="w-5 h-5" aria-hidden="true" />,
+  },
   { key: 'manter_peso', label: 'MANTER', icon: <Target className="w-5 h-5" aria-hidden="true" /> },
-  { key: 'ganhar_massa', label: 'GANHAR MASSA', icon: <TrendingUp className="w-5 h-5" aria-hidden="true" /> },
+  {
+    key: 'ganhar_massa',
+    label: 'GANHAR MASSA',
+    icon: <TrendingUp className="w-5 h-5" aria-hidden="true" />,
+  },
 ] as const;
 
 const activityLevels = [
   { key: 'sedentario', label: 'SEDENTÁRIO', desc: 'POUCO OU NENHUM EXERCÍCIO' },
   { key: 'pouco_ativo', label: 'POUCO ATIVO', desc: 'EXERCÍCIO LEVE 1-3 DIAS/SEM' },
-  { key: 'moderadamente_ativo', label: 'MODERADAMENTE ATIVO', desc: 'EXERCÍCIO MODERADO 3-5 DIAS/SEM' },
+  {
+    key: 'moderadamente_ativo',
+    label: 'MODERADAMENTE ATIVO',
+    desc: 'EXERCÍCIO MODERADO 3-5 DIAS/SEM',
+  },
   { key: 'muito_ativo', label: 'MUITO ATIVO', desc: 'EXERCÍCIO PESADO 6-7 DIAS/SEM' },
-  { key: 'extremamente_ativo', label: 'EXTREMAMENTE ATIVO', desc: 'TRABALHO FÍSICO / TREINO 2X AO DIA' },
+  {
+    key: 'extremamente_ativo',
+    label: 'EXTREMAMENTE ATIVO',
+    desc: 'TRABALHO FÍSICO / TREINO 2X AO DIA',
+  },
 ];
 
 export const RoutineGoalsSection: React.FC<RoutineGoalsSectionProps> = ({
@@ -40,10 +56,17 @@ export const RoutineGoalsSection: React.FC<RoutineGoalsSectionProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
         {/* Objetivo: 3 opções em linha */}
         <div>
-          <p id="goal-group-label" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3">
+          <p
+            id="goal-group-label"
+            className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3"
+          >
             SEU FOCO PRINCIPAL
           </p>
-          <div role="radiogroup" aria-labelledby="goal-group-label" className="grid grid-cols-3 gap-2">
+          <div
+            role="radiogroup"
+            aria-labelledby="goal-group-label"
+            className="grid grid-cols-3 gap-2"
+          >
             {goals.map(({ key, label, icon }) => (
               <label
                 key={key}
@@ -54,11 +77,21 @@ export const RoutineGoalsSection: React.FC<RoutineGoalsSectionProps> = ({
                     : 'border-border bg-background text-foreground hover:border-foreground hover:bg-secondary'
                 }`}
               >
-                <input id={`routine-goal-${key}`} type="radio" name="routine-goal" value={key} checked={goalValue === key} onChange={() => onSelectGoal(key)} className="sr-only" />
+                <input
+                  id={`routine-goal-${key}`}
+                  type="radio"
+                  name="routine-goal"
+                  value={key}
+                  checked={goalValue === key}
+                  onChange={() => onSelectGoal(key)}
+                  className="sr-only"
+                />
                 <div className={goalValue === key ? 'text-primary-foreground' : 'text-primary-ink'}>
                   {icon}
                 </div>
-                <span className="font-black uppercase tracking-wider text-[11px] sm:text-xs leading-tight">{label}</span>
+                <span className="font-black uppercase tracking-wider text-[11px] sm:text-xs leading-tight">
+                  {label}
+                </span>
               </label>
             ))}
           </div>
@@ -66,7 +99,10 @@ export const RoutineGoalsSection: React.FC<RoutineGoalsSectionProps> = ({
 
         {/* Nível de atividade: lista vertical compacta */}
         <div>
-          <p id="activity-group-label" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3">
+          <p
+            id="activity-group-label"
+            className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3"
+          >
             NÍVEL DE ATIVIDADE FÍSICA
           </p>
           <div role="radiogroup" aria-labelledby="activity-group-label" className="grid gap-2">
@@ -80,13 +116,21 @@ export const RoutineGoalsSection: React.FC<RoutineGoalsSectionProps> = ({
                     : 'border-border bg-background hover:border-foreground text-foreground'
                 }`}
               >
-                <input id={`routine-activity-${a.key}`} type="radio" name="routine-activity" value={a.key} checked={activityLevelValue === a.key} onChange={() => onSelectActivityLevel(a.key)} className="sr-only" />
-                <span className="text-xs font-black uppercase tracking-widest">
-                  {a.label}
-                </span>
+                <input
+                  id={`routine-activity-${a.key}`}
+                  type="radio"
+                  name="routine-activity"
+                  value={a.key}
+                  checked={activityLevelValue === a.key}
+                  onChange={() => onSelectActivityLevel(a.key)}
+                  className="sr-only"
+                />
+                <span className="text-xs font-black uppercase tracking-widest">{a.label}</span>
                 <span
                   className={`text-[10px] font-bold tracking-widest uppercase mt-0.5 ${
-                    activityLevelValue === a.key ? 'text-primary-foreground/80' : 'text-muted-foreground'
+                    activityLevelValue === a.key
+                      ? 'text-primary-foreground/80'
+                      : 'text-muted-foreground'
                   }`}
                 >
                   {a.desc}

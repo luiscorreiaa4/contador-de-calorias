@@ -46,8 +46,11 @@ describe('OnboardingFlow Component (PC-34 / TST-011)', () => {
     const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
     server.use(
       http.put(`${baseURL}/users/me/onboarding`, () => {
-        return HttpResponse.json({ success: false, message: 'Dados inválidos no servidor' }, { status: 400 });
-      })
+        return HttpResponse.json(
+          { success: false, message: 'Dados inválidos no servidor' },
+          { status: 400 },
+        );
+      }),
     );
 
     render(<OnboardingFlow />);

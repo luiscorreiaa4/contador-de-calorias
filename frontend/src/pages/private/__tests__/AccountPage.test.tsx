@@ -6,17 +6,23 @@ import { ThemeProvider } from '../../../context/ThemeProvider';
 import { AccountPage } from '../AccountPage';
 
 function renderPage(role: 'user' | 'admin' = 'user') {
-  localStorage.setItem('auth_token', role === 'admin' ? 'admin-token' : 'test-token');
+  localStorage.setItem('auth_session', role === 'admin' ? 'admin-token' : 'test-token');
   localStorage.setItem(
     'user_session',
-    JSON.stringify({ id: '1', name: 'Test User', email: 'test@example.com', role, onboarding_completed: true })
+    JSON.stringify({
+      id: '1',
+      name: 'Test User',
+      email: 'test@example.com',
+      role,
+      onboarding_completed: true,
+    }),
   );
   return render(
     <MemoryRouter>
       <ThemeProvider>
         <AccountPage />
       </ThemeProvider>
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 }
 
@@ -32,16 +38,26 @@ describe('AccountPage', () => {
     expect(screen.getByText('test@example.com')).toBeInTheDocument();
   });
 
-  it('oferece Perfil e Configurações (do módulo único) e esconde o Catálogo de usuário comum', async () => {
+  it('oferece Metas, Perfil e Configurações (do módulo único) e esconde o Catálogo de usuário comum', async () => {
     renderPage();
-    expect(await screen.findByRole('link', { name: /perfil/i })).toHaveAttribute('href', '/perfil');
-    expect(screen.getByRole('link', { name: /configurações/i })).toHaveAttribute('href', '/configuracoes');
+    expect(await screen.findByRole('link', { name: /perfil/i })).toHaveAttribute(
+      'href',
+      '/app/perfil',
+    );
+    expect(screen.getByRole('link', { name: /metas/i })).toHaveAttribute('href', '/app/metas');
+    expect(screen.getByRole('link', { name: /configurações/i })).toHaveAttribute(
+      'href',
+      '/app/configuracoes',
+    );
     expect(screen.queryByRole('link', { name: /catálogo/i })).not.toBeInTheDocument();
   });
 
   it('mostra o Catálogo para administrador', async () => {
     renderPage('admin');
-    expect(await screen.findByRole('link', { name: /catálogo/i })).toHaveAttribute('href', '/admin/alimentos');
+    expect(await screen.findByRole('link', { name: /catálogo/i })).toHaveAttribute(
+      'href',
+      '/admin/alimentos',
+    );
   });
 
   it('alterna o tema', async () => {
@@ -55,7 +71,7 @@ describe('AccountPage', () => {
   it('"Sair da conta" encerra a sessão existente', async () => {
     renderPage();
     await userEvent.click(await screen.findByRole('button', { name: /sair da conta/i }));
-    await waitFor(() => expect(localStorage.getItem('auth_token')).toBeNull());
+    await waitFor(() => expect(localStorage.getItem('auth_session')).toBeNull());
     expect(localStorage.getItem('user_session')).toBeNull();
   });
 });

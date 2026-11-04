@@ -38,9 +38,10 @@ function findFiles(dir) {
   return results;
 }
 
-const targetFiles = args.length > 0
-  ? args.map(a => path.isAbsolute(a) ? a : path.resolve(process.cwd(), a))
-  : findFiles(frontendRoot);
+const targetFiles =
+  args.length > 0
+    ? args.map((a) => (path.isAbsolute(a) ? a : path.resolve(process.cwd(), a)))
+    : findFiles(frontendRoot);
 
 const prohibitedRules = [
   {
@@ -49,7 +50,7 @@ const prohibitedRules = [
     match: (line, file) => {
       if (isAllowedLiteralFile(file)) return false;
       return /#[0-9a-fA-F]{3,8}\b/.test(line);
-    }
+    },
   },
   {
     id: 'fn-color-number',
@@ -57,61 +58,87 @@ const prohibitedRules = [
     match: (line, file) => {
       if (isAllowedLiteralFile(file)) return false;
       return /\b(rgba?|hsla?)\s*\(\s*[\d.]+/i.test(line);
-    }
+    },
   },
   {
     id: 'style-color-name',
     description: 'Nome literal de cor em estilo/SVG (white, black, red...)',
     match: (line, file) => {
       if (isAllowedLiteralFile(file)) return false;
-      return /(?:color|fill|stroke|backgroundColor|borderColor|background)\s*[:=]\s*['"`](white|black|red|green|blue|gray|grey|yellow|orange|purple|pink)['"`]/i.test(line);
-    }
+      return /(?:color|fill|stroke|backgroundColor|borderColor|background)\s*[:=]\s*['"`](white|black|red|green|blue|gray|grey|yellow|orange|purple|pink)['"`]/i.test(
+        line,
+      );
+    },
   },
   {
     id: 'text-primary-invalid',
     description: 'text-primary não seguido de -ink ou -foreground',
-    match: (line) => /(?:[a-z0-9_:[\]-]+:)*text-primary(?!(?:-ink|-foreground))\b/.test(line)
+    match: (line) => /(?:[a-z0-9_:[\]-]+:)*text-primary(?!(?:-ink|-foreground))\b/.test(line),
   },
   {
     id: 'text-accent-invalid',
     description: 'text-accent não seguido de -foreground',
-    match: (line) => /(?:[a-z0-9_:[\]-]+:)*text-accent(?!(?:-foreground))\b/.test(line)
+    match: (line) => /(?:[a-z0-9_:[\]-]+:)*text-accent(?!(?:-foreground))\b/.test(line),
   },
   {
     id: 'primary-accent-decor',
-    description: 'border-/ring-/outline-/decoration-/caret-/accent-/divide- com primary ou accent não permitidos',
+    description:
+      'border-/ring-/outline-/decoration-/caret-/accent-/divide- com primary ou accent não permitidos',
     match: (line) => {
       // border, ring, outline, divide nunca aceitam primary ou accent
-      if (/(?:[a-z0-9_:[\]-]+:)*(?:border|ring|outline|divide)-(?:primary|accent)(?:-[a-z0-9]+)?(?:\/[0-9]+)?\b/.test(line)) return true;
+      if (
+        /(?:[a-z0-9_:[\]-]+:)*(?:border|ring|outline|divide)-(?:primary|accent)(?:-[a-z0-9]+)?(?:\/[0-9]+)?\b/.test(
+          line,
+        )
+      )
+        return true;
       // decoration, caret, accent só aceitam -primary-ink ou -accent-foreground
-      if (/(?:[a-z0-9_:[\]-]+:)*(?:decoration|caret|accent)-(?:primary|accent)(?!(?:-ink|-foreground))\b/.test(line)) return true;
+      if (
+        /(?:[a-z0-9_:[\]-]+:)*(?:decoration|caret|accent)-(?:primary|accent)(?!(?:-ink|-foreground))\b/.test(
+          line,
+        )
+      )
+        return true;
       return false;
-    }
+    },
   },
   {
     id: 'tailwind-palette-num',
     description: 'Utilitário de cor da paleta Tailwind padrão com número',
-    match: (line) => /(?:[a-z0-9_:[\]-]+:)*(?:bg|text|border|ring|fill|stroke|from|via|to|divide|outline|decoration)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-[0-9]{2,3}(?:\/[0-9]+)?\b/.test(line)
+    match: (line) =>
+      /(?:[a-z0-9_:[\]-]+:)*(?:bg|text|border|ring|fill|stroke|from|via|to|divide|outline|decoration)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-[0-9]{2,3}(?:\/[0-9]+)?\b/.test(
+        line,
+      ),
   },
   {
     id: 'fixed-white-black',
     description: 'bg-white, text-white, text-black, bg-black (sem /NN) ou border-white',
     match: (line) => {
-      if (/(?:[a-z0-9_:[\]-]+:)*(?:bg-white|text-white|text-black|border-white)(?:\/[0-9]+)?\b/.test(line)) return true;
+      if (
+        /(?:[a-z0-9_:[\]-]+:)*(?:bg-white|text-white|text-black|border-white)(?:\/[0-9]+)?\b/.test(
+          line,
+        )
+      )
+        return true;
       if (/(?:[a-z0-9_:[\]-]+:)*bg-black\b(?!\/[0-9]+)/.test(line)) return true;
       return false;
-    }
+    },
   },
   {
     id: 'dark-color-variant',
     description: 'Variante dark: aplicada a utilitários de cor',
-    match: (line) => /\bdark:(?:[a-z0-9_:[\]-]+:)*(?:bg|text|border|ring|fill|stroke|from|via|to|divide|outline|decoration)-[^\s"'`<>]+/.test(line)
+    match: (line) =>
+      /\bdark:(?:[a-z0-9_:[\]-]+:)*(?:bg|text|border|ring|fill|stroke|from|via|to|divide|outline|decoration)-[^\s"'`<>]+/.test(
+        line,
+      ),
   },
   {
     id: 'arbitrary-color-or-shadow',
     description: 'Valores arbitrários de cor [#..], [rgb..], [hsl..] ou shadow-[..]',
-    match: (line) => /\[(?:#[0-9a-fA-F]+|rgba?\(|hsla?\()[^\]]*\]/.test(line) || /(?:[a-z0-9_:[\]-]+:)*shadow-\[[^\]]+\]/.test(line)
-  }
+    match: (line) =>
+      /\[(?:#[0-9a-fA-F]+|rgba?\(|hsla?\()[^\]]*\]/.test(line) ||
+      /(?:[a-z0-9_:[\]-]+:)*shadow-\[[^\]]+\]/.test(line),
+  },
 ];
 
 let totalViolations = 0;
@@ -129,7 +156,11 @@ for (const filePath of targetFiles) {
 
     // Verifica e registra exceção autorizada
     if (line.includes('color-guard-allow:') || prevLine.includes('color-guard-allow:')) {
-      suppressions.push({ file: relPath, line: i + 1, directive: (line.includes('color-guard-allow:') ? line : prevLine).trim() });
+      suppressions.push({
+        file: relPath,
+        line: i + 1,
+        directive: (line.includes('color-guard-allow:') ? line : prevLine).trim(),
+      });
       continue;
     }
 
@@ -143,7 +174,9 @@ for (const filePath of targetFiles) {
 }
 
 if (suppressions.length > 0) {
-  console.log(`\n[check:colors] ${suppressions.length} supressão(ões) autorizada(s) encontrada(s):`);
+  console.log(
+    `\n[check:colors] ${suppressions.length} supressão(ões) autorizada(s) encontrada(s):`,
+  );
   for (const s of suppressions) {
     console.log(`  - ${s.file}:${s.line} -> ${s.directive}`);
   }
@@ -154,6 +187,8 @@ if (totalViolations > 0) {
   process.exit(1);
 } else {
   const note = suppressions.length > 0 ? ` (${suppressions.length} supressões auditadas)` : '';
-  console.log(`[check:colors] 0 violações encontradas${note}. Todas as cores seguem os tokens semânticos.`);
+  console.log(
+    `[check:colors] 0 violações encontradas${note}. Todas as cores seguem os tokens semânticos.`,
+  );
   process.exit(0);
 }

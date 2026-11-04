@@ -1,5 +1,5 @@
 /**
- * Swipe horizontal entre os destinos da barra inferior (Diário ↔ Progresso ↔ Conta), só no mobile.
+ * Swipe horizontal entre os destinos da barra inferior (Diário ↔ Histórico ↔ Conta), só no mobile.
  * A tela acompanha o dedo; ao soltar, confirma a troca ou volta. Princípio: na dúvida, NÃO navegue.
  */
 
@@ -37,7 +37,15 @@ export interface SwipeInput {
 }
 
 /** Dedo para a esquerda = próximo destino; para a direita = anterior. */
-export function classifySwipe({ startX, startY, endX, endY, dtMs, startedAtEdge, widthPx }: SwipeInput): SwipeDirection {
+export function classifySwipe({
+  startX,
+  startY,
+  endX,
+  endY,
+  dtMs,
+  startedAtEdge,
+  widthPx,
+}: SwipeInput): SwipeDirection {
   if (startedAtEdge) return null;
   if (!(dtMs > 0)) return null;
 
@@ -47,7 +55,8 @@ export function classifySwipe({ startX, startY, endX, endY, dtMs, startedAtEdge,
   if (adx < SWIPE_CONFIG.horizontalDominance * Math.abs(dy)) return null;
 
   const isFar = adx >= Math.max(SWIPE_CONFIG.minDistancePx, SWIPE_CONFIG.commitRatio * widthPx);
-  const isFlick = adx >= SWIPE_CONFIG.fastMinDistancePx && adx / dtMs >= SWIPE_CONFIG.fastVelocityPxPerMs;
+  const isFlick =
+    adx >= SWIPE_CONFIG.fastMinDistancePx && adx / dtMs >= SWIPE_CONFIG.fastVelocityPxPerMs;
   if (!isFar && !isFlick) return null;
 
   return dx < 0 ? 'next' : 'prev';
@@ -63,7 +72,10 @@ export function isNarrowViewport(): boolean {
 }
 
 export function prefersReducedMotion(): boolean {
-  return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  return (
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
 }
 
 const IGNORE_SELECTOR = [
@@ -85,7 +97,9 @@ const OVERLAY_SELECTOR = '[role="dialog"], [role="menu"], [role="listbox"]';
 
 function scrollsHorizontally(element: Element): boolean {
   const { overflowX } = window.getComputedStyle(element);
-  return (overflowX === 'auto' || overflowX === 'scroll') && element.scrollWidth > element.clientWidth;
+  return (
+    (overflowX === 'auto' || overflowX === 'scroll') && element.scrollWidth > element.clientWidth
+  );
 }
 
 /** O toque inicial cai numa área em que o gesto horizontal pertence a outro controle? */
@@ -114,5 +128,8 @@ export function hasBlockingState(): boolean {
     return true;
   }
 
-  return document.querySelector(OVERLAY_SELECTOR) !== null || document.body.hasAttribute('data-scroll-locked');
+  return (
+    document.querySelector(OVERLAY_SELECTOR) !== null ||
+    document.body.hasAttribute('data-scroll-locked')
+  );
 }

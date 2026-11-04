@@ -9,23 +9,28 @@ import { isValidLocalDateString } from '../../utils/date';
 const slotClass =
   'flex h-full w-full items-center justify-center text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset';
 
-/** Barra de navegação inferior do mobile (abaixo de md): [DIÁRIO] [PROGRESSO] [+] [CONTA]. */
+/** Barra de navegação inferior do mobile (abaixo de md): [DIÁRIO] [HISTÓRICO] [+] [CONTA]. */
 export function BottomNav() {
   const barRef = useRef<HTMLElement>(null);
   const hidden = useHideOnScroll(barRef);
   const { pathname } = useLocation();
   const { open } = useNewMealModal();
-  const [diario, progresso, conta] = BOTTOM_NAV_ITEMS;
+  const [diario, historico, conta] = BOTTOM_NAV_ITEMS;
 
   // No Diário, o "+" registra na data em exibição; nas demais telas, hoje.
-  const diaryDate = matchPath('/diario/:date', pathname)?.params.date;
+  const diaryDate = matchPath('/app/diario/:date', pathname)?.params.date;
 
   const renderDestination = (item: (typeof BOTTOM_NAV_ITEMS)[number]) => {
     const active = isDestinationActive(pathname, item);
     const Icon = active ? item.activeIcon : item.icon;
     return (
       <li key={item.id} className="min-w-0">
-        <Link to={item.to} aria-label={item.shortLabel} aria-current={active ? 'page' : undefined} className={slotClass}>
+        <Link
+          to={item.to}
+          aria-label={item.shortLabel}
+          aria-current={active ? 'page' : undefined}
+          className={slotClass}
+        >
           <Icon className="h-6 w-6" />
         </Link>
       </li>
@@ -42,12 +47,14 @@ export function BottomNav() {
     >
       <ul className="grid h-14 grid-cols-4">
         {renderDestination(diario)}
-        {renderDestination(progresso)}
+        {renderDestination(historico)}
         <li className="min-w-0">
           <button
             type="button"
             aria-label="Nova refeição"
-            onClick={() => open(isValidLocalDateString(diaryDate) ? { date: diaryDate } : undefined)}
+            onClick={() =>
+              open(isValidLocalDateString(diaryDate) ? { date: diaryDate } : undefined)
+            }
             className={slotClass}
           >
             <span className="flex h-7 w-7 items-center justify-center rounded-none border-2 border-foreground">

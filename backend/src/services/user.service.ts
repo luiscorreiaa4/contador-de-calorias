@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import * as UserModel from '../models/user.model.js';
 import * as AuthModel from '../models/auth.model.js';
 import { signAuthToken } from '../utils/jwt.js';
+import { bcryptCost } from '../utils/authTokens.js';
 import { sendVerificationCodeForUser } from './auth.service.js';
 import { structuredLog } from '../config/logger.js';
 import {
@@ -32,7 +33,10 @@ export async function getUserProfile(userId: string): Promise<UserWithoutPasswor
   return user;
 }
 
-export async function completeOnboarding(userId: string, data: CompleteOnboardingDTO): Promise<UserWithoutPassword> {
+export async function completeOnboarding(
+  userId: string,
+  data: CompleteOnboardingDTO,
+): Promise<UserWithoutPassword> {
   const user = await UserModel.findFullUserById(userId);
   if (!user) {
     const error: CustomError = new Error('Usuário não encontrado.');
@@ -75,7 +79,7 @@ export async function completeOnboarding(userId: string, data: CompleteOnboardin
         daily_proteins_goal: targets.suggestedMacros.proteins,
         onboarding_completed: true,
       },
-      client
+      client,
     );
 
     // Salvar no histórico
@@ -88,7 +92,7 @@ export async function completeOnboarding(userId: string, data: CompleteOnboardin
       targets.suggestedMacros.carbs,
       targets.suggestedMacros.fats,
       'auto',
-      client
+      client,
     );
 
     await HistoryModel.insertBodyMeasurement(
@@ -96,7 +100,7 @@ export async function completeOnboarding(userId: string, data: CompleteOnboardin
       data.weight,
       data.body_fat ?? null,
       new Date(),
-      client
+      client,
     );
 
     await client.query('COMMIT');
@@ -111,7 +115,8 @@ export async function completeOnboarding(userId: string, data: CompleteOnboardin
 
 export async function updateProfile(
   userId: string,
-  data: UpdateUserDTO
+  data: UpdateUserDTO,
+  persistentSession = true,
 ): Promise<UserWithoutPassword & { token?: string }> {
   const user = await UserModel.findFullUserById(userId);
   if (!user) {
@@ -162,8 +167,7 @@ export async function updateProfile(
       throw error;
     }
 
-    const saltRounds = process.env.NODE_ENV === 'test' ? 1 : 10;
-    newPasswordHash = await bcrypt.hash(data.newPassword, saltRounds);
+    newPasswordHash = await bcrypt.hash(data.newPassword, bcryptCost());
   }
 
   const client = await pool.connect();
@@ -187,7 +191,7 @@ export async function updateProfile(
           activity_level: data.activity_level,
           emailVerifiedAt: emailChanged ? null : undefined,
         },
-        client
+        client,
       );
     } catch (err: unknown) {
       const pgErr = err as { code?: string; constraint?: string; detail?: string };
@@ -205,14 +209,15 @@ export async function updateProfile(
       const finalWeight = data.weight ?? Number(user.weight);
       let finalBodyFat: number | null = null;
       if (data.body_fat !== undefined) finalBodyFat = data.body_fat;
-      else if (user.body_fat !== undefined && user.body_fat !== null) finalBodyFat = Number(user.body_fat);
+      else if (user.body_fat !== undefined && user.body_fat !== null)
+        finalBodyFat = Number(user.body_fat);
 
       await HistoryModel.insertBodyMeasurement(
         userId,
         finalWeight,
         finalBodyFat,
         new Date(),
-        client
+        client,
       );
     }
 
@@ -232,7 +237,9 @@ export async function updateProfile(
       // Recalcula apenas se o usuário usa meta no modo 'auto' (ou se ainda não tem meta registrada)
       if (!activeGoal || activeGoal.mode === 'auto') {
         if (
-          (updatedUser.sex === 'masculino' || updatedUser.sex === 'feminino' || updatedUser.sex === 'prefiro_nao_responder') &&
+          (updatedUser.sex === 'masculino' ||
+            updatedUser.sex === 'feminino' ||
+            updatedUser.sex === 'prefiro_nao_responder') &&
           updatedUser.goal &&
           updatedUser.weight != null &&
           updatedUser.height != null &&
@@ -262,11 +269,11 @@ export async function updateProfile(
             newTargets.suggestedMacros.carbs,
             newTargets.suggestedMacros.fats,
             'auto',
-            client
+            client,
           );
           await client.query(
             `UPDATE users SET daily_calories_goal = $1, daily_proteins_goal = $2 WHERE id = $3`,
-            [newTargets.suggestedCalories, newTargets.suggestedMacros.proteins, userId]
+            [newTargets.suggestedCalories, newTargets.suggestedMacros.proteins, userId],
           );
         }
       }
@@ -276,7 +283,7 @@ export async function updateProfile(
     if (newPasswordHash || emailChanged) {
       // A8: revoga sessões anteriores na mesma transação e devolve token novo.
       const tokenVersion = await AuthModel.incrementTokenVersion(userId, client);
-      refreshedToken = signAuthToken(userId, tokenVersion);
+      refreshedToken = signAuthToken(userId, tokenVersion, persistentSession);
     }
 
     await client.query('COMMIT');
@@ -325,7 +332,10 @@ export async function deleteAccount(userId: string, password?: string): Promise<
   return await UserModel.deleteUser(userId);
 }
 
-export async function previewGoals(userId: string, data: Partial<import('@caloriesync/shared').PreviewGoalsDTO>) {
+export async function previewGoals(
+  userId: string,
+  data: Partial<import('@caloriesync/shared').PreviewGoalsDTO>,
+) {
   const user = await UserModel.findFullUserById(userId);
   if (!user) {
     const error: CustomError = new Error('Usuário não encontrado.');
@@ -344,7 +354,15 @@ export async function previewGoals(userId: string, data: Partial<import('@calori
   const goal = data.goal ?? (user.goal as 'perder_peso' | 'manter_peso' | 'ganhar_massa' | null);
   const weight = data.weight ?? (user.weight != null ? Number(user.weight) : null);
   const height = data.height ?? (user.height != null ? Number(user.height) : null);
-  const activityLevel = data.activity_level ?? (user.activity_level as 'sedentario' | 'pouco_ativo' | 'moderadamente_ativo' | 'muito_ativo' | 'extremamente_ativo' | null);
+  const activityLevel =
+    data.activity_level ??
+    (user.activity_level as
+      | 'sedentario'
+      | 'pouco_ativo'
+      | 'moderadamente_ativo'
+      | 'muito_ativo'
+      | 'extremamente_ativo'
+      | null);
 
   if (!sex || !goal || weight == null || height == null || !activityLevel) {
     const error: CustomError = new Error('Dados incompletos para calcular as metas nutricionais.');
@@ -358,14 +376,22 @@ export async function previewGoals(userId: string, data: Partial<import('@calori
     goal,
     weight,
     height,
-    body_fat: data.body_fat !== undefined ? data.body_fat : (user.body_fat != null ? Number(user.body_fat) : null),
+    body_fat:
+      data.body_fat !== undefined
+        ? data.body_fat
+        : user.body_fat != null
+          ? Number(user.body_fat)
+          : null,
     activity_level: activityLevel,
   };
 
   return NutritionService.calculateEnergyTargets(profileForCalc);
 }
 
-export async function updateGoals(userId: string, data: import('@caloriesync/shared').UpdateGoalsDTO) {
+export async function updateGoals(
+  userId: string,
+  data: import('@caloriesync/shared').UpdateGoalsDTO,
+) {
   const user = await UserModel.findFullUserById(userId);
   if (!user) {
     const error: CustomError = new Error('Usuário não encontrado.');
@@ -386,7 +412,7 @@ export async function updateGoals(userId: string, data: import('@caloriesync/sha
       data.carbs,
       data.fats,
       data.mode,
-      client
+      client,
     );
 
     await UserModel.updateUser(
@@ -395,7 +421,7 @@ export async function updateGoals(userId: string, data: import('@caloriesync/sha
         daily_calories_goal: data.calories,
         daily_proteins_goal: data.proteins,
       },
-      client
+      client,
     );
 
     await client.query('COMMIT');
@@ -417,7 +443,14 @@ export async function getActiveGoal(userId: string, dateStr?: string) {
       let carbs: number;
       let fats: number;
       try {
-        if (user.birth_date && user.sex && user.goal && user.weight && user.height && user.activity_level) {
+        if (
+          user.birth_date &&
+          user.sex &&
+          user.goal &&
+          user.weight &&
+          user.height &&
+          user.activity_level
+        ) {
           const profileForCalc: NutritionService.UserProfile = {
             sex: user.sex as NutritionService.UserProfile['sex'],
             birthDate: String(user.birth_date),
@@ -466,7 +499,7 @@ export interface UserDataExport {
   meals: Meal[];
 }
 
-export const EXPORT_SCHEMA_VERSION = '1.0';
+const EXPORT_SCHEMA_VERSION = '1.0';
 
 /** Retorna o JSON estruturado com todos os dados pessoais do usuário autenticado. */
 export async function exportUserData(userId: string): Promise<UserDataExport> {
@@ -495,14 +528,14 @@ export async function exportUserData(userId: string): Promise<UserDataExport> {
 
 export async function getBodyMeasurements(
   userId: string,
-  period?: '30d' | '90d' | 'all'
+  period?: '30d' | '90d' | 'all',
 ): Promise<HistoryModel.BodyMeasurement[]> {
   return HistoryModel.listBodyMeasurementsByUser(userId, period);
 }
 
 export async function addBodyMeasurement(
   userId: string,
-  data: CreateMeasurementDTO
+  data: CreateMeasurementDTO,
 ): Promise<HistoryModel.BodyMeasurement> {
   let measuredAt: Date;
   if (data.measured_at) {
@@ -520,8 +553,7 @@ export async function addBodyMeasurement(
 
 export async function deleteBodyMeasurement(
   userId: string,
-  measurementId: string
+  measurementId: string,
 ): Promise<boolean> {
   return HistoryModel.deleteBodyMeasurement(userId, measurementId);
 }
-

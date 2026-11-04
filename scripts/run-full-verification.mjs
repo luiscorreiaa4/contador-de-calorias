@@ -1,66 +1,78 @@
+// Espelha os passos de .github/workflows/ci.yml, na mesma ordem. Ao mudar o CI, mude aqui.
+import { spawnSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { runBounded } from './run-bounded.mjs';
 
 const root = resolve(import.meta.dirname, '..');
+const win = process.platform === 'win32';
+const available = (cmd, args) => spawnSync(cmd, args, { stdio: 'ignore' }).status === 0;
+const npm = (...args) => ({
+  cmd: win ? 'cmd.exe' : 'npm',
+  args: win ? ['/c', 'npm', ...args] : args,
+});
 
 const steps = [
+  { name: 'Security Audit (raiz)', ...npm('audit', '--audit-level=high') },
   {
-    name: '1. Security Audit (npm audit)',
-    args: ['audit', '--audit-level=high'],
+    name: 'Security Audit (backend)',
+    ...npm('--prefix', 'backend', 'audit', '--audit-level=high'),
   },
   {
-    name: '2. Typecheck Shared (@caloriesync/shared)',
-    args: ['--prefix', 'shared', 'run', 'typecheck'],
+    name: 'Security Audit (frontend)',
+    ...npm('--prefix', 'frontend', 'audit', '--audit-level=high'),
   },
   {
-    name: '3. Typecheck Backend (TypeScript)',
-    args: ['--prefix', 'backend', 'run', 'typecheck'],
+    name: 'Gitleaks (histórico completo)',
+    cmd: 'gitleaks',
+    args: ['git', '--redact', '--no-banner', '.'],
+    skip: () => !available('gitleaks', ['version']) && 'gitleaks não instalado',
   },
+  { name: 'Typecheck Shared', ...npm('--prefix', 'shared', 'run', 'typecheck') },
+  { name: 'Typecheck Backend', ...npm('--prefix', 'backend', 'run', 'typecheck') },
+  { name: 'Format check', ...npm('run', 'format:check') },
+  { name: 'Dead code (knip)', ...npm('run', 'knip') },
+  { name: 'Lint', ...npm('run', 'lint') },
+  { name: 'Testes do Backend com cobertura', ...npm('run', 'test:coverage') },
+  { name: 'Rollback de migrações', ...npm('run', 'test:rollback') },
+  // Porta própria para não colidir com o backend de desenvolvimento em :3001.
+  { name: 'Carga (smoke)', ...npm('run', 'test:load'), env: { PORT: '3201', DURATION: '10' } },
+  { name: 'E2E (Playwright)', ...npm('run', 'test:e2e') },
   {
-    name: '4. Lint & Estilo (ESLint, Higiene de Testes e Guarda de Cores)',
-    args: ['run', 'lint'],
+    name: 'Testes do Frontend com cobertura',
+    ...npm('--prefix', 'frontend', 'run', 'test:coverage'),
   },
+  { name: 'Build do Frontend', ...npm('--prefix', 'frontend', 'run', 'build') },
   {
-    name: '5. Testes do Backend em Modo Estrito (node:test + PostgreSQL)',
-    args: ['run', 'test:strict'],
-  },
-  {
-    name: '6. Testes do Frontend com Cobertura (Vitest + RTL + MSW)',
-    args: ['--prefix', 'frontend', 'run', 'test:coverage'],
-  },
-  {
-    name: '7. Build de Produção do Frontend (Vite + tsc)',
-    args: ['run', 'build'],
+    name: 'Build da imagem Docker da API',
+    cmd: 'docker',
+    args: ['build', '-t', 'caloriesync-api:ci', '.'],
+    skip: () => !available('docker', ['info']) && 'Docker não está rodando',
   },
 ];
 
-console.log('='.repeat(70));
-console.log('🚀 INICIANDO BATERIA COMPLETA DE VERIFICAÇÃO CI');
-console.log('='.repeat(70));
-
-const totalStarted = Date.now();
-
-for (let i = 0; i < steps.length; i++) {
-  const step = steps[i];
-  console.log(`\n[${i + 1}/${steps.length}] ▶ Executando: ${step.name}...`);
-
-  const cmd = process.platform === 'win32' ? 'cmd.exe' : 'npm';
-  const cmdArgs = process.platform === 'win32' ? ['/c', 'npm', ...step.args] : step.args;
-
-  const result = await runBounded(cmd, cmdArgs, { cwd: root });
-
-  if (result.code !== 0) {
-    console.error(`\n❌ FALHA na etapa "${step.name}" (código ${result.code}, duração: ${(result.durationMs / 1000).toFixed(1)}s).`);
-    console.error('Interrompendo verificação completa antes do push.');
-    process.exit(result.code);
+const started = Date.now();
+const skipped = [];
+for (const [i, step] of steps.entries()) {
+  const label = `[${i + 1}/${steps.length}] ${step.name}`;
+  const reason = step.skip?.();
+  if (reason) {
+    console.warn(`\n⚠ ${label}: PULADO (${reason}).`);
+    skipped.push(step.name);
+    continue;
   }
-
-  console.log(`✔ Etapa "${step.name}" concluída com sucesso em ${(result.durationMs / 1000).toFixed(1)}s.`);
+  console.log(`\n▶ ${label}`);
+  const result = await runBounded(step.cmd, step.args, {
+    cwd: root,
+    env: { ...process.env, ...step.env },
+    timeout: 600000,
+  });
+  if (result.code !== 0) {
+    console.error(`\n❌ FALHA em "${step.name}" (código ${result.code}). Corrija antes do push.`);
+    process.exit(result.code || 1);
+  }
+  console.log(`✔ ${step.name} (${(result.durationMs / 1000).toFixed(1)}s)`);
 }
 
-const totalDuration = ((Date.now() - totalStarted) / 1000).toFixed(1);
-console.log('\n' + '='.repeat(70));
-console.log(`🎉 TODAS AS ETAPAS DE CI FORAM APROVADAS COM SUCESSO! (${totalDuration}s)`);
-console.log('Repositório 100% íntegro e seguro para Push / Pull Request.');
-console.log('='.repeat(70));
-
+const total = ((Date.now() - started) / 1000).toFixed(1);
+console.log(`\n🎉 Passos do CI aprovados em ${total}s.`);
+if (skipped.length) console.warn(`⚠ Pulados (rodam só no CI): ${skipped.join(', ')}.`);

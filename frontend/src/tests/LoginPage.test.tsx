@@ -16,7 +16,7 @@ describe('LoginPage', () => {
             <LoginPage />
           </AuthProvider>
         </QueryClientProvider>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     // Usa consulta RTL baseada em acessibilidade

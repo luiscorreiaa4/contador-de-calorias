@@ -3,7 +3,7 @@ import { pool } from '../src/database/pool.js';
 async function main() {
   try {
     const res = await pool.query(
-      "SELECT indexname, indexdef FROM pg_indexes WHERE tablename IN ('meals', 'meal_items');"
+      "SELECT indexname, indexdef FROM pg_indexes WHERE tablename IN ('meals', 'meal_items');",
     );
     console.log(res.rows);
   } catch (err) {

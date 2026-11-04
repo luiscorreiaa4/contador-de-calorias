@@ -4,6 +4,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "setup": "npm --prefix backend run migrate up",
     "server": "npm --prefix backend run dev",
     "dev": "npm --prefix frontend run dev",
@@ -15,9 +17,14 @@
     "test:frontend:file": "node scripts/run-tests.mjs frontend:file",
     "docker:up": "docker compose --env-file backend/.env up -d",
     "docker:down": "docker compose --env-file backend/.env down",
+    "test:coverage": "node scripts/run-tests.mjs coverage",
     "test:strict": "node scripts/run-tests.mjs strict",
     "test:file": "node scripts/run-tests.mjs file",
     "test:frontend": "node scripts/run-tests.mjs frontend",
+    "knip": "node scripts/bounded-command.mjs node node_modules/knip/bin/knip.js",
+    "test:load": "node scripts/bounded-command.mjs node scripts/load-smoke.mjs",
+    "test:e2e": "node scripts/run-e2e.mjs",
+    "test:rollback": "node scripts/bounded-command.mjs node backend/scripts/test-migration-rollback.mjs",
     "test:full": "node scripts/run-full-verification.mjs",
     "admin:promote": "npm --prefix backend run admin:promote --",
     "admin:demote": "npm --prefix backend run admin:demote --",
@@ -33,6 +40,8 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.4",
     "globals": "^17.11.0",
+    "knip": "6.44.1",
+    "prettier": "^3.9.10",
     "typescript-eslint": "^8.67.0"
   },
   "overrides": {

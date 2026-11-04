@@ -3,6 +3,9 @@ import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import * as UserController from '../controllers/user.controller.js';
 import { validate } from '../middlewares/validate.js';
 import { authenticate } from '../middlewares/auth.js';
+import { blockGuestUser } from '../middlewares/guest.js';
+import { PgRateLimitStore } from '../middlewares/pgRateLimitStore.js';
+import * as MfaController from '../controllers/mfa.controller.js';
 import {
   updateUserSchema,
   deleteUserSchema,
@@ -13,6 +16,7 @@ import {
   createMeasurementSchema,
   measurementQuerySchema,
   uuidParamSchema,
+  mfaCodeSchema,
 } from '@caloriesync/shared';
 
 const router = Router();
@@ -22,27 +26,99 @@ const sensitiveActionLimiter = rateLimit({
   max: 15, // 15 tentativas para ações sensíveis de alteração de senha/exclusão
   standardHeaders: true,
   legacyHeaders: false,
+  // V-1: contador compartilhado entre instâncias e restarts, como os limitadores de /api/auth.
+  store:
+    process.env.NODE_ENV === 'test' ? undefined : new PgRateLimitStore('sensitiveActionLimiter'),
   keyGenerator: (req) => {
     const authReq = req as { userId?: string; ip?: string };
     const ip = ipKeyGenerator(req.ip ?? '');
     return authReq.userId ? `${ip}:user:${authReq.userId}` : ip;
   },
-  message: { success: false, message: 'Muitas tentativas para esta operação. Tente novamente após 15 minutos.' }
+  message: {
+    success: false,
+    message: 'Muitas tentativas para esta operação. Tente novamente após 15 minutos.',
+  },
 });
 
 router.get('/me', authenticate, UserController.getProfile);
+router.post(
+  '/me/mfa/setup',
+  authenticate,
+  blockGuestUser,
+  sensitiveActionLimiter,
+  MfaController.setup,
+);
+router.post(
+  '/me/mfa/enable',
+  authenticate,
+  blockGuestUser,
+  sensitiveActionLimiter,
+  validate(mfaCodeSchema),
+  MfaController.enable,
+);
+router.post(
+  '/me/mfa/disable',
+  authenticate,
+  blockGuestUser,
+  sensitiveActionLimiter,
+  validate(mfaCodeSchema),
+  MfaController.disable,
+);
 router.get('/me/export', authenticate, UserController.exportData);
-router.put('/me', authenticate, sensitiveActionLimiter, validate(updateUserSchema), UserController.updateProfile);
-router.put('/me/onboarding', authenticate, validate(completeOnboardingSchema), UserController.completeOnboarding);
-router.delete('/me', authenticate, sensitiveActionLimiter, validate(deleteUserSchema), UserController.deleteAccount);
+router.put(
+  '/me',
+  authenticate,
+  blockGuestUser,
+  sensitiveActionLimiter,
+  validate(updateUserSchema),
+  UserController.updateProfile,
+);
+router.put(
+  '/me/onboarding',
+  authenticate,
+  validate(completeOnboardingSchema),
+  UserController.completeOnboarding,
+);
+router.delete(
+  '/me',
+  authenticate,
+  blockGuestUser,
+  sensitiveActionLimiter,
+  validate(deleteUserSchema),
+  UserController.deleteAccount,
+);
 
-router.post('/me/preview-goals', authenticate, validate(previewGoalsSchema), UserController.previewGoals);
+router.post(
+  '/me/preview-goals',
+  authenticate,
+  validate(previewGoalsSchema),
+  UserController.previewGoals,
+);
 router.put('/me/goals', authenticate, validate(updateGoalsSchema), UserController.updateGoals);
-router.get('/me/goals', authenticate, validate({ query: dateQuerySchema }), UserController.getActiveGoal);
+router.get(
+  '/me/goals',
+  authenticate,
+  validate({ query: dateQuerySchema }),
+  UserController.getActiveGoal,
+);
 
-router.get('/me/measurements', authenticate, validate({ query: measurementQuerySchema }), UserController.getMeasurements);
-router.post('/me/measurements', authenticate, validate(createMeasurementSchema), UserController.addMeasurement);
-router.delete('/me/measurements/:id', authenticate, validate({ params: uuidParamSchema }), UserController.deleteMeasurement);
+router.get(
+  '/me/measurements',
+  authenticate,
+  validate({ query: measurementQuerySchema }),
+  UserController.getMeasurements,
+);
+router.post(
+  '/me/measurements',
+  authenticate,
+  validate(createMeasurementSchema),
+  UserController.addMeasurement,
+);
+router.delete(
+  '/me/measurements/:id',
+  authenticate,
+  validate({ params: uuidParamSchema }),
+  UserController.deleteMeasurement,
+);
 
 export default router;
-

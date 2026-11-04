@@ -1,31 +1,38 @@
 <!doctype html>
 <html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F5F5F0" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0A0A0A" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="CalorieSync" />
 
-<head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="manifest" href="/manifest.webmanifest" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="referrer" content="no-referrer" />
-  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F5F5F0" />
-  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0A0A0A" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="CalorieSync" />
-  <meta name="description"
-    content="Contador de Calorias — monitore suas refeições, registre calorias e alcance seus objetivos de saúde." />
-  <title>CalorieSync</title>
-  <style>
-    html { background-color: #F5F5F0; }
-    html.dark { background-color: #0A0A0A; }
-  </style>
+    <!--seo: trocado por página em scripts/prerender.mjs-->
+    <title>CalorieSync — Contador de calorias gratuito com metas automáticas</title>
+    <meta
+      name="description"
+      content="Registre refeições com alimentos da tabela TACO e receba metas diárias de calorias e macros calculadas pela sua TMB e TDEE."
+    />
+    <!--/seo-->
 
-</head>
+    <style>
+      html {
+        background-color: #f5f5f0;
+      }
+      html.dark {
+        background-color: #0a0a0a;
+      }
+    </style>
+  </head>
 
-<body>
-  <div id="root"></div>
-  <script type="module" src="/src/main.tsx"></script>
-</body>
-
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>

@@ -12,16 +12,12 @@ function createError(message: string, statusCode: number): CustomError {
   return err;
 }
 
-const DEFAULT_VAPID_PUBLIC_KEY = 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U';
-
+// ID-4: sem chave configurada não há fallback; uma chave fixa não teria a privada correspondente.
 export function getPublicKey(): string {
-  if (env.VAPID_PUBLIC_KEY) {
-    return env.VAPID_PUBLIC_KEY;
-  }
-  if (env.NODE_ENV === 'production') {
+  if (!env.VAPID_PUBLIC_KEY) {
     throw createError('Chave pública VAPID não configurada no servidor.', 503);
   }
-  return DEFAULT_VAPID_PUBLIC_KEY;
+  return env.VAPID_PUBLIC_KEY;
 }
 
 export async function subscribe(userId: string, data: PushSubscriptionDTO) {
@@ -30,16 +26,4 @@ export async function subscribe(userId: string, data: PushSubscriptionDTO) {
 
 export async function unsubscribe(userId: string, endpoint: string) {
   return PushModel.deleteSubscription(userId, endpoint);
-}
-
-export async function sendTestNotification(userId: string) {
-  const subscriptions = await PushModel.getSubscriptionsByUser(userId);
-  if (subscriptions.length === 0) {
-    throw createError('Nenhum dispositivo cadastrado para receber notificações de teste.', 422);
-  }
-  return {
-    sent: true,
-    recipientCount: subscriptions.length,
-    message: 'Notificação teste despachada com sucesso.',
-  };
 }

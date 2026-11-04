@@ -4,7 +4,11 @@ exports.up = (pgm) => {
     user_id: { type: 'uuid', notNull: true, references: '"users"', onDelete: 'CASCADE' },
     weight: { type: 'numeric(5,2)', notNull: true },
     body_fat: { type: 'numeric(5,2)' },
-    measured_at: { type: 'timestamp with time zone', notNull: true, default: pgm.func('CURRENT_TIMESTAMP') },
+    measured_at: {
+      type: 'timestamp with time zone',
+      notNull: true,
+      default: pgm.func('CURRENT_TIMESTAMP'),
+    },
     created_at: { type: 'timestamp with time zone', default: pgm.func('CURRENT_TIMESTAMP') },
   });
 
@@ -24,7 +28,7 @@ exports.up = (pgm) => {
 
   // Garante que só pode haver uma meta ativa por dia para o usuário
   pgm.addConstraint('user_goals', 'unique_user_goal_per_day', {
-    unique: ['user_id', 'effective_from']
+    unique: ['user_id', 'effective_from'],
   });
 };
 

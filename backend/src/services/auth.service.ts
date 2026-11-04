@@ -1,9 +1,12 @@
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { z } from 'zod';
 import type { PoolClient } from 'pg';
 import { pool } from '../database/pool.js';
 import { env } from '../config/env.js';
 import { structuredLog } from '../config/logger.js';
 import * as UserModel from '../models/user.model.js';
+import { verifyMfaCode } from './mfa.service.js';
 import * as AuthModel from '../models/auth.model.js';
 import { signAuthToken } from '../utils/jwt.js';
 import {
@@ -19,6 +22,7 @@ import {
   hashVerificationCode,
   normalizeEmail,
   safeCompareHex,
+  bcryptCost,
 } from '../utils/authTokens.js';
 import { getMailer } from '../mail/mailer.js';
 import {
@@ -52,10 +56,6 @@ function fail(message: string, statusCode: number, code?: string): never {
   throw error;
 }
 
-function saltRounds(): number {
-  return process.env.NODE_ENV === 'test' ? 1 : 10;
-}
-
 function withoutPassword(user: User): UserWithoutPassword {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { password_hash, ...safeUser } = user;
@@ -63,6 +63,9 @@ function withoutPassword(user: User): UserWithoutPassword {
 }
 
 // Hash bcrypt estático para mitigar timing attacks na enumeração de usuários (PC-08 / SEC-005)
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOGIN_LOCK_MINUTES = 15;
+
 const DUMMY_HASH = '$2b$10$7EqJtq98hPqEX7fNZaFWoO9m5N9fKqy4i4U0p1W6eG5q7Xv6eJ8mK';
 
 /** Envia sem await, depois do commit. Falhas são registradas sem segredos (A4/A10). */
@@ -122,38 +125,12 @@ async function issueVerificationCode(user: VerificationTarget): Promise<boolean>
   return true;
 }
 
-async function overwriteAndIssueCode(user: User, name: string, passwordHash: string): Promise<void> {
-  const client = await pool.connect();
-  let updated: boolean | undefined;
-  let finished = false;
-  try {
-    await client.query('BEGIN');
-    updated = await AuthModel.overwriteUnverifiedUser(user.id, name, passwordHash, client);
-    if (updated) {
-      // A4: um novo cadastro invalida os códigos anteriores mesmo quando o
-      // reenvio é suprimido pelo cooldown/teto (o envio respeita os limites).
-      await AuthModel.invalidateVerificationCodes(user.id, client);
-    }
-    await client.query('COMMIT');
-    finished = true;
-  } catch (error) {
-    if (!finished) await client.query('ROLLBACK');
-    throw error;
-  } finally {
-    client.release();
-  }
-
-  if (updated) {
-    await issueVerificationCode({ id: user.id, name: name.trim(), email: user.email });
-  }
-}
-
 /**
  * POST /api/auth/register (A4/A6): resposta sempre genérica (202), sem sessão.
  */
 export async function register(data: RegisterUserDTO): Promise<void> {
   const email = normalizeEmail(data.email);
-  const passwordHash = await bcrypt.hash(data.password, saltRounds());
+  const passwordHash = await bcrypt.hash(data.password, bcryptCost());
   const existing = await UserModel.findUserByEmail(email);
 
   if (existing) {
@@ -163,7 +140,8 @@ export async function register(data: RegisterUserDTO): Promise<void> {
       return;
     }
 
-    await overwriteAndIssueCode(existing, data.name, passwordHash);
+    // #8: Não sobrescreve credenciais existentes; apenas reemite o código se permitido.
+    await issueVerificationCode({ id: existing.id, name: existing.name, email: existing.email });
     return;
   }
 
@@ -182,7 +160,15 @@ export async function register(data: RegisterUserDTO): Promise<void> {
  */
 export async function login(data: LoginUserDTO): Promise<AuthResponse> {
   const email = normalizeEmail(data.email);
-  const user = await UserModel.findUserByEmail(email);
+  const user = (await UserModel.findUserByEmail(email)) as
+    | (User & {
+        failed_login_attempts: number;
+        locked_until: Date | null;
+        mfa_enabled_at: Date | null;
+        mfa_secret_enc: string | null;
+        mfa_recovery_hashes: string[];
+      })
+    | null;
 
   if (!user) {
     // Mantém o custo do bcrypt para não revelar existência da conta (PC-08).
@@ -190,10 +176,22 @@ export async function login(data: LoginUserDTO): Promise<AuthResponse> {
     fail('E-mail ou senha incorretos.', 401);
   }
 
+  // Conta bloqueada responde igual a credencial errada, sem revelar o bloqueio (#4).
+  const locked = user.locked_until !== null && new Date(user.locked_until) > new Date();
   const isPasswordValid = await bcrypt.compare(data.password, user.password_hash);
-  if (!isPasswordValid) {
+  if (locked || !isPasswordValid) {
+    if (!locked) await AuthModel.recordFailedLogin(user.id, MAX_LOGIN_ATTEMPTS, LOGIN_LOCK_MINUTES);
     fail('E-mail ou senha incorretos.', 401);
   }
+  if (user.mfa_enabled_at) {
+    if (!data.mfa_code)
+      fail('Informe o código de verificação em duas etapas.', 401, 'MFA_REQUIRED');
+    if (!(await verifyMfaCode(user.id, data.mfa_code))) {
+      await AuthModel.recordFailedLogin(user.id, MAX_LOGIN_ATTEMPTS, LOGIN_LOCK_MINUTES);
+      fail('E-mail ou senha incorretos.', 401);
+    }
+  }
+  await AuthModel.resetFailedLogins(user.id);
 
   if (!user.email_verified_at) {
     void issueVerificationCode(user).catch((error: unknown) => {
@@ -204,9 +202,23 @@ export async function login(data: LoginUserDTO): Promise<AuthResponse> {
     fail('Confirme seu e-mail para entrar.', 403, 'EMAIL_NOT_VERIFIED');
   }
 
+  return toAuthResponse(user, data.remember_me !== false);
+}
+
+export function toAuthResponse(user: User, persistent: boolean): AuthResponse {
+  /* eslint-disable @typescript-eslint/no-unused-vars */
+  const {
+    failed_login_attempts,
+    locked_until,
+    mfa_enabled_at,
+    mfa_secret_enc,
+    mfa_recovery_hashes,
+    ...rest
+  } = user as User & Record<string, unknown>;
+  /* eslint-enable @typescript-eslint/no-unused-vars */
   return {
-    user: withoutPassword(user),
-    token: signAuthToken(user.id, Number(user.token_version)),
+    user: withoutPassword(rest as User),
+    token: signAuthToken(user.id, Number(user.token_version), persistent),
   };
 }
 
@@ -269,7 +281,11 @@ export async function verifyEmail(data: VerifyEmailDTO): Promise<AuthResponse> {
 
   return {
     user: withoutPassword(verifiedUser),
-    token: signAuthToken(verifiedUser.id, Number(verifiedUser.token_version)),
+    token: signAuthToken(
+      verifiedUser.id,
+      Number(verifiedUser.token_version),
+      data.remember_me !== false,
+    ),
   };
 }
 
@@ -288,7 +304,7 @@ export async function resendCode(data: ResendVerificationCodeDTO): Promise<void>
  */
 export async function forgotPassword(data: ForgotPasswordDTO): Promise<void> {
   const user = await UserModel.findUserByEmail(normalizeEmail(data.email));
-  if (!user || !user.email_verified_at) return;
+  if (!user || !user.email_verified_at || user.is_guest) return;
 
   const windowStart = new Date(Date.now() - 60 * 60 * 1000);
   const requestsInWindow = await AuthModel.countPasswordResetTokensSince(user.id, windowStart);
@@ -322,7 +338,7 @@ export async function forgotPassword(data: ForgotPasswordDTO): Promise<void> {
  */
 export async function resetPassword(data: ResetPasswordDTO): Promise<void> {
   const tokenHash = hashResetToken(data.token);
-  const passwordHash = await bcrypt.hash(data.password, saltRounds());
+  const passwordHash = await bcrypt.hash(data.password, bcryptCost());
 
   const client: PoolClient = await pool.connect();
   let finished = false;
@@ -353,5 +369,27 @@ export async function resetPassword(data: ResetPasswordDTO): Promise<void> {
     if (user) {
       sendMailInBackground(user.email, passwordChangedEmail(user.name));
     }
+  }
+}
+
+/**
+ * POST /api/auth/logout (V-2): revoga o `jti` do JWT apresentado; as outras sessões
+ * da conta continuam válidas. Token ausente ou inválido não faz nada.
+ */
+export async function logout(token: string | null): Promise<void> {
+  if (!token) return;
+  let claims: { jti?: unknown; exp?: unknown };
+  try {
+    claims = jwt.verify(token, env.JWT_SECRET, { algorithms: ['HS256'] }) as typeof claims;
+  } catch {
+    return;
+  }
+  // uuid checado antes do cast para UUID no banco; exp vem em segundos.
+  if (
+    typeof claims.jti === 'string' &&
+    z.string().uuid().safeParse(claims.jti).success &&
+    typeof claims.exp === 'number'
+  ) {
+    await AuthModel.revokeSession(claims.jti, new Date(claims.exp * 1000));
   }
 }

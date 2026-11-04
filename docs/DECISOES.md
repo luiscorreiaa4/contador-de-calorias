@@ -187,3 +187,13 @@ Toda cláusula `ORDER BY` inclui desempate por chave primária (`id ASC`). Isso 
 ### C4 — Estado na URL como única fonte de verdade
 Todos os parâmetros de navegação (`page`, `pageSize`, `q`, `status`, `sort`, `order`) são persistidos na query string via `useSearchParams` do React Router 7. Qualquer mutação de filtros, busca ou ordenação redefine a página para 1. A navegação preserva o contexto no recarregamento da página (F5), histórico de navegação (voltar/avançar) e ao retornar do modal/tela de edição de alimento.
 
+
+---
+
+## D-24 — Conta de visitante temporária
+
+`POST /api/auth/demo` cria, a cada clique em "Ver demonstração", um usuário `is_guest = true` (e-mail `demo-<uuid>@visitante.invalid`, senha aleatória, e-mail já verificado) com onboarding fixo e 7 dias de refeições. Sem "lembrar de mim".
+- **TTL de 2 h:** antes de criar, apaga até 50 visitantes vencidos (refeições primeiro, por causa do `RESTRICT`); o `server.ts` também limpa a cada hora os visitantes vencidos e as linhas vencidas de `rate_limits`. A limpeza filtra só `is_guest = true`. O TTL curto limita a 2 h a indisponibilidade da demo caso alguém lote o teto de propósito.
+- **Teto de 500:** com 500 visitantes ativos ou mais, responde 503 `DEMO_UNAVAILABLE`. Contagem e insert rodam na mesma transação sob `pg_advisory_xact_lock`, então cliques simultâneos não passam do teto. A rota tem limite de 20 por IP em 1 h; toda escrita em `/api` tem teto de 300 por IP em 15 min.
+- **Ações bloqueadas:** `blockGuestUser` responde 403 `DEMO_READ_ONLY` em `PUT`/`DELETE /api/users/me`, em `/api/users/me/mfa/{setup,enable,disable}` e em `POST /api/push/subscribe`.
+- **Fora de escopo:** a listagem de usuários do admin mostra visitantes misturados.

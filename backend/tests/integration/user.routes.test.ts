@@ -5,14 +5,11 @@ import request from 'supertest';
 import { app } from '../../src/app.js';
 import { cleanupTestData } from '../helpers/db.js';
 import { pool } from '../../src/database/pool.js';
-import {
-  createVerifiedUser,
-  verificationCodeFor,
-} from '../helpers/auth.js';
+import { createVerifiedUser, verificationCodeFor } from '../helpers/auth.js';
 
 describe('User Routes (Integration - E2E)', () => {
   closeTestPool(async () => {
-      await cleanupTestData('tester-user-%');
+    await cleanupTestData('tester-user-%');
   });
 
   const testEmail = `tester-user-${Date.now()}@example.com`;
@@ -24,17 +21,17 @@ describe('User Routes (Integration - E2E)', () => {
       name: 'Integração Tester',
       email: testEmail,
       password: testPassword,
-      acceptTerms: true
+      acceptTerms: true,
     });
 
     assert.strictEqual(response.status, 202);
     assert.strictEqual(response.body.success, true);
     assert.strictEqual(response.body.data, undefined, 'cadastro não deve emitir sessão');
 
-    const row = await pool.query<{ terms_accepted_at: Date | null; email_verified_at: Date | null }>(
-      'SELECT terms_accepted_at, email_verified_at FROM users WHERE email = $1',
-      [testEmail]
-    );
+    const row = await pool.query<{
+      terms_accepted_at: Date | null;
+      email_verified_at: Date | null;
+    }>('SELECT terms_accepted_at, email_verified_at FROM users WHERE email = $1', [testEmail]);
     // BL-11 / SEC-020 — o aceite dos termos é persistido no cadastro.
     assert.ok(row.rows[0]?.terms_accepted_at, 'terms_accepted_at deve ser registrado no cadastro');
     assert.strictEqual(row.rows[0]?.email_verified_at, null, 'conta nasce não verificada');
@@ -44,7 +41,7 @@ describe('User Routes (Integration - E2E)', () => {
     const response = await request(app).post('/api/auth/register').send({
       name: 'Tester',
       email: 'email_invalido',
-      password: '123'
+      password: '123',
     });
 
     assert.strictEqual(response.status, 400);
@@ -59,7 +56,7 @@ describe('User Routes (Integration - E2E)', () => {
       name: 'Integração Tester',
       email: uppercaseEmail,
       password: testPassword,
-      acceptTerms: true
+      acceptTerms: true,
     });
 
     assert.strictEqual(response.status, 202);
@@ -71,7 +68,7 @@ describe('User Routes (Integration - E2E)', () => {
   it('POST /api/auth/login - deve bloquear conta não verificada com 403 (A1/A5)', async () => {
     const response = await request(app).post('/api/auth/login').send({
       email: testEmail.toUpperCase(),
-      password: testPassword
+      password: testPassword,
     });
 
     assert.strictEqual(response.status, 403);
@@ -80,10 +77,12 @@ describe('User Routes (Integration - E2E)', () => {
   });
 
   it('POST /api/auth/verify-email - deve verificar o código e emitir sessão', async () => {
-    const response = await request(app).post('/api/auth/verify-email').send({
-      email: testEmail,
-      code: verificationCodeFor(testEmail),
-    });
+    const response = await request(app)
+      .post('/api/auth/verify-email')
+      .send({
+        email: testEmail,
+        code: verificationCodeFor(testEmail),
+      });
 
     assert.strictEqual(response.status, 200);
     assert.strictEqual(response.body.success, true);
@@ -92,9 +91,7 @@ describe('User Routes (Integration - E2E)', () => {
   });
 
   it('GET /api/users/me - deve retornar dados do perfil do usuário autenticado', async () => {
-    const res = await request(app)
-      .get('/api/users/me')
-      .set('Authorization', `Bearer ${userToken}`);
+    const res = await request(app).get('/api/users/me').set('Authorization', `Bearer ${userToken}`);
 
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.success, true);
@@ -111,7 +108,7 @@ describe('User Routes (Integration - E2E)', () => {
     assert.strictEqual(res.body.success, true);
     assert.match(
       String(res.headers['content-disposition']),
-      /^attachment; filename="caloriesync-dados-\d{4}-\d{2}-\d{2}\.json"$/
+      /^attachment; filename="caloriesync-dados-\d{4}-\d{2}-\d{2}\.json"$/,
     );
     assert.strictEqual(res.body.data.profile.email, testEmail);
     assert.strictEqual(res.body.data.schema_version, '1.0');
@@ -135,7 +132,7 @@ describe('User Routes (Integration - E2E)', () => {
         height: 180,
         weight: 80,
         activity_level: 'moderadamente_ativo',
-        goal: 'perder_peso'
+        goal: 'perder_peso',
       });
 
     assert.strictEqual(res.status, 200);
@@ -154,7 +151,7 @@ describe('User Routes (Integration - E2E)', () => {
         height: 175,
         weight: 70,
         activity_level: 'sedentario',
-        goal: 'manter_peso'
+        goal: 'manter_peso',
       });
 
     assert.strictEqual(res.status, 400);
@@ -181,7 +178,10 @@ describe('User Routes (Integration - E2E)', () => {
     const updatedCalories = Number(updatedGoal.body.data.calories);
 
     assert.strictEqual(updatedGoal.body.data.mode, 'auto');
-    assert.ok(updatedCalories > initialCalories, `Calorias recalculadas (${updatedCalories}) devem ser maiores que as iniciais (${initialCalories})`);
+    assert.ok(
+      updatedCalories > initialCalories,
+      `Calorias recalculadas (${updatedCalories}) devem ser maiores que as iniciais (${initialCalories})`,
+    );
   });
 
   it('POST /api/users/me/preview-goals - deve calcular prévia de metas energéticas', async () => {
@@ -191,7 +191,7 @@ describe('User Routes (Integration - E2E)', () => {
       .send({
         weight: 85,
         height: 180,
-        goal: 'ganhar_massa'
+        goal: 'ganhar_massa',
       });
 
     assert.strictEqual(res.status, 200);
@@ -249,7 +249,7 @@ describe('User Routes (Integration - E2E)', () => {
         proteins: 160,
         carbs: 250,
         fats: 60,
-        mode: 'manual'
+        mode: 'manual',
       });
 
     assert.strictEqual(res.status, 200);
@@ -273,7 +273,7 @@ describe('User Routes (Integration - E2E)', () => {
       .put('/api/users/me')
       .set('Authorization', `Bearer ${userToken}`)
       .send({
-        newPassword: 'newpassword123'
+        newPassword: 'newpassword123',
       });
 
     assert.strictEqual(res.status, 400);
@@ -287,7 +287,7 @@ describe('User Routes (Integration - E2E)', () => {
       .send({
         name: 'Nome Atualizado',
         currentPassword: testPassword,
-        newPassword: 'newpassword123'
+        newPassword: 'newpassword123',
       });
 
     assert.strictEqual(res.status, 200);
@@ -303,7 +303,7 @@ describe('User Routes (Integration - E2E)', () => {
       .delete('/api/users/me')
       .set('Authorization', `Bearer ${userToken}`)
       .send({
-        password: 'senha_incorreta'
+        password: 'senha_incorreta',
       });
 
     assert.strictEqual(res.status, 400);
@@ -315,7 +315,7 @@ describe('User Routes (Integration - E2E)', () => {
       .delete('/api/users/me')
       .set('Authorization', `Bearer ${userToken}`)
       .send({
-        password: 'newpassword123'
+        password: 'newpassword123',
       });
 
     assert.strictEqual(res.status, 200);
@@ -324,7 +324,7 @@ describe('User Routes (Integration - E2E)', () => {
     // Tentativa de login subsequente deve falhar
     const loginRes = await request(app).post('/api/auth/login').send({
       email: testEmail,
-      password: 'newpassword123'
+      password: 'newpassword123',
     });
     assert.strictEqual(loginRes.status, 401);
   });

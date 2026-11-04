@@ -16,7 +16,11 @@ export interface User {
   terms_accepted_at: Date | null;
   email_verified_at: Date | null;
   token_version: number;
+  /** Derivado de `mfa_enabled_at` em `findUserById`; o segredo nunca sai do backend. */
+  mfa_enabled?: boolean;
   role: 'user' | 'admin';
+  /** Conta de visitante temporária (sem senha utilizável, somente leitura). */
+  is_guest?: boolean;
   created_at: Date;
   updated_at: Date;
 }

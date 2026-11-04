@@ -31,12 +31,6 @@ export const unsubscribePush = async (endpoint: string): Promise<void> => {
   });
 };
 
-export const sendTestPush = async (): Promise<{ message: string }> => {
-  return apiFetch<{ message: string }>('/push/test', {
-    method: 'POST',
-  });
-};
-
 export interface PushStatus {
   isSupported: boolean;
   permission: NotificationPermission | 'unsupported';
@@ -170,4 +164,3 @@ export const unregisterPushNotifications = async (): Promise<boolean> => {
     throw new Error('Erro ao desativar notificações push.', { cause: err });
   }
 };
-

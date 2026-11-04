@@ -15,7 +15,7 @@ describe('Brutalist UI Primitives (PC-32)', () => {
           </CardHeader>
           <CardContent>Conteúdo do Card</CardContent>
           <CardFooter>Rodapé do Card</CardFooter>
-        </Card>
+        </Card>,
       );
 
       const card = screen.getByTestId('test-card');
@@ -37,10 +37,16 @@ describe('Brutalist UI Primitives (PC-32)', () => {
       render(
         <>
           <Badge data-testid="default-badge">PADRÃO</Badge>
-          <Badge variant="secondary" data-testid="secondary-badge">SECUNDÁRIO</Badge>
-          <Badge variant="destructive" data-testid="destructive-badge">ALERTA</Badge>
-          <Badge variant="outline" data-testid="outline-badge">CONTORNO</Badge>
-        </>
+          <Badge variant="secondary" data-testid="secondary-badge">
+            SECUNDÁRIO
+          </Badge>
+          <Badge variant="destructive" data-testid="destructive-badge">
+            ALERTA
+          </Badge>
+          <Badge variant="outline" data-testid="outline-badge">
+            CONTORNO
+          </Badge>
+        </>,
       );
 
       const defaultBadge = screen.getByTestId('default-badge');
@@ -61,7 +67,7 @@ describe('Brutalist UI Primitives (PC-32)', () => {
         <Alert variant="destructive" data-testid="test-alert">
           <AlertTitle>ATENÇÃO</AlertTitle>
           <AlertDescription>Mensagem de teste de erro</AlertDescription>
-        </Alert>
+        </Alert>,
       );
 
       const alert = screen.getByTestId('test-alert');

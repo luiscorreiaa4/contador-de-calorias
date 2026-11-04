@@ -9,6 +9,7 @@ import { ApiError } from '../../services/api';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Button } from '../ui/button';
+import { MfaCodeField } from './MfaCodeField';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -25,16 +26,21 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onEmailNotVerif
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [serverError, setServerError] = useState<string | null>(null);
+  const [mfaRequired, setMfaRequired] = useState(false);
 
   const loginMutation = useMutation({
     mutationFn: (data: LoginFormData) => loginUser(data),
     onSuccess: (response) => {
-      setAuthSession(response.user, response.token, formData.rememberMe);
+      setAuthSession(response.user, formData.rememberMe);
       if (onSuccess) onSuccess();
     },
     onError: (err: unknown) => {
       if (err instanceof ApiError && err.code === 'EMAIL_NOT_VERIFIED') {
         onEmailNotVerified?.(formData.email.trim(), formData.rememberMe);
+        return;
+      }
+      if (err instanceof ApiError && err.code === 'MFA_REQUIRED') {
+        setMfaRequired(true);
         return;
       }
 
@@ -126,7 +132,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onEmailNotVerif
             aria-label={showPassword ? 'Ocultar senha' : 'Exibir senha'}
             className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground transition-colors"
           >
-            {showPassword ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
+            {showPassword ? (
+              <EyeOff className="w-4 h-4" aria-hidden="true" />
+            ) : (
+              <Eye className="w-4 h-4" aria-hidden="true" />
+            )}
           </button>
         </div>
         {errors.password && (
@@ -135,6 +145,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onEmailNotVerif
           </p>
         )}
       </div>
+
+      {mfaRequired && (
+        <MfaCodeField
+          id="login-mfa-code"
+          autoFocus
+          value={formData.mfaCode ?? ''}
+          onChange={(mfaCode) => setFormData((prev) => ({ ...prev, mfaCode }))}
+        />
+      )}
 
       {/* Remember Me & Forgot Password */}
       <div className="flex items-center justify-between pt-2">

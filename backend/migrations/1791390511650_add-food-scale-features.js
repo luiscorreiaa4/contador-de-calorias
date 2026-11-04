@@ -26,12 +26,12 @@ exports.up = (pgm) => {
   pgm.addColumns('foods', {
     source: { type: 'varchar(50)', notNull: false },
     external_id: { type: 'varchar(100)', notNull: false },
-    active: { type: 'boolean', notNull: true, default: true }
+    active: { type: 'boolean', notNull: true, default: true },
   });
 
   // Constraints
   pgm.addConstraint('foods', 'foods_source_external_id_key', {
-    unique: ['source', 'external_id']
+    unique: ['source', 'external_id'],
   });
 
   // GIN Index for similarity search
@@ -47,13 +47,13 @@ exports.up = (pgm) => {
  */
 exports.down = (pgm) => {
   pgm.sql(`DROP INDEX IF EXISTS idx_foods_name_trgm;`);
-  
+
   pgm.dropConstraint('foods', 'foods_source_external_id_key');
-  
+
   pgm.dropColumns('foods', ['source', 'external_id', 'active']);
-  
+
   pgm.sql(`DROP FUNCTION IF EXISTS f_unaccent(text);`);
-  
+
   pgm.dropExtension('unaccent', { ifExists: true });
   pgm.dropExtension('pg_trgm', { ifExists: true });
 };

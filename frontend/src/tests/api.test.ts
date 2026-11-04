@@ -5,6 +5,28 @@ import { apiFetch } from '../services/api';
 
 describe('apiFetch resilience (PC-06)', () => {
   beforeEach(() => {
+    sessionStorage.clear();
+  });
+
+  it('envia o cookie de sessão (credentials include) e nunca o header Authorization', async () => {
+    let capturedAuthHeader: string | null = 'unset';
+    let capturedCredentials: string | null = null;
+
+    server.use(
+      http.get('http://localhost:3001/api/test-cookie', ({ request }) => {
+        capturedAuthHeader = request.headers.get('Authorization');
+        capturedCredentials = request.credentials;
+        return HttpResponse.json({ success: true, data: { ok: true } });
+      }),
+    );
+
+    const data = await apiFetch<{ ok: boolean }>('/test-cookie');
+    expect(data).toEqual({ ok: true });
+    expect(capturedAuthHeader).toBeNull();
+    expect(capturedCredentials).toBe('include');
+  });
+
+  beforeEach(() => {
     localStorage.clear();
   });
 
@@ -15,25 +37,25 @@ describe('apiFetch resilience (PC-06)', () => {
           status: 502,
           headers: { 'Content-Type': 'text/html' },
         });
-      })
+      }),
     );
 
     await expect(apiFetch('/test-502')).rejects.toThrow(
-      /serviço temporariamente indisponível \(502\)/i
+      /serviço temporariamente indisponível \(502\)/i,
     );
   });
 
   it('deve limpar localStorage e disparar evento auth:unauthorized ao receber status 401', async () => {
-    localStorage.setItem('auth_token', 'expired_token');
+    localStorage.setItem('auth_session', '1');
     localStorage.setItem('user_session', JSON.stringify({ id: '1' }));
 
     server.use(
       http.get('http://localhost:3001/api/test-401', () => {
         return HttpResponse.json(
           { success: false, message: 'Token expirado ou inválido.' },
-          { status: 401 }
+          { status: 401 },
         );
-      })
+      }),
     );
 
     const unauthorizedListener = vi.fn();
@@ -41,7 +63,7 @@ describe('apiFetch resilience (PC-06)', () => {
 
     await expect(apiFetch('/test-401')).rejects.toThrow(/token expirado ou inválido/i);
 
-    expect(localStorage.getItem('auth_token')).toBeNull();
+    expect(localStorage.getItem('auth_session')).toBeNull();
     expect(localStorage.getItem('user_session')).toBeNull();
     expect(unauthorizedListener).toHaveBeenCalledTimes(1);
 

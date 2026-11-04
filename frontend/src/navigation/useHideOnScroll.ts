@@ -1,18 +1,32 @@
 import { useEffect, useState, type RefObject } from 'react';
 import { useLocation } from 'react-router';
 
-export const HIDE_ON_SCROLL = {
+const HIDE_ON_SCROLL = {
   topOffsetPx: 56,
   hideAfterPx: 8,
   showAfterPx: 4,
 } as const;
 
-const NON_TEXT_INPUT_TYPES = new Set(['button', 'checkbox', 'radio', 'submit', 'reset', 'range', 'file', 'image', 'color']);
+const NON_TEXT_INPUT_TYPES = new Set([
+  'button',
+  'checkbox',
+  'radio',
+  'submit',
+  'reset',
+  'range',
+  'file',
+  'image',
+  'color',
+]);
 
 function isTextField(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
   if (target instanceof HTMLInputElement) return !NON_TEXT_INPUT_TYPES.has(target.type);
-  return target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement || target.isContentEditable;
+  return (
+    target instanceof HTMLTextAreaElement ||
+    target instanceof HTMLSelectElement ||
+    target.isContentEditable
+  );
 }
 
 /**
@@ -24,7 +38,10 @@ function isTextField(target: EventTarget | null): boolean {
 export function useHideOnScroll(barRef: RefObject<HTMLElement | null>): boolean {
   const { pathname } = useLocation();
   // O estado de rolagem vale só para a rota em que foi gravado: navegar reexibe a barra.
-  const [scrollHidden, setScrollHidden] = useState<{ path: string; hidden: boolean }>({ path: pathname, hidden: false });
+  const [scrollHidden, setScrollHidden] = useState<{ path: string; hidden: boolean }>({
+    path: pathname,
+    hidden: false,
+  });
   const [fieldFocused, setFieldFocused] = useState(false);
   const [barFocused, setBarFocused] = useState(false);
 
@@ -48,7 +65,8 @@ export function useHideOnScroll(barRef: RefObject<HTMLElement | null>): boolean 
 
       if (delta > 0) {
         accumulated = accumulated > 0 ? accumulated + delta : delta;
-        if (accumulated > HIDE_ON_SCROLL.hideAfterPx) setScrollHidden({ path: pathname, hidden: true });
+        if (accumulated > HIDE_ON_SCROLL.hideAfterPx)
+          setScrollHidden({ path: pathname, hidden: true });
       } else {
         accumulated = 0;
         if (-delta > HIDE_ON_SCROLL.showAfterPx) setScrollHidden({ path: pathname, hidden: false });
@@ -68,7 +86,12 @@ export function useHideOnScroll(barRef: RefObject<HTMLElement | null>): boolean 
   useEffect(() => {
     const onFocusIn = (event: FocusEvent) => {
       setFieldFocused(isTextField(event.target));
-      setBarFocused(event.target instanceof Node && !!barRef.current?.contains(event.target));
+      // Só foco de teclado: tocar num link da barra também foca e o foco persiste após navegar.
+      setBarFocused(
+        event.target instanceof HTMLElement &&
+          !!barRef.current?.contains(event.target) &&
+          event.target.matches(':focus-visible'),
+      );
     };
     const onFocusOut = () => {
       setFieldFocused(false);
@@ -83,8 +106,9 @@ export function useHideOnScroll(barRef: RefObject<HTMLElement | null>): boolean 
     };
   }, [barRef]);
 
-  const neverHideOnScroll = pathname.startsWith('/configuracoes');
-  const hiddenByScroll = scrollHidden.path === pathname && scrollHidden.hidden && !neverHideOnScroll && !barFocused;
+  const neverHideOnScroll = pathname.startsWith('/app/configuracoes');
+  const hiddenByScroll =
+    scrollHidden.path === pathname && scrollHidden.hidden && !neverHideOnScroll && !barFocused;
 
   return hiddenByScroll || fieldFocused;
 }

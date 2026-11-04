@@ -48,11 +48,7 @@ export const ResetPasswordPage: React.FC = () => {
   // Remove o token da barra de endereços/histórico assim que ele é lido.
   useEffect(() => {
     if (typeof window === 'undefined' || !window.location.hash) return;
-    window.history.replaceState(
-      null,
-      '',
-      `${window.location.pathname}${window.location.search}`
-    );
+    window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
   }, []);
 
   const {
@@ -82,10 +78,7 @@ export const ResetPasswordPage: React.FC = () => {
 
   if (!token) {
     return (
-      <AuthPageShell
-        title="Redefinir senha"
-        description="Link de recuperação"
-      >
+      <AuthPageShell title="Redefinir senha" description="Link de recuperação">
         <div className="space-y-6">
           <div
             role="alert"
@@ -93,10 +86,11 @@ export const ResetPasswordPage: React.FC = () => {
           >
             <AlertCircle className="w-5 h-5 shrink-0" aria-hidden="true" />
             <div className="space-y-1">
-              <p className="text-xs font-bold uppercase tracking-widest">Link inválido ou expirado</p>
+              <p className="text-xs font-bold uppercase tracking-widest">
+                Link inválido ou expirado
+              </p>
               <p className="text-xs font-medium leading-relaxed">
-                O link de redefinição é de uso único e expira em 30 minutos. Solicite uma nova
-                recuperação de senha.
+                Cada link funciona uma vez só e expira em 30 minutos. Peça um novo.
               </p>
             </div>
           </div>
@@ -124,10 +118,7 @@ export const ResetPasswordPage: React.FC = () => {
 
   if (resetMutation.isSuccess) {
     return (
-      <AuthPageShell
-        title="Senha redefinida"
-        description="Sua nova senha já está ativa"
-      >
+      <AuthPageShell title="Senha redefinida" description="Você já pode entrar com a nova senha">
         <div className="space-y-6">
           <div
             role="status"
@@ -166,7 +157,7 @@ export const ResetPasswordPage: React.FC = () => {
   return (
     <AuthPageShell
       title="Definir nova senha"
-      description="Escolha uma senha forte e única"
+      description="Use uma senha que você não usa em outro lugar"
     >
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6" noValidate>
         <div className="space-y-2">

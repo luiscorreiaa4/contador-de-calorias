@@ -127,12 +127,15 @@ export const FoodQuantityForm: React.FC<FoodQuantityFormProps> = ({
       {/* Input de quantidade e botão incluir */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label htmlFor="food-amount" className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
+          <label
+            htmlFor="food-amount"
+            className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest"
+          >
             {amountMode === 'un'
               ? `QUANTIDADE DE ${selectedFood.unit_name?.toUpperCase() || 'UNIDADES'}`
               : selectedFood.base_unit === 'ml'
-              ? 'QUANTIDADE EM MILILITROS (ML)'
-              : 'QUANTIDADE EM GRAMAS (G)'}
+                ? 'QUANTIDADE EM MILILITROS (ML)'
+                : 'QUANTIDADE EM GRAMAS (G)'}
           </label>
           {amountMode === 'un' && selectedFood.unit_weight && amount && Number(amount) > 0 && (
             <span className="text-[10px] font-bold text-primary-ink uppercase tracking-widest flex items-center gap-1">
@@ -152,7 +155,13 @@ export const FoodQuantityForm: React.FC<FoodQuantityFormProps> = ({
               step={amountMode === 'un' ? '0.5' : '1'}
               value={amount}
               onChange={(e) => onSetAmount(e.target.value ? Number(e.target.value) : '')}
-              placeholder={amountMode === 'un' ? 'EX: 2' : selectedFood.base_unit === 'ml' ? 'EX: 200' : 'EX: 150'}
+              placeholder={
+                amountMode === 'un'
+                  ? 'EX: 2'
+                  : selectedFood.base_unit === 'ml'
+                    ? 'EX: 200'
+                    : 'EX: 150'
+              }
               aria-label="Quantidade do alimento"
               className="w-full px-4 py-3 bg-background border-2 border-border text-sm font-black text-foreground uppercase placeholder:text-muted-foreground focus:border-ring focus:outline-none focus-visible:border-ring focus-visible:outline-none outline-none transition-colors"
             />
@@ -174,7 +183,9 @@ export const FoodQuantityForm: React.FC<FoodQuantityFormProps> = ({
                     : 'bg-background hover:bg-secondary text-muted-foreground hover:text-foreground'
                 }`}
               >
-                <Star className={`w-4 h-4 shrink-0 ${isFavorite ? 'fill-warning text-warning' : ''}`} />
+                <Star
+                  className={`w-4 h-4 shrink-0 ${isFavorite ? 'fill-warning text-warning' : ''}`}
+                />
                 <span className="hidden sm:inline">{isFavorite ? 'FAVORITO' : 'FAVORITAR'}</span>
               </button>
             )}
@@ -196,20 +207,36 @@ export const FoodQuantityForm: React.FC<FoodQuantityFormProps> = ({
       {currentItemCalculations && (
         <div className="grid grid-cols-4 gap-3 pt-4 border-t-2 border-border">
           <div className="p-3 border-2 border-border bg-background text-center">
-            <span className="block text-[10px] uppercase font-bold text-muted-foreground mb-1">CALORIAS</span>
-            <span className="text-sm font-heading font-black text-foreground">{currentItemCalculations.calories}</span>
+            <span className="block text-[10px] uppercase font-bold text-muted-foreground mb-1">
+              CALORIAS
+            </span>
+            <span className="text-sm font-heading font-black text-foreground">
+              {currentItemCalculations.calories}
+            </span>
           </div>
           <div className="p-3 border-2 border-border bg-background text-center">
-            <span className="block text-[10px] uppercase font-bold text-muted-foreground mb-1">PROT</span>
-            <span className="text-sm font-heading font-black text-foreground">{currentItemCalculations.proteins}G</span>
+            <span className="block text-[10px] uppercase font-bold text-muted-foreground mb-1">
+              PROT
+            </span>
+            <span className="text-sm font-heading font-black text-foreground">
+              {currentItemCalculations.proteins}G
+            </span>
           </div>
           <div className="p-3 border-2 border-border bg-background text-center">
-            <span className="block text-[10px] uppercase font-bold text-muted-foreground mb-1">CARBS</span>
-            <span className="text-sm font-heading font-black text-foreground">{currentItemCalculations.carbs}G</span>
+            <span className="block text-[10px] uppercase font-bold text-muted-foreground mb-1">
+              CARBS
+            </span>
+            <span className="text-sm font-heading font-black text-foreground">
+              {currentItemCalculations.carbs}G
+            </span>
           </div>
           <div className="p-3 border-2 border-border bg-background text-center">
-            <span className="block text-[10px] uppercase font-bold text-muted-foreground mb-1">GORD</span>
-            <span className="text-sm font-heading font-black text-foreground">{currentItemCalculations.fats}G</span>
+            <span className="block text-[10px] uppercase font-bold text-muted-foreground mb-1">
+              GORD
+            </span>
+            <span className="text-sm font-heading font-black text-foreground">
+              {currentItemCalculations.fats}G
+            </span>
           </div>
         </div>
       )}

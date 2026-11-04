@@ -53,7 +53,7 @@ describe('Recuperação de senha (BL-05 / D-21)', () => {
         WHERE user_id = $1
         ORDER BY created_at DESC
         LIMIT 1`,
-      [user.id]
+      [user.id],
     );
     assert.ok(row.rows[0]);
     assert.strictEqual(row.rows[0].token_hash.length, 64);
@@ -61,7 +61,10 @@ describe('Recuperação de senha (BL-05 / D-21)', () => {
     assert.strictEqual(row.rows[0].used_at, null);
 
     const ttlMinutes = (new Date(row.rows[0].expires_at).getTime() - Date.now()) / 60000;
-    assert.ok(ttlMinutes > 28 && ttlMinutes <= 30, `validade deve ser ~30 min (recebido: ${ttlMinutes})`);
+    assert.ok(
+      ttlMinutes > 28 && ttlMinutes <= 30,
+      `validade deve ser ~30 min (recebido: ${ttlMinutes})`,
+    );
   });
 
   it('forgot-password de conta inexistente ou não verificada responde igual e não envia e-mail (A4/A9)', async () => {
@@ -114,7 +117,7 @@ describe('Recuperação de senha (BL-05 / D-21)', () => {
         WHERE u.id = $1
         ORDER BY t.created_at DESC
         LIMIT 1`,
-      [user.id]
+      [user.id],
     );
     assert.ok(await bcrypt.compare(NEW_PASSWORD, row.rows[0].password_hash));
     assert.strictEqual(Number(row.rows[0].token_version), 1);
@@ -182,7 +185,7 @@ describe('Recuperação de senha (BL-05 / D-21)', () => {
       `UPDATE password_reset_tokens
           SET expires_at = CURRENT_TIMESTAMP - INTERVAL '1 minute'
         WHERE user_id = $1`,
-      [user.id]
+      [user.id],
     );
 
     const response = await request(app)
@@ -210,14 +213,12 @@ describe('Recuperação de senha (BL-05 / D-21)', () => {
          FROM password_reset_tokens
         WHERE user_id = $1
           AND created_at >= CURRENT_TIMESTAMP - INTERVAL '1 hour'`,
-      [user.id]
+      [user.id],
     );
     assert.strictEqual(Number(count.rows[0]?.count), 5);
 
     clearMailbox();
-    const sixth = await request(app)
-      .post('/api/auth/forgot-password')
-      .send({ email: user.email });
+    const sixth = await request(app).post('/api/auth/forgot-password').send({ email: user.email });
     assert.strictEqual(sixth.status, 202);
     assert.strictEqual(lastEmailTo(user.email), undefined, '6º pedido não deve enviar e-mail');
   });

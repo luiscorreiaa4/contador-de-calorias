@@ -6,9 +6,9 @@ Este documento registra o planejamento estratégico e a evolução do **CalorieS
 
 ## 1. Diretrizes de Execução
 
-1. **Desenvolvimento Direto e Focado:** Implementações alinhadas aos requisitos e fórmulas em [docs/SPEC.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/SPEC.md).
+1. **Desenvolvimento Direto e Focado:** Implementações alinhadas aos requisitos e fórmulas em [docs/SPEC.md](SPEC.md).
 2. **Qualidade e Estabilidade:** Toda alteração é acompanhada de verificação via `npm run test`, `npm --prefix frontend test`, `npm run lint` e `npm run build`.
-3. **Padrão Brutalista:** Respeito integral aos tokens semânticos e regras de interface em [docs/CORES.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/CORES.md).
+3. **Padrão Brutalista:** Respeito integral aos tokens semânticos e regras de interface em [docs/CORES.md](CORES.md).
 
 ---
 

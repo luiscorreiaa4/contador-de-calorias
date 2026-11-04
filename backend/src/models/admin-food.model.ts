@@ -28,7 +28,7 @@ const ADMIN_FOOD_COLUMNS = `
   admin_edited_at, created_at, updated_at
 `;
 
-export function mapAdminFoodRow(row: Record<string, unknown>): AdminFoodRow {
+function mapAdminFoodRow(row: Record<string, unknown>): AdminFoodRow {
   return {
     id: String(row.id),
     name: String(row.name),
@@ -44,7 +44,9 @@ export function mapAdminFoodRow(row: Record<string, unknown>): AdminFoodRow {
     external_id: (row.external_id as string | null) ?? null,
     source_ref: (row.source_ref as string | null) ?? null,
     active: Boolean(row.active),
-    admin_edited_at: row.admin_edited_at ? new Date(row.admin_edited_at as string).toISOString() : null,
+    admin_edited_at: row.admin_edited_at
+      ? new Date(row.admin_edited_at as string).toISOString()
+      : null,
     created_at: new Date(row.created_at as string).toISOString(),
     updated_at: new Date(row.updated_at as string).toISOString(),
   };
@@ -173,12 +175,12 @@ export async function searchCatalogFoods(options: SearchCatalogFoodsOptions): Pr
 
 export async function findCatalogFoodById(
   id: string,
-  client?: PoolClient
+  client?: PoolClient,
 ): Promise<AdminFoodRow | null> {
   const db = client || pool;
   const result = await db.query(
     `SELECT ${ADMIN_FOOD_COLUMNS} FROM foods WHERE id = $1 AND user_id IS NULL`,
-    [id]
+    [id],
   );
   if (!result.rows[0]) return null;
   return mapAdminFoodRow(result.rows[0]);
@@ -186,11 +188,11 @@ export async function findCatalogFoodById(
 
 export async function findCatalogFoodByIdForUpdate(
   id: string,
-  client: PoolClient
+  client: PoolClient,
 ): Promise<AdminFoodRow | null> {
   const result = await client.query(
     `SELECT ${ADMIN_FOOD_COLUMNS} FROM foods WHERE id = $1 AND user_id IS NULL FOR UPDATE`,
-    [id]
+    [id],
   );
   if (!result.rows[0]) return null;
   return mapAdminFoodRow(result.rows[0]);
@@ -198,7 +200,7 @@ export async function findCatalogFoodByIdForUpdate(
 
 export async function insertCatalogFood(
   client: PoolClient,
-  data: AdminCreateFoodDTO
+  data: AdminCreateFoodDTO,
 ): Promise<AdminFoodRow> {
   const result = await client.query(
     `INSERT INTO foods (
@@ -218,7 +220,7 @@ export async function insertCatalogFood(
       data.unit_name ? data.unit_name.trim() : null,
       data.unit_weight || null,
       data.source_ref.trim(),
-    ]
+    ],
   );
   return mapAdminFoodRow(result.rows[0]);
 }
@@ -226,7 +228,7 @@ export async function insertCatalogFood(
 export async function updateCatalogFoodRow(
   client: PoolClient,
   id: string,
-  data: AdminUpdateFoodDTO
+  data: AdminUpdateFoodDTO,
 ): Promise<AdminFoodRow> {
   const result = await client.query(
     `UPDATE foods SET
@@ -256,7 +258,7 @@ export async function updateCatalogFoodRow(
       data.unit_weight || null,
       data.source_ref.trim(),
       id,
-    ]
+    ],
   );
   return mapAdminFoodRow(result.rows[0]);
 }
@@ -264,7 +266,7 @@ export async function updateCatalogFoodRow(
 export async function updateCatalogFoodStatusRow(
   client: PoolClient,
   id: string,
-  active: boolean
+  active: boolean,
 ): Promise<AdminFoodRow> {
   const result = await client.query(
     `UPDATE foods SET
@@ -273,7 +275,7 @@ export async function updateCatalogFoodStatusRow(
       updated_at = CURRENT_TIMESTAMP
     WHERE id = $2 AND user_id IS NULL
     RETURNING ${ADMIN_FOOD_COLUMNS}`,
-    [active, id]
+    [active, id],
   );
   return mapAdminFoodRow(result.rows[0]);
 }

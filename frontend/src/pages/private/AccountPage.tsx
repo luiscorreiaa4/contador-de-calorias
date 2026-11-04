@@ -2,12 +2,14 @@ import React from 'react';
 import { Link } from 'react-router';
 import { ChevronRight, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useSignOut } from '../../hooks/useSignOut';
 import { useTheme } from '../../context/ThemeContext';
 import { ThemeToggle } from '../../components/layout/ThemeToggle';
 import { ACCOUNT_LINK_ITEMS, visibleItems } from '../../navigation/nav-items';
 
 export const AccountPage: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
+  const signOut = useSignOut();
   const { darkMode } = useTheme();
 
   const initials = user?.name
@@ -26,17 +28,28 @@ export const AccountPage: React.FC = () => {
   return (
     <div className="w-full max-w-5xl mx-auto px-4 py-8 space-y-8">
       <div className="space-y-3">
-        <h1 className="font-heading font-black text-3xl sm:text-5xl uppercase tracking-tighter">Conta</h1>
-        <p className="text-muted-foreground">Seu perfil, suas configurações e a aparência do app.</p>
+        <h1 className="font-heading font-black text-3xl sm:text-5xl uppercase tracking-tighter">
+          Conta
+        </h1>
+        <p className="text-muted-foreground">
+          Seu perfil, suas configurações e a aparência do app.
+        </p>
       </div>
 
-      <section aria-label="Usuário" className="flex items-center gap-4 border-2 border-border bg-card p-4 shadow-hard">
+      <section
+        aria-label="Usuário"
+        className="flex items-center gap-4 border-2 border-border bg-card p-4 shadow-hard"
+      >
         <div className="flex h-14 w-14 shrink-0 items-center justify-center bg-foreground text-background text-lg font-black">
           {initials}
         </div>
         <div className="min-w-0">
-          <p className="truncate font-heading text-lg font-black uppercase text-foreground">{user?.name}</p>
-          <p className="truncate text-xs font-bold tracking-widest text-muted-foreground">{user?.email}</p>
+          <p className="truncate font-heading text-lg font-black uppercase text-foreground">
+            {user?.name}
+          </p>
+          <p className="truncate text-xs font-bold tracking-widest text-muted-foreground">
+            {user?.email}
+          </p>
         </div>
       </section>
 
@@ -63,7 +76,7 @@ export const AccountPage: React.FC = () => {
 
       <button
         type="button"
-        onClick={logout}
+        onClick={signOut}
         className="flex min-h-14 w-full items-center gap-4 border-2 border-destructive px-4 text-xs font-black uppercase tracking-widest text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
       >
         <LogOut className="h-5 w-5" aria-hidden="true" />

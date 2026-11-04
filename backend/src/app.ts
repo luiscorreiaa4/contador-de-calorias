@@ -14,8 +14,10 @@ import adminRoutes from './routes/admin.routes.js';
 import { pool } from './database/pool.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { requestLogger } from './middlewares/requestLogger.js';
+import { createAuthRateLimiter } from './middlewares/authRateLimit.js';
 
 export const app = express();
+app.disable('x-powered-by');
 
 const corsOrigin = env.CORS_ORIGIN;
 
@@ -38,25 +40,45 @@ app.use(
         'object-src': ["'none'"],
       },
     },
-  })
+  }),
 );
 
-const allowedOrigins = corsOrigin.split(',').map((o) => o.trim()).filter(Boolean);
+const allowedOrigins = corsOrigin
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+      if (!origin || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
-      return callback(new Error('Origem não permitida por CORS'));
+      const corsErr = Object.assign(new Error('Origem não permitida por CORS.'), {
+        statusCode: 403,
+        code: 'FORBIDDEN',
+      });
+      return callback(corsErr);
     },
     credentials: true,
-  })
+  }),
 );
 
 app.use(compression());
 app.use(express.json({ limit: '50kb' }));
+
+// Teto geral de escritas por IP: conta de visitante não exige e-mail, então sem isso o volume é ilimitado.
+const writeLimiter = createAuthRateLimiter({
+  name: 'apiWriteLimiter',
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  includeEmail: false,
+  message: 'Muitas requisições. Tente novamente em alguns minutos.',
+});
+const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+app.use('/api', (req, res, next) =>
+  SAFE_METHODS.has(req.method) ? next() : writeLimiter(req, res, next),
+);
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -99,11 +121,15 @@ app.get('/health', async (_req, res) => {
   }
 });
 
+// Rota exclusiva para testes de compressão (não exposta em produção)
+if (env.NODE_ENV === 'test') {
+  app.get('/test-compression-payload', (_req, res) => {
+    res.json({ data: 'X'.repeat(2048) });
+  });
+}
+
 // 404 Handler para rotas inexistentes (A-017)
-app.use((req, res, next) => {
-  if (req.path === '/test-compression-payload') {
-    return next();
-  }
+app.use((_req, res) => {
   res.status(404).json({
     success: false,
     message: 'Rota não encontrada.',

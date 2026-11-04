@@ -37,27 +37,27 @@ describe('AuthContext Component & State (PC-34 / TST-011)', () => {
 
     expect(result.current.isAuthenticated).toBe(false);
     expect(result.current.user).toBeNull();
-    expect(result.current.token).toBeNull();
   });
 
   it('autentica corretamente ao invocar setAuthSession', () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
 
     act(() => {
-      result.current.setAuthSession(mockUser, 'test-jwt-token');
+      result.current.setAuthSession(mockUser);
     });
 
     expect(result.current.isAuthenticated).toBe(true);
     expect(result.current.user?.id).toBe('user-001');
-    expect(result.current.token).toBe('test-jwt-token');
-    expect(localStorage.getItem('auth_token')).toBe('test-jwt-token');
+    expect(localStorage.getItem('auth_session')).toBe('1');
+    // O JWT nunca é gravado no storage (fica no cookie HttpOnly).
+    expect(localStorage.getItem('auth_token')).toBeNull();
   });
 
   it('limpa os estados e o localStorage ao chamar logout', () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
 
     act(() => {
-      result.current.setAuthSession(mockUser, 'test-jwt-token');
+      result.current.setAuthSession(mockUser);
     });
     expect(result.current.isAuthenticated).toBe(true);
 
@@ -67,7 +67,6 @@ describe('AuthContext Component & State (PC-34 / TST-011)', () => {
 
     expect(result.current.isAuthenticated).toBe(false);
     expect(result.current.user).toBeNull();
-    expect(result.current.token).toBeNull();
     expect(localStorage.getItem('auth_token')).toBeNull();
     expect(localStorage.getItem('user_session')).toBeNull();
   });
@@ -76,7 +75,7 @@ describe('AuthContext Component & State (PC-34 / TST-011)', () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
 
     act(() => {
-      result.current.setAuthSession(mockUser, 'test-jwt-token');
+      result.current.setAuthSession(mockUser);
     });
     expect(result.current.isAuthenticated).toBe(true);
 
@@ -87,19 +86,18 @@ describe('AuthContext Component & State (PC-34 / TST-011)', () => {
     await waitFor(() => {
       expect(result.current.isAuthenticated).toBe(false);
       expect(result.current.user).toBeNull();
-      expect(result.current.token).toBeNull();
     });
   });
 
   it('recupera-se graciosamente sem travar quando user_session no localStorage estiver corrompido (A-074)', () => {
     localStorage.setItem('user_session', '{corrupted_json_content:');
-    localStorage.setItem('auth_token', 'token-corrompido');
+    localStorage.setItem('auth_session', '1');
 
     const { result } = renderHook(() => useAuth(), { wrapper });
 
     expect(result.current.user).toBeNull();
     expect(localStorage.getItem('user_session')).toBeNull();
-    expect(localStorage.getItem('auth_token')).toBeNull();
+    expect(localStorage.getItem('auth_session')).toBeNull();
   });
 
   it('hidrata corretamente a sessão e o token salvos no localStorage (A-129)', () => {
@@ -110,14 +108,13 @@ describe('AuthContext Component & State (PC-34 / TST-011)', () => {
         name: 'Usuário Hidratado',
         email: 'hidrata@teste.com',
         onboarding_completed: true,
-      })
+      }),
     );
-    localStorage.setItem('auth_token', 'token-recuperado');
+    localStorage.setItem('auth_session', '1');
 
     const { result } = renderHook(() => useAuth(), { wrapper });
 
     expect(result.current.isAuthenticated).toBe(true);
-    expect(result.current.token).toBe('token-recuperado');
     expect(result.current.user?.id).toBe('user-hidrata');
     expect(result.current.user?.email).toBe('hidrata@teste.com');
     expect(result.current.isLoadingProfile).toBe(true);
@@ -125,7 +122,7 @@ describe('AuthContext Component & State (PC-34 / TST-011)', () => {
 
   it('rejeita e limpa sessão parcial sem email ou sem id no localStorage (A-129)', () => {
     localStorage.setItem('user_session', JSON.stringify({ id: 'user-sem-email' }));
-    localStorage.setItem('auth_token', 'token-sem-email');
+    localStorage.setItem('auth_session', '1');
 
     const { result } = renderHook(() => useAuth(), { wrapper });
 
@@ -139,36 +136,34 @@ describe('AuthContext Component & State (PC-34 / TST-011)', () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
 
     act(() => {
-      result.current.setAuthSession(mockUser, 'test-jwt-session', false);
+      result.current.setAuthSession(mockUser, false);
     });
 
     expect(result.current.isAuthenticated).toBe(true);
-    expect(sessionStorage.getItem('auth_token')).toBe('test-jwt-session');
-    expect(localStorage.getItem('auth_token')).toBeNull();
+    expect(sessionStorage.getItem('auth_session')).toBe('1');
+    expect(localStorage.getItem('auth_session')).toBeNull();
 
     act(() => {
       result.current.logout();
     });
 
-    expect(sessionStorage.getItem('auth_token')).toBeNull();
+    expect(sessionStorage.getItem('auth_session')).toBeNull();
     expect(result.current.isAuthenticated).toBe(false);
   });
 
-  it('persiste o token renovado após troca de senha ou e-mail (A8)', () => {
+  it('mantém o storage escolhido ao atualizar a sessão após troca de senha ou e-mail (A8)', () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
 
     act(() => {
-      result.current.setAuthSession(mockUser, 'token-antigo', false);
+      result.current.setAuthSession(mockUser, false);
     });
 
     act(() => {
-      result.current.updateUserSession({ ...mockUser, name: 'Nome Atualizado' }, 'token-renovado');
+      result.current.updateUserSession({ ...mockUser, name: 'Nome Atualizado' });
     });
 
-    expect(result.current.token).toBe('token-renovado');
     expect(result.current.user?.name).toBe('Nome Atualizado');
-    expect(sessionStorage.getItem('auth_token')).toBe('token-renovado');
-    expect(localStorage.getItem('auth_token')).toBeNull();
+    expect(localStorage.getItem('auth_session')).toBeNull();
     expect(JSON.parse(sessionStorage.getItem('user_session') || '{}').name).toBe('Nome Atualizado');
   });
 });

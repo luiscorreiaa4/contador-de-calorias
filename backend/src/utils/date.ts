@@ -1,4 +1,4 @@
-export const APP_TIMEZONE = 'America/Sao_Paulo';
+const APP_TIMEZONE = 'America/Sao_Paulo';
 
 const saoPauloDateFormatter = new Intl.DateTimeFormat('en-CA', {
   timeZone: APP_TIMEZONE,
@@ -11,7 +11,7 @@ const saoPauloDateFormatter = new Intl.DateTimeFormat('en-CA', {
  * Retorna a data no formato YYYY-MM-DD no fuso horário da aplicação (America/Sao_Paulo).
  * Conforme decisão D-01: o servidor é a autoridade de fuso da aplicação.
  */
-export function todayInAppTz(now: Date = new Date()): string {
+function todayInAppTz(now: Date = new Date()): string {
   return saoPauloDateFormatter.format(now);
 }
 
@@ -25,12 +25,18 @@ const saoPauloTimeFormatter = new Intl.DateTimeFormat('en-GB', {
   hour12: false,
 });
 
-export function getTimeInAppTz(date: Date): string {
+function getTimeInAppTz(date: Date): string {
   return saoPauloTimeFormatter.format(date);
 }
 
-export function getTimezoneOffsetForDate(date: Date = new Date(), timeZone: string = APP_TIMEZONE): string {
-  const parts = new Intl.DateTimeFormat('en-US', { timeZone, timeZoneName: 'longOffset' }).formatToParts(date);
+function getTimezoneOffsetForDate(
+  date: Date = new Date(),
+  timeZone: string = APP_TIMEZONE,
+): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    timeZoneName: 'longOffset',
+  }).formatToParts(date);
   const tzPart = parts.find((p) => p.type === 'timeZoneName')?.value || 'GMT-03:00';
   return tzPart.replace('GMT', '');
 }

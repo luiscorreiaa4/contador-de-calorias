@@ -2,6 +2,8 @@ import { Router } from 'express';
 import * as AuthController from '../controllers/auth.controller.js';
 import { validate } from '../middlewares/validate.js';
 import { createAuthRateLimiter } from '../middlewares/authRateLimit.js';
+import { requireAllowedOrigin } from '../middlewares/auth.js';
+import { createCaptchaMiddleware } from '../middlewares/captcha.js';
 import {
   forgotPasswordSchema,
   loginUserSchema,
@@ -12,6 +14,7 @@ import {
 } from '@caloriesync/shared';
 
 const router = Router();
+const captcha = createCaptchaMiddleware();
 
 // A11: nenhuma resposta de autenticação pode ser armazenada em cache.
 router.use((_req, res, next) => {
@@ -20,6 +23,7 @@ router.use((_req, res, next) => {
 });
 
 const registerLimiter = createAuthRateLimiter({
+  name: 'registerLimiter',
   windowMs: 15 * 60 * 1000,
   max: 20,
   includeEmail: false,
@@ -27,19 +31,31 @@ const registerLimiter = createAuthRateLimiter({
 });
 
 const loginCredentialLimiter = createAuthRateLimiter({
+  name: 'loginCredentialLimiter',
   windowMs: 15 * 60 * 1000,
   max: 10,
   message: 'Muitas tentativas de login. Tente novamente após 15 minutos.',
 });
 
 const loginIpLimiter = createAuthRateLimiter({
+  name: 'loginIpLimiter',
   windowMs: 15 * 60 * 1000,
   max: 30,
   includeEmail: false,
   message: 'Muitas tentativas de login originadas deste IP. Tente novamente após 15 minutos.',
 });
 
+// Ataque distribuído (vários IPs) contra uma única conta.
+const loginEmailLimiter = createAuthRateLimiter({
+  name: 'loginEmailLimiter',
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  emailOnly: true,
+  message: 'Muitas tentativas de login. Tente novamente após 15 minutos.',
+});
+
 const verifyEmailLimiter = createAuthRateLimiter({
+  name: 'verifyEmailLimiter',
   windowMs: 15 * 60 * 1000,
   max: 10,
   includeEmail: false,
@@ -47,29 +63,77 @@ const verifyEmailLimiter = createAuthRateLimiter({
 });
 
 const resendCodeLimiter = createAuthRateLimiter({
+  name: 'resendCodeLimiter',
   windowMs: 15 * 60 * 1000,
   max: 10,
   message: 'Muitos pedidos de reenvio. Tente novamente após 15 minutos.',
 });
 
 const forgotPasswordLimiter = createAuthRateLimiter({
+  name: 'forgotPasswordLimiter',
   windowMs: 15 * 60 * 1000,
   max: 10,
   message: 'Muitos pedidos de recuperação. Tente novamente após 15 minutos.',
 });
 
 const resetPasswordLimiter = createAuthRateLimiter({
+  name: 'resetPasswordLimiter',
   windowMs: 60 * 60 * 1000,
   max: 10,
   includeEmail: false,
   message: 'Muitas tentativas de redefinição. Tente novamente após 1 hora.',
 });
 
-router.post('/register', registerLimiter, validate(registerUserSchema), AuthController.register);
-router.post('/login', loginIpLimiter, loginCredentialLimiter, validate(loginUserSchema), AuthController.login);
-router.post('/verify-email', verifyEmailLimiter, validate(verifyEmailSchema), AuthController.verifyEmail);
-router.post('/resend-code', resendCodeLimiter, validate(resendVerificationCodeSchema), AuthController.resendCode);
-router.post('/forgot-password', forgotPasswordLimiter, validate(forgotPasswordSchema), AuthController.forgotPassword);
-router.post('/reset-password', resetPasswordLimiter, validate(resetPasswordSchema), AuthController.resetPassword);
+router.post(
+  '/register',
+  registerLimiter,
+  validate(registerUserSchema),
+  captcha,
+  AuthController.register,
+);
+router.post(
+  '/login',
+  loginIpLimiter,
+  loginEmailLimiter,
+  loginCredentialLimiter,
+  validate(loginUserSchema),
+  captcha,
+  AuthController.login,
+);
+const demoLimiter = createAuthRateLimiter({
+  name: 'demoLimiter',
+  // Janela de 1 h: um IP sozinho não consegue esgotar o teto de visitantes ativos tão rápido.
+  windowMs: 60 * 60 * 1000,
+  max: 20,
+  includeEmail: false,
+  message: 'Muitas sessões de demonstração. Tente novamente após 1 hora.',
+});
+router.post('/demo', demoLimiter, requireAllowedOrigin, captcha, AuthController.demoLogin);
+router.post(
+  '/verify-email',
+  verifyEmailLimiter,
+  validate(verifyEmailSchema),
+  AuthController.verifyEmail,
+);
+router.post('/logout', AuthController.logout);
+router.post(
+  '/resend-code',
+  resendCodeLimiter,
+  validate(resendVerificationCodeSchema),
+  AuthController.resendCode,
+);
+router.post(
+  '/forgot-password',
+  forgotPasswordLimiter,
+  validate(forgotPasswordSchema),
+  captcha,
+  AuthController.forgotPassword,
+);
+router.post(
+  '/reset-password',
+  resetPasswordLimiter,
+  validate(resetPasswordSchema),
+  AuthController.resetPassword,
+);
 
 export default router;

@@ -22,7 +22,8 @@ function createError(message: string, statusCode: number, code?: string): Custom
 
 export async function list(query: AdminListFoodsQueryDTO) {
   const page = query.page || 1;
-  const pageSize = query.pageSize || (query.limit && [25, 50, 100].includes(query.limit) ? query.limit : 25);
+  const pageSize =
+    query.pageSize || (query.limit && [25, 50, 100].includes(query.limit) ? query.limit : 25);
   return AdminFoodModel.searchCatalogFoods({
     search: query.search,
     q: query.q,
@@ -43,12 +44,7 @@ export async function getById(id: string) {
 }
 
 export async function create(adminUserId: string, data: AdminCreateFoodDTO) {
-  const warnings = calculateCaloricWarnings(
-    data.calories,
-    data.proteins,
-    data.carbs,
-    data.fats
-  );
+  const warnings = calculateCaloricWarnings(data.calories, data.proteins, data.carbs, data.fats);
 
   const client = await pool.connect();
   let finished = false;
@@ -62,7 +58,11 @@ export async function create(adminUserId: string, data: AdminCreateFoodDTO) {
     } catch (err: unknown) {
       const pgErr = err as { code?: string };
       if (pgErr.code === '23505') {
-        throw createError('Já existe um alimento ativo no catálogo global com este nome.', 409, 'FOOD_NAME_CONFLICT');
+        throw createError(
+          'Já existe um alimento ativo no catálogo global com este nome.',
+          409,
+          'FOOD_NAME_CONFLICT',
+        );
       }
       throw err;
     }
@@ -90,12 +90,7 @@ export async function create(adminUserId: string, data: AdminCreateFoodDTO) {
 }
 
 export async function update(adminUserId: string, id: string, data: AdminUpdateFoodDTO) {
-  const warnings = calculateCaloricWarnings(
-    data.calories,
-    data.proteins,
-    data.carbs,
-    data.fats
-  );
+  const warnings = calculateCaloricWarnings(data.calories, data.proteins, data.carbs, data.fats);
 
   const client = await pool.connect();
   let finished = false;
@@ -114,7 +109,11 @@ export async function update(adminUserId: string, id: string, data: AdminUpdateF
     } catch (err: unknown) {
       const pgErr = err as { code?: string };
       if (pgErr.code === '23505') {
-        throw createError('Já existe outro alimento ativo no catálogo global com este nome.', 409, 'FOOD_NAME_CONFLICT');
+        throw createError(
+          'Já existe outro alimento ativo no catálogo global com este nome.',
+          409,
+          'FOOD_NAME_CONFLICT',
+        );
       }
       throw err;
     }
@@ -159,7 +158,11 @@ export async function updateStatus(adminUserId: string, id: string, active: bool
     } catch (err: unknown) {
       const pgErr = err as { code?: string };
       if (pgErr.code === '23505') {
-        throw createError('Já existe um alimento ativo com este nome. Não é possível reativar sem renomear.', 409, 'FOOD_NAME_CONFLICT');
+        throw createError(
+          'Já existe um alimento ativo com este nome. Não é possível reativar sem renomear.',
+          409,
+          'FOOD_NAME_CONFLICT',
+        );
       }
       throw err;
     }

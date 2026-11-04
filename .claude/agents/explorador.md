@@ -12,6 +12,6 @@ Mapa do monorepo (para buscar direto no lugar certo):
 - `backend/migrations/`, `backend/scripts/` (CLIs de admin e catálogo), `backend/tests/{unit,integration,helpers}`.
 - `frontend/src/{pages,components,services,hooks,context,mocks,styles,tests}`.
 - `shared/src/` — tipos, schemas Zod e cálculos de nutrição (`@caloriesync/shared`).
-- `docs/` — SPEC, ARCHITECTURE, DECISOES, TESTING, ADMIN etc.; `docs/archive/` é histórico.
+- `docs/` — SPEC, ARCHITECTURE, DECISOES, TESTING, ADMIN etc..
 
-Ignore `node_modules/`, `dist/` e `docs/archive/` a menos que pedido.
+Ignore `node_modules/` e `dist/` a menos que pedido.

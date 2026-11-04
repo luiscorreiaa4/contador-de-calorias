@@ -1,39 +1,12 @@
-import { useMutation } from '@tanstack/react-query';
-import { sendTestPush } from '../../services/push.service';
-
 export function NotificationsPage() {
-  const test = useMutation({
-    mutationFn: sendTestPush,
-  });
-
   return (
     <section className="bg-card border-2 border-border shadow-hard p-6 space-y-6">
       <div className="space-y-1">
-        <h2 className="font-heading font-black text-xl uppercase tracking-tighter">
-          NOTIFICAÇÕES
-        </h2>
+        <h2 className="font-heading font-black text-xl uppercase tracking-tighter">NOTIFICAÇÕES</h2>
         <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">
-          Gerencie os canais de lembrete de refeição e alertas automáticos da sua conta.
+          Escolha como quer receber lembretes de refeição.
         </p>
       </div>
-
-      {test.error && (
-        <p
-          role="alert"
-          className="text-destructive font-black text-xs uppercase p-3 border-2 border-destructive bg-destructive/10"
-        >
-          {test.error.message}
-        </p>
-      )}
-
-      {test.isSuccess && (
-        <p
-          role="status"
-          className="font-black text-xs uppercase p-3 border-2 border-foreground bg-primary/20 text-foreground"
-        >
-          LEMBRETE DE TESTE ENVIADO COM SUCESSO!
-        </p>
-      )}
 
       <div className="space-y-3">
         {/* Notificações Push no Navegador (Temporariamente Desabilitado) */}
@@ -63,7 +36,7 @@ export function NotificationsPage() {
                 </span>
               </div>
               <span className="text-xs text-muted-foreground font-medium block">
-                Receba avisos sonoros e visuais no navegador nos horários de café, almoço e jantar para manter seu diário sempre em dia.
+                Aviso com som no navegador na hora do café, do almoço e do jantar.
               </span>
             </div>
           </label>
@@ -96,7 +69,7 @@ export function NotificationsPage() {
                 </span>
               </div>
               <span className="text-xs text-muted-foreground font-medium block">
-                Resumos diários, relatórios de consumo calórico e avisos de refeições pendentes enviados diretamente para sua caixa de entrada.
+                Resumo diário de calorias e aviso das refeições que faltam registrar, por e-mail.
               </span>
             </div>
           </label>
@@ -129,34 +102,12 @@ export function NotificationsPage() {
                 </span>
               </div>
               <span className="text-xs text-muted-foreground font-medium block">
-                Lembretes instantâneos no seu celular por SMS ou WhatsApp para registrar café da manhã, almoço, lanche e jantar.
+                Lembrete por SMS ou WhatsApp para registrar café da manhã, almoço, lanche e jantar.
               </span>
             </div>
           </label>
         </div>
       </div>
-
-      {/* Ações Secundárias / Teste de Conectividade */}
-      <div className="space-y-2 border-t-2 border-border pt-4">
-        <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">
-          DIAGNÓSTICO DO SERVIÇO
-        </p>
-        <p className="text-xs text-muted-foreground font-medium">
-          Os canais de alerta automático estão em desenvolvimento. Utilize a ação abaixo para testar a comunicação e despacho do serviço de lembretes.
-        </p>
-        <div>
-          <button
-            type="button"
-            onClick={() => test.mutate()}
-            disabled={test.isPending}
-            className="border-2 border-border bg-secondary/60 hover:bg-secondary px-5 py-3 text-xs font-black uppercase tracking-wider text-foreground disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background shadow-hard transition-all active:translate-x-0.5 active:translate-y-0.5"
-          >
-            {test.isPending ? 'ENVIANDO...' : 'ENVIAR LEMBRETE DE TESTE'}
-          </button>
-        </div>
-      </div>
     </section>
   );
 }
-
-

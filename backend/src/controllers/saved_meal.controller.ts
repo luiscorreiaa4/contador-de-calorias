@@ -12,7 +12,9 @@ export const list = asyncHandler(async (req: Request, res: Response) => {
 export const create = asyncHandler(async (req: Request, res: Response) => {
   const userId = requireUserId(req);
   const savedMeal = await SavedMealService.createSavedMeal(userId, req.body);
-  return res.status(201).json({ success: true, message: 'Combo salvo com sucesso!', data: savedMeal });
+  return res
+    .status(201)
+    .json({ success: true, message: 'Combo salvo com sucesso!', data: savedMeal });
 });
 
 export const remove = asyncHandler(async (req: Request, res: Response) => {

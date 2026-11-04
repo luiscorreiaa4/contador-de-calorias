@@ -46,7 +46,7 @@ describe('Meal Copy Feature (BL-18 / FEAT-C03 / D-20)', () => {
       .send({
         name: 'Almoço Original',
         mealTime,
-        items: [{ foodId, quantity: 200, unit: 'g' }]
+        items: [{ foodId, quantity: 200, unit: 'g' }],
       });
 
     assert.strictEqual(res.status, 201);
@@ -79,7 +79,7 @@ describe('Meal Copy Feature (BL-18 / FEAT-C03 / D-20)', () => {
       .set('Authorization', `Bearer ${user1Token}`)
       .send({
         sourceMealId,
-        targetDate: '2026-10-11'
+        targetDate: '2026-10-11',
       });
 
     assert.strictEqual(res.status, 201);
@@ -106,7 +106,7 @@ describe('Meal Copy Feature (BL-18 / FEAT-C03 / D-20)', () => {
       .set('Authorization', `Bearer ${user2Token}`)
       .send({
         sourceMealId,
-        targetDate: '2026-10-11'
+        targetDate: '2026-10-11',
       });
 
     assert.strictEqual(res.status, 404);
@@ -121,7 +121,7 @@ describe('Meal Copy Feature (BL-18 / FEAT-C03 / D-20)', () => {
       .send({
         name: 'Jantar Original',
         mealTime: new Date('2026-10-10T19:30:00.000-03:00').toISOString(),
-        items: [{ foodId, quantity: 150 }]
+        items: [{ foodId, quantity: 150 }],
       });
 
     // Copiar todo o dia 2026-10-10 para 2026-10-12
@@ -130,7 +130,7 @@ describe('Meal Copy Feature (BL-18 / FEAT-C03 / D-20)', () => {
       .set('Authorization', `Bearer ${user1Token}`)
       .send({
         sourceDate: '2026-10-10',
-        targetDate: '2026-10-12'
+        targetDate: '2026-10-12',
       });
 
     assert.strictEqual(res.status, 201);

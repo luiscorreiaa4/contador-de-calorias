@@ -47,9 +47,14 @@ function roundToTenth(value: number): number {
  * Regra de três dos macros a partir da quantidade já normalizada na unidade base
  * (g/ml). Base padrão de 100 g/ml quando `serving_weight` não é informado.
  */
-export function calculateNutrients(food: FoodNutrientSource, quantityInBaseUnit: number): NutrientValues {
+export function calculateNutrients(
+  food: FoodNutrientSource,
+  quantityInBaseUnit: number,
+): NutrientValues {
   const serving =
-    food.serving_weight != null && !isNaN(Number(food.serving_weight)) && Number(food.serving_weight) > 0
+    food.serving_weight != null &&
+    !isNaN(Number(food.serving_weight)) &&
+    Number(food.serving_weight) > 0
       ? Number(food.serving_weight)
       : 100;
   const factor = quantityInBaseUnit / serving;
@@ -65,20 +70,33 @@ export function calculateNutrients(food: FoodNutrientSource, quantityInBaseUnit:
  * Resolve a quantidade final em gramas (considerando `un` + `unit_weight`),
  * o `displayAmount` e os macros do item da refeição.
  */
-export function calculateItemNutrients(item: MealItemInput, food: FoodNutrientSource): CalculatedMealItem {
+export function calculateItemNutrients(
+  item: MealItemInput,
+  food: FoodNutrientSource,
+): CalculatedMealItem {
   let finalQuantity = Number(item.quantity);
   let displayAmount =
-    item.displayAmount !== undefined && item.displayAmount !== null ? Number(item.displayAmount) : undefined;
+    item.displayAmount !== undefined && item.displayAmount !== null
+      ? Number(item.displayAmount)
+      : undefined;
   const unit = item.unit || food.base_unit || 'g';
 
   // Se a unidade for 'un'
   if (unit === 'un') {
-    if (food.unit_weight != null && !isNaN(Number(food.unit_weight)) && Number(food.unit_weight) > 0) {
+    if (
+      food.unit_weight != null &&
+      !isNaN(Number(food.unit_weight)) &&
+      Number(food.unit_weight) > 0
+    ) {
       if (displayAmount === undefined) {
         displayAmount = finalQuantity;
       }
       finalQuantity = displayAmount * Number(food.unit_weight);
-    } else if (food.serving_weight != null && !isNaN(Number(food.serving_weight)) && Number(food.serving_weight) > 0) {
+    } else if (
+      food.serving_weight != null &&
+      !isNaN(Number(food.serving_weight)) &&
+      Number(food.serving_weight) > 0
+    ) {
       // Fallback para porção cadastrada quando unidade não tiver peso específico
       if (displayAmount === undefined) {
         displayAmount = finalQuantity;

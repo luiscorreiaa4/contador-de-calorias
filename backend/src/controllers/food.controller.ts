@@ -10,7 +10,9 @@ export const list = asyncHandler(async (req: Request, res: Response) => {
 
   // Mínimo 2 letras para busca
   if (search && search.trim().length < 2) {
-    return res.status(400).json({ success: false, message: 'A busca requer pelo menos 2 caracteres.' });
+    return res
+      .status(400)
+      .json({ success: false, message: 'A busca requer pelo menos 2 caracteres.' });
   }
 
   const data = await FoodService.list(search?.trim(), page, limit, userId);

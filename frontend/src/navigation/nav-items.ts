@@ -1,5 +1,5 @@
 import { matchPath } from 'react-router';
-import { Database, Settings, Target, TrendingUp, UserCog } from 'lucide-react';
+import { Database, Settings, Target, UserCog } from 'lucide-react';
 import {
   AccountIcon,
   AccountIconFilled,
@@ -16,7 +16,7 @@ import {
  */
 
 export interface NavDestination {
-  id: 'diario' | 'progresso' | 'conta' | 'evolucao' | 'metas' | 'catalogo' | 'perfil' | 'configuracoes';
+  id: 'diario' | 'historico' | 'conta' | 'metas' | 'catalogo' | 'perfil' | 'configuracoes';
   label: string;
   shortLabel: string;
   to: string;
@@ -39,50 +39,40 @@ const DIARIO: NavDestination = {
   id: 'diario',
   label: 'Diário',
   shortLabel: 'Diário',
-  to: '/',
+  to: '/app',
   icon: DiaryIcon,
   activeIcon: DiaryIconFilled,
-  patterns: ['/', '/diario/:date'],
+  patterns: ['/app', '/app/diario/:date'],
 };
 
-const PROGRESSO: NavDestination = {
-  id: 'progresso',
-  label: 'Progresso',
-  shortLabel: 'Progresso',
-  to: '/evolucao',
+const HISTORICO: NavDestination = {
+  id: 'historico',
+  label: 'Histórico',
+  shortLabel: 'Histórico',
+  to: '/app/historico',
   icon: ProgressIcon,
   activeIcon: ProgressIconFilled,
-  patterns: ['/evolucao/*', '/metas/*'],
+  patterns: ['/app/historico/*'],
 };
 
 const CONTA: NavDestination = {
   id: 'conta',
   label: 'Conta',
   shortLabel: 'Conta',
-  to: '/conta',
+  to: '/app/conta',
   icon: AccountIcon,
   activeIcon: AccountIconFilled,
-  patterns: ['/conta', '/perfil', '/configuracoes/*'],
-};
-
-const EVOLUCAO: NavDestination = {
-  id: 'evolucao',
-  label: 'Evolução',
-  shortLabel: 'Evolução',
-  to: '/evolucao',
-  icon: TrendingUp,
-  activeIcon: TrendingUp,
-  patterns: ['/evolucao/*'],
+  patterns: ['/app/conta', '/app/metas/*', '/app/perfil', '/app/configuracoes/*'],
 };
 
 const METAS: NavDestination = {
   id: 'metas',
   label: 'Metas',
   shortLabel: 'Metas',
-  to: '/metas',
+  to: '/app/metas',
   icon: Target,
   activeIcon: Target,
-  patterns: ['/metas/*'],
+  patterns: ['/app/metas/*'],
 };
 
 const CATALOGO: NavDestination = {
@@ -100,54 +90,48 @@ const PERFIL: NavDestination = {
   id: 'perfil',
   label: 'Perfil',
   shortLabel: 'Perfil',
-  to: '/perfil',
+  to: '/app/perfil',
   icon: UserCog,
   activeIcon: UserCog,
-  patterns: ['/perfil'],
+  patterns: ['/app/perfil'],
 };
 
 const CONFIGURACOES: NavDestination = {
   id: 'configuracoes',
   label: 'Configurações',
   shortLabel: 'Config.',
-  to: '/configuracoes',
+  to: '/app/configuracoes',
   icon: Settings,
   activeIcon: Settings,
-  patterns: ['/configuracoes/*'],
+  patterns: ['/app/configuracoes/*'],
 };
 
 /** Slots da barra inferior; o "+" central não é destino e é inserido pelo BottomNav. */
-export const BOTTOM_NAV_ITEMS: NavDestination[] = [DIARIO, PROGRESSO, CONTA];
+export const BOTTOM_NAV_ITEMS: NavDestination[] = [DIARIO, HISTORICO, CONTA];
 
 /** Abas do menu do desktop (header). */
-export const DESKTOP_NAV_ITEMS: NavDestination[] = [DIARIO, EVOLUCAO, METAS, CATALOGO, PERFIL, CONFIGURACOES];
+export const DESKTOP_NAV_ITEMS: NavDestination[] = [DIARIO, HISTORICO];
 
-/** Linhas da tela /conta. */
-export const ACCOUNT_LINK_ITEMS: NavDestination[] = [PERFIL, CONFIGURACOES, CATALOGO];
+/** Linhas da tela /conta e do dropdown da conta no desktop. */
+export const ACCOUNT_LINK_ITEMS: NavDestination[] = [METAS, PERFIL, CONFIGURACOES, CATALOGO];
 
-export const EVOLUCAO_TABS: NavTab[] = [
-  { to: '/evolucao/alimentacao', label: 'Alimentação' },
-  { to: '/evolucao/corpo', label: 'Peso e medidas', shortLabel: 'Peso/medidas' },
+export const HISTORICO_TABS: NavTab[] = [
+  { to: '/app/historico/alimentacao', label: 'Alimentação' },
+  { to: '/app/historico/corpo', label: 'Peso e medidas', shortLabel: 'Peso/medidas' },
 ];
 
 export const METAS_TABS: NavTab[] = [
-  { to: '/metas/rotina', label: 'Objetivo e rotina', shortLabel: 'Rotina' },
-  { to: '/metas/diarias', label: 'Metas diárias', shortLabel: 'Diárias' },
-];
-
-/** Nível superior de Progresso; cada aba abre a sub-aba padrão da seção. */
-export const PROGRESSO_TABS: NavTab[] = [
-  { to: '/evolucao/alimentacao', label: 'Evolução', patterns: ['/evolucao/*'] },
-  { to: '/metas/rotina', label: 'Metas', patterns: ['/metas/*'] },
+  { to: '/app/metas/rotina', label: 'Objetivo e rotina', shortLabel: 'Rotina' },
+  { to: '/app/metas/diarias', label: 'Metas diárias', shortLabel: 'Diárias' },
 ];
 
 export const CONFIG_TABS: NavTab[] = [
-  { to: '/configuracoes/notificacoes', label: 'Notificações', shortLabel: 'Notific.' },
-  { to: '/configuracoes/seguranca', label: 'Segurança' },
-  { to: '/configuracoes/privacidade', label: 'Privacidade e dados', shortLabel: 'Privacidade' },
+  { to: '/app/configuracoes/notificacoes', label: 'Notificações', shortLabel: 'Notific.' },
+  { to: '/app/configuracoes/seguranca', label: 'Segurança' },
+  { to: '/app/configuracoes/privacidade', label: 'Privacidade e dados', shortLabel: 'Privacidade' },
 ];
 
-export function isPathActive(pathname: string, patterns: string[]): boolean {
+function isPathActive(pathname: string, patterns: string[]): boolean {
   return patterns.some((path) => matchPath({ path, end: !path.endsWith('/*') }, pathname) !== null);
 }
 

@@ -46,17 +46,27 @@ describe('Admin Global Foods Catalog API (D-22 / B3 / B4 / B5 / B6 / B7 / B11 / 
 
     for (const r of routesToTest) {
       // 401 Anônimo
-      const reqAnon = (request(app) as unknown as Record<string, (url: string) => request.Test>)[r.method](r.path);
+      const reqAnon = (request(app) as unknown as Record<string, (url: string) => request.Test>)[
+        r.method
+      ](r.path);
       if (r.body) reqAnon.send(r.body);
       const resAnon = await reqAnon;
-      assert.strictEqual(resAnon.status, 401, `Rota ${r.method.toUpperCase()} ${r.path} deveria retornar 401 para anônimo`);
+      assert.strictEqual(
+        resAnon.status,
+        401,
+        `Rota ${r.method.toUpperCase()} ${r.path} deveria retornar 401 para anônimo`,
+      );
 
       // 403 Usuário Comum
-      const reqUser = (request(app) as unknown as Record<string, (url: string) => request.Test>)[r.method](r.path)
-        .set('Authorization', `Bearer ${userToken}`);
+      const agent = request(app) as unknown as Record<string, (url: string) => request.Test>;
+      const reqUser = agent[r.method](r.path).set('Authorization', `Bearer ${userToken}`);
       if (r.body) reqUser.send(r.body);
       const resUser = await reqUser;
-      assert.strictEqual(resUser.status, 403, `Rota ${r.method.toUpperCase()} ${r.path} deveria retornar 403 para usuário comum`);
+      assert.strictEqual(
+        resUser.status,
+        403,
+        `Rota ${r.method.toUpperCase()} ${r.path} deveria retornar 403 para usuário comum`,
+      );
       assert.strictEqual(resUser.body.code, 'FORBIDDEN');
     }
   });
@@ -125,15 +135,22 @@ describe('Admin Global Foods Catalog API (D-22 / B3 / B4 / B5 / B6 / B7 / B11 / 
 
     assert.strictEqual(createRes.status, 201);
     assert.strictEqual(createRes.body.success, true);
-    assert(createRes.body.warnings && createRes.body.warnings.length > 0, 'Deveria retornar aviso de divergência calórica');
+    assert(
+      createRes.body.warnings && createRes.body.warnings.length > 0,
+      'Deveria retornar aviso de divergência calórica',
+    );
     testFoodId = createRes.body.data.id;
 
     // Verifica que gravou em admin_audit_log
     const auditRes = await pool.query(
       "SELECT * FROM admin_audit_log WHERE entity_type = 'food' AND entity_id = $1 AND action = 'create_food'",
-      [testFoodId]
+      [testFoodId],
     );
-    assert.strictEqual(auditRes.rows.length, 1, 'Auditoria deve registrar create_food atomicamente');
+    assert.strictEqual(
+      auditRes.rows.length,
+      1,
+      'Auditoria deve registrar create_food atomicamente',
+    );
     assert.strictEqual(auditRes.rows[0].actor_type, 'user');
     assert.strictEqual(auditRes.rows[0].before, null);
     assert.strictEqual(auditRes.rows[0].after.name, 'Teste Admin Alimento Especial');
@@ -155,7 +172,9 @@ describe('Admin Global Foods Catalog API (D-22 / B3 / B4 / B5 / B6 / B7 / B11 / 
       .set('Authorization', `Bearer ${adminToken}`);
 
     assert.strictEqual(searchRes.status, 200);
-    const list = Array.isArray(searchRes.body.data) ? searchRes.body.data : searchRes.body.data.foods;
+    const list = Array.isArray(searchRes.body.data)
+      ? searchRes.body.data
+      : searchRes.body.data.foods;
     assert(list.some((f: { id: string }) => f.id === testFoodId));
   });
 
@@ -178,7 +197,11 @@ describe('Admin Global Foods Catalog API (D-22 / B3 / B4 / B5 / B6 / B7 / B11 / 
 
     assert.strictEqual(updateRes.status, 200);
     assert.strictEqual(updateRes.body.data.name, 'Teste Admin Alimento Editado');
-    assert.strictEqual(updateRes.body.warnings.length, 0, 'Não deve ter divergência calórica após correção');
+    assert.strictEqual(
+      updateRes.body.warnings.length,
+      0,
+      'Não deve ter divergência calórica após correção',
+    );
   });
 
   it('6. Desativação do alimento (active=false): some da busca pública mas histórico de refeições segue intacto (B6 / B7)', async () => {
@@ -217,7 +240,10 @@ describe('Admin Global Foods Catalog API (D-22 / B3 / B4 / B5 / B6 / B7 / B11 / 
       .set('Authorization', `Bearer ${userToken}`);
 
     assert.strictEqual(publicSearch.status, 200);
-    assert(!publicSearch.body.data.foods.some((f: { id: string }) => f.id === testFoodId), 'Alimento inativo não deve aparecer na busca pública');
+    assert(
+      !publicSearch.body.data.foods.some((f: { id: string }) => f.id === testFoodId),
+      'Alimento inativo não deve aparecer na busca pública',
+    );
 
     // 6d. A refeição antiga do usuário ainda existe e ainda tem seus macros intactos (B6)
     const mealCheck = await request(app)
@@ -227,7 +253,11 @@ describe('Admin Global Foods Catalog API (D-22 / B3 / B4 / B5 / B6 / B7 / B11 / 
     assert.strictEqual(mealCheck.status, 200);
     const foundMeal = mealCheck.body.data.find((m: { id: string }) => m.id === mealId);
     assert(foundMeal, 'Refeição passada deve continuar existindo');
-    assert.strictEqual(foundMeal.items[0].calories, 170, 'Macros de refeição passada devem ser preservados pelo snapshot');
+    assert.strictEqual(
+      foundMeal.items[0].calories,
+      170,
+      'Macros de refeição passada devem ser preservados pelo snapshot',
+    );
 
     // 6e. Tentativa de criar NOVA refeição com o alimento inativo é rejeitada com 422 (B7)
     const newMealAttempt = await request(app)
@@ -245,8 +275,15 @@ describe('Admin Global Foods Catalog API (D-22 / B3 / B4 / B5 / B6 / B7 / B11 / 
         ],
       });
 
-    assert.strictEqual(newMealAttempt.status, 422, 'Deve rejeitar novo lançamento com alimento inativo');
-    assert(newMealAttempt.body.message.includes('desativado'), 'Mensagem deve indicar que alimento está desativado');
+    assert.strictEqual(
+      newMealAttempt.status,
+      422,
+      'Deve rejeitar novo lançamento com alimento inativo',
+    );
+    assert(
+      newMealAttempt.body.message.includes('desativado'),
+      'Mensagem deve indicar que alimento está desativado',
+    );
 
     // 6f. Edição da refeição pré-existente preserva o item inativo (B7)
     const updateExistingMeal = await request(app)
@@ -264,37 +301,42 @@ describe('Admin Global Foods Catalog API (D-22 / B3 / B4 / B5 / B6 / B7 / B11 / 
         ],
       });
 
-    assert.strictEqual(updateExistingMeal.status, 200, 'Edição de refeição existente preserva itens já incluídos');
+    assert.strictEqual(
+      updateExistingMeal.status,
+      200,
+      'Edição de refeição existente preserva itens já incluídos',
+    );
     assert.strictEqual(updateExistingMeal.body.data.name, 'Almoço Renomeado');
   });
 
   it('7. Paginação server-side, busca insensível a acento/caixa, fallbacks de segurança e alias /alimentos', async () => {
     // Cria alimento com acento para testar unaccent
-    await request(app)
-      .post('/api/admin/foods')
-      .set('Authorization', `Bearer ${adminToken}`)
-      .send({
-        name: 'Teste Admin Abóbora Japonesa',
-        calories: 40,
-        proteins: 1,
-        carbs: 9,
-        fats: 0.1,
-        source_ref: 'TBCA Código A01',
-      });
+    await request(app).post('/api/admin/foods').set('Authorization', `Bearer ${adminToken}`).send({
+      name: 'Teste Admin Abóbora Japonesa',
+      calories: 40,
+      proteins: 1,
+      carbs: 9,
+      fats: 0.1,
+      source_ref: 'TBCA Código A01',
+    });
 
     // 7a. Busca "abobora" (sem acento, minúsculo) e "ABÓBORA" (com acento, maiúsculo)
     const resSemAcento = await request(app)
       .get('/api/admin/foods?q=abobora')
       .set('Authorization', `Bearer ${adminToken}`);
     assert.strictEqual(resSemAcento.status, 200);
-    const abobora1 = resSemAcento.body.data.find((f: { name: string }) => f.name.includes('Abóbora'));
+    const abobora1 = resSemAcento.body.data.find((f: { name: string }) =>
+      f.name.includes('Abóbora'),
+    );
     assert(abobora1, 'Busca "abobora" deve encontrar "Abóbora"');
 
     const resComAcento = await request(app)
       .get('/api/admin/foods?q=AB%C3%93BORA')
       .set('Authorization', `Bearer ${adminToken}`);
     assert.strictEqual(resComAcento.status, 200);
-    const abobora2 = resComAcento.body.data.find((f: { name: string }) => f.name.includes('Abóbora'));
+    const abobora2 = resComAcento.body.data.find((f: { name: string }) =>
+      f.name.includes('Abóbora'),
+    );
     assert(abobora2, 'Busca "ABÓBORA" deve encontrar o mesmo alimento');
 
     // 7b. Busca por código (source_ref / external_id)
@@ -302,7 +344,10 @@ describe('Admin Global Foods Catalog API (D-22 / B3 / B4 / B5 / B6 / B7 / B11 / 
       .get('/api/admin/foods?q=A01')
       .set('Authorization', `Bearer ${adminToken}`);
     assert.strictEqual(resCodigo.status, 200);
-    assert(resCodigo.body.data.some((f: { name: string }) => f.name.includes('Abóbora')), 'Busca por código "A01" deve encontrar o alimento');
+    assert(
+      resCodigo.body.data.some((f: { name: string }) => f.name.includes('Abóbora')),
+      'Busca por código "A01" deve encontrar o alimento',
+    );
 
     // 7c. Fallback de segurança: pageSize=10000 e sort=;DROP TABLE caem nos defaults
     const resFallback = await request(app)
@@ -317,7 +362,11 @@ describe('Admin Global Foods Catalog API (D-22 / B3 / B4 / B5 / B6 / B7 / B11 / 
       .get('/api/admin/foods?page=999999')
       .set('Authorization', `Bearer ${adminToken}`);
     assert.strictEqual(resOutOfRange.status, 200);
-    assert.strictEqual(resOutOfRange.body.data.length, 0, 'Página além do total deve retornar data vazio');
+    assert.strictEqual(
+      resOutOfRange.body.data.length,
+      0,
+      'Página além do total deve retornar data vazio',
+    );
     assert(resOutOfRange.body.meta.total > 0);
     assert.strictEqual(resOutOfRange.body.meta.page, 999999);
 

@@ -7,7 +7,7 @@ import { pool } from '../../src/database/pool.js';
 export function assertIsTestDatabase(dbName: string | undefined): void {
   if (!dbName || !dbName.endsWith('_test')) {
     throw new Error(
-      `Segurança D-11 violada: tentativa de executar limpeza fora do banco de testes! Banco atual: '${dbName || 'desconhecido'}'`
+      `Segurança D-11 violada: tentativa de executar limpeza fora do banco de testes! Banco atual: '${dbName || 'desconhecido'}'`,
     );
   }
 }
@@ -21,7 +21,7 @@ export function assertIsTestDatabase(dbName: string | undefined): void {
 export async function cleanupTestData(pattern = 'tester-%'): Promise<void> {
   if (!pattern.startsWith('tester-')) {
     throw new Error(
-      `Segurança D-11 violada: padrão de limpeza deve iniciar com 'tester-'. Padrão fornecido: '${pattern}'`
+      `Segurança D-11 violada: padrão de limpeza deve iniciar com 'tester-'. Padrão fornecido: '${pattern}'`,
     );
   }
 

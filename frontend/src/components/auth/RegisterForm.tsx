@@ -30,10 +30,9 @@ const registerSchema = registerUserSchema
       .string()
       .min(1, 'A senha é obrigatória.')
       .max(72, 'A senha deve ter no máximo 72 caracteres.')
-      .refine(
-        (val) => val.length >= 8 && /(?=.*[a-zA-Z])(?=.*[0-9])/.test(val),
-        { message: 'Mínimo 8 caracteres com letra e número.' }
-      ),
+      .refine((val) => val.length >= 8 && /(?=.*[a-zA-Z])(?=.*[0-9])/.test(val), {
+        message: 'Mínimo 8 caracteres com letra e número.',
+      }),
     confirmPassword: z.string().min(1, 'Confirme sua senha.'),
     acceptTerms: z.boolean().refine((val) => val === true, {
       message: 'Aceite os Termos de Uso e a Política de Privacidade para continuar.',
@@ -125,7 +124,9 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
           />
         </div>
         {errors.name && (
-          <p id="register-name-error" className="text-xs font-bold text-destructive uppercase">{errors.name.message}</p>
+          <p id="register-name-error" className="text-xs font-bold text-destructive uppercase">
+            {errors.name.message}
+          </p>
         )}
       </div>
 
@@ -147,7 +148,9 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
           />
         </div>
         {errors.email && (
-          <p id="register-email-error" className="text-xs font-bold text-destructive uppercase">{errors.email.message}</p>
+          <p id="register-email-error" className="text-xs font-bold text-destructive uppercase">
+            {errors.email.message}
+          </p>
         )}
       </div>
 
@@ -173,11 +176,17 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
             aria-label={showPassword ? 'Ocultar senha' : 'Exibir senha'}
             className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground transition-colors"
           >
-            {showPassword ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
+            {showPassword ? (
+              <EyeOff className="w-4 h-4" aria-hidden="true" />
+            ) : (
+              <Eye className="w-4 h-4" aria-hidden="true" />
+            )}
           </button>
         </div>
         {errors.password && (
-          <p id="register-password-error" className="text-xs font-bold text-destructive uppercase">{errors.password.message}</p>
+          <p id="register-password-error" className="text-xs font-bold text-destructive uppercase">
+            {errors.password.message}
+          </p>
         )}
       </div>
 
@@ -193,7 +202,9 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
             type={showConfirmPassword ? 'text' : 'password'}
             placeholder="REPITA SUA SENHA"
             aria-invalid={!!errors.confirmPassword}
-            aria-describedby={errors.confirmPassword ? 'register-confirm-password-error' : undefined}
+            aria-describedby={
+              errors.confirmPassword ? 'register-confirm-password-error' : undefined
+            }
             className={`pl-10 pr-10 font-mono tracking-widest ${errors.confirmPassword ? 'border-destructive focus:border-destructive focus-visible:border-destructive' : ''}`}
             {...register('confirmPassword')}
           />
@@ -203,11 +214,20 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
             aria-label={showConfirmPassword ? 'Ocultar senha' : 'Exibir senha'}
             className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground transition-colors"
           >
-            {showConfirmPassword ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
+            {showConfirmPassword ? (
+              <EyeOff className="w-4 h-4" aria-hidden="true" />
+            ) : (
+              <Eye className="w-4 h-4" aria-hidden="true" />
+            )}
           </button>
         </div>
         {errors.confirmPassword && (
-          <p id="register-confirm-password-error" className="text-xs font-bold text-destructive uppercase">{errors.confirmPassword.message}</p>
+          <p
+            id="register-confirm-password-error"
+            className="text-xs font-bold text-destructive uppercase"
+          >
+            {errors.confirmPassword.message}
+          </p>
         )}
       </div>
 
@@ -222,7 +242,10 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
             className={`mt-0.5 h-4 w-4 shrink-0 rounded-none border-2 bg-background accent-primary-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-ring ${errors.acceptTerms ? 'border-destructive' : 'border-border'}`}
             {...register('acceptTerms')}
           />
-          <label htmlFor="register-terms" className="text-[11px] font-medium leading-relaxed text-muted-foreground">
+          <label
+            htmlFor="register-terms"
+            className="text-[11px] font-medium leading-relaxed text-muted-foreground"
+          >
             Li e aceito os{' '}
             <Link
               to="/termos"

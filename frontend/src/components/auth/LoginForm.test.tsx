@@ -5,14 +5,16 @@ import { MemoryRouter } from 'react-router';
 import { render } from '../../tests/setup/test-utils';
 import { LoginForm } from './LoginForm';
 
-const renderForm = (props: {
-  onSuccess?: () => void;
-  onEmailNotVerified?: (email: string, rememberMe: boolean) => void;
-} = {}) =>
+const renderForm = (
+  props: {
+    onSuccess?: () => void;
+    onEmailNotVerified?: (email: string, rememberMe: boolean) => void;
+  } = {},
+) =>
   render(
     <MemoryRouter>
       <LoginForm {...props} />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 
 describe('LoginForm', () => {
@@ -59,7 +61,7 @@ describe('LoginForm', () => {
     renderForm();
     expect(screen.getByRole('link', { name: /esqueci minha senha/i })).toHaveAttribute(
       'href',
-      '/esqueci-senha'
+      '/esqueci-senha',
     );
   });
 

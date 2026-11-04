@@ -16,8 +16,7 @@ const inputBase =
   'w-full pl-10 pr-4 py-2.5 bg-background border-2 rounded-none text-sm font-medium text-foreground outline-none transition-colors min-h-[48px]';
 const inputNormal =
   'border-border hover:border-foreground focus:border-ring focus:outline-none focus-visible:border-ring focus-visible:outline-none';
-const inputError =
-  'border-destructive bg-destructive/10 text-destructive focus:border-destructive';
+const inputError = 'border-destructive bg-destructive/10 text-destructive focus:border-destructive';
 
 export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
   register,
@@ -35,7 +34,10 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {/* Nome */}
         <div>
-          <label htmlFor="edit-name" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+          <label
+            htmlFor="edit-name"
+            className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2"
+          >
             NOME COMPLETO
           </label>
           <div className="relative">
@@ -61,7 +63,10 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
         {/* E-mail (somente leitura) */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label htmlFor="edit-email" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+            <label
+              htmlFor="edit-email"
+              className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground"
+            >
               E-MAIL
             </label>
             <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
@@ -85,7 +90,10 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
 
         {/* Altura */}
         <div>
-          <label htmlFor="edit-height" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+          <label
+            htmlFor="edit-height"
+            className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2"
+          >
             ALTURA (CM)
           </label>
           <div className="relative">
@@ -113,7 +121,10 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
 
         {/* Sexo biológico */}
         <div>
-          <label htmlFor="edit-sex" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+          <label
+            htmlFor="edit-sex"
+            className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2"
+          >
             SEXO BIOLÓGICO
           </label>
           <select
@@ -137,13 +148,18 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
 
         {/* Data de Nascimento */}
         <div>
-          <label htmlFor="edit-birth-date" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+          <label
+            htmlFor="edit-birth-date"
+            className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2"
+          >
             NASCIMENTO (DD/MM/AAAA)
           </label>
           <DatePickerInput
             id="edit-birth-date"
             value={birthDateValue || ''}
-            onChange={(val) => setValue('birthDate', val, { shouldValidate: true, shouldDirty: true })}
+            onChange={(val) =>
+              setValue('birthDate', val, { shouldValidate: true, shouldDirty: true })
+            }
             error={errors.birthDate?.message}
           />
           {errors.birthDate && (

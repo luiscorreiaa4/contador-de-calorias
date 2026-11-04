@@ -118,6 +118,16 @@ Observações:
   validação de ambiente falha na inicialização se essa regra for violada.
 - Guarde as credenciais no gerenciador de segredos do ambiente. Não commit `backend/.env`.
 
+### 3.3 Timeouts e Segurança TLS em Produção (#14)
+
+Para prevenir vazamento de conexões ou travamento de sockets ociosos no servidor, o transporte SMTP aplica os seguintes limites no `nodemailer`:
+
+- **`connectionTimeout`:** `10000` (10 segundos para estabelecer handshake de rede).
+- **`greetingTimeout`:** `10000` (10 segundos para receber a saudação SMTP do servidor).
+- **`socketTimeout`:** `15000` (15 segundos para transmissão de dados antes de encerrar o socket ocioso).
+- **`requireTLS`:** Forçado em `true` em ambiente de produção (`NODE_ENV=production`) quando `MAIL_SMTP_SECURE=false` (portas 587/25 com STARTTLS), garantindo canal seguro obrigatório.
+- **Proibição de `memory`:** A inicialização do backend encerra imediatamente (`fail-fast`) se `MAIL_TRANSPORT=memory` for configurado com `NODE_ENV=production`.
+
 ### 3.3 Outros provedores
 
 | Provedor | Host SMTP usual | Usuário |

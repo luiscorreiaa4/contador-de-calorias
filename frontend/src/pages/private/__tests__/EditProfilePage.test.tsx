@@ -4,14 +4,17 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render } from '../../../tests/setup/test-utils';
 import { EditProfilePage } from '../EditProfilePage';
 import { AccountPrivacyPage } from '../AccountPrivacyPage';
-import { NotificationsPage } from '../NotificationsPage';
 import { MemoryRouter } from 'react-router';
 import { server } from '../../../mocks/server';
 import { http, HttpResponse } from 'msw';
 
 describe('EditProfilePage Component (PC-34 / TST-011)', () => {
   it('mantém apenas dados pessoais no perfil, sem medidas, metas, senha ou notificações', async () => {
-    render(<MemoryRouter><EditProfilePage /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <EditProfilePage />
+      </MemoryRouter>,
+    );
 
     await screen.findByDisplayValue('Test User');
     expect(screen.queryByRole('heading', { name: /medidas corporais/i })).not.toBeInTheDocument();
@@ -21,7 +24,7 @@ describe('EditProfilePage Component (PC-34 / TST-011)', () => {
     expect(screen.queryByRole('button', { name: /excluir conta/i })).not.toBeInTheDocument();
   });
   beforeEach(() => {
-    localStorage.setItem('auth_token', 'fake-jwt-token');
+    localStorage.setItem('auth_session', 'fake-jwt-token');
     localStorage.setItem(
       'user_session',
       JSON.stringify({
@@ -29,9 +32,12 @@ describe('EditProfilePage Component (PC-34 / TST-011)', () => {
         name: 'Test User',
         email: 'test@example.com',
         onboarding_completed: true,
-      })
+      }),
     );
-    Object.defineProperty(URL, 'createObjectURL', { value: vi.fn(() => 'blob:mock'), configurable: true });
+    Object.defineProperty(URL, 'createObjectURL', {
+      value: vi.fn(() => 'blob:mock'),
+      configurable: true,
+    });
     Object.defineProperty(URL, 'revokeObjectURL', { value: vi.fn(), configurable: true });
     vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
   });
@@ -44,7 +50,7 @@ describe('EditProfilePage Component (PC-34 / TST-011)', () => {
     render(
       <MemoryRouter>
         <EditProfilePage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     expect(screen.getByRole('heading', { name: /^perfil$/i })).toBeInTheDocument();
@@ -59,7 +65,7 @@ describe('EditProfilePage Component (PC-34 / TST-011)', () => {
     render(
       <MemoryRouter>
         <EditProfilePage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     // Aguarda carregar dados do usuário
@@ -74,7 +80,7 @@ describe('EditProfilePage Component (PC-34 / TST-011)', () => {
     render(
       <MemoryRouter>
         <AccountPrivacyPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     const exportButton = screen.getByRole('button', { name: /exportar meus dados/i });
@@ -99,13 +105,13 @@ describe('EditProfilePage Component (PC-34 / TST-011)', () => {
             goal: 'perder_peso',
           },
         });
-      })
+      }),
     );
 
     render(
       <MemoryRouter>
         <EditProfilePage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     const nameInput = await screen.findByDisplayValue('Test User');
@@ -119,20 +125,4 @@ describe('EditProfilePage Component (PC-34 / TST-011)', () => {
       expect(screen.getByText(/alterações salvas com sucesso/i)).toBeInTheDocument();
     });
   });
-
-  it('deve disparar lembrete de teste de push com sucesso (BL-27)', async () => {
-    render(
-      <MemoryRouter>
-        <NotificationsPage />
-      </MemoryRouter>
-    );
-
-    const testPushBtn = await screen.findByRole('button', { name: /enviar lembrete de teste/i });
-    await userEvent.click(testPushBtn);
-
-    await waitFor(() => {
-      expect(screen.getByText(/lembrete de teste enviado com sucesso/i)).toBeInTheDocument();
-    });
-  });
 });
-

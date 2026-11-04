@@ -1,10 +1,6 @@
 import { describe, it, beforeEach, after } from 'node:test';
 import assert from 'node:assert';
-import {
-  getMailer,
-  getMemoryMailer,
-  resetMailerForTests,
-} from '../../src/mail/mailer.js';
+import { getMailer, getMemoryMailer, resetMailerForTests } from '../../src/mail/mailer.js';
 import {
   existingAccountEmail,
   passwordChangedEmail,

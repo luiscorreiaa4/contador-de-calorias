@@ -2,7 +2,11 @@ import * as MealModel from '../models/meal.model.js';
 import * as FoodModel from '../models/food.model.js';
 import type { CreateMealDTO, CopyMealDTO } from '@caloriesync/shared';
 import { calculateItemNutrients } from '@caloriesync/shared/nutrition';
-import { getSaoPauloDateString, combineDateAndTimeInAppTz, getDayBoundariesInAppTz } from '../utils/date.js';
+import {
+  getSaoPauloDateString,
+  combineDateAndTimeInAppTz,
+  getDayBoundariesInAppTz,
+} from '../utils/date.js';
 
 interface CustomError extends Error {
   statusCode?: number;
@@ -11,15 +15,14 @@ interface CustomError extends Error {
 // Reexporta o cálculo nutricional compartilhado.
 export { calculateItemNutrients };
 
-
 export async function createMeal(userId: string, data: CreateMealDTO) {
   const itemsData = [];
-  
+
   // Otimização: Fetch all foods at once incluindo inativos para validação de B7 (evitar N+1 queries)
-  const foodIds = [...new Set(data.items.map(item => item.foodId))];
+  const foodIds = [...new Set(data.items.map((item) => item.foodId))];
   const foods = await FoodModel.findByIds(foodIds, userId, { includeInactive: true });
-  const foodsMap = new Map(foods.map(f => [f.id, f]));
-  
+  const foodsMap = new Map(foods.map((f) => [f.id, f]));
+
   for (const item of data.items) {
     const food = foodsMap.get(item.foodId);
     if (!food) {
@@ -30,11 +33,13 @@ export async function createMeal(userId: string, data: CreateMealDTO) {
 
     // B7: Item NOVO de refeição com alimento inativo é rejeitado com 422
     if (food.active === false) {
-      const error: CustomError = new Error(`O alimento "${food.name}" está desativado no catálogo e não pode ser adicionado a novas refeições.`);
+      const error: CustomError = new Error(
+        `O alimento "${food.name}" está desativado no catálogo e não pode ser adicionado a novas refeições.`,
+      );
       error.statusCode = 422;
       throw error;
     }
-    
+
     itemsData.push(calculateItemNutrients(item, food));
   }
 
@@ -61,14 +66,14 @@ export async function updateMeal(userId: string, mealId: string, data: CreateMea
     throw error;
   }
 
-  const existingFoodIds = new Set((existingMeal.items || []).map(it => it.food_id));
+  const existingFoodIds = new Set((existingMeal.items || []).map((it) => it.food_id));
   const itemsData = [];
-  
+
   // Otimização: Fetch all foods at once (evitar N+1 queries)
-  const foodIds = [...new Set(data.items.map(item => item.foodId))];
+  const foodIds = [...new Set(data.items.map((item) => item.foodId))];
   const foods = await FoodModel.findByIds(foodIds, userId, { includeInactive: true });
-  const foodsMap = new Map(foods.map(f => [f.id, f]));
-  
+  const foodsMap = new Map(foods.map((f) => [f.id, f]));
+
   for (const item of data.items) {
     const food = foodsMap.get(item.foodId);
     if (!food) {
@@ -79,15 +84,23 @@ export async function updateMeal(userId: string, mealId: string, data: CreateMea
 
     // B7: Item NOVO com alimento inativo é rejeitado (422). Alimentos pré-existentes na refeição são preservados.
     if (food.active === false && !existingFoodIds.has(item.foodId)) {
-      const error: CustomError = new Error(`O alimento "${food.name}" está desativado no catálogo e não pode ser adicionado a refeições.`);
+      const error: CustomError = new Error(
+        `O alimento "${food.name}" está desativado no catálogo e não pode ser adicionado a refeições.`,
+      );
       error.statusCode = 422;
       throw error;
     }
-    
+
     itemsData.push(calculateItemNutrients(item, food));
   }
 
-  return MealModel.updateMealWithItems(userId, mealId, data.name, new Date(data.mealTime), itemsData);
+  return MealModel.updateMealWithItems(
+    userId,
+    mealId,
+    data.name,
+    new Date(data.mealTime),
+    itemsData,
+  );
 }
 
 export async function deleteMeal(userId: string, mealId: string) {
@@ -100,16 +113,20 @@ export async function deleteMeal(userId: string, mealId: string) {
   return true;
 }
 
-export async function getMealStats(userId: string, period: 'week' | 'month' = 'month', dateStr?: string) {
+export async function getMealStats(
+  userId: string,
+  period: 'week' | 'month' = 'month',
+  dateStr?: string,
+) {
   const days = period === 'week' ? 7 : 30;
   const stats = await MealModel.getPeriodStats(userId, days, dateStr);
-  
+
   // Calculate averages (only days with logs)
   let sumCals = 0;
   let sumProts = 0;
   let sumCarbs = 0;
   let sumFats = 0;
-  
+
   let sumGoalCals = 0;
   let sumGoalProts = 0;
   let sumGoalCarbs = 0;
@@ -122,16 +139,16 @@ export async function getMealStats(userId: string, period: 'week' | 'month' = 'm
     sumCarbs += s.consumed_carbs;
     sumFats += s.consumed_fats;
     if (s.goal_calories) {
-       sumGoalCals += s.goal_calories;
-       sumGoalProts += (s.goal_proteins || 0);
-       sumGoalCarbs += (s.goal_carbs || 0);
-       sumGoalFats += (s.goal_fats || 0);
-       daysWithGoals++;
+      sumGoalCals += s.goal_calories;
+      sumGoalProts += s.goal_proteins || 0;
+      sumGoalCarbs += s.goal_carbs || 0;
+      sumGoalFats += s.goal_fats || 0;
+      daysWithGoals++;
     }
   }
 
   const daysLogged = stats.length;
-  
+
   const averages = {
     consumed: {
       calories: daysLogged > 0 ? Math.round(sumCals / daysLogged) : 0,
@@ -144,7 +161,7 @@ export async function getMealStats(userId: string, period: 'week' | 'month' = 'm
       proteins: daysWithGoals > 0 ? Math.round((sumGoalProts / daysWithGoals) * 10) / 10 : 0,
       carbs: daysWithGoals > 0 ? Math.round((sumGoalCarbs / daysWithGoals) * 10) / 10 : 0,
       fats: daysWithGoals > 0 ? Math.round((sumGoalFats / daysWithGoals) * 10) / 10 : 0,
-    }
+    },
   };
 
   // Build the chart data padding missing days with 0s
@@ -163,12 +180,14 @@ export async function getMealStats(userId: string, period: 'week' | 'month' = 'm
     const d = new Date(baseDate);
     d.setUTCDate(d.getUTCDate() - i);
     const dStr = getSaoPauloDateString(d);
-    
-    const dayStat = stats.find(s => s.date === dStr);
-    
+
+    const dayStat = stats.find((s) => s.date === dStr);
+
     chartData.push({
       date: dStr,
-      dayName: d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', weekday: 'short' }).replace('.', ''),
+      dayName: d
+        .toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', weekday: 'short' })
+        .replace('.', ''),
       consumed_calories: dayStat ? dayStat.consumed_calories : 0,
       consumed_proteins: dayStat ? dayStat.consumed_proteins : 0,
       consumed_carbs: dayStat ? dayStat.consumed_carbs : 0,
@@ -185,7 +204,7 @@ export async function getMealStats(userId: string, period: 'week' | 'month' = 'm
     daysLogged,
     totalDays: days,
     averages,
-    chartData
+    chartData,
   };
 }
 
@@ -193,18 +212,25 @@ export async function copyMealOrDay(userId: string, data: CopyMealDTO) {
   if (data.sourceMealId) {
     const sourceMeal = await MealModel.findMealById(userId, data.sourceMealId);
     if (!sourceMeal) {
-      const error: CustomError = new Error('Refeição não encontrada ou não pertence a este usuário.');
+      const error: CustomError = new Error(
+        'Refeição não encontrada ou não pertence a este usuário.',
+      );
       error.statusCode = 404;
       throw error;
     }
-    const targetMealTime = combineDateAndTimeInAppTz(data.targetDate, new Date(sourceMeal.meal_time));
+    const targetMealTime = combineDateAndTimeInAppTz(
+      data.targetDate,
+      new Date(sourceMeal.meal_time),
+    );
     return MealModel.copyMeal(userId, sourceMeal, targetMealTime);
   }
 
   if (data.sourceDate) {
     const meals = await getTodayMeals(userId, data.sourceDate);
     if (!meals || meals.length === 0) {
-      const error: CustomError = new Error('Nenhuma refeição encontrada na data de origem para copiar.');
+      const error: CustomError = new Error(
+        'Nenhuma refeição encontrada na data de origem para copiar.',
+      );
       error.statusCode = 404;
       throw error;
     }

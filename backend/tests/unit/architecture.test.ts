@@ -19,17 +19,21 @@ function expect(checkable: Checkable) {
     async toPassAsync(options?: CheckOptions) {
       const violations = await checkable.check(options);
       if (violations.length > 0) {
-        const details = violations.map((rawViolation: unknown, index: number) => {
-          const v = rawViolation as FormattedViolation;
-          if (v.dependency) {
-            return `  ${index + 1}. Violação de dependência: ${v.dependency.sourceLabel} -> ${v.dependency.targetLabel}`;
-          }
-          if (v.cycle) {
-            return `  ${index + 1}. Ciclo detectado: ${JSON.stringify(v.cycle)}`;
-          }
-          return `  ${index + 1}. ${JSON.stringify(v)}`;
-        }).join('\n');
-        assert.fail(`Regra de arquitetura violada (${violations.length} ocorrência(s)):\n${details}`);
+        const details = violations
+          .map((rawViolation: unknown, index: number) => {
+            const v = rawViolation as FormattedViolation;
+            if (v.dependency) {
+              return `  ${index + 1}. Violação de dependência: ${v.dependency.sourceLabel} -> ${v.dependency.targetLabel}`;
+            }
+            if (v.cycle) {
+              return `  ${index + 1}. Ciclo detectado: ${JSON.stringify(v.cycle)}`;
+            }
+            return `  ${index + 1}. ${JSON.stringify(v)}`;
+          })
+          .join('\n');
+        assert.fail(
+          `Regra de arquitetura violada (${violations.length} ocorrência(s)):\n${details}`,
+        );
       }
     },
   };
@@ -37,10 +41,7 @@ function expect(checkable: Checkable) {
 
 describe('Backend Architecture Rules (ArchUnitTS - 4 Camadas)', () => {
   it('1. O código-fonte em src/** não deve conter dependências circulares', async () => {
-    const rule = projectFiles(tsConfigPath)
-      .inFolder('src/**')
-      .should()
-      .haveNoCycles();
+    const rule = projectFiles(tsConfigPath).inFolder('src/**').should().haveNoCycles();
 
     await expect(rule).toPassAsync();
   });

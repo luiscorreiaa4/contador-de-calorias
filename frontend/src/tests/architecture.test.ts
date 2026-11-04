@@ -15,10 +15,7 @@ function expectArchitecture(checkable: Checkable) {
 
 describe('Frontend Architectural Rules (ArchUnitTS)', () => {
   it('não deve conter dependências circulares em src/**', async () => {
-    const rule = projectFiles(tsConfigPath)
-      .inFolder('src/**')
-      .should()
-      .haveNoCycles();
+    const rule = projectFiles(tsConfigPath).inFolder('src/**').should().haveNoCycles();
 
     await expectArchitecture(rule).toPassAsync();
   }, 60000);

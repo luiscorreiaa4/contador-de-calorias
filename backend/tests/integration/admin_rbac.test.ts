@@ -20,10 +20,9 @@ describe('RBAC & Role-based Authorization (D-22 / B1 / B11)', () => {
 
     assert.strictEqual(user.role, 'user', 'O papel retornado pelo helper/banco deve ser "user"');
 
-    const res = await pool.query<{ role: string }>(
-      'SELECT role FROM users WHERE id = $1',
-      [user.id]
-    );
+    const res = await pool.query<{ role: string }>('SELECT role FROM users WHERE id = $1', [
+      user.id,
+    ]);
     assert.strictEqual(res.rows[0].role, 'user', 'A coluna role no Postgres deve ser "user"');
 
     // Valida que o payload de GET /api/users/me inclui role
@@ -48,7 +47,7 @@ describe('RBAC & Role-based Authorization (D-22 / B1 / B11)', () => {
         const pgErr = err as { code?: string; constraint?: string };
         return pgErr.code === '23514' && pgErr.constraint === 'users_role_check';
       },
-      'Deveria lançar violação de check constraint para role inválido'
+      'Deveria lançar violação de check constraint para role inválido',
     );
   });
 
@@ -78,6 +77,28 @@ describe('RBAC & Role-based Authorization (D-22 / B1 / B11)', () => {
       .set('Authorization', `Bearer ${admin.token}`);
 
     assert.strictEqual(demotedProfile.status, 200);
-    assert.strictEqual(demotedProfile.body.data.role, 'user', 'Na requisição seguinte o role deve ser "user"');
+    assert.strictEqual(
+      demotedProfile.body.data.role,
+      'user',
+      'Na requisição seguinte o role deve ser "user"',
+    );
+  });
+
+  it('4. Admin sem MFA recebe 403 MFA_SETUP_REQUIRED nas rotas admin, mas alcança o setup do MFA (#7)', async () => {
+    const admin = await createVerifiedAdmin({
+      email: `tester-rbac-nomfa-${Date.now()}@example.com`,
+      adminWithoutMfa: true,
+    });
+
+    const blocked = await request(app)
+      .get('/api/admin/foods')
+      .set('Authorization', `Bearer ${admin.token}`);
+    assert.strictEqual(blocked.status, 403);
+    assert.strictEqual(blocked.body.code, 'MFA_SETUP_REQUIRED');
+
+    const setup = await request(app)
+      .post('/api/users/me/mfa/setup')
+      .set('Authorization', `Bearer ${admin.token}`);
+    assert.strictEqual(setup.status, 200);
   });
 });

@@ -24,9 +24,13 @@ async function runImportCurated() {
 
   console.log(`Processando importação de alimentos curados: ${filePath}`);
   if (!isApply) {
-    console.log('>>> MODO SIMULAÇÃO: Nenhuma alteração será gravada no banco. Use --apply para efetivar.');
+    console.log(
+      '>>> MODO SIMULAÇÃO: Nenhuma alteração será gravada no banco. Use --apply para efetivar.',
+    );
   } else {
-    console.log('>>> MODO EFETIVAÇÃO (--apply): Gravando no banco com marcador de curadoria e auditoria...');
+    console.log(
+      '>>> MODO EFETIVAÇÃO (--apply): Gravando no banco com marcador de curadoria e auditoria...',
+    );
   }
 
   try {
@@ -38,7 +42,9 @@ async function runImportCurated() {
     console.log(`- Atualizados ${isApply ? '' : '(simulado)'}: ${result.updated}`);
 
     if (result.reviewWarnings.length > 0) {
-      console.log(`- Itens para REVISAR (divergência calórica > 25%): ${result.reviewWarnings.length}`);
+      console.log(
+        `- Itens para REVISAR (divergência calórica > 25%): ${result.reviewWarnings.length}`,
+      );
       for (const w of result.reviewWarnings) {
         console.log(`  ${w}`);
       }

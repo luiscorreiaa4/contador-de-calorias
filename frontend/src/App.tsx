@@ -1,8 +1,11 @@
-import { RouterProvider } from 'react-router';
+import { createBrowserRouter, RouterProvider } from 'react-router';
 import { AuthProvider } from './context/AuthContext';
-import { router } from './router';
+import { routes } from './router';
 
-export function App() {
+// Criado aqui (e não em router.tsx) para o prerender importar as rotas sem tocar em `document`.
+const router = createBrowserRouter(routes);
+
+function App() {
   return (
     <AuthProvider>
       <RouterProvider router={router} />

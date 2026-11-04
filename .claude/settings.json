@@ -1,0 +1,12 @@
+{
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true,
+    "ponytail@ponytail": true,
+    "understand-anything@understand-anything": true,
+    "insecure-defaults@trailofbits": true,
+    "differential-review@trailofbits": true,
+    "audit-context-building@trailofbits": true,
+    "supply-chain-risk-auditor@trailofbits": true,
+    "agentic-actions-auditor@trailofbits": true
+  }
+}

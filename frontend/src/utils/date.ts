@@ -1,4 +1,4 @@
-export const APP_TIMEZONE = 'America/Sao_Paulo';
+const APP_TIMEZONE = 'America/Sao_Paulo';
 
 export function getLocalDateString(date: Date = new Date()): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: APP_TIMEZONE }).format(date);
@@ -10,9 +10,7 @@ export function isValidLocalDateString(value?: string | null): value is string {
   const [year, month, day] = value.split('-').map(Number);
   const parsed = new Date(year, month - 1, day);
   return (
-    parsed.getFullYear() === year &&
-    parsed.getMonth() === month - 1 &&
-    parsed.getDate() === day
+    parsed.getFullYear() === year && parsed.getMonth() === month - 1 && parsed.getDate() === day
   );
 }
 

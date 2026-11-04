@@ -31,13 +31,3 @@ export const unsubscribe = asyncHandler(async (req: Request, res: Response) => {
     message: 'Inscrição push cancelada com sucesso.',
   });
 });
-
-export const sendTest = asyncHandler(async (req: Request, res: Response) => {
-  const userId = requireUserId(req);
-  const result = await PushService.sendTestNotification(userId);
-  return res.status(200).json({
-    success: true,
-    data: result,
-    message: 'Lembrete enviado com sucesso!',
-  });
-});

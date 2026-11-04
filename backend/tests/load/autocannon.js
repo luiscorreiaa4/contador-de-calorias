@@ -1,28 +1,33 @@
+// Smoke de carga (#23). Variáveis: API_URL, DURATION (s), CONNECTIONS,
+// LATENCY_P99_MAX_MS (opcional; sem ele só erros reprovam) e LOAD_TOKEN (Bearer, opcional,
+// habilita a busca autenticada de alimentos).
 import autocannon from 'autocannon';
 
-const URL = process.env.API_URL || 'http://localhost:3001';
+const url = process.env.API_URL || 'http://localhost:3001';
+const duration = Number(process.env.DURATION || 10);
+const connections = Number(process.env.CONNECTIONS || 20);
+const p99Max = process.env.LATENCY_P99_MAX_MS ? Number(process.env.LATENCY_P99_MAX_MS) : undefined;
+const token = process.env.LOAD_TOKEN;
 
-console.log(`Iniciando Teste de Carga no servidor: ${URL}`);
+const requests = [{ method: 'GET', path: '/health' }];
+if (token) {
+  requests.push({
+    method: 'GET',
+    path: '/api/foods?search=arroz',
+    headers: { authorization: `Bearer ${token}` },
+  });
+}
 
-const instance = autocannon({
-  url: `${URL}/health`, // Rota mais rápida, testa vazão do servidor e middleware
-  connections: 500,     // Conexões concorrentes (peso médio/alto)
-  pipelining: 1,
-  duration: 10          // Duração em segundos
-}, console.log);
+console.log(`Carga em ${url}: ${connections} conexões, ${duration}s, ${requests.length} rota(s).`);
+const result = await autocannon({ url, connections, duration, requests });
 
-autocannon.track(instance, { renderProgressBar: true });
+console.log(`Requisições: ${result.requests.total} | média ${result.requests.average} req/s`);
+console.log(
+  `Latência p99: ${result.latency.p99} ms | erros: ${result.errors} | não-2xx: ${result.non2xx}`,
+);
 
-instance.on('done', (result) => {
-  console.log('\n--- RESULTADOS DO TESTE DE CARGA ---');
-  console.log(`Requisições completadas: ${result.requests.total}`);
-  console.log(`Média de req/s: ${result.requests.average}`);
-  console.log(`Latência P99: ${result.latency.p99} ms`);
-  console.log(`Erros (timeout/conexão): ${result.errors}`);
-  console.log(`Erros HTTP 4xx/5xx: ${result.non2xx}`);
-  console.log('--------------------------------------\n');
-
-  if (result.errors > 0 || result.non2xx > 0) {
-    process.exitCode = 1;
-  }
-});
+if (result.errors > 0 || result.non2xx > 0) process.exitCode = 1;
+if (p99Max !== undefined && result.latency.p99 > p99Max) {
+  console.error(`Latência p99 ${result.latency.p99} ms acima do limite de ${p99Max} ms.`);
+  process.exitCode = 1;
+}
