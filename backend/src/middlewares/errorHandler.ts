@@ -19,6 +19,7 @@ const ALLOWED_BUSINESS_CODES = new Set([
   'MFA_REQUIRED',
   'MFA_SETUP_REQUIRED',
   'CAPTCHA_FAILED',
+  'DEMO_UNAVAILABLE',
 ]);
 
 interface PgMappedError {

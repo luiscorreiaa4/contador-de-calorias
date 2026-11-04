@@ -83,6 +83,9 @@ export async function loginUser(data: LoginFormData): Promise<AuthResponseData> 
   });
 }
 
+/** POST /auth/demo: sessão na conta de demonstração, sem senha (visitantes/recrutadores). */
+export const demoLogin = () => apiFetch<AuthResponseData>('/auth/demo', { method: 'POST' });
+
 export interface MfaSetupData {
   secret: string;
   otpauth_url: string;

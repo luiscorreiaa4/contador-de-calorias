@@ -3,6 +3,7 @@ import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import * as UserController from '../controllers/user.controller.js';
 import { validate } from '../middlewares/validate.js';
 import { authenticate } from '../middlewares/auth.js';
+import { blockGuestUser } from '../middlewares/guest.js';
 import { PgRateLimitStore } from '../middlewares/pgRateLimitStore.js';
 import * as MfaController from '../controllers/mfa.controller.js';
 import {
@@ -40,10 +41,11 @@ const sensitiveActionLimiter = rateLimit({
 });
 
 router.get('/me', authenticate, UserController.getProfile);
-router.post('/me/mfa/setup', authenticate, sensitiveActionLimiter, MfaController.setup);
+router.post('/me/mfa/setup', authenticate, blockGuestUser, sensitiveActionLimiter, MfaController.setup);
 router.post(
   '/me/mfa/enable',
   authenticate,
+  blockGuestUser,
   sensitiveActionLimiter,
   validate(mfaCodeSchema),
   MfaController.enable,
@@ -51,6 +53,7 @@ router.post(
 router.post(
   '/me/mfa/disable',
   authenticate,
+  blockGuestUser,
   sensitiveActionLimiter,
   validate(mfaCodeSchema),
   MfaController.disable,
@@ -59,6 +62,7 @@ router.get('/me/export', authenticate, UserController.exportData);
 router.put(
   '/me',
   authenticate,
+  blockGuestUser,
   sensitiveActionLimiter,
   validate(updateUserSchema),
   UserController.updateProfile,
@@ -72,6 +76,7 @@ router.put(
 router.delete(
   '/me',
   authenticate,
+  blockGuestUser,
   sensitiveActionLimiter,
   validate(deleteUserSchema),
   UserController.deleteAccount,

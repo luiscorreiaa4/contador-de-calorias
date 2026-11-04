@@ -27,6 +27,15 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
+export const demoLogin = asyncHandler(async (_req: Request, res: Response) => {
+  // Provisório até o GuestService (Tarefa 2).
+  return res.status(503).json({
+    success: false,
+    code: 'DEMO_UNAVAILABLE',
+    message: 'Demonstração indisponível no momento.',
+  });
+});
+
 export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
   const authData = await AuthService.verifyEmail(req.body);
   setSessionCookie(res, authData.token);

@@ -99,6 +99,14 @@ router.post(
   captcha,
   AuthController.login,
 );
+const demoLimiter = createAuthRateLimiter({
+  name: 'demoLimiter',
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  includeEmail: false,
+  message: 'Muitas sessões de demonstração. Tente novamente após 15 minutos.',
+});
+router.post('/demo', demoLimiter, AuthController.demoLogin);
 router.post(
   '/verify-email',
   verifyEmailLimiter,

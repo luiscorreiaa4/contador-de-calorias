@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router';
+import { DemoLoginButton } from '../../components/auth/DemoLoginButton';
 import { ArrowRight, Beef, Clock, Flame, Plus } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { FAQ } from '../../seo/pages';
@@ -176,6 +177,7 @@ export const LandingPage: React.FC = () => (
             <Button asChild size="lg" variant="outline">
               <Link to="/login">Entrar</Link>
             </Button>
+            <DemoLoginButton size="lg" />
           </div>
         </div>
         <DiaryMock />

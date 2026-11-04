@@ -202,7 +202,11 @@ export async function login(data: LoginUserDTO): Promise<AuthResponse> {
     fail('Confirme seu e-mail para entrar.', 403, 'EMAIL_NOT_VERIFIED');
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  return toAuthResponse(user, data.remember_me !== false);
+}
+
+function toAuthResponse(user: User, persistent: boolean): AuthResponse {
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   const {
     failed_login_attempts,
     locked_until,
@@ -210,11 +214,11 @@ export async function login(data: LoginUserDTO): Promise<AuthResponse> {
     mfa_secret_enc,
     mfa_recovery_hashes,
     ...rest
-  } = user;
-  const publicUser = withoutPassword(rest);
+  } = user as User & Record<string, unknown>;
+  /* eslint-enable @typescript-eslint/no-unused-vars */
   return {
-    user: publicUser,
-    token: signAuthToken(user.id, Number(user.token_version), data.remember_me !== false),
+    user: withoutPassword(rest as User),
+    token: signAuthToken(user.id, Number(user.token_version), persistent),
   };
 }
 
