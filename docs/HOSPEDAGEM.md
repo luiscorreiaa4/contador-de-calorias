@@ -45,11 +45,11 @@ Solução sem mexer na lógica: o Netlify repassa tudo que começa com `/api/` p
 | **Render (API)** | Dorme após 15 min sem acesso; acordar leva até ~1 min. 750 horas/mês grátis. Sem disco persistente. | A **primeira visita** depois de um tempo parado fica lenta. Veja a mitigação no passo 9. |
 | **Neon (banco)** | Sem prazo; ~0,5 a 1 GB por projeto (confira); o computador do banco "hiberna" e acorda sozinho. | Basta para o projeto; o primeiro acesso após hibernar demora um pouco. |
 | **Netlify (site)** | Plano grátis com limite mensal de banda e builds. | Sobra para portfólio. |
-| **Brevo (e-mail)** | 300 e-mails/dia. | Sobra. Sem domínio próprio, os e-mails podem cair no spam. |
+| **Brevo (e-mail)** | 300 e-mails/dia. | Sobra. **Sem domínio próprio o e-mail não chega de forma confiável** (ver passo 5). |
 
 Quem for avaliar seu portfólio pode pegar a API "dormindo". Coloque no README do projeto: *"A API gratuita pode levar ~1 min para acordar na primeira visita."*
 
-**Domínio próprio é opcional e pago** (~R$ 40/ano). Neste plano usamos os endereços grátis `*.netlify.app` e `*.onrender.com`.
+**Domínio próprio é pago** (~R$ 40/ano). O site e a API podem ficar nos endereços grátis `*.netlify.app` e `*.onrender.com`, mas **para os e-mails funcionarem de verdade o domínio é necessário** (o remetente precisa ser do seu domínio; ver passo 5). Ele não precisa apontar para o site.
 
 ---
 
@@ -127,9 +127,38 @@ Em vez de a API usar o usuário todo-poderoso, ela usa `app_user`, que só lê e
 > Backup (opcional, pois o banco está vazio agora): `backend/scripts/backup-db.mjs`.
 
 ### Passo 5 · Configurar o e-mail (Brevo)
-1. No Brevo: **SMTP & API → SMTP**. Anote o servidor (`smtp-relay.brevo.com`), a porta `587`, o **login** e gere uma **chave SMTP** (a senha).
-2. Em **Senders**, cadastre e **confirme** o e-mail remetente (um Gmail seu serve). Use exatamente esse endereço em `MAIL_FROM`.
-3. Sem domínio próprio, parte dos e-mails pode ir para o spam. Para portfólio, avise na tela de cadastro ("verifique a caixa de spam") ou considere um domínio com SPF/DKIM depois (ver `docs/EMAIL_SETUP.md`).
+
+O cadastro só termina com o código de 6 dígitos enviado por e-mail, e "Esqueci minha senha" depende do link enviado por e-mail. Se o e-mail não chegar, ninguém consegue usar o site. O código já está pronto (SMTP genérico, ver `docs/EMAIL_SETUP.md`); falta só a configuração externa abaixo.
+
+**Por que um Gmail como remetente não basta:** Gmail, Outlook e Yahoo recusam ou mandam para o spam mensagens "de" `@gmail.com` enviadas por outro servidor (o Brevo), porque falham na checagem DMARC do Gmail. O Brevo não consegue autenticar domínios gratuitos (`gmail.com`, `yahoo.com`) e, sem domínio autenticado, troca o remetente por um endereço genérico dele. Serve para um teste rápido; para uso real, use um domínio seu.
+
+#### 5.1 Comprar o domínio (uma vez)
+1. Registre um domínio barato (ex.: `caloriesync.com.br` no [Registro.br](https://registro.br), ou `.com` na Cloudflare/Porkbun). Exemplos abaixo usam `seudominio.com.br`.
+2. Recomendado: gerencie o DNS na **Cloudflare** (grátis), que você já usa para o Turnstile. No Registro.br, troque os servidores DNS pelos que a Cloudflare indicar.
+
+#### 5.2 Autenticar o domínio no Brevo
+1. No Brevo: **Configurações → Remetentes, domínios e IPs → Domínios → Adicionar domínio** e informe `seudominio.com.br`.
+2. O Brevo mostra os registros DNS. Crie **cada um** no painel de DNS (Cloudflare: **DNS → Records → Add record**), copiando nome e valor **exatamente como o Brevo exibe**:
+   - **Código Brevo** (`TXT`, prova que o domínio é seu);
+   - **DKIM** (`TXT` ou `CNAME`, assina as mensagens);
+   - **DMARC** (`TXT` em `_dmarc`). Se o Brevo não sugerir um, use `v=DMARC1; p=none; rua=mailto:seu-email@gmail.com`.
+   - SPF: crie só se o Brevo pedir. Se já existir um `TXT` começando com `v=spf1` no domínio, **edite esse** em vez de criar outro (dois SPF invalidam ambos).
+   - Na Cloudflare, registros `CNAME` de e-mail ficam com **Proxy desligado** (nuvem cinza).
+3. Clique em **Autenticar** no Brevo. A propagação leva de minutos a algumas horas; o domínio deve aparecer como **Autenticado** com DKIM e DMARC verdes.
+
+#### 5.3 Remetente e credencial SMTP
+1. Em **Remetentes → Adicionar remetente**, cadastre `no-reply@seudominio.com.br` com o nome `CalorieSync`. Com o domínio autenticado, não é preciso ter caixa de entrada nesse endereço.
+2. Em **SMTP & API → SMTP**, anote o servidor (`smtp-relay.brevo.com`), a porta `587` e o **login** (um endereço do tipo `xxxx@smtp-brevo.com`, não o seu e-mail), e gere uma **chave SMTP** (é a senha; guarde no bloco de notas seguro, ela só aparece uma vez).
+3. Esses valores vão no Render no passo 7: `MAIL_FROM="CalorieSync <no-reply@seudominio.com.br>"`, `MAIL_SMTP_USER`, `MAIL_SMTP_PASS`. O endereço em `MAIL_FROM` precisa ser **idêntico** ao remetente cadastrado.
+
+#### 5.4 Testar depois do deploy (passo 11)
+1. Cadastre uma conta com um Gmail e outra com um Outlook/Hotmail; o código deve chegar em até 1 min, **na caixa de entrada**.
+2. No Gmail, abra a mensagem → **⋮ → Mostrar original**: SPF, DKIM e DMARC devem estar como `PASS`.
+3. Teste "Esqueci minha senha": o link precisa começar com o seu `URL_SITE` em `https://` (vem de `APP_BASE_URL`) e abrir a tela de nova senha.
+4. Opcional: mande um cadastro para o endereço de teste do [mail-tester.com](https://www.mail-tester.com) e busque nota 9+.
+5. Se não chegar: veja os **Logs do Render** (falhas aparecem como `auth_email_delivery_failed`, sem dados sensíveis) e o painel do Brevo (**Transacional → Logs**), que mostra se a mensagem foi enviada, rejeitada ou bloqueada.
+
+> **Atalho só para testar** (sem domínio): cadastre e confirme um Gmail seu em **Remetentes** e use-o em `MAIL_FROM`. Funciona para você, mas espere spam ou remetente trocado para outras pessoas. Não use assim no portfólio.
 
 ### Passo 6 · Dois arquivos de configuração no front (pequena mudança de código)
 Esta é a única alteração de código necessária. Crie na pasta `frontend/`:
@@ -206,7 +235,7 @@ Em produção a API **exige** `CAPTCHA_SECRET_KEY` e não sobe sem ela (proteç�
 | `APP_BASE_URL` | o mesmo `URL_SITE` |
 | `TRUST_PROXY` | `1` (a API está atrás do proxy do Render; ver nota abaixo) |
 | `MAIL_TRANSPORT` | `smtp` (`memory` é proibido em produção) |
-| `MAIL_FROM` | `CalorieSync <seu-email-confirmado-no-brevo>` |
+| `MAIL_FROM` | `CalorieSync <no-reply@seudominio.com.br>` (o remetente do passo 5.3) |
 | `MAIL_SMTP_HOST` / `MAIL_SMTP_PORT` | `smtp-relay.brevo.com` / `587` |
 | `MAIL_SMTP_USER` / `MAIL_SMTP_PASS` | login Brevo / chave SMTP |
 | `MAIL_SMTP_SECURE` | `false` (porta 587 usa STARTTLS) |
@@ -253,7 +282,8 @@ O projeto proíbe criar admin por seed ou variável de ambiente. O caminho é:
 - [ ] `URL_SITE/robots.txt`, `URL_SITE/sitemap.xml`, `URL_SITE/llms.txt` e `URL_SITE/og-image.png` abrem e citam `URL_SITE`, não `app.caloriesync.com`
 - [ ] Prévia do link em redes sociais mostra a imagem 1200×630: teste no [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/) e no [Teste de pesquisa aprimorada do Google](https://search.google.com/test/rich-results) (deve achar `SoftwareApplication` e `FAQPage` em `/`)
 - [ ] O PWA instalado abre em `/app`
-- [ ] Cadastro envia e-mail (veja também a pasta spam) e o código verifica
+- [ ] Cadastro envia e-mail **na caixa de entrada** (Gmail e Outlook) e o código verifica; "Mostrar original" com SPF/DKIM/DMARC `PASS` (passo 5.4)
+- [ ] "Esqueci minha senha" envia o link com `https://` + `URL_SITE` e a nova senha funciona
 - [ ] Cadastro/login passam pelo captcha sem erro `CAPTCHA_FAILED`
 - [ ] Logs do Render, no início, sem "Configuração de Ambiente Inválida"
 - [ ] Login **sem** "lembrar de mim": o cookie `cs_session` aparece como "Session" em F12 → Application → Cookies; **com** a opção marcada, tem data de expiração (1 dia)
@@ -275,7 +305,9 @@ O projeto proíbe criar admin por seed ou variável de ambiente. O caminho é:
 | Erro 403 `FORBIDDEN` em POST/PUT | `CORS_ORIGIN` diferente do endereço real do site |
 | `permission denied for table ...` | Script de papéis não rodou depois de uma migration nova, ou migração rodou com outro dono |
 | 502/504 na primeira visita | API dormindo (use o UptimeRobot) |
-| Não chega e-mail | Remetente não confirmado no Brevo, `MAIL_FROM` diferente, ou caiu no spam |
+| Não chega e-mail | `MAIL_FROM` diferente do remetente cadastrado, chave SMTP errada (log `auth_email_delivery_failed` no Render), conta Brevo ainda em análise ou bloqueada (painel do Brevo) |
+| E-mail cai no spam ou com remetente `brevosend` | Domínio não autenticado (DKIM/DMARC pendentes) ou `MAIL_FROM` com Gmail; refaça o passo 5.2 |
+| Link de redefinir senha abre `localhost` ou dá erro | `APP_BASE_URL` no Render diferente do `URL_SITE` |
 | `/termos` abre vazio no código-fonte ou mostra a landing | Redirect `/*` com `force = true` ou apontando para `/index.html`: deve ser `/spa.html` sem `force` |
 | Prévia em rede social sem imagem ou com link errado | `SITE_URL` ainda com `app.caloriesync.com` (veja o passo 6) ou cache antigo da rede social (use o Sharing Debugger para recarregar) |
 
@@ -359,4 +391,5 @@ Adicione primeiro no Render/Netlify, depois faça o merge. Segredos nunca entram
 - [Render: Postgres grátis expira em 30 dias](https://render.com/changelog/free-postgresql-instances-now-expire-after-30-days-previously-90)
 - [Neon: limites do plano grátis](https://neon.com/faqs/free-plan-limits-and-quotas) e [anúncio de 1 GB por projeto](https://neon.com/blog/neon-free-plan-1-gb-per-project)
 - [Brevo: servidor SMTP grátis](https://www.brevo.com/free-smtp-server) (300 e-mails/dia)
+- [Brevo: autenticar seu domínio (código Brevo, DKIM, DMARC)](https://help.brevo.com/hc/en-us/articles/12163873383186) e [FAQ: domínios gratuitos não podem ser autenticados](https://help.brevo.com/hc/en-us/articles/17286219877778)
 - [Netlify: rewrites e proxies](https://docs.netlify.com/routing/redirects/rewrites-proxies/)

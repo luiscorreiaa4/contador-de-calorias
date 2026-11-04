@@ -74,27 +74,27 @@ Executar na **raiz** do monorepo:
 
 ## 5. Ponteiros de Documentação e Regras Detalhadas
 - **Regras Detalhadas & Skills:**
-  - Backend: [.agents/rules/backend-rules.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/.agents/rules/backend-rules.md)
-  - React: [.agents/rules/react-rules.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/.agents/rules/react-rules.md)
-  - Estilo e UI: [.agents/rules/style-rules.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/.agents/rules/style-rules.md)
-  - Inspeção no Browser (E2E): [.agents/skills/browser-inspection/SKILL.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/.agents/skills/browser-inspection/SKILL.md)
+  - Backend: [.agents/rules/backend-rules.md](.agents/rules/backend-rules.md)
+  - React: [.agents/rules/react-rules.md](.agents/rules/react-rules.md)
+  - Estilo e UI: [.agents/rules/style-rules.md](.agents/rules/style-rules.md)
+  - Inspeção no Browser (E2E): [.agents/skills/browser-inspection/SKILL.md](.agents/skills/browser-inspection/SKILL.md)
 - **Documentação de Sistema:**
-  - Manual do Administrador (RBAC & Audit): [docs/ADMIN.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/ADMIN.md)
-  - Manual de Curadoria do Catálogo: [docs/CURADORIA_CATALOGO.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/CURADORIA_CATALOGO.md)
-  - Arquitetura & Banco (ER): [docs/ARCHITECTURE.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/ARCHITECTURE.md)
-  - Especificação e Fórmulas de Negócio: [docs/SPEC.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/SPEC.md)
-  - Estratégia de Testes: [docs/TESTING.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/TESTING.md)
-  - Planejamento de Fases: [docs/ROADMAP.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/ROADMAP.md)
-  - Design System e Cores: [docs/CORES.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/CORES.md)
-  - Navegação e Rotas: [docs/UX_NAVIGATION.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/UX_NAVIGATION.md)
-  - Migrações: [docs/MIGRATIONS.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/MIGRATIONS.md)
-  - E-mail transacional: [docs/EMAIL_SETUP.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/EMAIL_SETUP.md)
-  - Decisões de arquitetura: [docs/DECISOES.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/DECISOES.md)
+  - Manual do Administrador (RBAC & Audit): [docs/ADMIN.md](docs/ADMIN.md)
+  - Manual de Curadoria do Catálogo: [docs/CURADORIA_CATALOGO.md](docs/CURADORIA_CATALOGO.md)
+  - Arquitetura & Banco (ER): [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+  - Especificação e Fórmulas de Negócio: [docs/SPEC.md](docs/SPEC.md)
+  - Estratégia de Testes: [docs/TESTING.md](docs/TESTING.md)
+  - Planejamento de Fases: [docs/ROADMAP.md](docs/ROADMAP.md)
+  - Design System e Cores: [docs/CORES.md](docs/CORES.md)
+  - Navegação e Rotas: [docs/UX_NAVIGATION.md](docs/UX_NAVIGATION.md)
+  - Migrações: [docs/MIGRATIONS.md](docs/MIGRATIONS.md)
+  - E-mail transacional: [docs/EMAIL_SETUP.md](docs/EMAIL_SETUP.md)
+  - Decisões de arquitetura: [docs/DECISOES.md](docs/DECISOES.md)
 
 ---
 
 ## 6. Inspeções no Navegador (Browser Subagent / E2E) e Conta de Teste
-- **Skill de Referência:** [.agents/skills/browser-inspection/SKILL.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/.agents/skills/browser-inspection/SKILL.md)
+- **Skill de Referência:** [.agents/skills/browser-inspection/SKILL.md](.agents/skills/browser-inspection/SKILL.md)
 - ❌ **PROIBIDO Abrir Navegador para Alterações Simples de CSS/Estilo:** NUNCA abra o subagente do navegador (`browser_subagent`) para conferir pequenas alterações visuais, classes CSS, cores, paddings ou ajustes pontuais. Isso consome tempo e tokens em excesso.
 - ✅ **Casos Exclusivos em que o Browser Pode ser Aberto:**
   1. Apenas quando o usuário **pedir explicitamente** (ex: "abra o navegador", "tire prints", "inspecione a tela no chrome").
