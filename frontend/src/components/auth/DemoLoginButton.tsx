@@ -38,7 +38,6 @@ export const DemoLoginButton: React.FC<Pick<ButtonProps, 'size' | 'variant' | 'c
         )}
         Ver demonstração
       </Button>
-      <p className="text-xs text-muted-foreground">Conta temporária, apagada em 24 h.</p>
       {mutation.isError && (
         <p role="alert" className="text-xs font-bold uppercase text-destructive">
           {mutation.error.message || 'Demonstração indisponível no momento.'}
