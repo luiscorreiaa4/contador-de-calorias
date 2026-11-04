@@ -108,11 +108,24 @@ Em vez de a API usar o usuário todo-poderoso, ela usa `app_user`, que só lê e
      -v dbname=neondb -f backend/scripts/provision-db-roles.sql
    ```
    (`dbname` é o nome do banco que aparece na connection string, normalmente `neondb`.)
-2. Passe a posse das tabelas ao `migration_user`:
+   No Neon o dono (`neondb_owner`) não é superusuário. O script já lida com isso: só mexe em `NOSUPERUSER/NOCREATEDB/NOCREATEROLE` quando preciso e faz `GRANT migration_user TO neondb_owner;` antes do `ALTER DEFAULT PRIVILEGES` (sem esse grant, o Neon responde "permission denied to change default privileges").
+2. Passe a posse das tabelas ao `migration_user`. **Não use `REASSIGN OWNED`**: no Neon ele falha porque tenta transferir o próprio banco. Rode com a `URL_ADMIN` (`psql "<URL_ADMIN>" -v ON_ERROR_STOP=1` e cole):
    ```sql
-   REASSIGN OWNED BY <usuario_da_URL_ADMIN> TO migration_user;
+   DO $$
+   DECLARE r record;
+   BEGIN
+     FOR r IN SELECT tablename FROM pg_tables
+               WHERE schemaname = 'public' AND tableowner <> 'migration_user' LOOP
+       EXECUTE format('ALTER TABLE public.%I OWNER TO migration_user', r.tablename);
+     END LOOP;
+     -- Sequences de serial/identity mudam junto com a tabela; aqui ficam as avulsas.
+     FOR r IN SELECT sequencename FROM pg_sequences
+               WHERE schemaname = 'public' AND sequenceowner <> 'migration_user' LOOP
+       EXECUTE format('ALTER SEQUENCE public.%I OWNER TO migration_user', r.sequencename);
+     END LOOP;
+   END $$;
+   ALTER FUNCTION public.f_unaccent(text) OWNER TO migration_user;
    ```
-   Se o Neon recusar, use `GRANT <usuario_da_URL_ADMIN> TO migration_user;`.
 3. Monte as duas URLs que serão usadas depois (troque o host pelo da sua string do Neon):
    - **`URL_MIGRACAO`** = `postgresql://migration_user:<senha_migracao>@<host>/neondb?sslmode=require`
    - API: `DB_HOST=<host>`, `DB_PORT=5432`, `DB_USER=app_user`, `DB_PASSWORD=<senha_app>`, `DB_NAME=neondb`
