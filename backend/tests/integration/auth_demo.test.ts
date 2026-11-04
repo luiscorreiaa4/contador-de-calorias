@@ -6,28 +6,123 @@ import { app } from '../../src/app.js';
 import { pool } from '../../src/database/pool.js';
 import { cleanupTestData } from '../helpers/db.js';
 import { createVerifiedUser } from '../helpers/auth.js';
+import * as GuestModel from '../../src/models/guest.model.js';
+import { createGuestSession } from '../../src/services/guest.service.js';
+import { getSaoPauloDateString } from '../../src/utils/date.js';
 
-describe('blockGuestUser (conta de visitante somente leitura)', () => {
+interface DemoBody {
+  data: { token: string; user: Record<string, unknown> & { id: string } };
+}
+
+async function startDemo(): Promise<DemoBody['data']> {
+  const res = await request(app).post('/api/auth/demo');
+  assert.strictEqual(res.status, 200);
+  return (res.body as DemoBody).data;
+}
+
+const dayOffset = (days: number): string =>
+  getSaoPauloDateString(new Date(Date.now() - days * 24 * 3600 * 1000));
+
+describe('POST /api/auth/demo (visitante temporário)', () => {
   closeTestPool(async () => {
+    await pool.query('DELETE FROM users WHERE is_guest');
     await cleanupTestData('tester-guest-%');
   });
 
-  it('bloqueia alteração de perfil do visitante e não bloqueia usuário comum', async () => {
-    const guest = await createVerifiedUser({ email: `tester-guest-${Date.now()}@example.com` });
+  it('cria um visitante novo por clique, com metas e refeições', async () => {
+    const a = await startDemo();
+    const b = await startDemo();
+    assert.notStrictEqual(a.user.id, b.user.id);
+    assert.strictEqual(a.user.onboarding_completed, true);
+    assert.ok(Number(a.user.daily_calories_goal) > 0);
+    assert.ok(!('password_hash' in a.user));
+    assert.ok(!('mfa_secret_enc' in a.user));
+
+    // Ontem sempre tem as 3 refeições (hoje depende do horário atual).
+    const res = await request(app)
+      .get(`/api/meals/today?date=${dayOffset(1)}`)
+      .set('Authorization', `Bearer ${a.token}`);
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.data.length, 3);
+  });
+
+  it('bloqueia senha, e-mail, MFA e exclusão do visitante, mas permite registrar refeição', async () => {
+    const g = await startDemo();
+    const auth = { Authorization: `Bearer ${g.token}` };
+
+    for (const r of [
+      request(app).put('/api/users/me').set(auth).send({ name: 'Outro' }),
+      request(app).delete('/api/users/me').set(auth).send({ password: 'x' }),
+      request(app).post('/api/users/me/mfa/setup').set(auth).send({}),
+    ]) {
+      const res = await r;
+      assert.strictEqual(res.status, 403);
+      assert.strictEqual(res.body.code, 'DEMO_READ_ONLY');
+    }
+
+    const { rows } = await pool.query<{ id: string }>(
+      'SELECT id FROM foods WHERE user_id IS NULL AND active LIMIT 1',
+    );
+    const meal = await request(app)
+      .post('/api/meals')
+      .set(auth)
+      .send({
+        name: 'Lanche',
+        mealTime: new Date(Date.now() - 60_000).toISOString(),
+        items: [{ foodId: rows[0].id, quantity: 100 }],
+      });
+    assert.strictEqual(meal.status, 201);
+  });
+
+  it('apaga visitantes com mais de 24h, inclusive com alimento próprio em refeição', async () => {
+    const old = await startDemo();
+    const auth = { Authorization: `Bearer ${old.token}` };
+    const food = await request(app)
+      .post('/api/foods/custom')
+      .set(auth)
+      .send({ name: 'Alimento do visitante', calories: 100, proteins: 5, carbs: 10, fats: 2 });
+    assert.strictEqual(food.status, 201);
+    const meal = await request(app)
+      .post('/api/meals')
+      .set(auth)
+      .send({
+        name: 'Com alimento próprio',
+        mealTime: new Date(Date.now() - 60_000).toISOString(),
+        items: [{ foodId: food.body.data.id, quantity: 100 }],
+      });
+    assert.strictEqual(meal.status, 201);
+
+    await pool.query("UPDATE users SET created_at = now() - interval '25 hours' WHERE id = $1", [
+      old.user.id,
+    ]);
+    await startDemo();
+
+    const left = await pool.query('SELECT 1 FROM users WHERE id = $1', [old.user.id]);
+    assert.strictEqual(left.rowCount, 0);
+  });
+
+  it('responde 503 quando o teto de visitantes é atingido', async () => {
+    await assert.rejects(
+      () => createGuestSession({ maxActive: 0 }),
+      (e: Error & { statusCode?: number; code?: string }) =>
+        e.statusCode === 503 && e.code === 'DEMO_UNAVAILABLE',
+    );
+  });
+
+  it('cria a conta mesmo sem alimentos do seed no catálogo', async () => {
+    const found = await GuestModel.findGlobalFoodIdsByNames(['__inexistente__']);
+    assert.strictEqual(found.size, 0);
+    const session = await createGuestSession({ seedFoodNames: [] });
+    assert.ok(session.token);
+    assert.strictEqual(session.user.onboarding_completed, true);
+  });
+
+  it('não bloqueia alteração de perfil de usuário comum', async () => {
     const common = await createVerifiedUser({ email: `tester-guest-common-${Date.now()}@example.com` });
-    await pool.query('UPDATE users SET is_guest = true WHERE id = $1', [guest.id]);
-
-    const blocked = await request(app)
-      .put('/api/users/me')
-      .set('Authorization', `Bearer ${guest.token}`)
-      .send({ name: 'Outro' });
-    assert.strictEqual(blocked.status, 403);
-    assert.strictEqual(blocked.body.code, 'DEMO_READ_ONLY');
-
-    const allowed = await request(app)
+    const res = await request(app)
       .put('/api/users/me')
       .set('Authorization', `Bearer ${common.token}`)
       .send({ name: 'Outro' });
-    assert.notStrictEqual(allowed.body.code, 'DEMO_READ_ONLY');
+    assert.strictEqual(res.status, 200);
   });
 });

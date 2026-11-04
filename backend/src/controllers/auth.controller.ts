@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import * as AuthService from '../services/auth.service.js';
+import * as GuestService from '../services/guest.service.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { clearSessionCookie, readRequestToken, setSessionCookie } from '../utils/sessionCookie.js';
 
@@ -28,11 +29,12 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const demoLogin = asyncHandler(async (_req: Request, res: Response) => {
-  // Provisório até o GuestService (Tarefa 2).
-  return res.status(503).json({
-    success: false,
-    code: 'DEMO_UNAVAILABLE',
-    message: 'Demonstração indisponível no momento.',
+  const authData = await GuestService.createGuestSession();
+  setSessionCookie(res, authData.token);
+  return res.status(200).json({
+    success: true,
+    message: 'Sessão de demonstração iniciada.',
+    data: authData,
   });
 });
 

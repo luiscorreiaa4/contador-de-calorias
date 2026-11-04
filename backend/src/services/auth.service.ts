@@ -205,7 +205,7 @@ export async function login(data: LoginUserDTO): Promise<AuthResponse> {
   return toAuthResponse(user, data.remember_me !== false);
 }
 
-function toAuthResponse(user: User, persistent: boolean): AuthResponse {
+export function toAuthResponse(user: User, persistent: boolean): AuthResponse {
   /* eslint-disable @typescript-eslint/no-unused-vars */
   const {
     failed_login_attempts,
