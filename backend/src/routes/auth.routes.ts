@@ -102,10 +102,11 @@ router.post(
 );
 const demoLimiter = createAuthRateLimiter({
   name: 'demoLimiter',
-  windowMs: 15 * 60 * 1000,
+  // Janela de 1 h: um IP sozinho não consegue esgotar o teto de visitantes ativos tão rápido.
+  windowMs: 60 * 60 * 1000,
   max: 20,
   includeEmail: false,
-  message: 'Muitas sessões de demonstração. Tente novamente após 15 minutos.',
+  message: 'Muitas sessões de demonstração. Tente novamente após 1 hora.',
 });
 router.post('/demo', demoLimiter, requireAllowedOrigin, captcha, AuthController.demoLogin);
 router.post(

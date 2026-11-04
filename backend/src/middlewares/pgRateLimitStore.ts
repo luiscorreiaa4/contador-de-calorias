@@ -1,6 +1,12 @@
 import type { ClientRateLimitInfo, Options, Store } from 'express-rate-limit';
 import { pool } from '../database/pool.js';
 
+/** Apaga contadores com janela vencida; chamado periodicamente pelo server. */
+export async function deleteExpiredRateLimits(): Promise<number> {
+  const { rowCount } = await pool.query('DELETE FROM rate_limits WHERE reset_at <= now()');
+  return rowCount ?? 0;
+}
+
 /** Store do express-rate-limit em Postgres: contador compartilhado entre instâncias (#5). */
 export class PgRateLimitStore implements Store {
   private windowMs = 15 * 60 * 1000;
@@ -16,7 +22,6 @@ export class PgRateLimitStore implements Store {
   }
 
   async increment(key: string): Promise<ClientRateLimitInfo> {
-    // shortcut: linhas expiradas só são sobrescritas ao reaparecer a chave; limpar por reset_at num job se a tabela crescer.
     const { rows } = await pool.query<{ hits: number; reset_at: Date }>(
       `INSERT INTO rate_limits (key, hits, reset_at)
        VALUES ($1, 1, CURRENT_TIMESTAMP + make_interval(secs => $2))

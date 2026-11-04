@@ -14,6 +14,7 @@ import adminRoutes from './routes/admin.routes.js';
 import { pool } from './database/pool.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { requestLogger } from './middlewares/requestLogger.js';
+import { createAuthRateLimiter } from './middlewares/authRateLimit.js';
 
 export const app = express();
 app.disable('x-powered-by');
@@ -65,6 +66,19 @@ app.use(
 
 app.use(compression());
 app.use(express.json({ limit: '50kb' }));
+
+// Teto geral de escritas por IP: conta de visitante não exige e-mail, então sem isso o volume é ilimitado.
+const writeLimiter = createAuthRateLimiter({
+  name: 'apiWriteLimiter',
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  includeEmail: false,
+  message: 'Muitas requisições. Tente novamente em alguns minutos.',
+});
+const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+app.use('/api', (req, res, next) =>
+  SAFE_METHODS.has(req.method) ? next() : writeLimiter(req, res, next),
+);
 
 // Routes
 app.use('/api/auth', authRoutes);

@@ -2,12 +2,19 @@ import { Router } from 'express';
 import * as PushController from '../controllers/push.controller.js';
 import { authenticate } from '../middlewares/auth.js';
 import { validate } from '../middlewares/validate.js';
+import { blockGuestUser } from '../middlewares/guest.js';
 import { pushSubscriptionSchema, unsubscribePushSchema } from '@caloriesync/shared';
 
 const router = Router();
 
 router.get('/public-key', PushController.getPublicKey);
-router.post('/subscribe', authenticate, validate(pushSubscriptionSchema), PushController.subscribe);
+router.post(
+  '/subscribe',
+  authenticate,
+  blockGuestUser,
+  validate(pushSubscriptionSchema),
+  PushController.subscribe,
+);
 router.post(
   '/unsubscribe',
   authenticate,

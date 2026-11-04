@@ -3,7 +3,10 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import type { Options } from 'express-rate-limit';
 import { pool } from '../../src/database/pool.js';
-import { PgRateLimitStore } from '../../src/middlewares/pgRateLimitStore.js';
+import {
+  PgRateLimitStore,
+  deleteExpiredRateLimits,
+} from '../../src/middlewares/pgRateLimitStore.js';
 
 describe('PgRateLimitStore (#5)', () => {
   closeTestPool(async () => {
@@ -23,5 +26,21 @@ describe('PgRateLimitStore (#5)', () => {
     assert.strictEqual((await a.increment('k')).totalHits, 2);
     await a.resetKey('k');
     assert.strictEqual((await a.increment('k')).totalHits, 1);
+  });
+
+  it('deleteExpiredRateLimits apaga só contadores vencidos', async () => {
+    await pool.query(
+      `INSERT INTO rate_limits (key, hits, reset_at) VALUES
+         ('tester-old', 1, now() - interval '1 minute'),
+         ('tester-live', 1, now() + interval '1 hour')`,
+    );
+    await deleteExpiredRateLimits();
+    const { rows } = await pool.query<{ key: string }>(
+      "SELECT key FROM rate_limits WHERE key IN ('tester-old', 'tester-live')",
+    );
+    assert.deepStrictEqual(
+      rows.map((r) => r.key),
+      ['tester-live'],
+    );
   });
 });

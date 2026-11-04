@@ -5,6 +5,8 @@ import { app } from './app.js';
 import { env } from './config/env.js';
 import { pool } from './database/pool.js';
 import { structuredLog } from './config/logger.js';
+import * as GuestService from './services/guest.service.js';
+import { deleteExpiredRateLimits } from './middlewares/pgRateLimitStore.js';
 
 const PORT = env.PORT;
 
@@ -15,6 +17,23 @@ export const server = app.listen(PORT, () => {
     uvThreadpoolSize: UV_THREADPOOL_SIZE,
   });
 });
+
+// Sem isto, visitantes vencidos só seriam apagados no próximo clique em "demo" e rate_limits cresceria sem fim.
+setInterval(
+  () => {
+    GuestService.cleanupExpiredGuests().catch((err) =>
+      structuredLog('error', 'guest_cleanup_failed', {
+        error: err instanceof Error ? err.message : String(err),
+      }),
+    );
+    deleteExpiredRateLimits().catch((err) =>
+      structuredLog('error', 'rate_limit_cleanup_failed', {
+        error: err instanceof Error ? err.message : String(err),
+      }),
+    );
+  },
+  60 * 60 * 1000,
+).unref();
 
 let isShuttingDown = false;
 

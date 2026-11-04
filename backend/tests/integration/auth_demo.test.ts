@@ -7,7 +7,7 @@ import { pool } from '../../src/database/pool.js';
 import { cleanupTestData } from '../helpers/db.js';
 import { clearMailbox, createVerifiedUser, lastEmailTo } from '../helpers/auth.js';
 import * as GuestModel from '../../src/models/guest.model.js';
-import { createGuestSession } from '../../src/services/guest.service.js';
+import { cleanupExpiredGuests, createGuestSession } from '../../src/services/guest.service.js';
 import { getSaoPauloDateString } from '../../src/utils/date.js';
 
 const ORIGIN = 'http://localhost:5173';
@@ -75,6 +75,7 @@ describe('POST /api/auth/demo (visitante temporário)', () => {
       request(app).put('/api/users/me').set(auth).send({ name: 'Outro' }),
       request(app).delete('/api/users/me').set(auth).send({ password: 'x' }),
       request(app).post('/api/users/me/mfa/setup').set(auth).send({}),
+      request(app).post('/api/push/subscribe').set(auth).send({}),
     ]) {
       const res = await r;
       assert.strictEqual(res.status, 403);
@@ -95,7 +96,11 @@ describe('POST /api/auth/demo (visitante temporário)', () => {
     assert.strictEqual(meal.status, 201);
   });
 
-  it('apaga visitantes com mais de 24h, inclusive com alimento próprio em refeição', async () => {
+  it('apaga visitantes com mais de 2 h, inclusive com alimento próprio em refeição', async () => {
+    const young = await startDemo();
+    await pool.query("UPDATE users SET created_at = now() - interval '1 hour' WHERE id = $1", [
+      young.user.id,
+    ]);
     const old = await startDemo();
     const auth = { Authorization: `Bearer ${old.token}` };
     const food = await request(app)
@@ -113,11 +118,23 @@ describe('POST /api/auth/demo (visitante temporário)', () => {
       });
     assert.strictEqual(meal.status, 201);
 
-    await pool.query("UPDATE users SET created_at = now() - interval '25 hours' WHERE id = $1", [
+    await pool.query("UPDATE users SET created_at = now() - interval '3 hours' WHERE id = $1", [
       old.user.id,
     ]);
     await startDemo();
 
+    const left = await pool.query('SELECT 1 FROM users WHERE id = $1', [old.user.id]);
+    assert.strictEqual(left.rowCount, 0);
+    const kept = await pool.query('SELECT 1 FROM users WHERE id = $1', [young.user.id]);
+    assert.strictEqual(kept.rowCount, 1);
+  });
+
+  it('limpeza periódica apaga visitante vencido sem depender de novo clique', async () => {
+    const old = await startDemo();
+    await pool.query("UPDATE users SET created_at = now() - interval '25 hours' WHERE id = $1", [
+      old.user.id,
+    ]);
+    assert.ok((await cleanupExpiredGuests()) >= 1);
     const left = await pool.query('SELECT 1 FROM users WHERE id = $1', [old.user.id]);
     assert.strictEqual(left.rowCount, 0);
   });

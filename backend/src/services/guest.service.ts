@@ -10,7 +10,8 @@ import { toAuthResponse } from './auth.service.js';
 import { bcryptCost } from '../utils/authTokens.js';
 import { getSaoPauloDateString } from '../utils/date.js';
 
-export const GUEST_TTL_HOURS = 24;
+// 2 h: se alguém lotar o teto de propósito, a demo volta em no máximo 2 h.
+export const GUEST_TTL_HOURS = 2;
 export const GUEST_MAX_ACTIVE = 500;
 export const CLEANUP_BATCH = 50;
 
@@ -70,6 +71,17 @@ async function seedMeals(userId: string, seedFoodNames: string[]): Promise<void>
       });
     }
   }
+}
+
+/** Apaga todos os visitantes vencidos em lotes; chamado periodicamente pelo server. */
+export async function cleanupExpiredGuests(): Promise<number> {
+  let total = 0;
+  let removed: number;
+  do {
+    removed = await GuestModel.deleteExpiredGuests(GUEST_TTL_HOURS, CLEANUP_BATCH);
+    total += removed;
+  } while (removed === CLEANUP_BATCH);
+  return total;
 }
 
 export async function createGuestSession(
