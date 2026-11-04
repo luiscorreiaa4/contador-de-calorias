@@ -71,6 +71,55 @@ class SmtpMailer implements Mailer {
   }
 }
 
+interface HttpMailerConfig {
+  url: string;
+  secret: string;
+  timeoutMs?: number;
+}
+
+/**
+ * Adaptador HTTPS para o Web App do Google Apps Script (Render grátis bloqueia SMTP).
+ * O segredo vai no corpo porque o Apps Script não lê headers. O /exec responde 302
+ * para script.googleusercontent.com; o fetch segue (POST vira GET, como esperado).
+ * Mensagens de erro são fixas: são logadas e não podem carregar URL, segredo nem destinatário.
+ */
+export class HttpMailer implements Mailer {
+  constructor(private readonly config: HttpMailerConfig) {}
+
+  async send(message: MailMessage): Promise<void> {
+    let response: Response;
+    try {
+      response = await fetch(this.config.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ secret: this.config.secret, ...message }),
+        redirect: 'follow',
+        signal: AbortSignal.timeout(this.config.timeoutMs ?? 10000),
+      });
+    } catch (error) {
+      const timedOut = error instanceof Error && error.name === 'TimeoutError';
+      throw new Error(timedOut ? 'mail_http_timeout' : 'mail_http_request_failed');
+    }
+
+    if (!response.ok) throw new Error(`mail_http_status_${response.status}`);
+
+    let payload: unknown;
+    try {
+      payload = await response.json();
+    } catch {
+      throw new Error('mail_http_invalid_response');
+    }
+    if (
+      typeof payload !== 'object' ||
+      payload === null ||
+      !('ok' in payload) ||
+      payload.ok !== true
+    ) {
+      throw new Error('mail_http_rejected');
+    }
+  }
+}
+
 let activeMailer: Mailer | null = null;
 
 function buildSmtpMailer(): SmtpMailer {
@@ -96,6 +145,13 @@ export function getMailer(): Mailer {
 
   if (env.NODE_ENV === 'test' || env.MAIL_TRANSPORT === 'memory') {
     activeMailer = new MemoryMailer();
+  } else if (env.MAIL_TRANSPORT === 'http') {
+    if (!env.MAIL_HTTP_URL || !env.MAIL_HTTP_SECRET) {
+      throw new Error(
+        'MAIL_HTTP_URL e MAIL_HTTP_SECRET são obrigatórios para MAIL_TRANSPORT=http.',
+      );
+    }
+    activeMailer = new HttpMailer({ url: env.MAIL_HTTP_URL, secret: env.MAIL_HTTP_SECRET });
   } else {
     activeMailer = buildSmtpMailer();
   }
