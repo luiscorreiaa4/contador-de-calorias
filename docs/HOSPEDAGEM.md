@@ -320,7 +320,7 @@ Adicione primeiro no Render/Netlify, depois faça o merge. Segredos nunca entram
 
 ### Rotina de manutenção
 - Olhe os **logs do Render** quando alguém reportar erro.
-- Responda ao Dependabot/`npm audit`. O que importa para o site no ar é `npm audit --omit=dev` (hoje limpo); avisos só de ferramentas de dev estão registrados em `docs/SECURITY-REVIEW.md` (Parte 4).
+- Responda ao Dependabot/`npm audit`. O que importa para o site no ar é `npm audit --omit=dev` (hoje limpo); os avisos aceitos são só de ferramentas de dev (`minimatch@10` via `archunit`/`eslint`: um override global quebra o `archunit`; atualize quando eles aceitarem `minimatch@11`).
 - Faça `backup-db.mjs` de vez em quando, pois o plano grátis do Neon tem retenção limitada de histórico.
 - Se mudar o endereço do site, atualize `CORS_ORIGIN`, `APP_BASE_URL`, o widget do Turnstile, o `netlify.toml` e os 4 arquivos de SEO do passo 6 (`SITE_URL`, `robots.txt`, `sitemap.xml`, `llms.txt`).
 - Criou uma página pública nova que deve aparecer no Google? Adicione-a em `PUBLIC_PAGES` (`frontend/src/seo/pages.ts`) para ser pré-renderizada, e no `sitemap.xml` e no `llms.txt`.

@@ -1,6 +1,6 @@
 # Backlog da auditoria
 
-Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato de uma issue: contexto, evidência, o que fazer, critério de aceite e link do guia. Os links apontam para `docs/guia-tech/`.
+Origem: auditoria de 01/11/2026 (relatório removido; histórico no git) (itens ❌ e 🟡). Cada item abaixo tem o formato de uma issue: contexto, evidência, o que fazer, critério de aceite e link do guia. Os links apontam para `docs/guia-tech/`.
 
 - **Status:** `[ ]` aberto · `[~]` em andamento · `[x]` feito (com a data e o commit/PR) · `[adiado]` adiado aguardando decisão/ação do usuário.
 - **Prioridade:** `priority:high` = risco alto na auditoria.
@@ -213,7 +213,7 @@ Origem: `docs/AUDITORIA.md` (itens ❌ e 🟡). Cada item abaixo tem o formato d
 
 ### #28 [ux] auditar `prefers-reduced-motion`
 **Labels:** ux, a11y · **Status:** `[x]` (Concluído em 01/11/2026)
-- **O que foi feito:** Realizada auditoria completa de animações e transições na aplicação. O arquivo `frontend/src/styles/index.css` já implementa a regra global `@media (prefers-reduced-motion: reduce)` forçando `animation-duration: 0.01ms !important`, `transition-duration: 0.01ms !important` e `scroll-behavior: auto !important`. O módulo de gestos de swipe possui tratamento dedicado com teste garantindo transição instantânea sem arrasto. Relatório detalhado emitido em `docs/AUDITORIA_REDUCED_MOTION.md`.
+- **O que foi feito:** Realizada auditoria completa de animações e transições na aplicação. O arquivo `frontend/src/styles/index.css` já implementa a regra global `@media (prefers-reduced-motion: reduce)` forçando `animation-duration: 0.01ms !important`, `transition-duration: 0.01ms !important` e `scroll-behavior: auto !important`. O módulo de gestos de swipe possui tratamento dedicado com teste garantindo transição instantânea sem arrasto.
 
 ### #29 [seo] meta OG/Twitter/canonical, `robots.txt`, `sitemap.xml`, `noindex`
 **Labels:** seo · **Status:** `[x]` (Concluído em 01/11/2026)

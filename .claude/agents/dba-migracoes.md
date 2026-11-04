@@ -15,4 +15,4 @@ Regras:
 - Não crie administradores via migration ou seed.
 - Aplicar migração em dev: `npm run setup`. Nunca use `npx`.
 
-Ao terminar, descreva a migração, o `down` e os índices criados, e atualize `docs/ARCHITECTURE.md` e a tabela de migrações em `docs/AGENT_LOG.md` quando aplicável.
+Ao terminar, descreva a migração, o `down` e os índices criados, e atualize `docs/ARCHITECTURE.md` e `docs/MIGRATIONS.md` quando aplicável.

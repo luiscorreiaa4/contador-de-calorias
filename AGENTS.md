@@ -81,7 +81,6 @@ Executar na **raiz** do monorepo:
 - **Documentação de Sistema:**
   - Manual do Administrador (RBAC & Audit): [docs/ADMIN.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/ADMIN.md)
   - Manual de Curadoria do Catálogo: [docs/CURADORIA_CATALOGO.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/CURADORIA_CATALOGO.md)
-  - Plano e Decisões Administrativas (D-22): [docs/ADMIN_PLAN.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/ADMIN_PLAN.md)
   - Arquitetura & Banco (ER): [docs/ARCHITECTURE.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/ARCHITECTURE.md)
   - Especificação e Fórmulas de Negócio: [docs/SPEC.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/SPEC.md)
   - Estratégia de Testes: [docs/TESTING.md](file:///c:/Users/Luis/Documents/Contador%20de%20Calorias/my-app/docs/TESTING.md)

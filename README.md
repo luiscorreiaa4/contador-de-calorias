@@ -242,6 +242,5 @@ O [guia de navegação](docs/UX_NAVIGATION.md) detalha as responsabilidades das 
 | [Identidade visual](docs/CORES.md) | Paleta, tokens semânticos e critérios de contraste |
 | [Roadmap](docs/ROADMAP.md) | Fases de desenvolvimento e marcos do produto |
 | [Decisões](docs/DECISOES.md) | Decisões de arquitetura e produto (D-xx) |
-| [Performance](docs/PERFORMANCE_BASELINE.md) | Medições e referências de desempenho |
 
-Relatórios de revisão estão em `docs/reviews/`; registros históricos ficam em `docs/archive/`.
+Relatórios de auditoria e revisões antigas foram removidos; o histórico deles está no `git log`.

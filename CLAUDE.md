@@ -80,7 +80,6 @@ Executar na **raiz** do monorepo:
 - **Documentação de Sistema:**
   - Manual do Administrador (RBAC & Audit): [docs/ADMIN.md](docs/ADMIN.md)
   - Manual de Curadoria do Catálogo: [docs/CURADORIA_CATALOGO.md](docs/CURADORIA_CATALOGO.md)
-  - Plano e Decisões Administrativas (D-22): [docs/ADMIN_PLAN.md](docs/ADMIN_PLAN.md)
   - Arquitetura & Banco (ER): [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
   - Especificação e Fórmulas de Negócio: [docs/SPEC.md](docs/SPEC.md)
   - Estratégia de Testes: [docs/TESTING.md](docs/TESTING.md)
