@@ -519,7 +519,7 @@ const DiaryPageContent: React.FC = () => {
         {isPending ? (
           <div role="status" className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <span className="sr-only">CARREGANDO REFEIÇÕES...</span>
-            {[0, 1].map((i) => (
+            {[0, 1, 2, 3].map((i) => (
               <div
                 key={i}
                 aria-hidden="true"

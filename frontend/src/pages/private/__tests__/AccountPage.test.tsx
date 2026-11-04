@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
-import { render, screen, waitFor } from '../../../tests/setup/test-utils';
+import { render, screen, waitFor, within } from '../../../tests/setup/test-utils';
 import { ThemeProvider } from '../../../context/ThemeProvider';
 import { AccountPage } from '../AccountPage';
 
@@ -36,6 +36,23 @@ describe('AccountPage', () => {
     expect(await screen.findByText('TU')).toBeInTheDocument();
     expect(screen.getByText('Test User')).toBeInTheDocument();
     expect(screen.getByText('test@example.com')).toBeInTheDocument();
+  });
+
+  it('traz os links legais que o rodapé esconde no mobile', async () => {
+    renderPage();
+    const legal = await screen.findByRole('navigation', { name: 'Informações legais' });
+    expect(within(legal).getByRole('link', { name: 'Privacidade' })).toHaveAttribute(
+      'href',
+      '/privacidade',
+    );
+    expect(within(legal).getByRole('link', { name: 'Termos de Uso' })).toHaveAttribute(
+      'href',
+      '/termos',
+    );
+    expect(within(legal).getByRole('link', { name: 'Segurança' })).toHaveAttribute(
+      'href',
+      '/seguranca',
+    );
   });
 
   it('oferece Metas, Perfil e Configurações (do módulo único) e esconde o Catálogo de usuário comum', async () => {

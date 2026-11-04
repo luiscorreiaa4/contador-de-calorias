@@ -74,6 +74,16 @@ export const AccountPage: React.FC = () => {
         <ThemeToggle />
       </div>
 
+      {/* Com a barra inferior o rodapé não aparece no mobile; no desktop ele já traz estes links. */}
+      <nav
+        aria-label="Informações legais"
+        className="md:hidden flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground"
+      >
+        <Link to="/privacidade">Privacidade</Link>
+        <Link to="/termos">Termos de Uso</Link>
+        <Link to="/seguranca">Segurança</Link>
+      </nav>
+
       <button
         type="button"
         onClick={signOut}

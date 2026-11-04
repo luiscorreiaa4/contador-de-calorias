@@ -35,7 +35,10 @@ function isTextField(target: EventTarget | null): boolean {
  * Campo de texto em foco oculta a barra em qualquer rota, para não subir com o teclado.
  * Os únicos listeners globais são scroll (window, passivo) e focusin/focusout (document).
  */
-export function useHideOnScroll(barRef: RefObject<HTMLElement | null>): boolean {
+export function useHideOnScroll(
+  barRef: RefObject<HTMLElement | null>,
+  { hideOnTextFocus = true }: { hideOnTextFocus?: boolean } = {},
+): boolean {
   const { pathname } = useLocation();
   // O estado de rolagem vale só para a rota em que foi gravado: navegar reexibe a barra.
   const [scrollHidden, setScrollHidden] = useState<{ path: string; hidden: boolean }>({
@@ -110,5 +113,5 @@ export function useHideOnScroll(barRef: RefObject<HTMLElement | null>): boolean 
   const hiddenByScroll =
     scrollHidden.path === pathname && scrollHidden.hidden && !neverHideOnScroll && !barFocused;
 
-  return hiddenByScroll || fieldFocused;
+  return hiddenByScroll || (hideOnTextFocus && fieldFocused);
 }

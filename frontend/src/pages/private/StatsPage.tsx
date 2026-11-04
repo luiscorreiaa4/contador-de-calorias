@@ -4,10 +4,11 @@ import { getMealStats, type MealStats } from '../../services/meal.service';
 import { getLocalDateString } from '../../utils/date';
 import { ChartSkeleton } from '../../components/charts/ChartSkeleton';
 
-const CaloriesBarChart = lazy(() => import('../../components/charts/CaloriesBarChart'));
+const CaloriesBarChart = lazy(loadCaloriesChart);
 import { TrendingUp, AlertTriangle } from 'lucide-react';
 import { SectionCard } from '../../components/common/SectionCard';
 import { SegmentedToggle } from '../../components/common/SegmentedToggle';
+import { loadCaloriesChart } from '../../navigation/page-loaders';
 
 type Period = 'week' | 'month';
 
@@ -161,6 +162,12 @@ export const StatsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }
           <Summary stats={stats} />
         ) : null}
       </SectionCard>
+
+      {isLoading && (
+        <SectionCard title="CALORIAS POR DIA" titleAs="h3">
+          <ChartSkeleton className="h-60 sm:h-80" />
+        </SectionCard>
+      )}
 
       {hasData && stats && (
         <SectionCard title="CALORIAS POR DIA" titleAs="h3">

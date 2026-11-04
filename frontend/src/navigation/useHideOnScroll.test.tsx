@@ -4,9 +4,9 @@ import { MemoryRouter } from 'react-router';
 import { useRef } from 'react';
 import { useHideOnScroll } from './useHideOnScroll';
 
-function Bar() {
+function Bar({ hideOnTextFocus }: { hideOnTextFocus?: boolean }) {
   const ref = useRef<HTMLElement>(null);
-  const hidden = useHideOnScroll(ref);
+  const hidden = useHideOnScroll(ref, { hideOnTextFocus });
   return (
     <nav ref={ref} data-testid="bar" data-hidden={String(hidden)}>
       <button type="button">item</button>
@@ -135,5 +135,21 @@ describe('useHideOnScroll', () => {
       screen.getByLabelText('senha').blur();
     });
     expect(isHidden()).toBe(false);
+  });
+
+  it('com hideOnTextFocus: false (cabeçalho), campo em foco não oculta, mas a rolagem sim', () => {
+    render(
+      <MemoryRouter initialEntries={['/app']}>
+        <input aria-label="busca" />
+        <Bar hideOnTextFocus={false} />
+      </MemoryRouter>,
+    );
+    act(() => {
+      screen.getByLabelText('busca').focus();
+    });
+    expect(isHidden()).toBe(false);
+    scrollTo(100);
+    scrollTo(150);
+    expect(isHidden()).toBe(true);
   });
 });

@@ -35,6 +35,11 @@ export interface NavTab {
   patterns?: string[];
 }
 
+export const HISTORICO_TABS: NavTab[] = [
+  { to: '/app/historico/alimentacao', label: 'Alimentação' },
+  { to: '/app/historico/corpo', label: 'Peso e medidas', shortLabel: 'Peso/medidas' },
+];
+
 const DIARIO: NavDestination = {
   id: 'diario',
   label: 'Diário',
@@ -49,7 +54,8 @@ const HISTORICO: NavDestination = {
   id: 'historico',
   label: 'Histórico',
   shortLabel: 'Histórico',
-  to: '/app/historico',
+  // Direto na primeira aba: o índice /app/historico só redireciona e renderizaria vazio.
+  to: HISTORICO_TABS[0].to,
   icon: ProgressIcon,
   activeIcon: ProgressIconFilled,
   patterns: ['/app/historico/*'],
@@ -114,11 +120,6 @@ export const DESKTOP_NAV_ITEMS: NavDestination[] = [DIARIO, HISTORICO];
 
 /** Linhas da tela /conta e do dropdown da conta no desktop. */
 export const ACCOUNT_LINK_ITEMS: NavDestination[] = [METAS, PERFIL, CONFIGURACOES, CATALOGO];
-
-export const HISTORICO_TABS: NavTab[] = [
-  { to: '/app/historico/alimentacao', label: 'Alimentação' },
-  { to: '/app/historico/corpo', label: 'Peso e medidas', shortLabel: 'Peso/medidas' },
-];
 
 export const METAS_TABS: NavTab[] = [
   { to: '/app/metas/rotina', label: 'Objetivo e rotina', shortLabel: 'Rotina' },
