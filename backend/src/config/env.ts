@@ -66,9 +66,12 @@ export const envSchema = z
       .url('APP_BASE_URL deve ser uma URL absoluta (ex: http://localhost:5173).')
       .transform((value) => value.replace(/\/+$/, '')),
     MAIL_FROM: z.string().min(3, 'MAIL_FROM é obrigatório (ex: CalorieSync <no-reply@dominio>).'),
-    MAIL_TRANSPORT: z.enum(['smtp', 'memory'], {
-      message: 'MAIL_TRANSPORT deve ser "smtp" ou "memory".',
+    MAIL_TRANSPORT: z.enum(['smtp', 'memory', 'http'], {
+      message: 'MAIL_TRANSPORT deve ser "smtp", "memory" ou "http".',
     }),
+    // MAIL_TRANSPORT=http: Web App do Google Apps Script (/exec) e segredo compartilhado.
+    MAIL_HTTP_URL: z.string().url('MAIL_HTTP_URL deve ser uma URL absoluta.').optional(),
+    MAIL_HTTP_SECRET: z.string().optional(),
     MAIL_SMTP_HOST: z
       .string()
       .min(1, 'MAIL_SMTP_HOST é obrigatório quando MAIL_TRANSPORT=smtp.')
@@ -153,6 +156,40 @@ export const envSchema = z
         path: ['AUTH_TOKEN_PEPPER'],
         message: 'AUTH_TOKEN_PEPPER deve ser diferente de JWT_SECRET.',
       });
+    }
+
+    if (data.MAIL_TRANSPORT === 'http') {
+      if (!data.MAIL_HTTP_URL) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['MAIL_HTTP_URL'],
+          message: 'MAIL_HTTP_URL é obrigatório quando MAIL_TRANSPORT=http.',
+        });
+      } else if (
+        data.NODE_ENV === 'production' &&
+        (!data.MAIL_HTTP_URL.startsWith('https://') ||
+          /^https:\/\/(localhost|127\.0\.0\.1|\[::1\])([:/]|$)/i.test(data.MAIL_HTTP_URL))
+      ) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['MAIL_HTTP_URL'],
+          message: 'MAIL_HTTP_URL em produção deve usar https e não pode apontar para localhost.',
+        });
+      }
+      if (!data.MAIL_HTTP_SECRET || data.MAIL_HTTP_SECRET.length < 32) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['MAIL_HTTP_SECRET'],
+          message:
+            'MAIL_HTTP_SECRET é obrigatório com MAIL_TRANSPORT=http e deve ter no mínimo 32 caracteres.',
+        });
+      } else if (PLACEHOLDER_SECRET.test(data.MAIL_HTTP_SECRET)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['MAIL_HTTP_SECRET'],
+          message: 'MAIL_HTTP_SECRET parece um placeholder; gere um valor aleatório.',
+        });
+      }
     }
 
     if (data.MAIL_TRANSPORT === 'smtp') {

@@ -98,6 +98,70 @@ describe('CORS and Production Env Hardening (#13 / #14)', () => {
     );
   });
 
+  describe('MAIL_TRANSPORT=http (Apps Script)', () => {
+    const httpProdEnv = {
+      ...baseProdEnv,
+      MAIL_TRANSPORT: 'http',
+      MAIL_SMTP_HOST: undefined,
+      MAIL_SMTP_PORT: undefined,
+      MAIL_SMTP_USER: undefined,
+      MAIL_SMTP_PASS: undefined,
+      MAIL_HTTP_URL: 'https://script.google.com/macros/s/abc123/exec',
+      MAIL_HTTP_SECRET: 'f3a9c1d27e8b4560a1b2c3d4e5f60718293a4b5c6d7e8f90',
+    };
+
+    it('aceita configuração http válida em produção', () => {
+      assert.deepStrictEqual(issuePaths(httpProdEnv), []);
+    });
+
+    it('exige MAIL_HTTP_URL e MAIL_HTTP_SECRET', () => {
+      const paths = issuePaths({
+        ...httpProdEnv,
+        NODE_ENV: 'development',
+        MAIL_HTTP_URL: undefined,
+        MAIL_HTTP_SECRET: undefined,
+      });
+      assert.ok(paths.includes('MAIL_HTTP_URL'));
+      assert.ok(paths.includes('MAIL_HTTP_SECRET'));
+    });
+
+    it('recusa MAIL_HTTP_URL sem https ou local em produção', () => {
+      for (const url of [
+        'http://script.google.com/macros/s/abc/exec',
+        'https://localhost:8080/exec',
+        'https://127.0.0.1/exec',
+      ]) {
+        assert.ok(
+          issuePaths({ ...httpProdEnv, MAIL_HTTP_URL: url }).includes('MAIL_HTTP_URL'),
+          url,
+        );
+      }
+    });
+
+    it('aceita MAIL_HTTP_URL local fora de produção', () => {
+      assert.deepStrictEqual(
+        issuePaths({
+          ...httpProdEnv,
+          NODE_ENV: 'development',
+          MAIL_HTTP_URL: 'http://localhost:9999/exec',
+        }),
+        [],
+      );
+    });
+
+    it('recusa MAIL_HTTP_SECRET curto ou placeholder', () => {
+      assert.ok(
+        issuePaths({ ...httpProdEnv, MAIL_HTTP_SECRET: 'curto' }).includes('MAIL_HTTP_SECRET'),
+      );
+      assert.ok(
+        issuePaths({
+          ...httpProdEnv,
+          MAIL_HTTP_SECRET: 'preencha_com_32_caracteres_aleatorios_do_apps_script',
+        }).includes('MAIL_HTTP_SECRET'),
+      );
+    });
+  });
+
   it('deve responder 403 limpo quando a origem não for permitida por CORS (#13)', async () => {
     const response = await request(app)
       .get('/api/foods')
