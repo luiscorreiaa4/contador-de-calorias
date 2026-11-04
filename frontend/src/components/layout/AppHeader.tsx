@@ -1,10 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { NavLink, useNavigate } from 'react-router';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
 import { useSignOut } from '../../hooks/useSignOut';
 import { Flame, LogOut, ChevronDown } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
-import { ACCOUNT_LINK_ITEMS, DESKTOP_NAV_ITEMS, visibleItems } from '../../navigation/nav-items';
+import {
+  ACCOUNT_LINK_ITEMS,
+  DESKTOP_NAV_ITEMS,
+  isDestinationActive,
+  visibleItems,
+} from '../../navigation/nav-items';
+import { useHideOnScroll } from '../../navigation/useHideOnScroll';
 
 interface AppHeaderProps {
   onNavigateToStats?: () => void;
@@ -18,6 +24,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onNavigateToStats, onNavig
   const menuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
+  const headerRef = useRef<HTMLElement>(null);
+  // No mobile, some ao rolar para baixo e volta ao rolar para cima, como a barra inferior; nunca com o menu aberto.
+  const hidden = useHideOnScroll(headerRef, { hideOnTextFocus: false }) && !menuOpen;
 
   const handleDiary = () => {
     if (onNavigateToDiary) onNavigateToDiary();
@@ -31,6 +40,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onNavigateToStats, onNavig
     setMenuOpen(false);
   };
 
+  const { pathname } = useLocation();
   const primaryLinks = visibleItems(DESKTOP_NAV_ITEMS, user?.role === 'admin');
   const accountLinks = visibleItems(ACCOUNT_LINK_ITEMS, user?.role === 'admin');
 
@@ -74,7 +84,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onNavigateToStats, onNavig
     : 'U';
 
   return (
-    <header className="sticky top-0 z-50 w-full pt-[env(safe-area-inset-top)] bg-background border-b-2 border-border transition-colors duration-300">
+    <header
+      ref={headerRef}
+      className={`sticky top-0 z-50 w-full pt-[env(safe-area-inset-top)] bg-background border-b-2 border-border transition-[color,background-color,border-color,transform] duration-300 ease-out ${
+        hidden ? 'max-md:-translate-y-full max-md:pointer-events-none' : ''
+      }`}
+    >
       {/* Neon accent top line */}
       <div className="h-1 w-full bg-primary" />
 
@@ -160,7 +175,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onNavigateToStats, onNavig
                     className="p-2 flex flex-col gap-1 max-h-[60vh] overflow-y-auto"
                   >
                     <div className={`flex flex-col gap-1 ${showMainNav ? 'md:hidden' : ''}`}>
-                      {primaryLinks.map(({ to, label, icon: Icon }) => (
+                      {primaryLinks.map(({ id, to, label, icon: Icon }) => (
                         <NavLink
                           key={to}
                           to={to}
@@ -171,7 +186,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onNavigateToStats, onNavig
                               event.preventDefault();
                               handleDiary();
                             }
-                            if (to === '/app/historico' && onNavigateToStats) {
+                            if (id === 'historico' && onNavigateToStats) {
                               event.preventDefault();
                               handleStats();
                             }
@@ -225,31 +240,29 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onNavigateToStats, onNavig
             aria-label="Navegação principal"
             className="max-w-5xl mx-auto px-6 flex items-stretch gap-1"
           >
-            {primaryLinks.map(({ to, label, icon: Icon }) => (
-              <NavLink
-                key={to}
-                to={to}
-                end={to === '/app'}
-                onClick={() => setMenuOpen(false)}
-                className={({ isActive }) =>
-                  `group relative flex items-center gap-2 px-5 py-3.5 text-xs font-black uppercase tracking-widest border-b-4 -mb-px transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${
+            {primaryLinks.map((item) => {
+              const { to, label, icon: Icon } = item;
+              const isActive = isDestinationActive(pathname, item);
+              return (
+                <Link
+                  key={to}
+                  to={to}
+                  aria-current={isActive ? 'page' : undefined}
+                  onClick={() => setMenuOpen(false)}
+                  className={`group relative flex items-center gap-2 px-5 py-3.5 text-xs font-black uppercase tracking-widest border-b-4 -mb-px transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${
                     isActive
                       ? 'border-foreground text-foreground bg-secondary'
                       : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary hover:border-border'
-                  }`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <Icon
-                      className={`w-4 h-4 transition-colors ${isActive ? 'text-primary-ink' : 'group-hover:text-primary-ink'}`}
-                      aria-hidden="true"
-                    />
-                    {label}
-                  </>
-                )}
-              </NavLink>
-            ))}
+                  }`}
+                >
+                  <Icon
+                    className={`w-4 h-4 transition-colors ${isActive ? 'text-primary-ink' : 'group-hover:text-primary-ink'}`}
+                    aria-hidden="true"
+                  />
+                  {label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
       )}

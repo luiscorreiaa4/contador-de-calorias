@@ -32,6 +32,15 @@ describe('StatsPage (PC-27)', () => {
     expect(screen.getByText(/carregando estatísticas/i)).toBeInTheDocument();
   });
 
+  it('carregando, reserva também o espaço do gráfico (altura da tela final)', () => {
+    render(
+      <QueryClientProvider client={createTestQueryClient()}>
+        <StatsPage />
+      </QueryClientProvider>,
+    );
+    expect(screen.getAllByRole('status')).toHaveLength(2);
+  });
+
   it('renders error state with retry button when API fails', async () => {
     const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
     server.use(

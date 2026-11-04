@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { classifySwipe, isEdgeTouch, SWIPE_CONFIG, type SwipeInput } from './swipe';
+import {
+  classifySwipe,
+  isEdgeTouch,
+  isInsideNoSwipeArea,
+  SWIPE_CONFIG,
+  type SwipeInput,
+} from './swipe';
 
 const base: SwipeInput = {
   startX: 300,
@@ -52,5 +58,30 @@ describe('classifySwipe', () => {
   it('duração inválida (0 ou negativa) não navega', () => {
     expect(classifySwipe({ ...base, dtMs: 0 })).toBeNull();
     expect(classifySwipe({ ...base, dtMs: -5 })).toBeNull();
+  });
+});
+
+describe('isInsideNoSwipeArea', () => {
+  function setup() {
+    const container = document.createElement('main');
+    container.innerHTML = '<p>texto</p><div data-no-swipe><svg></svg></div>';
+    const chart = container.querySelector('[data-no-swipe]') as HTMLElement;
+    chart.getBoundingClientRect = () => new DOMRect(16, 200, 358, 240);
+    return container;
+  }
+
+  it('bloqueia toque que começa sobre o gráfico, mesmo sem o alvo estar dentro dele', () => {
+    expect(isInsideNoSwipeArea(100, 300, setup())).toBe(true);
+  });
+
+  it('libera toque fora do gráfico', () => {
+    expect(isInsideNoSwipeArea(100, 100, setup())).toBe(false);
+    expect(isInsideNoSwipeArea(100, 500, setup())).toBe(false);
+  });
+
+  it('ignora elementos sem tamanho (ocultos)', () => {
+    const container = document.createElement('main');
+    container.innerHTML = '<div data-no-swipe></div>';
+    expect(isInsideNoSwipeArea(0, 0, container)).toBe(false);
   });
 });

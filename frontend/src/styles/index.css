@@ -127,7 +127,20 @@
 }
 
 @layer base {
-  html {
+  /* Sem "elástico" do iOS: ele arrastava cabeçalho e página junto com o swipe entre destinos. */
+  html,
+  body {
+    overscroll-behavior: none;
+  }
+
+  /* Só nos controles: no html inteiro, o touch-action alterava o tratamento de gestos do iOS (swipe sobre gráficos). */
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  label,
+  [role='button'] {
     touch-action: manipulation;
   }
 

@@ -21,6 +21,8 @@ export const SWIPE_CONFIG = {
   rubberBand: 0.25,
   exitMs: 180,
   enterMs: 220,
+  /** Teto de espera pela nova tela renderizar antes de animar a entrada mesmo assim. */
+  enterTimeoutMs: 1500,
 } as const;
 
 export type SwipeDirection = 'next' | 'prev' | null;
@@ -112,6 +114,26 @@ export function shouldIgnoreTarget(target: EventTarget | null, container: Elemen
     if (element === container) break;
   }
   return false;
+}
+
+/**
+ * O ponto inicial do toque cai sobre a área de um gráfico/controle marcado? Complementa `shouldIgnoreTarget`
+ * pela geometria, sem depender de qual elemento o iOS entrega como `event.target`.
+ */
+export function isInsideNoSwipeArea(x: number, y: number, container: Element): boolean {
+  return Array.from(container.querySelectorAll('[data-no-swipe], .recharts-wrapper')).some(
+    (element) => {
+      const rect = element.getBoundingClientRect();
+      return (
+        rect.width > 0 &&
+        rect.height > 0 &&
+        x >= rect.left &&
+        x <= rect.right &&
+        y >= rect.top &&
+        y <= rect.bottom
+      );
+    },
+  );
 }
 
 /** Estado global que cancela o gesto: texto selecionado, campo com foco ou overlay aberto. */

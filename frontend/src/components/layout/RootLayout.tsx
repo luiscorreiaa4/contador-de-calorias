@@ -7,7 +7,9 @@ import { ToastProvider } from '../../context/ToastProvider';
 import { AppHeader } from './AppHeader';
 import { SwipeMain } from '../../navigation/SwipeMain';
 import { BottomNav } from './BottomNav';
+import { BottomNavTabs } from '../../navigation/BottomNavTabs';
 import { Footer } from './Footer';
+import { APP_MIN_H, RouteLoading } from './RouteLoading';
 
 const RootShell: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
@@ -29,8 +31,9 @@ const RootShell: React.FC = () => {
   }, []);
 
   return (
+    // overflow-x-clip (não hidden): hidden cria contêiner de rolagem e desliga o sticky do cabeçalho.
     <div
-      className={`min-h-screen bg-background text-foreground transition-colors duration-300 flex flex-col justify-between relative overflow-x-hidden ${
+      className={`min-h-screen bg-background text-foreground transition-colors duration-300 flex flex-col justify-between relative overflow-x-hidden supports-[overflow:clip]:overflow-x-clip ${
         showBottomNav ? 'pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0' : ''
       }`}
     >
@@ -50,32 +53,32 @@ const RootShell: React.FC = () => {
         Pular para o conteúdo principal
       </a>
 
+      {/* Pinta a área da barra de status do iPhone mesmo com o cabeçalho oculto (0px fora do iOS). */}
+      <div
+        aria-hidden="true"
+        className="md:hidden fixed inset-x-0 top-0 z-[60] h-[env(safe-area-inset-top)] bg-background transition-colors duration-300"
+      />
+
       {/* App Header */}
       <AppHeader />
 
       {/* Main Content (Routes Area) */}
       <SwipeMain
         enabled={showBottomNav}
-        className="flex-1 flex items-center justify-center z-10 my-8 sm:my-12 pb-8 sm:pb-16"
+        className={`flex-1 flex items-center justify-center z-10 my-8 sm:my-12 pb-8 sm:pb-16 ${
+          showBottomNav ? APP_MIN_H : ''
+        }`}
       >
-        <Suspense
-          fallback={
-            <div className="flex items-center justify-center w-full h-64">
-              <p
-                role="status"
-                className="text-xs font-bold uppercase tracking-widest text-muted-foreground"
-              >
-                CARREGANDO...
-              </p>
-            </div>
-          }
-        >
-          <Outlet />
+        <Suspense fallback={<RouteLoading tall={showBottomNav} />}>
+          {showBottomNav ? <BottomNavTabs outlet={<Outlet />} /> : <Outlet />}
         </Suspense>
       </SwipeMain>
 
       {/* Footer */}
-      <Footer />
+      {/* Com a barra inferior, o rodapé some no mobile; os links legais ficam na tela Conta. */}
+      <div className={showBottomNav ? 'hidden md:block' : undefined}>
+        <Footer />
+      </div>
 
       {showBottomNav && <BottomNav />}
     </div>

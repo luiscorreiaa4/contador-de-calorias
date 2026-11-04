@@ -1,8 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
+
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, useLocation } from 'react-router';
 import { SWIPE_CONFIG } from './swipe';
 import { SwipeMain } from './SwipeMain';
+import { prefetchFor } from './prefetch';
+
+vi.mock('./prefetch', () => ({ prefetchFor: vi.fn() }));
 
 type Point = { x: number; y: number };
 type TouchType = 'touchstart' | 'touchmove' | 'touchend' | 'touchcancel';
@@ -11,12 +16,16 @@ function LocationProbe() {
   return <output data-testid="path">{useLocation().pathname}</output>;
 }
 
+const testClient = new QueryClient();
+
 function renderArea(path = '/app', children: React.ReactNode = <p>conteúdo</p>, enabled = true) {
   return render(
-    <MemoryRouter initialEntries={[path]}>
-      <SwipeMain enabled={enabled}>{children}</SwipeMain>
-      <LocationProbe />
-    </MemoryRouter>,
+    <QueryClientProvider client={testClient}>
+      <MemoryRouter initialEntries={[path]}>
+        <SwipeMain enabled={enabled}>{children}</SwipeMain>
+        <LocationProbe />
+      </MemoryRouter>
+    </QueryClientProvider>,
   );
 }
 
@@ -51,10 +60,15 @@ const LEFT = { from: { x: 300, y: 300 }, to: { x: 150, y: 302 } };
 const RIGHT = { from: { x: 150, y: 300 }, to: { x: 300, y: 302 } };
 const path = () => screen.getByTestId('path').textContent;
 const panel = () => screen.getByText('conteúdo').parentElement as HTMLElement;
-const settle = () =>
+// Em duas etapas: a entrada só começa depois que a rota nova renderiza (efeito ao fim do primeiro act).
+const settle = () => {
   act(() => {
-    vi.advanceTimersByTime(SWIPE_CONFIG.exitMs + SWIPE_CONFIG.enterMs + 50);
+    vi.advanceTimersByTime(SWIPE_CONFIG.exitMs);
   });
+  act(() => {
+    vi.advanceTimersByTime(SWIPE_CONFIG.enterMs + 50);
+  });
+};
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -70,14 +84,14 @@ afterEach(() => {
 
 describe('useSwipeNav — navegação entre destinos da barra inferior', () => {
   it.each([
-    ['/app', LEFT, '/app/historico'],
+    ['/app', LEFT, '/app/historico/alimentacao'],
     ['/app/historico/alimentacao', LEFT, '/app/conta'],
-    ['/app/metas/diarias', RIGHT, '/app/historico'],
+    ['/app/metas/diarias', RIGHT, '/app/historico/alimentacao'],
     ['/app/historico/corpo', RIGHT, '/app'],
-    ['/app/conta', RIGHT, '/app/historico'],
-    ['/app/perfil', RIGHT, '/app/historico'],
-    ['/app/configuracoes/seguranca', RIGHT, '/app/historico'],
-    ['/app/diario/2026-10-01', LEFT, '/app/historico'],
+    ['/app/conta', RIGHT, '/app/historico/alimentacao'],
+    ['/app/perfil', RIGHT, '/app/historico/alimentacao'],
+    ['/app/configuracoes/seguranca', RIGHT, '/app/historico/alimentacao'],
+    ['/app/diario/2026-10-01', LEFT, '/app/historico/alimentacao'],
   ])('em %s o gesto leva a %s', (start, gesture, expected) => {
     renderArea(start);
     swipe(screen.getByText('conteúdo'), gesture.from, gesture.to);
@@ -123,26 +137,25 @@ describe('useSwipeNav — navegação entre destinos da barra inferior', () => {
     renderArea('/app');
     swipe(screen.getByText('conteúdo'), { x: 300, y: 300 }, { x: 250, y: 301 }, 60);
     settle();
-    expect(path()).toBe('/app/historico');
+    expect(path()).toBe('/app/historico/alimentacao');
   });
 });
 
 describe('useSwipeNav — animação', () => {
-  it('a tela acompanha o dedo durante o arrasto e fica sem transform ao terminar', () => {
+  it('a tela acompanha o dedo durante o arrasto (sem fade) e fica sem transform ao terminar', () => {
     renderArea('/app');
     const target = screen.getByText('conteúdo');
     fire(target, 'touchstart', [LEFT.from], [LEFT.from], 1000);
     fire(target, 'touchmove', [{ x: 250, y: 301 }], [{ x: 250, y: 301 }], 1050);
     expect(panel().style.transform).toBe('translateX(-50px)');
-    expect(Number(panel().style.opacity)).toBeLessThan(1);
+    expect(panel().style.opacity).toBe('');
     fire(target, 'touchend', [], [{ x: 250, y: 301 }], 1100);
     settle();
     expect(panel().style.transform).toBe('');
-    expect(panel().style.opacity).toBe('');
     expect(panel().style.transition).toBe('');
   });
 
-  it('ao confirmar, a tela sai deslizando para o lado do gesto antes de navegar', () => {
+  it('ao confirmar, a tela desliza para o lado do gesto; ao renderizar a rota nova, o painel volta a zero', () => {
     renderArea('/app');
     swipe(screen.getByText('conteúdo'), LEFT.from, LEFT.to);
     expect(panel().style.transform).toBe('translateX(-390px)');
@@ -150,10 +163,16 @@ describe('useSwipeNav — animação', () => {
     act(() => {
       vi.advanceTimersByTime(SWIPE_CONFIG.exitMs);
     });
-    expect(path()).toBe('/app/historico');
-    // a nova tela entra pelo lado oposto
-    expect(panel().style.transform).toBe('translateX(0px)');
-    settle();
+    expect(path()).toBe('/app/historico/alimentacao');
+    expect(panel().style.transform).toBe('');
+  });
+
+  it('se a rota nova não renderizar a tempo, o painel volta mesmo assim (nunca fica preso)', () => {
+    renderArea('/app');
+    swipe(screen.getByText('conteúdo'), LEFT.from, LEFT.to);
+    act(() => {
+      vi.advanceTimersByTime(SWIPE_CONFIG.exitMs + SWIPE_CONFIG.enterTimeoutMs);
+    });
     expect(panel().style.transform).toBe('');
   });
 
@@ -182,7 +201,7 @@ describe('useSwipeNav — animação', () => {
     vi.stubGlobal('matchMedia', (query: string) => ({ matches: true, media: query }));
     renderArea('/app');
     swipe(screen.getByText('conteúdo'), LEFT.from, LEFT.to);
-    expect(path()).toBe('/app/historico');
+    expect(path()).toBe('/app/historico/alimentacao');
     expect(panel().style.transform).toBe('');
     vi.unstubAllGlobals();
   });
@@ -268,7 +287,7 @@ describe('useSwipeNav — proteções', () => {
     );
     swipe(screen.getByText('conteúdo'), LEFT.from, LEFT.to);
     settle();
-    expect(path()).toBe('/app/historico');
+    expect(path()).toBe('/app/historico/alimentacao');
   });
 
   it('ignora gesto com dois dedos e cancela se o segundo dedo entrar no meio', () => {
@@ -370,5 +389,63 @@ describe('useSwipeNav — proteções', () => {
     fire(target, 'touchend', [], [{ x: 150, y: 345 }], 1150);
     settle();
     expect(path()).toBe('/app');
+  });
+});
+
+describe('useSwipeNav — Fase 1 e 2', () => {
+  it('prefetch do destino ao entrar em dragging (uma vez por gesto, com o id do destino)', () => {
+    renderArea('/app');
+    vi.mocked(prefetchFor).mockClear();
+    const target = screen.getByText('conteúdo');
+    fire(target, 'touchstart', [LEFT.from], [LEFT.from], 1000);
+    expect(prefetchFor).not.toHaveBeenCalled();
+    fire(target, 'touchmove', [{ x: 250, y: 301 }], [{ x: 250, y: 301 }], 1050);
+    fire(target, 'touchmove', [{ x: 200, y: 301 }], [{ x: 200, y: 301 }], 1080);
+    expect(prefetchFor).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(prefetchFor).mock.calls[0][1]).toBe('historico');
+  });
+
+  it('ao iniciar, aquece o cache de todos os destinos', () => {
+    vi.mocked(prefetchFor).mockClear();
+    renderArea('/app');
+    expect(vi.mocked(prefetchFor).mock.calls.map((c) => c[1])).toEqual([
+      'diario',
+      'historico',
+      'conta',
+    ]);
+  });
+
+  it('a tela vizinha (data-tab) fica ao lado, acompanha o painel e é solta ao terminar', () => {
+    renderArea(
+      '/app',
+      <>
+        <p>conteúdo</p>
+        <div data-testid="vizinha" data-tab="historico" />
+      </>,
+    );
+    const neighbor = screen.getByTestId('vizinha');
+    const target = screen.getByText('conteúdo');
+    fire(target, 'touchstart', [LEFT.from], [LEFT.from], 1000);
+    fire(target, 'touchmove', [{ x: 250, y: 301 }], [{ x: 250, y: 301 }], 1050);
+    expect(neighbor.style.position).toBe('absolute');
+    expect(neighbor.style.transform).toBe('translateX(100%)');
+    fire(target, 'touchend', [], [{ x: 250, y: 301 }], 1100);
+    settle();
+    expect(path()).toBe('/app/historico/alimentacao');
+    expect(neighbor.style.position).toBe('');
+    expect(neighbor.style.transform).toBe('');
+  });
+
+  it('arrasto que não confirma esconde a vizinha de novo', () => {
+    renderArea(
+      '/app',
+      <>
+        <p>conteúdo</p>
+        <div data-testid="vizinha" data-tab="historico" />
+      </>,
+    );
+    swipe(screen.getByText('conteúdo'), { x: 300, y: 300 }, { x: 270, y: 301 }, 400);
+    settle();
+    expect(screen.getByTestId('vizinha').style.position).toBe('');
   });
 });

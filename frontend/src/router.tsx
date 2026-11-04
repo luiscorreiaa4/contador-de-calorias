@@ -6,7 +6,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminRoute } from './components/AdminRoute';
 import { PublicRoute } from './components/PublicRoute';
 import { SectionLayout } from './components/layout/SectionLayout';
-import { CONFIG_TABS, HISTORICO_TABS, METAS_TABS } from './navigation/nav-items';
+import { CONFIG_TABS, METAS_TABS } from './navigation/nav-items';
 // Import direto (sem lazy): a landing pré-renderizada hidrata sem cair no fallback do Suspense.
 import { LandingPage } from './pages/public/LandingPage';
 
@@ -40,21 +40,10 @@ const OnboardingFlow = lazy(() =>
   })),
 );
 
-const DiaryPage = lazy(() =>
-  import('./pages/private/DiaryPage').then((m) => ({
-    default: m.DiaryPage,
-  })),
-);
 const EditProfilePage = lazy(() =>
   import('./pages/private/EditProfilePage').then((m) => ({
     default: m.EditProfilePage,
   })),
-);
-const StatsPage = lazy(() =>
-  import('./pages/private/StatsPage').then((m) => ({ default: m.StatsPage })),
-);
-const MeasurementsPage = lazy(() =>
-  import('./pages/private/MeasurementsPage').then((m) => ({ default: m.MeasurementsPage })),
 );
 const RoutinePage = lazy(() =>
   import('./pages/private/RoutinePage').then((m) => ({ default: m.RoutinePage })),
@@ -73,9 +62,6 @@ const AccountPrivacyPage = lazy(() =>
 );
 const TermsPage = lazy(() =>
   import('./pages/public/LegalPage').then((m) => ({ default: m.TermsPage })),
-);
-const AccountPage = lazy(() =>
-  import('./pages/private/AccountPage').then((m) => ({ default: m.AccountPage })),
 );
 const PrivacyPage = lazy(() =>
   import('./pages/public/LegalPage').then((m) => ({ default: m.PrivacyPage })),
@@ -103,20 +89,14 @@ export const routes: RouteObject[] = [
         element: <ProtectedRoute />,
         children: [
           { path: 'onboarding', element: <OnboardingFlow /> },
-          { index: true, element: <DiaryPage /> },
+          // Diario, Historico e Conta sao renderizados (e mantidos montados) por BottomNavTabs; aqui so casam a URL.
+          { index: true },
           {
             path: 'historico',
-            element: (
-              <SectionLayout
-                title="Histórico"
-                description="Acompanhe sua alimentação, seu peso e suas medidas ao longo do tempo."
-                links={HISTORICO_TABS}
-              />
-            ),
             children: [
               { index: true, element: <Navigate to="alimentacao" replace /> },
-              { path: 'alimentacao', element: <StatsPage embedded /> },
-              { path: 'corpo', element: <MeasurementsPage embedded /> },
+              { path: 'alimentacao' },
+              { path: 'corpo' },
             ],
           },
           {
@@ -150,9 +130,9 @@ export const routes: RouteObject[] = [
               { path: 'privacidade', element: <AccountPrivacyPage /> },
             ],
           },
-          { path: 'conta', element: <AccountPage /> },
+          { path: 'conta' },
           { path: 'perfil', element: <EditProfilePage /> },
-          { path: 'diario/:date', element: <DiaryPage /> },
+          { path: 'diario/:date' },
         ],
       },
       // URLs antigas.

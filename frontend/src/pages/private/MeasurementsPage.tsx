@@ -16,11 +16,12 @@ import {
 } from '../../services/measurement.service';
 import { getLocalDateString } from '../../utils/date';
 import { ChartSkeleton } from '../../components/charts/ChartSkeleton';
+import { loadMeasurementChart } from '../../navigation/page-loaders';
 import { Scale, TrendingDown, TrendingUp, Plus, AlertTriangle, Trash2 } from 'lucide-react';
 
 type Metric = 'weight' | 'fat';
 
-const MeasurementLineChart = lazy(() => import('../../components/charts/MeasurementLineChart'));
+const MeasurementLineChart = lazy(loadMeasurementChart);
 
 const METRIC_OPTIONS = [
   { value: 'weight', label: 'PESO' },

@@ -1,8 +1,11 @@
 import { useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Link, matchPath, useLocation } from 'react-router';
 import { Plus } from 'lucide-react';
 import { useNewMealModal } from '../../context/NewMealModalContext';
 import { BOTTOM_NAV_ITEMS, isDestinationActive } from '../../navigation/nav-items';
+import { prefetchFor } from '../../navigation/prefetch';
+import { tabTarget } from '../../navigation/tab-memory';
 import { useHideOnScroll } from '../../navigation/useHideOnScroll';
 import { isValidLocalDateString } from '../../utils/date';
 
@@ -15,6 +18,7 @@ export function BottomNav() {
   const hidden = useHideOnScroll(barRef);
   const { pathname } = useLocation();
   const { open } = useNewMealModal();
+  const queryClient = useQueryClient();
   const [diario, historico, conta] = BOTTOM_NAV_ITEMS;
 
   // No Diário, o "+" registra na data em exibição; nas demais telas, hoje.
@@ -26,7 +30,8 @@ export function BottomNav() {
     return (
       <li key={item.id} className="min-w-0">
         <Link
-          to={item.to}
+          to={tabTarget(item, pathname)}
+          onTouchStart={() => prefetchFor(queryClient, item.id)}
           aria-label={item.shortLabel}
           aria-current={active ? 'page' : undefined}
           className={slotClass}
