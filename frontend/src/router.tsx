@@ -89,10 +89,11 @@ export const routes: RouteObject[] = [
     path: '/',
     element: <RootLayout />,
     children: [
-      { index: true, element: <LandingPage /> },
       {
+        // Logado, a landing e as telas de entrada levam ao app (redirect só no cliente: o prerender é deslogado).
         element: <PublicRoute />,
         children: [
+          { index: true, element: <LandingPage /> },
           { path: 'login', element: <LoginPage initialMode="login" /> },
           { path: 'cadastro', element: <LoginPage initialMode="register" /> },
         ],

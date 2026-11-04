@@ -8,7 +8,8 @@ export function useSignOut() {
   const { logout } = useAuth();
   return useCallback(async () => {
     // Sai de /app antes de limpar a sessão; senão o ProtectedRoute redireciona para /login.
-    await navigate('/', { replace: true });
+    // `signedOut` impede o PublicRoute de devolver a landing para /app enquanto a sessão ainda existe.
+    await navigate('/', { replace: true, state: { signedOut: true } });
     logout();
   }, [navigate, logout]);
 }
