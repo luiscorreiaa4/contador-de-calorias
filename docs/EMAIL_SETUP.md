@@ -12,6 +12,8 @@ Amazon SES, Postmark etc.).
 1. `backend/src/mail/mailer.ts` escolhe a implementação por `MAIL_TRANSPORT`:
    - `smtp`: `SmtpMailer` via `nodemailer`.
    - `memory`: `MemoryMailer`, caixa em memória usada pelos testes.
+   - `http`: `HttpMailer`, `POST` JSON `{ secret, to, subject, text, html }` para `MAIL_HTTP_URL`
+     (Web App do Google Apps Script; veja a seção 3.4).
    - `NODE_ENV=test` força `MemoryMailer`, independentemente de `MAIL_TRANSPORT`.
 2. Os fluxos de cadastro, reenvio, login não verificado e recuperação **enviam sem `await`** depois
    do commit. A resposta HTTP nunca depende do provedor de e-mail.
@@ -139,6 +141,29 @@ Para prevenir vazamento de conexões ou travamento de sockets ociosos no servido
 
 Confirme portas, usuário e política de TLS no painel do provedor.
 
+### 3.4 Envio por HTTPS (Google Apps Script, `MAIL_TRANSPORT=http`)
+
+Usado em hospedagem que bloqueia SMTP (Render grátis). O passo a passo do script está em
+[HOSPEDAGEM.md, passo 5](HOSPEDAGEM.md).
+
+```env
+MAIL_TRANSPORT=http
+MAIL_HTTP_URL=https://script.google.com/macros/s/<ID>/exec
+MAIL_HTTP_SECRET=<mesmo valor da propriedade MAIL_SECRET do script>
+```
+
+- **Validação no boot:** `MAIL_HTTP_URL` e `MAIL_HTTP_SECRET` são obrigatórias com `http`. Em
+  produção a URL precisa ser `https` e não pode ser `localhost`/`127.0.0.1`. O segredo exige no
+  mínimo 32 caracteres e é recusado se parecer placeholder.
+- **Segredo no corpo:** o Apps Script não lê headers, então o segredo vai no JSON.
+- **Redirect:** o `/exec` responde `302` para `script.googleusercontent.com`; o `fetch` segue o
+  redirect (o `POST` vira `GET`, que é o esperado).
+- **Sucesso:** só quando a resposta final é `2xx` com JSON `{ "ok": true }`. HTML, `ok:false`,
+  status diferente de `2xx` e JSON inválido viram erro; o timeout é de 10 s.
+- **Logs:** as mensagens de erro são fixas (`mail_http_timeout`, `mail_http_request_failed`,
+  `mail_http_status_<n>`, `mail_http_invalid_response`, `mail_http_rejected`) e nunca trazem URL,
+  segredo, destinatário, código ou link.
+
 ---
 
 ## 4. Segurança e operação
@@ -169,7 +194,9 @@ Confirme portas, usuário e política de TLS no painel do provedor.
 | Código recusado | Expirou (15 min), já foi usado, atingiu 5 tentativas ou um código mais novo foi emitido |
 | Link de reset inválido | Expirou (30 min), já foi usado ou um novo pedido invalidou o anterior |
 | `APP_BASE_URL` errada | O link do e-mail aponta para o host configurado; em produção use HTTPS |
-| Backend não inicia | `AUTH_TOKEN_PEPPER` ausente/curto ou igual a `JWT_SECRET`; `MAIL_FROM` inválido |
+| Backend não inicia | `AUTH_TOKEN_PEPPER` ausente/curto ou igual a `JWT_SECRET`; `MAIL_FROM` inválido; `MAIL_HTTP_URL`/`MAIL_HTTP_SECRET` ausentes ou inválidos com `MAIL_TRANSPORT=http` |
+| `auth_email_delivery_failed` com `mail_http_rejected` | `MAIL_HTTP_SECRET` diferente do `MAIL_SECRET` do script |
+| `auth_email_delivery_failed` com `mail_http_invalid_response` | Script implantado sem acesso "Qualquer pessoa" (o Google devolve página HTML de login) |
 
 ---
 

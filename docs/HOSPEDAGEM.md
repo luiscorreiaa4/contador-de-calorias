@@ -136,7 +136,7 @@ O cadastro só termina com o código de 6 dígitos enviado por e-mail, e "Esquec
 - **Um Gmail como remetente só chega na caixa de entrada se o envio sair do próprio Google.** Enviado por um terceiro (ex.: Brevo com remetente `@gmail.com`), falha na checagem DMARC e vai para o spam.
 - O **Google Apps Script** resolve as duas coisas de graça: é um pequeno programa na sua conta Google com um endereço HTTPS. A API manda o e-mail para esse endereço e o script envia pelo seu Gmail. Limite de ~100 destinatários/dia.
 
-> ⚠️ **Mudança de código pendente:** hoje a API só sabe enviar por SMTP (`backend/src/mail/mailer.ts`). Antes do deploy é preciso um adaptador novo, `MAIL_TRANSPORT=http`, que faz `POST` de `{ secret, to, subject, text, html }` para `MAIL_HTTP_URL`, com `MAIL_HTTP_URL`/`MAIL_HTTP_SECRET` validadas em `backend/src/config/env.ts`. Em desenvolvimento nada muda: o Mailpit continua com `MAIL_TRANSPORT=smtp`.
+> A API já tem o adaptador `MAIL_TRANSPORT=http` (`HttpMailer` em `backend/src/mail/mailer.ts`): faz `POST` de `{ secret, to, subject, text, html }` para `MAIL_HTTP_URL` e só considera enviado se o script responder `{"ok":true}`. `MAIL_HTTP_URL`/`MAIL_HTTP_SECRET` são validadas ao iniciar (`backend/src/config/env.ts`). Em desenvolvimento nada muda: o Mailpit continua com `MAIL_TRANSPORT=smtp`. Detalhes em `docs/EMAIL_SETUP.md` (seção 3.4).
 
 #### 5.1 Conta Gmail do projeto
 1. Crie um Gmail só para o projeto (ex.: `caloriesync.app@gmail.com`). É o remetente que os usuários verão, e assim o seu e-mail pessoal fica de fora.
@@ -320,7 +320,8 @@ O projeto proíbe criar admin por seed ou variável de ambiente. O caminho é:
 | `permission denied for table ...` | Script de papéis não rodou depois de uma migration nova, ou migração rodou com outro dono |
 | 502/504 na primeira visita | API dormindo (use o UptimeRobot) |
 | Não chega e-mail, log `auth_email_delivery_failed` com timeout | `MAIL_TRANSPORT=smtp` no Render (SMTP bloqueado no grátis); use `http` |
-| Não chega e-mail, script responde `{"ok":false}` | `MAIL_HTTP_SECRET` diferente do `MAIL_SECRET` do script |
+| Não chega e-mail, log `auth_email_delivery_failed` com `mail_http_rejected` (script respondeu `{"ok":false}`) | `MAIL_HTTP_SECRET` diferente do `MAIL_SECRET` do script |
+| Não chega e-mail, log com `mail_http_invalid_response` | O Google devolveu HTML: a implantação não está com acesso "Qualquer pessoa" ou a URL não é a `/exec` |
 | Não chega e-mail, erro em **Execuções** do Apps Script | Cota diária (~100) estourada, ou o script foi editado sem publicar uma **Nova versão** |
 | Resposta é uma página de login do Google em vez de JSON | Implantação com acesso diferente de **Qualquer pessoa**, ou URL de teste (`/dev`) em vez de `/exec` |
 | Link de redefinir senha abre `localhost` ou dá erro | `APP_BASE_URL` no Render diferente do `URL_SITE` |
