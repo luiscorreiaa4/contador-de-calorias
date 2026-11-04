@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { demoLogin } from '../../services/auth.service';
 import { Button, type ButtonProps } from '../ui/button';
 
-/** Entra na conta de demonstração compartilhada, sem cadastro (para quem só quer conhecer o app). */
+/** Cria uma conta temporária de visitante e entra, sem cadastro (para quem só quer conhecer o app). */
 export const DemoLoginButton: React.FC<Pick<ButtonProps, 'size' | 'variant' | 'className'>> = (
   props,
 ) => {
@@ -36,6 +36,7 @@ export const DemoLoginButton: React.FC<Pick<ButtonProps, 'size' | 'variant' | 'c
         )}
         Ver demonstração
       </Button>
+      <p className="text-xs text-muted-foreground">Conta temporária, apagada em 24 h.</p>
       {mutation.isError && (
         <p role="alert" className="text-xs font-bold uppercase text-destructive">
           {mutation.error.message || 'Demonstração indisponível no momento.'}

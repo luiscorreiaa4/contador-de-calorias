@@ -50,6 +50,7 @@ Executar na **raiz** do monorepo:
 6. **Autenticação por E-mail (BL-12/BL-05):** Rotas públicas em `/api/auth/*` com `Cache-Control: no-store`; cadastro responde `202` sem JWT; login de conta não verificada responde `403` com `code: "EMAIL_NOT_VERIFIED"`; JWT carrega `tv` validado contra `users.token_version`.
 7. **Entrega de E-mail:** `Mailer` plugável (`SmtpMailer`/`MemoryMailer`) escolhido por `MAIL_TRANSPORT`; Mailpit em desenvolvimento (UI `http://localhost:8025`); `NODE_ENV=test` usa memória.
 8. **RBAC e Catálogo Global (D-22 / B1–B12):** Rotas administrativas sob `/api/admin/*` com guard `router.use(authenticate, requireAdmin)`; consulta de papel `role` por PK no PostgreSQL a cada requisição; auditoria atômica obrigatória (`admin_audit_log`); desativação sem deleção física (`active = false`).
+9. **Visitante Temporário:** `POST /api/auth/demo` cria a cada clique um usuário `is_guest` (apagado após 24 h, teto de 500 ativos); `blockGuestUser` bloqueia edição de conta e MFA com `403 DEMO_READ_ONLY`.
 
 ---
 

@@ -21,6 +21,9 @@ Este documento descreve detalhadamente os Requisitos Funcionais (RFs) e as regra
     resposta **202** genérica.
   - `POST /api/auth/reset-password`: Atualiza a senha na mesma transação em que consome o token e
     incrementa `token_version`; resposta **200** sem sessão.
+  - `POST /api/auth/demo`: Cria um visitante temporário (`is_guest`, e-mail `.invalid`, senha aleatória) com
+    perfil, metas e 7 dias de refeições, e devolve **200** com `{ user, token }`. Limite de 20 por IP em 15 min;
+    com 500 visitantes ativos responde **503** `DEMO_UNAVAILABLE`.
 - **Endpoints autenticados de conta:**
   - `GET /api/users/me`: Dados cadastrais do usuário logado (sem hash de senha).
   - `PUT /api/users/me`: Atualização de dados cadastrais, biometria e credenciais.

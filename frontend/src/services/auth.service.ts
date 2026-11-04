@@ -83,7 +83,7 @@ export async function loginUser(data: LoginFormData): Promise<AuthResponseData> 
   });
 }
 
-/** POST /auth/demo: sessão na conta de demonstração, sem senha (visitantes/recrutadores). */
+/** POST /auth/demo: cria um visitante temporário (`is_guest`) e devolve a sessão, sem senha. */
 export const demoLogin = () => apiFetch<AuthResponseData>('/auth/demo', { method: 'POST' });
 
 export interface MfaSetupData {
