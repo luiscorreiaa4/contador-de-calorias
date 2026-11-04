@@ -374,7 +374,7 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
                 aria-invalid={!!errors.weight}
                 inputMode="decimal"
                 placeholder="EX: 78.5"
-                className="w-full px-3 py-2 bg-background border-2 border-border text-sm font-black uppercase focus:border-ring focus:outline-none focus-visible:border-ring focus-visible:outline-none outline-none"
+                className="w-full px-3 py-2 bg-background border-2 border-border text-base md:text-sm font-black uppercase focus:border-ring focus:outline-none focus-visible:border-ring focus-visible:outline-none outline-none"
                 required
               />
             </div>
@@ -392,7 +392,7 @@ export const MeasurementsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
                 aria-invalid={!!errors.body_fat}
                 inputMode="decimal"
                 placeholder="EX: 18.0"
-                className="w-full px-3 py-2 bg-background border-2 border-border text-sm font-black uppercase focus:border-ring focus:outline-none focus-visible:border-ring focus-visible:outline-none outline-none"
+                className="w-full px-3 py-2 bg-background border-2 border-border text-base md:text-sm font-black uppercase focus:border-ring focus:outline-none focus-visible:border-ring focus-visible:outline-none outline-none"
               />
             </div>
             <div>

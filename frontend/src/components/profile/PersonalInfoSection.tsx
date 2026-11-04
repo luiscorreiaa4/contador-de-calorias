@@ -13,7 +13,7 @@ interface PersonalInfoSectionProps {
 }
 
 const inputBase =
-  'w-full pl-10 pr-4 py-2.5 bg-background border-2 rounded-none text-sm font-medium text-foreground outline-none transition-colors min-h-[48px]';
+  'w-full pl-10 pr-4 py-2.5 bg-background border-2 rounded-none text-base md:text-sm font-medium text-foreground outline-none transition-colors min-h-[48px]';
 const inputNormal =
   'border-border hover:border-foreground focus:border-ring focus:outline-none focus-visible:border-ring focus-visible:outline-none';
 const inputError = 'border-destructive bg-destructive/10 text-destructive focus:border-destructive';
@@ -129,7 +129,7 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
           </label>
           <select
             id="edit-sex"
-            className={`w-full pl-4 pr-10 py-2.5 bg-background border-2 rounded-none text-sm font-medium text-foreground uppercase outline-none transition-colors min-h-[48px] appearance-none cursor-pointer ${
+            className={`w-full pl-4 pr-10 py-2.5 bg-background border-2 rounded-none text-base md:text-sm font-medium text-foreground uppercase outline-none transition-colors min-h-[48px] appearance-none cursor-pointer ${
               errors.sex ? inputError : inputNormal
             }`}
             aria-invalid={!!errors.sex}

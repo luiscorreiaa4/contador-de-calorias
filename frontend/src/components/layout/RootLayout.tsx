@@ -45,7 +45,7 @@ const RootShell: React.FC = () => {
       {/* Skip to Main Content Link (A11y) */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-background focus:text-foreground focus:border-2 focus:border-border focus:shadow-hard focus:outline-none focus:font-black focus:text-xs focus:uppercase"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-[calc(0.5rem+env(safe-area-inset-top))] focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-background focus:text-foreground focus:border-2 focus:border-border focus:shadow-hard focus:outline-none focus:font-black focus:text-xs focus:uppercase"
       >
         Pular para o conteúdo principal
       </a>

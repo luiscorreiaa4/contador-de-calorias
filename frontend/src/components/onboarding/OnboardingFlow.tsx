@@ -162,7 +162,7 @@ export const OnboardingFlow: React.FC = () => {
   ];
 
   const inputBase =
-    'w-full pl-10 pr-4 py-3 bg-background border-2 border-border rounded-none text-sm font-black text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus-visible:border-ring focus-visible:outline-none outline-none transition-colors min-h-[48px]';
+    'w-full pl-10 pr-4 py-3 bg-background border-2 border-border rounded-none text-base md:text-sm font-black text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus-visible:border-ring focus-visible:outline-none outline-none transition-colors min-h-[48px]';
 
   return (
     <form

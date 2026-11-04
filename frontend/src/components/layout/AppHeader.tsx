@@ -74,7 +74,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onNavigateToStats, onNavig
     : 'U';
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-background border-b-2 border-border transition-colors duration-300">
+    <header className="sticky top-0 z-50 w-full pt-[env(safe-area-inset-top)] bg-background border-b-2 border-border transition-colors duration-300">
       {/* Neon accent top line */}
       <div className="h-1 w-full bg-primary" />
 

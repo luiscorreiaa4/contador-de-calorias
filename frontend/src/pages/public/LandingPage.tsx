@@ -230,7 +230,7 @@ export const LandingPage: React.FC = () => (
       aria-labelledby="perguntas-frequentes"
       className="max-w-6xl mx-auto px-4 sm:px-6 grid gap-10 lg:grid-cols-[1fr_1.6fr]"
     >
-      <div className="lg:sticky lg:top-24 self-start space-y-4">
+      <div className="lg:sticky lg:top-[calc(6rem+env(safe-area-inset-top))] self-start space-y-4">
         <SectionTitle id="perguntas-frequentes" eyebrow="Dúvidas">
           Perguntas frequentes
         </SectionTitle>

@@ -58,7 +58,8 @@ function greeting(name?: string): string {
 }
 
 export function verificationCodeEmail(code: string, name?: string): EmailTemplate {
-  const subject = `${BRAND}: confirme seu e-mail`;
+  // Código no assunto: aparece na notificação do celular sem abrir o e-mail. Nunca logar o assunto.
+  const subject = `${BRAND}: seu código é ${code}`;
   const text = [
     greeting(name),
     '',

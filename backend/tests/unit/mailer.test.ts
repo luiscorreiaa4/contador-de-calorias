@@ -44,7 +44,7 @@ describe('Mailer e templates (D-21 / A10)', () => {
 
   it('template de código contém o código, validade e orientação de descarte', () => {
     const tpl = verificationCodeEmail('042123', 'Ana <script>');
-    assert.match(tpl.subject, /confirme seu e-mail/i);
+    assert.strictEqual(tpl.subject, 'CalorieSync: seu código é 042123');
     assert.match(tpl.text, /042123/);
     assert.match(tpl.text, /15 minutos/);
     assert.match(tpl.text, /ignore esta mensagem/i);
