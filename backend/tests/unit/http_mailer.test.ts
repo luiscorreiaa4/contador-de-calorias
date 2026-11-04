@@ -45,9 +45,10 @@ describe('HttpMailer (MAIL_TRANSPORT=http)', () => {
     new HttpMailer({ url: `${base}${path}`, secret: SECRET, timeoutMs });
 
   /** A mensagem do erro é logada: não pode carregar URL, segredo, destinatário nem conteúdo. */
-  const assertSafeRejection = async (path: string, timeoutMs?: number) => {
+  const assertSafeRejection = async (path: string, expected: string, timeoutMs?: number) => {
     await assert.rejects(mailerFor(path, timeoutMs).send(MESSAGE), (error: unknown) => {
       assert.ok(error instanceof Error);
+      assert.strictEqual(error.message, expected);
       for (const leak of [base, '127.0.0.1', path, SECRET, MESSAGE.to, '123456']) {
         assert.ok(!error.message.includes(leak), `mensagem vazou "${leak}": ${error.message}`);
       }
@@ -83,37 +84,37 @@ describe('HttpMailer (MAIL_TRANSPORT=http)', () => {
 
   it('rejeita ok:false (segredo errado)', async () => {
     routes.set('/denied', (_req, _body, res) => json(res, 200, { ok: false }));
-    await assertSafeRejection('/denied');
+    await assertSafeRejection('/denied', 'mail_http_rejected');
   });
 
   it('rejeita ok que não seja exatamente true', async () => {
     routes.set('/truthy', (_req, _body, res) => json(res, 200, { ok: 'true' }));
-    await assertSafeRejection('/truthy');
+    await assertSafeRejection('/truthy', 'mail_http_rejected');
   });
 
   it('rejeita resposta HTML (ex.: página de login do Google)', async () => {
     routes.set('/html', (_req, _body, res) =>
       res.writeHead(200, { 'Content-Type': 'text/html' }).end('<html>login</html>'),
     );
-    await assertSafeRejection('/html');
+    await assertSafeRejection('/html', 'mail_http_invalid_response');
   });
 
   it('rejeita status 500 mesmo com corpo ok:true', async () => {
     routes.set('/500', (_req, _body, res) => json(res, 500, { ok: true }));
-    await assertSafeRejection('/500');
+    await assertSafeRejection('/500', 'mail_http_status_500');
   });
 
   it('rejeita JSON inválido', async () => {
     routes.set('/broken', (_req, _body, res) =>
       res.writeHead(200, { 'Content-Type': 'application/json' }).end('{ok:'),
     );
-    await assertSafeRejection('/broken');
+    await assertSafeRejection('/broken', 'mail_http_invalid_response');
   });
 
   it('aborta por timeout quando o script não responde', async () => {
     routes.set('/slow', () => {
       /* nunca responde; o after encerra a conexão */
     });
-    await assertSafeRejection('/slow', 100);
+    await assertSafeRejection('/slow', 'mail_http_timeout', 100);
   });
 });
