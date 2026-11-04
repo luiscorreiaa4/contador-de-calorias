@@ -23,4 +23,4 @@ O mantenedor do projeto (responsável pelo repositório) conduz e decide. Regist
 Escrever a causa raiz, o que mudou para não repetir, e atualizar este documento e a política de privacidade se necessário.
 
 ## 6. Retenção declarada
-Conta excluída: remoção imediata e em cascata no banco. Backups e logs: no máximo 30 dias. O mesmo texto está na Política de Privacidade (`frontend/src/pages/public/LegalPage.tsx`).
+Conta excluída: remoção imediata e em cascata no banco. Backups e registros técnicos do provedor de hospedagem: por um período limitado, até serem descartados (sem prazo fixo prometido). O mesmo texto está na Política de Privacidade (`frontend/src/pages/public/LegalPage.tsx`).

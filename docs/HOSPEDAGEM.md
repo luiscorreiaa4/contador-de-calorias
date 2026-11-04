@@ -149,7 +149,7 @@ O cadastro só termina com o código de 6 dígitos enviado por e-mail, e "Esquec
 - **Um Gmail como remetente só chega na caixa de entrada se o envio sair do próprio Google.** Enviado por um terceiro (ex.: Brevo com remetente `@gmail.com`), falha na checagem DMARC e vai para o spam.
 - O **Google Apps Script** resolve as duas coisas de graça: é um pequeno programa na sua conta Google com um endereço HTTPS. A API manda o e-mail para esse endereço e o script envia pelo seu Gmail. Limite de ~100 destinatários/dia.
 
-> A API já tem o adaptador `MAIL_TRANSPORT=http` (`HttpMailer` em `backend/src/mail/mailer.ts`): faz `POST` de `{ secret, to, subject, text, html }` para `MAIL_HTTP_URL` e só considera enviado se o script responder `{"ok":true}`. `MAIL_HTTP_URL`/`MAIL_HTTP_SECRET` são validadas ao iniciar (`backend/src/config/env.ts`). Em desenvolvimento nada muda: o Mailpit continua com `MAIL_TRANSPORT=smtp`. Detalhes em `docs/EMAIL_SETUP.md` (seção 3.4).
+> A API já tem o adaptador `MAIL_TRANSPORT=http` (`HttpMailer` em `backend/src/mail/mailer.ts`): faz `POST` de `{ secret, to, subject, text, html }` para `MAIL_HTTP_URL` e só considera enviado se o script responder `{"ok":true}`. `MAIL_HTTP_URL`/`MAIL_HTTP_SECRET` são validadas ao iniciar (`backend/src/config/env.ts`). Em desenvolvimento nada muda: o Mailpit continua com `MAIL_TRANSPORT=smtp`.
 
 #### 5.1 Conta Gmail do projeto
 1. Crie um Gmail só para o projeto (ex.: `caloriesync.app@gmail.com`). É o remetente que os usuários verão, e assim o seu e-mail pessoal fica de fora.
@@ -411,7 +411,7 @@ Adicione primeiro no Render/Netlify, depois faça o merge. Segredos nunca entram
 - Monorepo: `frontend/` (React 19, Vite, TanStack Query, Tailwind), `backend/` (Express + TypeScript, 4 camadas `routes → controllers → services → models`, SQL puro com `pg`, sem ORM), `shared/` (schemas Zod e tipos compartilhados).
 - Segurança: JWT em cookie HttpOnly `SameSite=Strict`, verificação de e-mail, bloqueio de conta, rate limit em Postgres, captcha opcional, MFA (TOTP) obrigatório para admins, RBAC com papel lido do banco a cada requisição, CORS estrito e papéis de banco com menor privilégio.
 - Qualidade: testes (backend com `node:test`, front com Vitest/RTL/MSW), CI no GitHub Actions, Dockerfile.
-- Mais detalhes: `docs/ARCHITECTURE.md`, `docs/DECISOES.md`, `docs/DB_ROLES.md`, `docs/EMAIL_SETUP.md`, `docs/ADMIN.md`, `docs/MIGRATIONS.md` e o grafo em `.ua/knowledge-graph.json`.
+- Mais detalhes: `docs/ARCHITECTURE.md`, `docs/DECISOES.md`, `docs/DB_ROLES.md`, `docs/ADMIN.md`, `docs/MIGRATIONS.md` e o grafo em `.ua/knowledge-graph.json`.
 
 ---
 

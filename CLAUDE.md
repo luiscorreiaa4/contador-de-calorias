@@ -88,7 +88,6 @@ Executar na **raiz** do monorepo:
   - Design System e Cores: [docs/CORES.md](docs/CORES.md)
   - Navegação e Rotas: [docs/UX_NAVIGATION.md](docs/UX_NAVIGATION.md)
   - Migrações: [docs/MIGRATIONS.md](docs/MIGRATIONS.md)
-  - E-mail transacional: [docs/EMAIL_SETUP.md](docs/EMAIL_SETUP.md)
   - Decisões de arquitetura: [docs/DECISOES.md](docs/DECISOES.md)
 
 ---

@@ -220,7 +220,7 @@ As variáveis do backend ficam em `backend/.env`. Os campos de conexão devem se
 | `DB_SSL_CA` | Certificado de autoridade certificadora para conexões SSL, quando necessário |
 | `TRUST_PROXY` | Número de saltos de proxy confiáveis em ambientes com proxy reverso |
 
-As decisões de SSL e proxy estão descritas em [decisões de arquitetura, D-19](docs/DECISOES.md). O passo a passo de Mailpit, DNS/SPF/DKIM/DMARC e provedores SMTP está em [configuração de e-mail](docs/EMAIL_SETUP.md).
+As decisões de SSL e proxy estão descritas em [decisões de arquitetura, D-19](docs/DECISOES.md). O envio de e-mail em produção (Gmail do projeto via Google Apps Script) está no [plano de hospedagem](docs/HOSPEDAGEM.md).
 
 ### Comandos de desenvolvimento
 
@@ -292,7 +292,6 @@ O [guia de navegação](docs/UX_NAVIGATION.md) detalha as responsabilidades das 
 | [Navegação](docs/UX_NAVIGATION.md) | Organização das áreas e responsabilidades das páginas |
 | [Migrações](docs/MIGRATIONS.md) | Versionamento e manutenção do esquema de banco |
 | [Testes](docs/TESTING.md) | Comandos, convenções e estratégia de testes |
-| [E-mail transacional](docs/EMAIL_SETUP.md) | Mailpit local, SMTP em produção, DNS e diagnóstico |
 | [Identidade visual](docs/CORES.md) | Paleta, tokens semânticos e critérios de contraste |
 | [Roadmap](docs/ROADMAP.md) | Fases de desenvolvimento e marcos do produto |
 | [Decisões](docs/DECISOES.md) | Decisões de arquitetura e produto (D-xx) |
