@@ -81,8 +81,7 @@ Executar na **raiz** do monorepo:
   - Estilo e UI: [.agents/rules/style-rules.md](.agents/rules/style-rules.md)
   - Inspeção no Browser (E2E): [.agents/skills/browser-inspection/SKILL.md](.agents/skills/browser-inspection/SKILL.md)
 - **Documentação de Sistema:**
-  - Manual do Administrador (RBAC & Audit): [docs/ADMIN.md](docs/ADMIN.md)
-  - Manual de Curadoria do Catálogo: [docs/CURADORIA_CATALOGO.md](docs/CURADORIA_CATALOGO.md)
+  - Manual do Administrador, RBAC, Auditoria e Curadoria do Catálogo: [docs/ADMIN.md](docs/ADMIN.md)
   - Arquitetura & Banco (ER): [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
   - Especificação e Fórmulas de Negócio: [docs/SPEC.md](docs/SPEC.md)
   - Estratégia de Testes: [docs/TESTING.md](docs/TESTING.md)

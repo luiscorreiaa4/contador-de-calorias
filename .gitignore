@@ -27,7 +27,15 @@ coverage
 # Prompts
 prompts/
 *.prompt
-!docs/archive/**
+
+# Material local, fora do repositório: estudo pessoal, planos de agentes já executados
+# e skills de terceiros (reinstaláveis via skills-lock.json)
+docs/guia-tech/
+docs/superpowers/
+.claude/skills/design-motion-principles/
+.claude/skills/grill-me/
+.agents/skills/design-motion-principles/
+.agents/skills/grill-me/
 
 # Environment
 .env
