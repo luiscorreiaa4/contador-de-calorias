@@ -58,8 +58,8 @@ const LegalPageLayout: React.FC<LegalPageLayoutProps> = ({
 
     <div className="mt-10 pt-6 border-t-2 border-border text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
       <p>
-        Dúvidas sobre este documento? Fale com o encarregado de dados em{' '}
-        <span className="text-foreground">privacidade@caloriesync.app</span>.
+        Dúvidas sobre este documento? Fale conosco em{' '}
+        <span className="text-foreground">caloriesync.app@gmail.com</span>.
       </p>
     </div>
   </article>
@@ -124,7 +124,7 @@ export const PrivacyPage: React.FC = () => (
     icon={<ShieldCheck className="w-3 h-3" aria-hidden="true" />}
     eyebrow="Documento legal"
     title="Política de Privacidade"
-    updatedAt="02/11/2026"
+    updatedAt="04/11/2026"
   >
     <LegalSection title="1. Dados que coletamos">
       <p>
@@ -163,8 +163,9 @@ export const PrivacyPage: React.FC = () => (
     <LegalSection title="4. Retenção">
       <p>
         Mantemos seus dados enquanto sua conta estiver ativa. Ao excluir a conta, todos os registros
-        associados são removidos de forma permanente do banco de dados. Cópias de segurança e logs
-        técnicos são mantidos por no máximo 30 dias e depois descartados.
+        associados são removidos de forma permanente do banco de dados. Cópias de segurança e
+        registros técnicos do provedor de hospedagem podem manter esses dados por um período
+        limitado, até serem descartados.
       </p>
     </LegalSection>
 
@@ -247,8 +248,8 @@ export const SecurityPage: React.FC = () => (
 
     <LegalSection title="4. Como relatar uma falha">
       <p>
-        Se você identificar uma falha de segurança, entre em contato pelo e-mail de privacidade
-        antes de tornar o problema público. Vamos investigar e responder o quanto antes.
+        Se você identificar uma falha de segurança, entre em contato pelo e-mail abaixo antes de
+        tornar o problema público. Vamos investigar e responder o quanto antes.
       </p>
     </LegalSection>
   </LegalPageLayout>

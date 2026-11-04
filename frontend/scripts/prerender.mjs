@@ -28,7 +28,8 @@ const esc = (s) =>
 const ldJson = (obj) => JSON.stringify(obj).replace(/</g, '\\u003c');
 
 function head({ path, title, description }) {
-  const url = `${SITE_URL}${path === '/' ? '/' : path}`;
+  // Com barra: o Netlify serve termos/index.html e redireciona /termos (301) para /termos/.
+  const url = `${SITE_URL}${path === '/' ? '/' : `${path}/`}`;
   const t = esc(title);
   const d = esc(description);
   return [

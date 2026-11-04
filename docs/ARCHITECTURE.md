@@ -373,3 +373,22 @@ ORDER BY date_val ASC;
 
 1. **Requisito de Versão:** O CalorieSync requer PostgreSQL 14+ (o ambiente padrão utiliza PostgreSQL 16 via Docker Compose).
 2. **Geração Nativa:** A partir do PostgreSQL 13, a função criptográfica `gen_random_uuid()` integra o núcleo do banco de dados (core), não exigindo extensões externas como `pgcrypto`. As migrações novas utilizam `gen_random_uuid()` nativo com garantia de performance e portabilidade. Migrações de baseline mantêm a extensão `uuid-ossp` apenas para compatibilidade histórica de bootstrapping.
+
+---
+
+## 8. PWA: Manifesto e Service Worker [CONFIRMADO]
+
+Arquivos estáticos em `frontend/public/`, servidos sem passar pelo build do Vite.
+
+**Manifesto (`manifest.webmanifest`):**
+- `id` e `start_url` em `/app`, `scope` em `/`, `display: standalone`, `lang: pt-BR`, categorias `health`, `fitness` e `lifestyle`.
+- Ícones: `favicon.svg` (`any`), PNG `icons/icon-192.png` e `icons/icon-512.png` (`any`) e `icons/maskable-512.png` (`maskable`, com margem de segurança para o recorte do Android). O iOS usa `icons/apple-touch-icon.png`, declarado em `index.html`, porque ignora os ícones do manifesto.
+- `screenshots/`: três capturas `narrow` (1080×1920: Diário, Histórico, Metas) e uma `wide` (1920×1080: Diário). O Chrome as exibe no diálogo de instalação.
+- `shortcuts`: atalhos para Diário (`/app`), Histórico (`/app/historico`) e Metas (`/app/metas`), acessíveis com um toque longo no ícone instalado.
+
+**Service Worker (`sw.js`):**
+- O cache se chama `caloriesync-cache-<CACHE_VERSION>`. No `activate`, caches com outro nome são apagados. **Incremente `CACHE_VERSION` sempre que mudar a lista de pré-cache ou a estratégia**, senão quem já instalou o app continua com os arquivos antigos.
+- O pré-cache (`install`) inclui `/spa.html`, o manifesto, `favicon.svg` e os ícones PNG de 192 e 512.
+- Navegação usa Network-First (A-101), com fallback para o cache e depois para `/spa.html` quando o usuário está offline. Os demais GETs usam Stale-While-Revalidate.
+- Não intercepta `/api/*`, métodos diferentes de GET, `localhost` nem `127.0.0.1`, para evitar conflito com o HMR do Vite.
+- Notificações push usam `icons/icon-192.png` como `icon` e `badge`, porque o Android não renderiza SVG em notificação.

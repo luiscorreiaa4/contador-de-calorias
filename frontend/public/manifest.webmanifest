@@ -1,12 +1,17 @@
 {
+  "id": "/app",
   "name": "CalorieSync — Contador de Calorias",
   "short_name": "CalorieSync",
   "description": "Contador de calorias e controle de macronutrientes brutalista.",
+  "lang": "pt-BR",
+  "dir": "ltr",
   "start_url": "/app",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0A0A0A",
   "theme_color": "#0A0A0A",
   "orientation": "portrait-primary",
+  "categories": ["health", "fitness", "lifestyle"],
   "icons": [
     {
       "src": "/favicon.svg",
@@ -15,10 +20,69 @@
       "purpose": "any"
     },
     {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/diario-mobile.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Diário com calorias do dia e registro de refeições"
+    },
+    {
+      "src": "/screenshots/historico-mobile.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Histórico de calorias por dia"
+    },
+    {
+      "src": "/screenshots/metas-mobile.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Metas de objetivo e nível de atividade"
+    },
+    {
+      "src": "/screenshots/diario-desktop.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Diário com calorias e macronutrientes do dia"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Diário",
+      "url": "/app",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Histórico",
+      "url": "/app/historico",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Metas",
+      "url": "/app/metas",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }

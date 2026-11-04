@@ -1,6 +1,12 @@
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const CACHE_NAME = `caloriesync-cache-${CACHE_VERSION}`;
-const STATIC_ASSETS = ['/spa.html', '/manifest.webmanifest', '/favicon.svg'];
+const STATIC_ASSETS = [
+  '/spa.html',
+  '/manifest.webmanifest',
+  '/favicon.svg',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -102,8 +108,9 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: data.body,
-    icon: '/favicon.svg',
-    badge: '/favicon.svg',
+    // Android não renderiza SVG em notificação
+    icon: '/icons/icon-192.png',
+    badge: '/icons/icon-192.png',
     vibrate: shouldVibrate ? [100, 50, 100] : undefined,
     silent: !shouldVibrate,
     data: {
