@@ -9,3 +9,4 @@ docs
 .claude
 .ua
 results.sarif
+frontend/test-results

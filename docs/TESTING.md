@@ -32,6 +32,22 @@ npm run lint
 npm run build
 ```
 
+### Simular o CI antes do push
+
+```bash
+npm run test:full
+```
+
+Roda os mesmos passos de `.github/workflows/ci.yml`, na mesma ordem, e para no primeiro que falhar: audit, gitleaks, typecheck, format, knip, lint, testes do backend com cobertura, rollback de migrações, carga, E2E, testes do frontend com cobertura, build e `docker build`. Leva de 3 a 5 minutos.
+
+Pré-requisitos: `npm run docker:up` (PostgreSQL) e `backend/.env` com `DATABASE_URL_TEST`. O gitleaks (`winget install Gitleaks.Gitleaks`) e o Docker Desktop são opcionais: sem eles, os passos são pulados com aviso no final. O teste de carga usa a porta `3201`, então pode rodar com o `dev:all` aberto.
+
+Diferenças em relação ao CI:
+
+- **Variáveis de ambiente:** localmente vêm do `backend/.env`; no CI, do bloco `env:` de cada passo do `ci.yml`. Ao criar um script que dependa de uma variável nova, adicione-a também ao `ci.yml`, senão o passo passa aqui e falha lá.
+- **Arquivos gerados no CI:** a action do gitleaks grava `results.sarif` na raiz (ignorado no `.prettierignore`); o gitleaks local não gera esse arquivo.
+- **Manutenção:** o script (`scripts/run-full-verification.mjs`) é uma cópia da lista de passos do `ci.yml`. Ao adicionar ou mudar um passo no CI, atualize o script também.
+
 ---
 
 ## 2. O Que Existe e Status Verificado em Sessão [CONFIRMADO]
