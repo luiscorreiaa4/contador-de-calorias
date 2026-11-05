@@ -1,85 +1,77 @@
 <div align="center">
 
-# 🔥 CalorieSync
+# CalorieSync
 
-### Saiba quanto comer e registre o que comeu.
+Contador de calorias full-stack que calcula metas de calorias e macros e registra refeições com a Tabela TACO. Projeto solo, feito para praticar produto de ponta a ponta: do esquema SQL ao deploy.
 
-Contador de calorias **gratuito** que calcula sua meta diária de calorias e macros a partir do seu corpo e da sua rotina, com alimentos brasileiros da **Tabela TACO**.
+<a href="https://caloriesync-luiscorreia.netlify.app/"><img src="https://img.shields.io/badge/DEMO_AO_VIVO-c8ff00?style=for-the-badge&logoColor=000" alt="Abrir a demo" /></a>
 
-<a href="https://caloriesync-luiscorreia.netlify.app/"><img src="https://img.shields.io/badge/ABRIR_O_APP-c8ff00?style=for-the-badge&logoColor=000" alt="Abrir o CalorieSync" /></a>
-&nbsp;
-<a href="https://caloriesync-luiscorreia.netlify.app/"><img src="https://img.shields.io/badge/%F0%9F%91%81_VER_DEMONSTRA%C3%87%C3%83O-000000?style=for-the-badge" alt="Ver demonstração sem cadastro" /></a>
-
-<sub>Sem cadastro: clique em <b>Ver demonstração</b> na página inicial e explore uma conta de visitante por 2 horas.</sub>
+<sub>Sem cadastro: o botão <b>Ver demonstração</b> cria uma conta de visitante que dura 2 horas.</sub>
 
 <br /><br />
 
-<img src="docs/img/landing-desktop.png" alt="Página inicial do CalorieSync no desktop" width="760" />
+<img src="frontend/public/screenshots/diario-desktop.png" alt="Diário no desktop com calorias e macros do dia" width="760" />
 &nbsp;
-<img src="docs/img/landing-mobile.png" alt="Página inicial do CalorieSync no celular" width="190" />
+<img src="frontend/public/screenshots/diario-mobile.png" alt="Diário no celular" width="190" />
 
 </div>
 
 ---
 
-## Por que o CalorieSync
+## O que este projeto demonstra
 
-- 🎯 **Meta pronta em minutos.** Informe peso, altura, idade, rotina e objetivo; o app calcula TMB, TDEE e as calorias, proteínas, carboidratos e gorduras do dia. Dá para ajustar à mão quando quiser.
-- 🍚 **Comida de verdade, do Brasil.** Busque na Tabela TACO sem se preocupar com acentos ou maiúsculas e lance café, almoço, jantar e lanches em gramas.
-- ⚡ **Registro rápido.** Copie refeições ou o dia anterior, use recentes, favoritos e combos salvos.
-- 📈 **Evolução à vista.** Gráficos de 7 e 30 dias para calorias e macros, além de peso e gordura corporal.
-- 📱 **Instala como app.** PWA com tema claro e escuro, funciona no celular e avisa quando você está offline.
-- 🔒 **Seus dados são seus.** Confirmação de e-mail, MFA, exportação dos dados e exclusão da conta a qualquer momento.
+**Backend sem atalhos**
+- API Express em 4 camadas (`routes → controllers → services → models`) com SQL parametrizado puro, **sem ORM**. Transações atômicas em toda escrita composta.
+- Todo payload validado com Zod na rota; os schemas ficam em `shared/` e são os mesmos contratos usados pelo frontend.
+- 19 migrações versionadas com `node-pg-migrate`, regra de imutabilidade das já aplicadas ([D-13](docs/DECISOES.md)) e teste de rollback no CI.
 
-## Como funciona
+**Segurança tratada como requisito**
+- Cadastro com confirmação de e-mail: códigos guardados só como HMAC-SHA256 com pepper, tokens de reset como SHA-256, respostas idênticas existindo ou não a conta (sem enumeração).
+- JWT em cookie com `token_version` conferido no banco; MFA por TOTP; rate limiting, Helmet e CORS.
+- Painel administrativo com RBAC que consulta o papel no banco a cada requisição (nunca por claim do JWT), trilha de auditoria gravada na mesma transação da escrita e desativação em vez de exclusão de alimentos.
+- Avaliei Row Level Security, medi o custo e documentei por que não adotei agora e quando reavaliar ([docs/DB_ROLES.md](docs/DB_ROLES.md)).
 
-| 1. Conte sobre você | 2. Registre o que comeu | 3. Veja a evolução |
-| --- | --- | --- |
-| Corpo, rotina e objetivo viram uma meta diária de calorias e macros. | Alimentos da TACO em gramas, refeição por refeição. | Semana, mês, peso e medidas: saiba se está dentro da meta. |
+**Frontend com cuidado de produto**
+- React 19 + TanStack Query: todo dado de servidor passa por serviços tipados, com estados de carregamento, erro e vazio tratados.
+- Mobile com navegação por swipe estilo pager (telas vivas e prefetch), PWA, tema claro/escuro e correções específicas de iOS (zoom, área segura, colar código).
+- Design system próprio com tokens semânticos e uma guarda no lint que reprova cores literais.
+- Acessibilidade: modais com focus trap via Radix, sem `alert`/`confirm` nativos.
 
-## Por dentro do app
+**Engenharia e qualidade**
+- Pipeline de CI que roda: audit de dependências, Gitleaks, typecheck, Prettier, detecção de código morto (knip), ESLint, testes com cobertura (backend com PostgreSQL real e frontend), rollback de migrações, smoke de carga, E2E com Playwright e build da imagem Docker.
+- Teste de carga semanal agendado em workflow separado.
+- Testes de backend rodam só em banco `*_test` (o pool aborta caso contrário) e uma guarda de lint garante que nenhum teste deixe conexão aberta.
+- Decisões de arquitetura registradas como ADRs numerados em [docs/DECISOES.md](docs/DECISOES.md), com contexto e alternativas descartadas.
+
+## Stack
+
+| Camada | Tecnologias |
+| --- | --- |
+| Frontend | React 19, Vite 8, TypeScript, React Router 7, TanStack Query 5, React Hook Form, Tailwind CSS, Radix UI, Recharts |
+| Backend | Node.js 24, Express 4, TypeScript, `pg`, Zod, JWT, bcrypt, nodemailer |
+| Banco | PostgreSQL 14+, `node-pg-migrate` |
+| Testes | Node Test Runner + Supertest, Vitest + Testing Library + MSW, Playwright |
+| Infra | GitHub Actions, Docker, Netlify (front), Render e Neon (API e banco) |
+
+## O app
 
 <div align="center">
 
-<img src="frontend/public/screenshots/diario-desktop.png" alt="Diário no desktop com calorias e macros do dia" width="860" />
-
-<br /><br />
-
-<img src="frontend/public/screenshots/diario-mobile.png" alt="Diário no celular com o botão Nova refeição" width="230" />
-&nbsp;
 <img src="frontend/public/screenshots/historico-mobile.png" alt="Gráfico de calorias por dia no histórico" width="230" />
 &nbsp;
 <img src="frontend/public/screenshots/metas-mobile.png" alt="Tela de metas com objetivo e nível de atividade" width="230" />
 
-<sub><b>Diário</b> · <b>Histórico</b> · <b>Metas</b></sub>
+<sub><b>Histórico</b> · <b>Metas</b></sub>
 
 </div>
 
-## Feito com
+Calcula TMB, TDEE e macros a partir de corpo, rotina e objetivo; busca alimentos da TACO ignorando acentos; copia refeições e dias anteriores; mostra evolução de calorias, macros, peso e gordura corporal; permite exportar os dados e excluir a conta (LGPD).
 
-React 19 · Vite 8 · TypeScript · Tailwind CSS · Radix UI · TanStack Query · Node.js 24 · Express · PostgreSQL · Zod
-
-<details>
-<summary><b>Stack completa</b></summary>
-
-| Camada | Tecnologias principais |
-| --- | --- |
-| Frontend | React 19, Vite 8, TypeScript 6 e React Router 7 |
-| Interface | Tailwind CSS 3, Radix UI, Recharts e Lucide React |
-| Dados e formulários | TanStack Query 5, React Hook Form e Zod 3 |
-| Backend | Node.js 24, Express 4 e TypeScript 5, com execução via `tsx` |
-| Autenticação e proteção HTTP | JWT com `token_version`, bcrypt, verificação de e-mail por código, reset por link, Helmet, CORS e rate limiting |
-| E-mail transacional | SMTP via `nodemailer` (Mailpit em desenvolvimento) e caixa em memória nos testes |
-| Banco de dados | PostgreSQL 14+, driver `pg` e migrações com `node-pg-migrate` |
-| Testes | Node Test Runner e Supertest no backend; Vitest, Testing Library e MSW no frontend |
-
-</details>
-
-O projeto segue em evolução: login social, proteção antiautomação nas rotas públicas e refresh tokens estão no [roadmap](docs/ROADMAP.md).
+Próximos passos (login social, proteção antiautomação, refresh tokens) estão no [roadmap](docs/ROADMAP.md).
 
 ---
 
-## 🛠️ Para desenvolvedores
+## Referência técnica
 
 ### Executar localmente
 
